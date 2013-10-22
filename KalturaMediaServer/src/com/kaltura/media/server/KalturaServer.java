@@ -1,0 +1,178 @@
+package com.kaltura.media.server;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import org.apache.log4j.Logger;
+
+
+import com.kaltura.client.KalturaClient;
+import com.kaltura.client.KalturaConfiguration;
+import com.kaltura.client.enums.KalturaSessionType;
+
+public class KalturaServer {
+	public static int MEDIA_SERVER_PARTNER_ID = -5;
+
+	protected final static String KALTURA_SERVER_URL = "KalturaServerURL";
+	protected final static String KALTURA_SERVER_ADMIN_SECRET = "KalturaServerAdminSecret";
+	protected final static String KALTURA_SERVER_TIMEOUT = "KalturaServerTimeout";
+	protected final static String KALTURA_SERVER_MANAGERS = "KalturaServerManagers";
+
+	protected static Logger logger;
+	protected static KalturaServer instance;
+	protected static Map<String, Object> config;
+	protected static KalturaClient client;
+	protected static String hostname;
+	
+	protected List<IManager> managers;
+
+	protected KalturaServer() throws KalturaServerException {
+		logger.debug("Initializing Kaltura server");
+		KalturaServer.instance = this;
+		
+		try {
+			hostname = InetAddress.getLocalHost().getHostName();
+			logger.debug("Kaltura server host name: " + hostname);
+		} catch (UnknownHostException e) {
+			throw new KalturaServerException("Failed to determine server host name");
+		}
+
+		initClient();
+
+		managers = new ArrayList<IManager>();
+		if (config.containsKey(KalturaServer.KALTURA_SERVER_MANAGERS)) {
+			String managersNames = (String) config.get(KalturaServer.KALTURA_SERVER_MANAGERS);
+			logger.debug("Initializing server managers: " + managersNames);
+			initManagers(managersNames.replaceAll(" ", "").split(","));
+		}
+	}
+
+	protected void initClient() throws KalturaServerException {
+		final KalturaConfiguration clientConfig = new KalturaConfiguration();
+		clientConfig.setPartnerId(KalturaServer.MEDIA_SERVER_PARTNER_ID);
+		clientConfig.setClientTag("MediaServer-" + hostname);
+
+		if (!config.containsKey(KalturaServer.KALTURA_SERVER_URL))
+			throw new KalturaServerException("Missing configuration [" + KalturaServer.KALTURA_SERVER_URL + "]");
+
+		if (!config.containsKey(KalturaServer.KALTURA_SERVER_ADMIN_SECRET))
+			throw new KalturaServerException("Missing configuration [" + KalturaServer.KALTURA_SERVER_ADMIN_SECRET + "]");
+
+		clientConfig.setEndpoint((String) config.get(KalturaServer.KALTURA_SERVER_URL));
+		logger.debug("Initializing Kaltura client, URL: " + clientConfig.getEndpoint());
+
+		if (config.containsKey(KalturaServer.KALTURA_SERVER_TIMEOUT))
+			clientConfig.setTimeout(Integer.valueOf((String) config.get(KalturaServer.KALTURA_SERVER_TIMEOUT)));
+
+		client = new KalturaClient(clientConfig);
+		generateClientSession();
+
+		TimerTask generateSession = new TimerTask() {
+			
+			@Override
+			public void run() {
+				generateClientSession();
+			}
+		};
+
+		long sessionGenerationInterval = 86000000;
+		
+		Timer timer = new Timer();
+		timer.schedule(generateSession, sessionGenerationInterval, sessionGenerationInterval);
+	}
+
+	protected void generateClientSession() {
+		String adminSecretForSigning = (String) config.get(KalturaServer.KALTURA_SERVER_ADMIN_SECRET);
+		String userId = "MediaServer";
+		KalturaSessionType type = KalturaSessionType.ADMIN;
+		int expiry = 86400;
+		String privileges = "";
+		String sessionId;
+		
+		try {
+			sessionId = client.generateSessionV2(adminSecretForSigning, userId, type, KalturaServer.MEDIA_SERVER_PARTNER_ID, expiry, privileges);
+		} catch (Exception e) {
+			logger.error("Initializing Kaltura client, URL: " + client.getKalturaConfiguration().getEndpoint());
+			return;
+		}
+
+		client.setSessionId(sessionId);
+		logger.debug("Kaltura client session id: " + sessionId);
+	}
+
+	protected void initManagers(String[] managersNames) throws KalturaServerException {
+		Object obj; 
+		IManager manager;
+		for (String managerName : managersNames) {
+			try {
+				obj = Class.forName(managerName).newInstance();
+				logger.debug("Initializing Kaltura manager " + obj.getClass().getName());
+			} catch (ClassNotFoundException e) {
+				throw new KalturaServerException("Server manager class [" + managerName + "] not found");
+			} catch (Exception e) {
+				throw new KalturaServerException("Server manager class [" + managerName + "] failed to instantiate", e);
+			}
+			
+			if(!(obj instanceof IManager))
+				throw new KalturaServerException("Server manager class [" + managerName + "] is not instance of IManager");
+			
+			manager = (IManager) obj;
+			managers.add(manager);
+			manager.init();
+			logger.info("Initialized Kaltura manager " + obj.getClass().getName());
+		}
+	}
+
+	public static <T extends IManager> IManager getManager(Class<T> managerInterface){
+		if(instance == null)
+			return null;
+		
+		if(!managerInterface.isInterface() || !IManager.class.isAssignableFrom(managerInterface))
+			return null;
+		
+		for(IManager manager : instance.managers){
+			if(managerInterface.isInstance(manager))
+				return manager;
+		}
+		
+		return null;
+	}
+
+	public static KalturaServer init(Logger logger, Map<String, Object> config) throws KalturaServerException {
+		KalturaServer.logger = logger;
+		KalturaServer.config = config;
+		
+		if (instance == null)
+			instance = new KalturaServer();
+
+		return instance;
+	}
+
+	public static KalturaServer getInstance() throws KalturaServerException {
+		if (instance == null)
+			throw new KalturaServerException("Server not initialized");
+
+		return instance;
+	}
+
+	public static Map<String, Object> getConfiguration() {
+		return config;
+	}
+
+	public static KalturaClient getClient() {
+		return client;
+	}
+
+	public static String getHostName() {
+		return hostname;
+	}
+
+	public static Logger getLogger() {
+		return logger;
+	}
+}
