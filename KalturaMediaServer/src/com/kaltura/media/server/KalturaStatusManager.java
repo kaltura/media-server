@@ -24,7 +24,7 @@ public abstract class KalturaStatusManager implements IStatusManager {
 		if (!config.containsKey(KalturaStatusManager.KALTURA_SERVER_STATUS_INTERVAL))
 			throw new KalturaManagerException("Missing configuration [" + KalturaStatusManager.KALTURA_SERVER_STATUS_INTERVAL + "]");
 
-		interval = Long.valueOf((String) config.get(KalturaStatusManager.KALTURA_SERVER_STATUS_INTERVAL)) * 1000; // miliseconds
+		interval = Long.parseLong((String) config.get(KalturaStatusManager.KALTURA_SERVER_STATUS_INTERVAL)) * 1000; // miliseconds
 		
 		TimerTask timerTask = new TimerTask(){
 
@@ -43,7 +43,7 @@ public abstract class KalturaStatusManager implements IStatusManager {
 
 	public void reportStatus() {
 		try {
-			KalturaServer.getLogger().debug("Reporting server status [" + hostname + "]");
+			KalturaServer.getLogger().debug("KalturaStatusManager::reportStatus Reporting server status [" + hostname + "]");
 			client.getMediaServerService().reportStatus(hostname, getServerStatus());
 		} catch (KalturaApiException e) {
 			IExceptionManager exceptionManager = (IExceptionManager) KalturaServer.getManager(IExceptionManager.class);

@@ -67,7 +67,7 @@ public class KalturaServer {
 		logger.debug("Initializing Kaltura client, URL: " + clientConfig.getEndpoint());
 
 		if (config.containsKey(KalturaServer.KALTURA_SERVER_TIMEOUT))
-			clientConfig.setTimeout(Integer.valueOf((String) config.get(KalturaServer.KALTURA_SERVER_TIMEOUT)));
+			clientConfig.setTimeout(Integer.parseInt((String) config.get(KalturaServer.KALTURA_SERVER_TIMEOUT)));
 
 		client = new KalturaClient(clientConfig);
 		generateClientSession();
