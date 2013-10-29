@@ -3,7 +3,11 @@ package com.kaltura.media.server.wowza.listeners;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.enums.KalturaDVRStatus;
 import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
@@ -20,24 +24,25 @@ import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.IMediaStreamActionNotify;
 import com.wowza.wms.stream.livedvr.ILiveStreamDvrRecorderControl;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerControl;
-import com.wowza.wms.stream.livetranscoder.LiveStreamTranscoderItem;
 import com.wowza.wms.plugin.integration.liverecord.ILiveStreamRecord;
 import com.wowza.wms.plugin.integration.liverecord.LiveStreamRecorderMP4;
 
 public class LiveStreamEntry extends ModuleBase {
 
 	protected final static String REQUEST_PROPERTY_PARTNER_ID = "p";
+	protected final static String REQUEST_PROPERTY_ENTRY_ID = "e";
 	protected final static String REQUEST_PROPERTY_SERVER_INDEX = "i";
 	protected final static String REQUEST_PROPERTY_TOKEN = "t";
 
 	protected final static String CLIENT_PROPERTY_CONNECT_APP = "connectapp";
 	protected final static String CLIENT_PROPERTY_PARTNER_ID = "partnerId";
 	protected final static String CLIENT_PROPERTY_SERVER_INDEX = "serverIndex";
-	protected final static String CLIENT_PROPERTY_ENTRY = "entry";
+	protected final static String CLIENT_PROPERTY_ENTRY_ID = "entryId";
 	
 	protected final static int INVALID_SERVER_INDEX = -1;
 
-	private Map<String, ILiveStreamRecord> recorders = new HashMap<String, ILiveStreamRecord>();
+	private Map<String, ILiveStreamRecord> recorders = new ConcurrentHashMap<String, ILiveStreamRecord>();
+	private Map<String, KalturaLiveStreamEntry> entries = new ConcurrentHashMap<String, KalturaLiveStreamEntry>();
 	
 	private class DvrRecorderControl implements ILiveStreamDvrRecorderControl, ILiveStreamPacketizerControl {
 
@@ -47,19 +52,47 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 		
 		private boolean isThatStreamNeeded(IMediaStream stream) {
+			String streamName = stream.getName();
+			
+			String entryId = null;
+			IClient client = stream.getClient();
+			if(client != null){
+				WMSProperties clientProperties = client.getProperties();
+				if(!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
+					getLogger().info("DvrRecorderControl.isThatStreamNeeded: stream [" + streamName + "] is not associated with entry");
+					return false;
+				}
+				entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
+			}
+			else{				
+				Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_\\d+$");
+				Matcher matcher = pattern.matcher(streamName);
+				if(!matcher.find()){
+					getLogger().info("DvrRecorderControl.isThatStreamNeeded: stream [" + streamName + "] has no client");
+					return false;
+				}
 
-			IApplicationInstance appInstance = stream.getStreams().getAppInstance();
+				entryId = matcher.group(1);
+			}
 			
-			WMSProperties clientProperties = stream.getClient().getProperties();
-			KalturaLiveStreamEntry liveStreamEntry = (KalturaLiveStreamEntry) clientProperties.getProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY);
+			if(!entries.containsKey(entryId)){
+				getLogger().debug("DvrRecorderControl.isThatStreamNeeded: [" + streamName + "] entry [" + entryId + "] not found");
+				return false;
+			}
 			
-			if(liveStreamEntry.dvrStatus == KalturaDVRStatus.DISABLED){
-				getLogger().debug("DvrRecorderControl.isThatStreamNeeded: DVR disabled");	
+			KalturaLiveStreamEntry liveStreamEntry = entries.get(entryId);
+			if(liveStreamEntry.dvrStatus != KalturaDVRStatus.ENABLED){
+				getLogger().debug("DvrRecorderControl.isThatStreamNeeded: [" + streamName + "] DVR disabled");
 				return false;
 			}
 
+			ILiveStreamManager liveStreamManager = (ILiveStreamManager) KalturaServer.getManager(ILiveStreamManager.class);
+			int dvrWindow = liveStreamManager.getDvrWindow(liveStreamEntry);
+			getLogger().debug("DvrRecorderControl.isThatStreamNeeded: [" + streamName + "] DVR window [" + dvrWindow + "]");
+
+			IApplicationInstance appInstance = stream.getStreams().getAppInstance();
 			DvrApplicationContext ctx = appInstance.getDvrApplicationContext();
-			ctx.setWindowDuration(liveStreamEntry.dvrWindow * 60); // liveStreamEntry.dvrWindow is in minutes
+			ctx.setWindowDuration(dvrWindow);
 
 			return true;
 		}
@@ -81,19 +114,41 @@ public class LiveStreamEntry extends ModuleBase {
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend){
 			//IApplicationInstance appInstance = stream.getStreams().getAppInstance();
 
-			WMSProperties clientProperties = stream.getClient().getProperties();
+			IClient client = stream.getClient();
+			if(client == null)
+				return;
+			
+			WMSProperties clientProperties = client.getProperties();
+			if(!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID))
+				return;
+			
+			KalturaLiveStreamEntry liveStreamEntry = entries.get(clientProperties.getProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID));
+
+			getLogger().debug("LiveStreamListener::onPublish: " + liveStreamEntry.id);
+
+			if(liveStreamEntry.recordStatus == KalturaRecordStatus.ENABLED){
+				startRecord(liveStreamEntry.id, stream, true, true, true, false);
+			}
 			
 			ILiveStreamManager liveStreamManager = (ILiveStreamManager) KalturaServer.getManager(ILiveStreamManager.class);
-			liveStreamManager.onPublish(streamName, clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+			liveStreamManager.onPublish(liveStreamEntry, clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 		}
 	
 		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend){
-			//IApplicationInstance appInstance = stream.getStreams().getAppInstance();
+			IClient client = stream.getClient();
+			if(client == null)
+				return;
+			
+			WMSProperties clientProperties = client.getProperties();
+			if(!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID))
+				return;
+			
+			KalturaLiveStreamEntry liveStreamEntry = entries.get(clientProperties.getProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID));
 
-			WMSProperties clientProperties = stream.getClient().getProperties();
+			getLogger().debug("LiveStreamListener::onUnPublish: " + liveStreamEntry.id);
 			
 			ILiveStreamManager liveStreamManager = (ILiveStreamManager) KalturaServer.getManager(ILiveStreamManager.class);
-			liveStreamManager.onUnPublish(streamName, clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+			liveStreamManager.onUnPublish(liveStreamEntry);
 		}
 	
 		public void onPause(IMediaStream stream, boolean isPause, double location){}
@@ -107,17 +162,15 @@ public class LiveStreamEntry extends ModuleBase {
 
 	public void onStreamCreate(IMediaStream stream){
 		stream.addClientListener(new LiveStreamListener());
+	}
 
-		WMSProperties clientProperties = stream.getClient().getProperties();
-		String entryPoint = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_CONNECT_APP);
-		
-		getLogger().debug("LiveStreamEntry::onStreamCreate: " + entryPoint);
-
-		/*
-		if(liveStreamEntry.recordStatus == KalturaRecordStatus.ENABLED){
-			startRecord(stream, append, outputPath, versionFile, startOnKeyFrame, recordData)
+	public void onDisconnect(IClient client) {
+		WMSProperties clientProperties = client.getProperties();
+		if(clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
+			String entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
+			entries.remove(entryId);
+			getLogger().info("LiveStreamEntry::onDisconnect: Entry removed [" + entryId + "]");
 		}
-		*/
 	}
 
 	public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
@@ -137,25 +190,41 @@ public class LiveStreamEntry extends ModuleBase {
 		    else
 		    {
 		    	requestParams.put(field, requestParts[i]);
-		    	getLogger().debug("LiveStreamEntry::onConnect: " + field + ": " + requestParams.get(field) + "");
+		    	getLogger().debug("LiveStreamEntry::onConnect: " + field + ": " + requestParams.get(field));
 		    	field = null;
 		    }
 		}
-
-		int partnerId = Integer.getInteger(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
+		
+		int partnerId = Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
+		String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
 		String token = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_TOKEN);
-		String entryId = params.getString(CALLBACK_PARAM1);
 
 		clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
-		clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.getInteger(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
+		clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
 		
 		ILiveStreamManager liveStreamManager = (ILiveStreamManager) KalturaServer.getManager(ILiveStreamManager.class);
-		KalturaLiveStreamEntry liveStreamEntry = liveStreamManager.get(partnerId, entryId);
+		if(liveStreamManager == null){
+			getLogger().error("LiveStreamEntry::onConnect: Live stream manager not defined");
+			client.rejectConnection("Live stream manager not defined", "Live stream manager not defined");
+			return;
+		}
+
+		KalturaLiveStreamEntry liveStreamEntry;
+		try {
+			liveStreamEntry = liveStreamManager.get(partnerId, entryId);
+		} catch (KalturaApiException e) {
+			getLogger().error("LiveStreamEntry::onConnect: unable to get entry [" + entryId + "]: " + e.getMessage());
+			client.rejectConnection("Unable to get entry [" + entryId + "]", "Unable to get entry [" + entryId + "]");
+			return;
+		}
+		clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
+		entries.put(entryId, liveStreamEntry);
+		getLogger().info("LiveStreamEntry::onConnect: Entry added [" + entryId + "]");
 		
-		clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY, liveStreamEntry);
-		
-		if(token.compareTo(liveStreamEntry.streamPassword) != 0)
+		if(token.compareTo(liveStreamEntry.streamPassword) != 0){
+			getLogger().error("LiveStreamEntry::onConnect: Invalid token [" + token + "] for entry [" + entryId + "] with token [" + liveStreamEntry.streamPassword + "]");
 			client.rejectConnection("Invalid token", "Invalid token");
+		}
 	}
 
 	public void onAppStart(IApplicationInstance appInstance) {
@@ -164,13 +233,13 @@ public class LiveStreamEntry extends ModuleBase {
 		appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
 	}
 	
-	private void startRecord(IMediaStream stream, boolean append, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
-		String streamName = stream.getName();
+	private void startRecord(String entryId, IMediaStream stream, boolean append, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
+		getLogger().debug("LiveStreamEntry::startRecord: " + entryId);
 			
-		File writeFile = stream.getStreamFileForWrite();
+		File writeFile = stream.getStreamFileForWrite(entryId, "mp4", "");
 		String outputPath = writeFile.getAbsolutePath();
 		
-		getLogger().debug("LiveStreamEntry::startRecording: stream [" + streamName + "] append [" + append + "] file path [" + outputPath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");
+		getLogger().debug("LiveStreamEntry::startRecord: entry [" + entryId + "] append [" + append + "] file path [" + outputPath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");
 		
 		// create a stream recorder and save it in a map of recorders
 		ILiveStreamRecord recorder = new LiveStreamRecorderMP4();
@@ -178,10 +247,10 @@ public class LiveStreamEntry extends ModuleBase {
 		// add it to the recorders list
 		synchronized (recorders)
 		{
-			ILiveStreamRecord prevRecorder = recorders.get(streamName);
+			ILiveStreamRecord prevRecorder = recorders.get(entryId);
 			if (prevRecorder != null)
 				prevRecorder.stopRecording();
-			recorders.put(streamName, recorder);
+			recorders.put(entryId, recorder);
 		}
 		
 		// if you want to record data packets as well as video/audio
@@ -195,28 +264,5 @@ public class LiveStreamEntry extends ModuleBase {
 		
 		// start recording
 		recorder.startRecording(stream, outputPath, append);		
-	}
-	
-	private void stopRecord(IMediaStream stream, String outputPath ){
-		String streamName = stream.getName();
-	
-		ILiveStreamRecord recorder = null;
-		synchronized (recorders)
-		{
-			recorder = recorders.remove(streamName);
-		}
-		
-		outputPath  = null;
-		if (recorder != null)
-		{
-			/*
-			// grab the current path to the recorded file
-			outputPath = recorder.getFilePath();
-			File file = new File(outputPath);
-			*/
-			
-			// stop recording
-			recorder.stopRecording();
-		}
 	}
 }
