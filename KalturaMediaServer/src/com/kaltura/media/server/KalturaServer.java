@@ -14,6 +14,8 @@ import org.apache.log4j.Logger;
 import com.kaltura.client.KalturaClient;
 import com.kaltura.client.KalturaConfiguration;
 import com.kaltura.client.enums.KalturaSessionType;
+import com.kaltura.media.server.api.IWebService;
+import com.kaltura.media.server.api.KalturaWebServicesServer;
 
 public class KalturaServer {
 	public static int MEDIA_SERVER_PARTNER_ID = -5;
@@ -22,13 +24,16 @@ public class KalturaServer {
 	protected final static String KALTURA_SERVER_ADMIN_SECRET = "KalturaServerAdminSecret";
 	protected final static String KALTURA_SERVER_TIMEOUT = "KalturaServerTimeout";
 	protected final static String KALTURA_SERVER_MANAGERS = "KalturaServerManagers";
+	protected final static String KALTURA_SERVER_WEB_SERVICES = "KalturaServerWebServices";
+	protected final static String KALTURA_SERVER_WEB_SERVICES_PORT = "KalturaServerWebServicesPort";
 
 	protected static Logger logger;
 	protected static KalturaServer instance;
 	protected static Map<String, Object> config;
 	protected static KalturaClient client;
 	protected static String hostname;
-	
+	protected static KalturaWebServicesServer webServicesServer;
+
 	protected List<IManager> managers;
 
 	protected KalturaServer() throws KalturaServerException {
@@ -49,6 +54,17 @@ public class KalturaServer {
 			String managersNames = (String) config.get(KalturaServer.KALTURA_SERVER_MANAGERS);
 			logger.debug("Initializing server managers: " + managersNames);
 			initManagers(managersNames.replaceAll(" ", "").split(","));
+		}
+
+		if (config.containsKey(KalturaServer.KALTURA_SERVER_WEB_SERVICES)) {
+			int port = 888;
+			if (config.containsKey(KalturaServer.KALTURA_SERVER_WEB_SERVICES_PORT))
+				port = Integer.parseInt((String) config.get(KalturaServer.KALTURA_SERVER_WEB_SERVICES_PORT));
+			
+			webServicesServer = new KalturaWebServicesServer(hostname, port, logger);
+			String servicesNames = (String) config.get(KalturaServer.KALTURA_SERVER_WEB_SERVICES);
+			logger.debug("Initializing web services: " + servicesNames);
+			initWebServices(servicesNames.replaceAll(" ", "").split(","));
 		}
 	}
 
@@ -105,6 +121,30 @@ public class KalturaServer {
 		logger.debug("Kaltura client session id: " + sessionId);
 	}
 
+	protected void initWebServices(String[] servicesNames) throws KalturaServerException {
+
+		Object obj; 
+		IWebService service;
+		for (String serviceName : servicesNames) {
+			try {
+				obj = Class.forName(serviceName).newInstance();
+				logger.debug("Initializing Kaltura web service " + obj.getClass().getName());
+			} catch (ClassNotFoundException e) {
+				throw new KalturaServerException("Web service class [" + serviceName + "] not found");
+			} catch (Exception e) {
+				throw new KalturaServerException("Web service class [" + serviceName + "] failed to instantiate", e);
+			}
+			
+			if(!(obj instanceof IWebService))
+				throw new KalturaServerException("Web service class [" + serviceName + "] is not instance of IManager");
+			
+			service = (IWebService) obj;
+			webServicesServer.addService(service);
+			logger.info("Initialized Kaltura web service " + obj.getClass().getName());
+		}
+		
+	}
+	
 	protected void initManagers(String[] managersNames) throws KalturaServerException {
 		Object obj; 
 		IManager manager;

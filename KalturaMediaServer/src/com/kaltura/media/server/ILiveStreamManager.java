@@ -8,8 +8,16 @@ public interface ILiveStreamManager extends IManager {
 	public void onPublish(KalturaLiveStreamEntry liveStreamEntry, int serverIndex);
 	
 	public void onUnPublish(KalturaLiveStreamEntry liveStreamEntry);
+	
+	public void onDisconnect(String entryId);
 
-	public KalturaLiveStreamEntry get(int partnerId, String entryId) throws KalturaApiException;
+	public KalturaLiveStreamEntry get(String entryId);
+
+	public KalturaLiveStreamEntry get(String entryId, int partnerId) throws KalturaApiException;
 	
 	public Integer getDvrWindow(KalturaLiveStreamEntry liveStreamEntry);
+
+	public boolean createMediaEntry(String liveEntryId);
+
+	public boolean createMediaEntry(String liveEntryId, int offset, int duration);
 }
