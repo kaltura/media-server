@@ -1,6 +1,5 @@
 package com.kaltura.media.server;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -16,14 +15,9 @@ import com.kaltura.client.enums.KalturaDVRStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.enums.KalturaMediaType;
 import com.kaltura.client.enums.KalturaSourceType;
-import com.kaltura.client.types.KalturaConcatAttributes;
 import com.kaltura.client.types.KalturaEntryResource;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.client.types.KalturaMediaEntry;
-import com.kaltura.client.types.KalturaOperationAttributes;
-import com.kaltura.client.types.KalturaOperationResource;
-import com.kaltura.client.types.KalturaResource;
-import com.kaltura.client.types.KalturaServerFileResource;
 
 abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 
@@ -40,9 +34,9 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 	protected class LiveStreamEntryCache
 	{
 		public KalturaLiveStreamEntry liveStreamEntry;
-		public int index;
+		public KalturaMediaServerIndex index;
 		
-		public LiveStreamEntryCache(KalturaLiveStreamEntry liveStreamEntry, int index)
+		public LiveStreamEntryCache(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex index)
 		{
 			this(liveStreamEntry);
 			
@@ -105,20 +99,20 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 		return dvrWindowSeconds;
 	}
 
-	protected void setEntryMediaServer(KalturaLiveStreamEntry liveStreamEntry, int serverIndex) {
+	protected void setEntryMediaServer(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex serverIndex) {
 		impersonate(liveStreamEntry.partnerId);
 		try {
-			client.getLiveStreamService().registerMediaServer(liveStreamEntry.id, hostname, KalturaMediaServerIndex.get(serverIndex));
+			client.getLiveStreamService().registerMediaServer(liveStreamEntry.id, hostname, serverIndex);
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::setEntryMediaServer unable to register media server: " + e.getMessage());
 		}
 		unimpersonate();
 	}
 
-	protected void unsetEntryMediaServer(KalturaLiveStreamEntry liveStreamEntry, int serverIndex) {
+	protected void unsetEntryMediaServer(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex serverIndex) {
 		impersonate(liveStreamEntry.partnerId);
 		try {
-			client.getLiveStreamService().unregisterMediaServer(liveStreamEntry.id, hostname, KalturaMediaServerIndex.get(serverIndex));
+			client.getLiveStreamService().unregisterMediaServer(liveStreamEntry.id, hostname, serverIndex);
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::setEntryMediaServer unable to unregister media server: " + e.getMessage());
 		}
@@ -126,7 +120,7 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 	}
 
 	@Override
-	public void onPublish(KalturaLiveStreamEntry liveStreamEntry, int serverIndex) {
+	public void onPublish(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex serverIndex) {
 		logger.debug("KalturaLiveStreamManager::onPublish entry [" + liveStreamEntry.id + "]");
 		setEntryMediaServer(liveStreamEntry, serverIndex);
 		synchronized (entries) {
@@ -178,13 +172,12 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 		unimpersonate();
 	}
 
-	protected void createMediaEntryOrAppend(KalturaLiveStreamEntry liveStreamEntry, String recordedFilePath) {
+	protected void createMediaEntryOrAppend(KalturaLiveStreamEntry liveStreamEntry) {
 		logger.debug("KalturaLiveStreamManager::createMediaEntry creating media entry for live entry [" + liveStreamEntry.id + "]");
 		impersonate(liveStreamEntry.partnerId);
 
-		KalturaResource resource;
-		KalturaServerFileResource serverFileResource = new KalturaServerFileResource();
-		serverFileResource.localFilePath = recordedFilePath;
+		KalturaEntryResource resource = new KalturaEntryResource();
+		resource.entryId = liveStreamEntry.id;
 		
 		KalturaMediaEntry mediaEntry;
 		if(liveStreamEntry.recordedEntryId == null){
@@ -203,8 +196,6 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 				return;
 			}
 			logger.debug("KalturaLiveStreamManager::createMediaEntry created media entry [" + mediaEntry.id + "] for live entry [" + liveStreamEntry.id + "]");
-
-			resource = serverFileResource;
 		}
 		else{
 			try {
@@ -214,18 +205,6 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 				unimpersonate();
 				return;
 			}
-
-			KalturaConcatAttributes operationAttributes = new KalturaConcatAttributes();
-			operationAttributes.resource = serverFileResource;
-			
-			KalturaEntryResource entryResource = new KalturaEntryResource();
-			entryResource.entryId = liveStreamEntry.recordedEntryId;
-			KalturaOperationResource operationResource = new KalturaOperationResource();
-			operationResource.resource = entryResource;
-			operationResource.operationAttributes = new ArrayList<KalturaOperationAttributes>();
-			operationResource.operationAttributes.add(operationAttributes);
-			
-			resource = operationResource;
 		}
 		
 		try {

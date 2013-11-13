@@ -1,12 +1,15 @@
 package com.kaltura.media.server.wowza;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.kaltura.client.KalturaApiException;
+import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.types.KalturaLiveStreamEntry;
+import com.kaltura.client.types.KalturaServerFileResource;
 import com.kaltura.media.server.KalturaLiveStreamManager;
 import com.kaltura.media.server.KalturaManagerException;
 import com.kaltura.media.server.KalturaServer;
@@ -18,48 +21,23 @@ import com.wowza.wms.stream.IMediaWriterActionNotify;
 public class LiveStreamManager extends KalturaLiveStreamManager implements IMediaWriterActionNotify {
 
 	protected final static String KALTURA_RECORDED_CHUNCK_MAX_DURATION = "KalturaRecordedChunckMaxDuration";
-	protected final static long DEFAULT_RECORDED_CHUNCK_MAX_DURATION = 10;
+	protected final static long DEFAULT_RECORDED_CHUNCK_MAX_DURATION = 60;
 	
-	private Map<String, ILiveStreamRecord> recorders = new ConcurrentHashMap<String, ILiveStreamRecord>();
-	private ArrayList<MediaEntryCreator> entryCreators = new ArrayList<MediaEntryCreator>();
+	private Map<String, EntryRecorder> recorders = new ConcurrentHashMap<String, EntryRecorder>();
 
-	class MediaEntryCreator{
-		private String entryId;
-		private int offset;
-		private int duration;
+	class EntryRecorder extends LiveStreamRecorderMP4
+	{
+		private KalturaMediaServerIndex index;
 		
-		public MediaEntryCreator(String liveEntryId) {
-			entryId = liveEntryId;
-			
-			synchronized (entryCreators){
-				entryCreators.add(this);
-			}
+		public EntryRecorder(KalturaMediaServerIndex index) {
+			this.index = index;
 		}
 
-		public MediaEntryCreator(String liveEntryId, int offset, int duration) {
-			this(liveEntryId);
-			
-			this.offset = offset;
-			this.duration = duration;
-		}
-
-		public String getEntryId() {
-			return entryId;
-		}
-
-		public int getOffset() {
-			return offset;
-		}
-
-		public int getDuration() {
-			return duration;
-		}
-
-		public void create() {
-			// TODO Auto-generated method stub
+		public KalturaMediaServerIndex getIndex() {
+			return index;
 		}
 	}
-
+	
 	@Override
 	public void init() throws KalturaManagerException {
 		super.init();
@@ -108,11 +86,11 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 		return false;
 	}
 	
-	public String startRecord(String entryId, IMediaStream stream, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
+	public String startRecord(String entryId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
 		logger.debug("LiveStreamEntry::startRecord: " + entryId);
 
 		// create a stream recorder and save it in a map of recorders
-		ILiveStreamRecord recorder = new LiveStreamRecorderMP4();
+		EntryRecorder recorder = new EntryRecorder(index);
 
 		// remove existing recorder from the recorders list
 		synchronized (recorders){
@@ -122,7 +100,7 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 			recorders.remove(entryId);
 		}
 
-		File writeFile = stream.getStreamFileForWrite(entryId, "mp4", "");
+		File writeFile = stream.getStreamFileForWrite(entryId, index.getHashCode() + ".mp4", "");
 		String filePath = writeFile.getAbsolutePath();
 		
 		logger.debug("StreamRecorder: entry [" + entryId + "]  file path [" + filePath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");
@@ -155,25 +133,35 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 	public void onWriteComplete(IMediaStream stream, File file) {
 		logger.info("MediaWriterListener::onWriteComplete: stream [" + stream.getName() + "] file [" + file.getAbsolutePath() + "] folder [" + file.getParent() + "]");
 		String entryId = stream.getName();
+		float duration = (float) stream.getElapsedTime().getTimeSeconds();
 		
-		synchronized (entryCreators){
-			for(MediaEntryCreator entryCreator : entryCreators){
-				if(entryId.compareTo(entryCreator.getEntryId()) == 0){
-					entryCreator.create();
-				}
+		KalturaServerFileResource resource = new KalturaServerFileResource();
+		resource.localFilePath = file.getAbsolutePath();
+
+		KalturaMediaServerIndex index;
+		
+		synchronized (recorders)
+		{
+			EntryRecorder streamRecorder = recorders.get(entryId);
+			if (streamRecorder == null){
+				logger.error("Unable to find recorder for entry [" + entryId + "]");
 			}
+			
+			index = streamRecorder.getIndex();
 		}
+		
+		try {
+			client.getLiveStreamService().appendRecording(entryId, index, resource, duration);
+		} catch (KalturaApiException e) {
+			logger.error("Append live stream recording error: " + e.getMessage());
+		}
+		
+		KalturaLiveStreamEntry liveStreamEntry = get(entryId);
+		createMediaEntryOrAppend(liveStreamEntry);
 	}
 
 	@Override
-	public boolean createMediaEntry(String liveEntryId) {
-		new MediaEntryCreator(liveEntryId);
-		return restartRecording(liveEntryId);
-	}
-
-	@Override
-	public boolean createMediaEntry(String liveEntryId, int offset, int duration) {
-		new MediaEntryCreator(liveEntryId, offset, duration);
-		return restartRecording(liveEntryId);
+	public boolean splitRecordingNow(String entryId) {
+		return restartRecording(entryId);
 	}
 }

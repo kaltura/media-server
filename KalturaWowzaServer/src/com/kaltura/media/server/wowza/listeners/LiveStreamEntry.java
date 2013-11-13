@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.enums.KalturaDVRStatus;
+import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.media.server.ILiveStreamManager;
@@ -119,16 +120,17 @@ public class LiveStreamEntry extends ModuleBase {
 			WMSProperties clientProperties = client.getProperties();
 			if(!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID))
 				return;
-			
+
 			KalturaLiveStreamEntry liveStreamEntry = liveStreamManager.get(clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID));
+			KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 			getLogger().debug("LiveStreamListener::onPublish: " + liveStreamEntry.id);
 
 			if(liveStreamEntry.recordStatus == KalturaRecordStatus.ENABLED){
-				liveStreamManager.startRecord(liveStreamEntry.id, stream, true, true, false);
+				liveStreamManager.startRecord(liveStreamEntry.id, stream, serverIndex, true, true, false);
 			}
 			
-			liveStreamManager.onPublish(liveStreamEntry, clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+			liveStreamManager.onPublish(liveStreamEntry, serverIndex);
 		}
 	
 		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend){

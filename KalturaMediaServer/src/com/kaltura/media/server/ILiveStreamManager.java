@@ -1,11 +1,12 @@
 package com.kaltura.media.server;
 
 import com.kaltura.client.KalturaApiException;
+import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 
 public interface ILiveStreamManager extends IManager {
 
-	public void onPublish(KalturaLiveStreamEntry liveStreamEntry, int serverIndex);
+	public void onPublish(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex serverIndex);
 	
 	public void onUnPublish(KalturaLiveStreamEntry liveStreamEntry);
 	
@@ -17,7 +18,5 @@ public interface ILiveStreamManager extends IManager {
 	
 	public Integer getDvrWindow(KalturaLiveStreamEntry liveStreamEntry);
 
-	public boolean createMediaEntry(String liveEntryId);
-
-	public boolean createMediaEntry(String liveEntryId, int offset, int duration);
+	public boolean splitRecordingNow(String entryId);
 }

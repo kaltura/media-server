@@ -13,25 +13,13 @@ import com.kaltura.media.server.api.IWebService;
 @WebService(name = "live")
 public class KalturaLiveService implements IWebService{
 	
-	@WebMethod(action = "createMediaEntry")
-	@RequestWrapper(localName = "CreateMediaEntryRequest")
-	@ResponseWrapper(localName = "CreateMediaEntryResponse")
-	public boolean createMediaEntry(
+	@WebMethod(action = "splitRecordingNow")
+	@RequestWrapper(localName = "SplitRecordingNowRequest")
+	@ResponseWrapper(localName = "SplitRecordingNowResponse")
+	public boolean splitRecordingNow(
 			@WebParam(name = "liveEntryId") String liveEntryId)
 	{
 		ILiveStreamManager liveStreamManager = (ILiveStreamManager) KalturaServer.getManager(ILiveStreamManager.class);
-		return liveStreamManager.createMediaEntry(liveEntryId);
-	}
-
-	@WebMethod(action = "createMediaClipEntry")
-	@RequestWrapper(localName = "CreateMediaClipEntryRequest")
-	@ResponseWrapper(localName = "CreateMediaClipEntryResponse")
-	public boolean createMediaClipEntry(
-			@WebParam(name = "liveEntryId") String liveEntryId, 
-			@WebParam(name = "offset") int offset, 
-			@WebParam(name = "duration") int duration)
-	{
-		ILiveStreamManager liveStreamManager = (ILiveStreamManager) KalturaServer.getManager(ILiveStreamManager.class);
-		return liveStreamManager.createMediaEntry(liveEntryId, offset, duration);
+		return liveStreamManager.splitRecordingNow(liveEntryId);
 	}
 }
