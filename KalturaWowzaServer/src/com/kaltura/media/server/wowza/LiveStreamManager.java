@@ -44,7 +44,7 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 
 		long interval = LiveStreamManager.DEFAULT_RECORDED_CHUNCK_MAX_DURATION * 60 * 1000;
 		if (serverConfiguration.containsKey(LiveStreamManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION))
-			interval = Long.parseLong((String) serverConfiguration.get(LiveStreamManager.DEFAULT_RECORDED_CHUNCK_MAX_DURATION)) * 60 * 1000;
+			interval = Long.parseLong((String) serverConfiguration.get(LiveStreamManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION)) * 60 * 1000;
 
 		TimerTask timerTask = new TimerTask(){
 
@@ -149,14 +149,16 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 			
 			index = streamRecorder.getIndex();
 		}
-		
+
+		KalturaLiveStreamEntry liveStreamEntry = get(entryId);
+		impersonate(liveStreamEntry.partnerId);
 		try {
 			client.getLiveStreamService().appendRecording(entryId, index, resource, duration);
 		} catch (KalturaApiException e) {
 			logger.error("Append live stream recording error: " + e.getMessage());
 		}
+		unimpersonate();
 		
-		KalturaLiveStreamEntry liveStreamEntry = get(entryId);
 		createMediaEntryOrAppend(liveStreamEntry);
 	}
 
