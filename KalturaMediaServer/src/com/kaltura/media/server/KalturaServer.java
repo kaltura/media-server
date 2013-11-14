@@ -58,7 +58,7 @@ public class KalturaServer {
 
 		if (config.containsKey(KalturaServer.KALTURA_SERVER_WEB_SERVICES)) {
 			int port = 888;
-			if (config.containsKey(KalturaServer.KALTURA_SERVER_WEB_SERVICES_PORT))
+			if (config.containsKey(KalturaServer.KALTURA_SERVER_WEB_SERVICES_PORT)) 
 				port = Integer.parseInt((String) config.get(KalturaServer.KALTURA_SERVER_WEB_SERVICES_PORT));
 			
 			webServicesServer = new KalturaWebServicesServer(hostname, port, logger);
