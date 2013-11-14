@@ -206,15 +206,10 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 				return;
 			}
 		}
-		
-		try {
-			client.getMediaService().updateContent(mediaEntry.id, resource);
-		} catch (KalturaApiException e) {
-			logger.error("KalturaLiveStreamManager::createMediaEntry failed to add content resource: " + e.getMessage());
-			unimpersonate();
-			return;
-		}
 
+		liveStreamEntry.redirectEntryId = mediaEntry.id;
+		liveStreamEntry.recordedEntryId = mediaEntry.id;
+		
 		KalturaLiveStreamEntry updateLiveStreamEntry = new KalturaLiveStreamEntry();
 		updateLiveStreamEntry.redirectEntryId = mediaEntry.id;
 		updateLiveStreamEntry.recordedEntryId = mediaEntry.id;
@@ -222,6 +217,15 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 			client.getLiveStreamService().update(liveStreamEntry.id, updateLiveStreamEntry);
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::createMediaEntry failed to upload file: " + e.getMessage());
+			unimpersonate();
+			return;
+		}
+		
+		try {
+			client.getMediaService().cancelReplace(mediaEntry.id);
+			client.getMediaService().updateContent(mediaEntry.id, resource);
+		} catch (KalturaApiException e) {
+			logger.error("KalturaLiveStreamManager::createMediaEntry failed to add content resource: " + e.getMessage());
 			unimpersonate();
 			return;
 		}
