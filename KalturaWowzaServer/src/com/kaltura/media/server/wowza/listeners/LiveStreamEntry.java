@@ -51,6 +51,8 @@ public class LiveStreamEntry extends ModuleBase {
 		
 		private boolean isThatStreamNeeded(IMediaStream stream) {
 			String streamName = stream.getName();
+			IApplicationInstance appInstance = stream.getStreams().getAppInstance();
+			DvrApplicationContext ctx = appInstance.getDvrApplicationContext();
 			
 			String entryId = null;
 			IClient client = stream.getClient();
@@ -62,7 +64,7 @@ public class LiveStreamEntry extends ModuleBase {
 				}
 				entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
 			}
-			else{				
+			else{
 				Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_\\d+$");
 				Matcher matcher = pattern.matcher(streamName);
 				if(!matcher.find()){
@@ -88,8 +90,6 @@ public class LiveStreamEntry extends ModuleBase {
 			int dvrWindow = liveStreamManager.getDvrWindow(liveStreamEntry);
 			getLogger().debug("DvrRecorderControl.isThatStreamNeeded: [" + streamName + "] DVR window [" + dvrWindow + "]");
 
-			IApplicationInstance appInstance = stream.getStreams().getAppInstance();
-			DvrApplicationContext ctx = appInstance.getDvrApplicationContext();
 			ctx.setWindowDuration(dvrWindow);
 			ctx.setArchiveStrategy(IDvrConstants.ARCHIVE_STRATEGY_DELETE);
 
