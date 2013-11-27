@@ -30,6 +30,8 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 	protected Map<String, Object> serverConfiguration;
 	protected ConcurrentHashMap<String, LiveStreamEntryCache> entries;
 	protected Logger logger;
+	
+	private Timer timer;
 
 	protected class LiveStreamEntryCache
 	{
@@ -258,7 +260,12 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 			}
 		};
 		
-		Timer timer = new Timer();
+		timer = new Timer();
 		timer.schedule(timerTask, keepAliveInterval, keepAliveInterval);
+	}
+
+	@Override
+	public void stop() {
+		timer.cancel();
 	}
 }

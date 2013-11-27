@@ -41,6 +41,11 @@ public abstract class KalturaStatusManager implements IStatusManager {
 		timer.schedule(timerTask, 0, interval);
 	}
 
+	@Override
+	public void stop() {
+		timer.cancel();
+	}
+
 	public void reportStatus() {
 		try {
 			KalturaServer.getLogger().debug("KalturaStatusManager::reportStatus Reporting server status [" + hostname + "]");

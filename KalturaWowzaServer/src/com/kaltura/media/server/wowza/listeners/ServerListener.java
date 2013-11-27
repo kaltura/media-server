@@ -8,6 +8,8 @@ import com.wowza.wms.logging.WMSLoggerFactory;
 import com.wowza.wms.server.*;
 
 public class ServerListener implements IServerNotify2 {
+	
+	KalturaServer kalturaServer;
 
 	@SuppressWarnings("unchecked")
 	public void onServerConfigLoaded(IServer server) {
@@ -15,7 +17,7 @@ public class ServerListener implements IServerNotify2 {
 		WMSLogger logger = WMSLoggerFactory.getLogger(null);
 		WMSProperties config = server.getProperties();
 		try {
-			KalturaServer.init(logger, config);
+			kalturaServer = KalturaServer.init(logger, config);
 			logger.info("Initialized Kaltura server");
 		} catch (KalturaServerException e) {
 			logger.error("Failed to initialize Kaltura server: " + e.getMessage());
@@ -29,6 +31,7 @@ public class ServerListener implements IServerNotify2 {
 	}
 
 	public void onServerShutdownStart(IServer server) {
+		kalturaServer.stop();
 	}
 
 	public void onServerShutdownComplete(IServer server) {

@@ -9,5 +9,4 @@ public class StatusManager extends KalturaStatusManager {
 	public KalturaMediaServerStatus getServerStatus() {
 		return new KalturaMediaServerStatus();
 	}
-
 }
