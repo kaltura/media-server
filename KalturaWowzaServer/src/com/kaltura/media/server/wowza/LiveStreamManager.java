@@ -1,6 +1,15 @@
 package com.kaltura.media.server.wowza;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.GroupPrincipal;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.UserPrincipalLookupService;
+import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -21,9 +30,14 @@ import com.wowza.wms.stream.IMediaWriterActionNotify;
 public class LiveStreamManager extends KalturaLiveStreamManager implements IMediaWriterActionNotify {
 
 	protected final static String KALTURA_RECORDED_CHUNCK_MAX_DURATION = "KalturaRecordedChunckMaxDuration";
+	protected final static String KALTURA_RECORDED_FILE_GROUP = "KalturaRecordedFileGroup";
 	protected final static long DEFAULT_RECORDED_CHUNCK_MAX_DURATION = 60;
+	protected final static String DEFAULT_RECORDED_FILE_GROUP = "kaltura";
 	
 	private Map<String, EntryRecorder> recorders = new ConcurrentHashMap<String, EntryRecorder>();
+	private Timer timer;
+
+	protected GroupPrincipal group;
 
 	class EntryRecorder extends LiveStreamRecorderMP4
 	{
@@ -46,6 +60,17 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 		if (serverConfiguration.containsKey(LiveStreamManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION))
 			interval = Long.parseLong((String) serverConfiguration.get(LiveStreamManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION)) * 60 * 1000;
 
+		String groupName = LiveStreamManager.DEFAULT_RECORDED_FILE_GROUP;
+		if (serverConfiguration.containsKey(LiveStreamManager.KALTURA_RECORDED_FILE_GROUP))
+			groupName = (String) serverConfiguration.get(LiveStreamManager.KALTURA_RECORDED_FILE_GROUP);
+
+		UserPrincipalLookupService lookupService = FileSystems.getDefault().getUserPrincipalLookupService();
+		try {
+			group = lookupService.lookupPrincipalByGroupName(groupName);
+		} catch (IOException e) {
+			throw new KalturaManagerException("Group [" + groupName + "] not found", e);
+		}
+		
 		TimerTask timerTask = new TimerTask(){
 
 			@Override
@@ -57,8 +82,13 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 		hostname = KalturaServer.getHostName();
 		client = KalturaServer.getClient();
 		
-		Timer timer = new Timer(true);
+		timer = new Timer(true);
 		timer.schedule(timerTask, interval, interval);
+	}
+
+	@Override
+	public void stop() {
+		timer.cancel();
 	}
 	
 	protected void restartRecordings(){
@@ -134,10 +164,19 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 		logger.info("MediaWriterListener::onWriteComplete: stream [" + stream.getName() + "] file [" + file.getAbsolutePath() + "] folder [" + file.getParent() + "]");
 		String entryId = stream.getName();
 		float duration = (float) stream.getElapsedTime().getTimeSeconds();
+
+		Path path = Paths.get(file.getAbsolutePath());
+		PosixFileAttributeView fileAttributes = Files.getFileAttributeView(path, PosixFileAttributeView.class);
+			
+		try {
+			fileAttributes.setGroup(group);
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+		}
 		
 		KalturaServerFileResource resource = new KalturaServerFileResource();
 		resource.localFilePath = file.getAbsolutePath();
-
+		
 		KalturaMediaServerIndex index;
 		
 		synchronized (recorders)
