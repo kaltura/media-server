@@ -83,7 +83,7 @@ public class KalturaServer {
 		logger.debug("Initializing Kaltura client, URL: " + clientConfig.getEndpoint());
 
 		if (config.containsKey(KalturaServer.KALTURA_SERVER_TIMEOUT))
-			clientConfig.setTimeout(Integer.parseInt((String) config.get(KalturaServer.KALTURA_SERVER_TIMEOUT)));
+			clientConfig.setTimeout(Integer.parseInt((String) config.get(KalturaServer.KALTURA_SERVER_TIMEOUT)) * 1000);
 
 		client = new KalturaClient(clientConfig);
 		generateClientSession();
@@ -191,6 +191,12 @@ public class KalturaServer {
 			instance = new KalturaServer();
 
 		return instance;
+	}
+
+	public void stop() {
+		for(IManager manager : instance.managers){
+			manager.stop();
+		}
 	}
 
 	public static KalturaServer getInstance() throws KalturaServerException {
