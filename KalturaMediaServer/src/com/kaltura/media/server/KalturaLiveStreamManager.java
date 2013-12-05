@@ -36,7 +36,7 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 	protected class LiveStreamEntryCache
 	{
 		public KalturaLiveStreamEntry liveStreamEntry;
-		public KalturaMediaServerIndex index;
+		public KalturaMediaServerIndex index = null;
 		
 		public LiveStreamEntryCache(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex index)
 		{
@@ -142,7 +142,8 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 		synchronized (entries) {
 			if(entries.containsKey(liveStreamEntry.id)){
 				LiveStreamEntryCache liveStreamEntryCache = entries.get(liveStreamEntry.id);
-				unsetEntryMediaServer(liveStreamEntry, liveStreamEntryCache.index);
+				if(liveStreamEntryCache.index != null)
+					unsetEntryMediaServer(liveStreamEntry, liveStreamEntryCache.index);
 			}
 		}
 	}
@@ -254,7 +255,8 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 				synchronized (entries) {
 					for(String entryId : entries.keySet()){
 						LiveStreamEntryCache liveStreamEntryCache = entries.get(entryId);
-						setEntryMediaServer(liveStreamEntryCache.liveStreamEntry, liveStreamEntryCache.index);
+						if(liveStreamEntryCache.index != null)
+							setEntryMediaServer(liveStreamEntryCache.liveStreamEntry, liveStreamEntryCache.index);
 					}
 				}
 			}
