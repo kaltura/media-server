@@ -1,8 +1,11 @@
 package com.kaltura.media.server;
 
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -26,6 +29,7 @@ public class KalturaServer {
 	protected final static String KALTURA_SERVER_MANAGERS = "KalturaServerManagers";
 	protected final static String KALTURA_SERVER_WEB_SERVICES = "KalturaServerWebServices";
 	protected final static String KALTURA_SERVER_WEB_SERVICES_PORT = "KalturaServerWebServicesPort";
+	protected final static String KALTURA_SERVER_WEB_SERVICES_HOST = "KalturaServerWebServicesHost";
 
 	protected static Logger logger;
 	protected static KalturaServer instance;
@@ -58,10 +62,28 @@ public class KalturaServer {
 
 		if (config.containsKey(KalturaServer.KALTURA_SERVER_WEB_SERVICES)) {
 			int port = 888;
+			String host = hostname;
+			try {
+				Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+	            while(networkInterfaces.hasMoreElements()){
+	                NetworkInterface networkInterface = networkInterfaces.nextElement();
+	                Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
+	                while(inetAddresses.hasMoreElements()){
+	                    InetAddress inetAddress = inetAddresses.nextElement();
+	                    host = inetAddress.getHostAddress();
+	                }
+	            }
+			} catch (SocketException e) {
+				logger.error("Find local server IP address: " + e.getMessage());
+			}
+			
 			if (config.containsKey(KalturaServer.KALTURA_SERVER_WEB_SERVICES_PORT)) 
 				port = Integer.parseInt((String) config.get(KalturaServer.KALTURA_SERVER_WEB_SERVICES_PORT));
+
+			if (config.containsKey(KalturaServer.KALTURA_SERVER_WEB_SERVICES_HOST)) 
+				host = (String) config.get(KalturaServer.KALTURA_SERVER_WEB_SERVICES_HOST);
 			
-			webServicesServer = new KalturaWebServicesServer(hostname, port, logger);
+			webServicesServer = new KalturaWebServicesServer(host, port, logger);
 			String servicesNames = (String) config.get(KalturaServer.KALTURA_SERVER_WEB_SERVICES);
 			logger.debug("Initializing web services: " + servicesNames);
 			initWebServices(servicesNames.replaceAll(" ", "").split(","));
@@ -194,6 +216,8 @@ public class KalturaServer {
 	}
 
 	public void stop() {
+		webServicesServer.shutdown();
+		
 		for(IManager manager : instance.managers){
 			manager.stop();
 		}
