@@ -9,10 +9,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.UserPrincipalLookupService;
-import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.kaltura.client.KalturaApiException;
@@ -29,13 +26,10 @@ import com.wowza.wms.stream.IMediaWriterActionNotify;
 
 public class LiveStreamManager extends KalturaLiveStreamManager implements IMediaWriterActionNotify {
 
-	protected final static String KALTURA_RECORDED_CHUNCK_MAX_DURATION = "KalturaRecordedChunckMaxDuration";
 	protected final static String KALTURA_RECORDED_FILE_GROUP = "KalturaRecordedFileGroup";
-	protected final static long DEFAULT_RECORDED_CHUNCK_MAX_DURATION = 60;
 	protected final static String DEFAULT_RECORDED_FILE_GROUP = "kaltura";
 	
 	private Map<String, EntryRecorder> recorders = new ConcurrentHashMap<String, EntryRecorder>();
-	private Timer timer;
 
 	protected GroupPrincipal group;
 
@@ -56,10 +50,6 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 	public void init() throws KalturaManagerException {
 		super.init();
 
-		long interval = LiveStreamManager.DEFAULT_RECORDED_CHUNCK_MAX_DURATION * 60 * 1000;
-		if (serverConfiguration.containsKey(LiveStreamManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION))
-			interval = Long.parseLong((String) serverConfiguration.get(LiveStreamManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION)) * 60 * 1000;
-
 		String groupName = LiveStreamManager.DEFAULT_RECORDED_FILE_GROUP;
 		if (serverConfiguration.containsKey(LiveStreamManager.KALTURA_RECORDED_FILE_GROUP))
 			groupName = (String) serverConfiguration.get(LiveStreamManager.KALTURA_RECORDED_FILE_GROUP);
@@ -70,28 +60,13 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 		} catch (IOException e) {
 			throw new KalturaManagerException("Group [" + groupName + "] not found", e);
 		}
-		
-		TimerTask timerTask = new TimerTask(){
-
-			@Override
-			public void run() {
-				restartRecordings();
-			}
-		};
 
 		hostname = KalturaServer.getHostName();
 		client = KalturaServer.getClient();
-		
-		timer = new Timer(true);
-		timer.schedule(timerTask, interval, interval);
 	}
 
 	@Override
-	public void stop() {
-		timer.cancel();
-	}
-	
-	protected void restartRecordings(){
+	public void restartRecordings(){
 		logger.debug("LiveStreamEntry::restartRecordings");
 		synchronized (recorders)
 		{
