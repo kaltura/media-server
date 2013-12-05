@@ -1,5 +1,6 @@
 package com.kaltura.media.server;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -24,15 +25,18 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 	protected final static String KALTURA_RECORDED_CHUNCK_MAX_DURATION = "KalturaRecordedChunckMaxDuration";
 	protected final static String KALTURA_LIVE_STREAM_KEEP_ALIVE_INTERVAL = "KalturaLiveStreamKeepAliveInterval";
 	protected final static String KALTURA_LIVE_STREAM_MAX_DVR_WINDOW = "KalturaLiveStreamMaxDvrWindow";
+	protected final static String KALTURA_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME = "KalturaIsLiveRegistrationMinBufferTime";
 
 	protected final static long DEFAULT_RECORDED_CHUNCK_MAX_DURATION = 60;
-
+	protected final static long DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME = 5;
+	
 	protected String hostname;
 	protected KalturaClient client;
 	protected KalturaConfiguration config;
 	protected Map<String, Object> serverConfiguration;
 	protected ConcurrentHashMap<String, LiveStreamEntryCache> entries;
 	protected Logger logger;
+	protected long isLiveRegistrationMinBufferTime = KalturaLiveStreamManager.DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME;
 	
 	private Timer setMediaServerTimer;
 	private Timer splitRecordingTimer;
@@ -41,16 +45,26 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 	{
 		public KalturaLiveStreamEntry liveStreamEntry;
 		public KalturaMediaServerIndex index = null;
+		public Date registerTime = null;
 		
-		public LiveStreamEntryCache(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex index)
+		public LiveStreamEntryCache(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex index, Date registerTime)
 		{
 			this(liveStreamEntry);
-			
-			this.index = index;
+			register(index, registerTime);
 		}
 
 		public LiveStreamEntryCache(KalturaLiveStreamEntry liveStreamEntry) {
 			this.liveStreamEntry = liveStreamEntry;
+		}
+
+		public void register(KalturaMediaServerIndex index, Date registerTime) {
+			this.index = index;
+			this.registerTime = registerTime;
+		}
+
+		public void unregister() {
+			this.index = null;
+			this.registerTime = null;
 		}
 	}
 	
@@ -126,16 +140,31 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 	}
 
 	@Override
-	public void onPublish(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex serverIndex) {
+	public void onPublish(final KalturaLiveStreamEntry liveStreamEntry, final KalturaMediaServerIndex serverIndex) {
 		logger.debug("KalturaLiveStreamManager::onPublish entry [" + liveStreamEntry.id + "]");
-		setEntryMediaServer(liveStreamEntry, serverIndex);
+
+		TimerTask setMediaServerTask = new TimerTask(){
+
+			@Override
+			public void run() {
+				setEntryMediaServer(liveStreamEntry, serverIndex);
+			}
+		};
+		
+		Timer timer = new Timer();
+		timer.schedule(setMediaServerTask, isLiveRegistrationMinBufferTime);
+		
+		Date registerTime = new Date();
+		registerTime.setTime(registerTime.getTime() + isLiveRegistrationMinBufferTime);
+		
 		synchronized (entries) {
+			
 			if(entries.containsKey(liveStreamEntry.id)){
 				LiveStreamEntryCache liveStreamEntryCache = entries.get(liveStreamEntry.id);
-				liveStreamEntryCache.index = serverIndex;
+				liveStreamEntryCache.register(serverIndex, registerTime);
 			}
 			else{
-				entries.put(liveStreamEntry.id, new LiveStreamEntryCache(liveStreamEntry, serverIndex));
+				entries.put(liveStreamEntry.id, new LiveStreamEntryCache(liveStreamEntry, serverIndex, registerTime));
 			}
 		}
 	}
@@ -146,8 +175,10 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 		synchronized (entries) {
 			if(entries.containsKey(liveStreamEntry.id)){
 				LiveStreamEntryCache liveStreamEntryCache = entries.get(liveStreamEntry.id);
-				if(liveStreamEntryCache.index != null)
+				if(liveStreamEntryCache.index != null){
 					unsetEntryMediaServer(liveStreamEntry, liveStreamEntryCache.index);
+					liveStreamEntryCache.unregister();
+				}
 			}
 		}
 	}
@@ -249,7 +280,11 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 		config = client.getKalturaConfiguration();
 		serverConfiguration = KalturaServer.getConfiguration();
 		logger = KalturaServer.getLogger();
-		
+
+		isLiveRegistrationMinBufferTime = KalturaLiveStreamManager.DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME * 1000;
+		if (serverConfiguration.containsKey(KalturaLiveStreamManager.KALTURA_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME))
+			isLiveRegistrationMinBufferTime = Long.parseLong((String) serverConfiguration.get(KalturaLiveStreamManager.KALTURA_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME)) * 1000;
+
 		long keepAliveInterval = Long.parseLong((String) serverConfiguration.get(KalturaLiveStreamManager.KALTURA_LIVE_STREAM_KEEP_ALIVE_INTERVAL)) * 1000;
 
 		TimerTask setMediaServerTask = new TimerTask(){
