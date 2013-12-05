@@ -19,4 +19,6 @@ public interface ILiveStreamManager extends IManager {
 	public Integer getDvrWindow(KalturaLiveStreamEntry liveStreamEntry);
 
 	public boolean splitRecordingNow(String entryId);
+	
+	public void restartRecordings();
 }

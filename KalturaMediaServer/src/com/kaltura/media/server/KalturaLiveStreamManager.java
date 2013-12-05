@@ -21,8 +21,11 @@ import com.kaltura.client.types.KalturaMediaEntry;
 
 abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 
+	protected final static String KALTURA_RECORDED_CHUNCK_MAX_DURATION = "KalturaRecordedChunckMaxDuration";
 	protected final static String KALTURA_LIVE_STREAM_KEEP_ALIVE_INTERVAL = "KalturaLiveStreamKeepAliveInterval";
 	protected final static String KALTURA_LIVE_STREAM_MAX_DVR_WINDOW = "KalturaLiveStreamMaxDvrWindow";
+
+	protected final static long DEFAULT_RECORDED_CHUNCK_MAX_DURATION = 60;
 
 	protected String hostname;
 	protected KalturaClient client;
@@ -31,8 +34,9 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 	protected ConcurrentHashMap<String, LiveStreamEntryCache> entries;
 	protected Logger logger;
 	
-	private Timer timer;
-
+	private Timer setMediaServerTimer;
+	private Timer splitRecordingTimer;
+	
 	protected class LiveStreamEntryCache
 	{
 		public KalturaLiveStreamEntry liveStreamEntry;
@@ -182,8 +186,17 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 		KalturaEntryResource resource = new KalturaEntryResource();
 		resource.entryId = liveStreamEntry.id;
 		
-		KalturaMediaEntry mediaEntry;
-		if(liveStreamEntry.recordedEntryId == null){
+		KalturaMediaEntry mediaEntry = null;
+		if(liveStreamEntry.recordedEntryId != null){
+			try {
+				mediaEntry = client.getMediaService().get(liveStreamEntry.recordedEntryId);
+			} catch (KalturaApiException e) {
+				logger.error("KalturaLiveStreamManager::createMediaEntry failed to create media entry: " + e.getMessage());
+				unimpersonate();
+			}
+		}
+
+		if(mediaEntry == null){
 			mediaEntry = new KalturaMediaEntry();
 			mediaEntry.rootEntryId = liveStreamEntry.id;
 			mediaEntry.name = liveStreamEntry.name;
@@ -199,15 +212,6 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 				return;
 			}
 			logger.debug("KalturaLiveStreamManager::createMediaEntry created media entry [" + mediaEntry.id + "] for live entry [" + liveStreamEntry.id + "]");
-		}
-		else{
-			try {
-				mediaEntry = client.getMediaService().get(liveStreamEntry.recordedEntryId);
-			} catch (KalturaApiException e) {
-				logger.error("KalturaLiveStreamManager::createMediaEntry failed to create media entry: " + e.getMessage());
-				unimpersonate();
-				return;
-			}
 		}
 
 		liveStreamEntry.redirectEntryId = mediaEntry.id;
@@ -248,7 +252,7 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 		
 		long keepAliveInterval = Long.parseLong((String) serverConfiguration.get(KalturaLiveStreamManager.KALTURA_LIVE_STREAM_KEEP_ALIVE_INTERVAL)) * 1000;
 
-		TimerTask timerTask = new TimerTask(){
+		TimerTask setMediaServerTask = new TimerTask(){
 
 			@Override
 			public void run() {
@@ -262,12 +266,29 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 			}
 		};
 		
-		timer = new Timer();
-		timer.schedule(timerTask, keepAliveInterval, keepAliveInterval);
+		setMediaServerTimer = new Timer();
+		setMediaServerTimer.schedule(setMediaServerTask, keepAliveInterval, keepAliveInterval);
+
+
+		long splitRecordingInterval = KalturaLiveStreamManager.DEFAULT_RECORDED_CHUNCK_MAX_DURATION * 60 * 1000;
+		if (serverConfiguration.containsKey(KalturaLiveStreamManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION))
+			splitRecordingInterval = Long.parseLong((String) serverConfiguration.get(KalturaLiveStreamManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION)) * 60 * 1000;
+
+		TimerTask splitRecordingTask = new TimerTask(){
+
+			@Override
+			public void run() {
+				restartRecordings();
+			}
+		};
+		
+		splitRecordingTimer = new Timer(true);
+		splitRecordingTimer.schedule(splitRecordingTask, splitRecordingInterval, splitRecordingInterval);
 	}
 
 	@Override
 	public void stop() {
-		timer.cancel();
+		setMediaServerTimer.cancel();
+		splitRecordingTimer.cancel();
 	}
 }
