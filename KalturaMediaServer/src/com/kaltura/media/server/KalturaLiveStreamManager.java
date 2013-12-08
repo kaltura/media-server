@@ -261,7 +261,11 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 		
 		try {
 			client.getMediaService().cancelReplace(mediaEntry.id);
-			client.getMediaService().updateContent(mediaEntry.id, resource);
+			mediaEntry = client.getMediaService().updateContent(mediaEntry.id, resource);
+			
+			if(mediaEntry.replacingEntryId != null)
+				client.getMediaService().approveReplace(mediaEntry.id);
+			
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::createMediaEntry failed to add content resource: " + e.getMessage());
 			unimpersonate();
