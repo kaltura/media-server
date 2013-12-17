@@ -11,9 +11,14 @@ public class ServerListener implements IServerNotify2 {
 	
 	KalturaServer kalturaServer;
 
-	@SuppressWarnings("unchecked")
 	public void onServerConfigLoaded(IServer server) {
-		
+	}
+
+	public void onServerCreate(IServer server) {
+	}
+
+	@SuppressWarnings("unchecked")
+	public void onServerInit(IServer server) {
 		WMSLogger logger = WMSLoggerFactory.getLogger(null);
 		WMSProperties config = server.getProperties();
 		try {
@@ -22,12 +27,6 @@ public class ServerListener implements IServerNotify2 {
 		} catch (KalturaServerException e) {
 			logger.error("Failed to initialize Kaltura server: " + e.getMessage());
 		}
-	}
-
-	public void onServerCreate(IServer server) {
-	}
-
-	public void onServerInit(IServer server) {
 	}
 
 	public void onServerShutdownStart(IServer server) {
