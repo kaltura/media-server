@@ -173,7 +173,8 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 		}
 		unimpersonate();
 		
-		createMediaEntryOrAppend(liveStreamEntry);
+		if(index == KalturaMediaServerIndex.PRIMARY)
+			createMediaEntryOrAppend(liveStreamEntry);
 	}
 
 	@Override
