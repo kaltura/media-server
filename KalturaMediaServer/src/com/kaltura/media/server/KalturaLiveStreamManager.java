@@ -142,7 +142,9 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 	@Override
 	public void onPublish(final KalturaLiveStreamEntry liveStreamEntry, final KalturaMediaServerIndex serverIndex) {
 		logger.debug("KalturaLiveStreamManager::onPublish entry [" + liveStreamEntry.id + "]");
-
+		
+		cancelRedirect(liveStreamEntry);
+		
 		TimerTask setMediaServerTask = new TimerTask(){
 
 			@Override
