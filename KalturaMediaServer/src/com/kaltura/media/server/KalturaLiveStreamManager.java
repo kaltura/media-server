@@ -143,7 +143,8 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 	public void onPublish(final KalturaLiveStreamEntry liveStreamEntry, final KalturaMediaServerIndex serverIndex) {
 		logger.debug("KalturaLiveStreamManager::onPublish entry [" + liveStreamEntry.id + "]");
 		
-		cancelRedirect(liveStreamEntry);
+		if(serverIndex == KalturaMediaServerIndex.PRIMARY)
+			cancelRedirect(liveStreamEntry);
 		
 		TimerTask setMediaServerTask = new TimerTask(){
 
@@ -172,8 +173,12 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 	}
 
 	@Override
-	public void onUnPublish(KalturaLiveStreamEntry liveStreamEntry) {
+	public void onUnPublish(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex serverIndex) {
 		logger.debug("KalturaLiveStreamManager::onPublish entry [" + liveStreamEntry.id + "]");
+		
+		if(serverIndex == KalturaMediaServerIndex.PRIMARY)
+			setRedirect(liveStreamEntry);
+		
 		synchronized (entries) {
 			if(entries.containsKey(liveStreamEntry.id)){
 				LiveStreamEntryCache liveStreamEntryCache = entries.get(liveStreamEntry.id);
@@ -205,6 +210,29 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 			client.getLiveStreamService().update(liveStreamEntry.id, updateLiveStreamEntry);
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::cancelRedirect failed to upload file: " + e.getMessage());
+			unimpersonate();
+			return;
+		}
+		
+		unimpersonate();
+	}
+
+	protected void setRedirect(KalturaLiveStreamEntry liveStreamEntry) {
+		logger.debug("KalturaLiveStreamManager::setRedirect set live entry [" + liveStreamEntry.id + "] redirect");
+
+		if(liveStreamEntry.recordedEntryId == null){
+			logger.error("KalturaLiveStreamManager::setRedirect no recorded entry id on live entry [" + liveStreamEntry.id + "]");
+			return;
+		}
+		
+		impersonate(liveStreamEntry.partnerId);
+		
+		KalturaLiveStreamEntry updateLiveStreamEntry = new KalturaLiveStreamEntry();
+		updateLiveStreamEntry.redirectEntryId = liveStreamEntry.recordedEntryId;
+		try {
+			client.getLiveStreamService().update(liveStreamEntry.id, updateLiveStreamEntry);
+		} catch (KalturaApiException e) {
+			logger.error("KalturaLiveStreamManager::setRedirect failed to upload file: " + e.getMessage());
 			unimpersonate();
 			return;
 		}
@@ -247,11 +275,9 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 			logger.debug("KalturaLiveStreamManager::createMediaEntryOrAppend created media entry [" + mediaEntry.id + "] for live entry [" + liveStreamEntry.id + "]");
 		}
 
-		liveStreamEntry.redirectEntryId = mediaEntry.id;
 		liveStreamEntry.recordedEntryId = mediaEntry.id;
 		
 		KalturaLiveStreamEntry updateLiveStreamEntry = new KalturaLiveStreamEntry();
-		updateLiveStreamEntry.redirectEntryId = mediaEntry.id;
 		updateLiveStreamEntry.recordedEntryId = mediaEntry.id;
 		try {
 			client.getLiveStreamService().update(liveStreamEntry.id, updateLiveStreamEntry);

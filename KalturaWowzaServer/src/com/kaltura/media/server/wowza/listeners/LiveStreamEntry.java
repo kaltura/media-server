@@ -143,9 +143,10 @@ public class LiveStreamEntry extends ModuleBase {
 				return;
 			
 			KalturaLiveStreamEntry liveStreamEntry = liveStreamManager.get(clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID));
+			KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 			getLogger().debug("LiveStreamListener::onUnPublish: " + liveStreamEntry.id);
-			liveStreamManager.onUnPublish(liveStreamEntry);
+			liveStreamManager.onUnPublish(liveStreamEntry, serverIndex);
 		}
 	
 		public void onPause(IMediaStream stream, boolean isPause, double location){}

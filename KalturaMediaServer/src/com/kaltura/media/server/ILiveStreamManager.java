@@ -8,7 +8,7 @@ public interface ILiveStreamManager extends IManager {
 
 	public void onPublish(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex serverIndex);
 	
-	public void onUnPublish(KalturaLiveStreamEntry liveStreamEntry);
+	public void onUnPublish(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex serverIndex);
 	
 	public void onDisconnect(String entryId);
 
