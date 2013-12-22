@@ -66,6 +66,13 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 			this.index = null;
 			this.registerTime = null;
 		}
+
+		public boolean isRegistered() {
+			if(index == null)
+				return false;
+			
+			return registerTime.before(new Date());
+		}
 	}
 	
 	protected void impersonate(int partnerId) {
@@ -326,7 +333,7 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 				synchronized (entries) {
 					for(String entryId : entries.keySet()){
 						LiveStreamEntryCache liveStreamEntryCache = entries.get(entryId);
-						if(liveStreamEntryCache.index != null)
+						if(liveStreamEntryCache.isRegistered())
 							setEntryMediaServer(liveStreamEntryCache.liveStreamEntry, liveStreamEntryCache.index);
 					}
 				}
