@@ -181,7 +181,7 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 
 	@Override
 	public void onUnPublish(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex serverIndex) {
-		logger.debug("KalturaLiveStreamManager::onPublish entry [" + liveStreamEntry.id + "]");
+		logger.debug("KalturaLiveStreamManager::onUnPublish entry [" + liveStreamEntry.id + "]");
 		
 		if(serverIndex == KalturaMediaServerIndex.PRIMARY)
 			setRedirect(liveStreamEntry);
@@ -259,8 +259,7 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 			try {
 				mediaEntry = client.getMediaService().get(liveStreamEntry.recordedEntryId);
 			} catch (KalturaApiException e) {
-				logger.error("KalturaLiveStreamManager::createMediaEntryOrAppend failed to create media entry: " + e.getMessage());
-				unimpersonate();
+				logger.warn("KalturaLiveStreamManager::createMediaEntryOrAppend failed to get recorded media entry [" + liveStreamEntry.recordedEntryId + "]: " + e.getMessage());
 			}
 		}
 
