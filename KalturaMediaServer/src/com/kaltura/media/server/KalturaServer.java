@@ -41,6 +41,8 @@ public class KalturaServer {
 	protected static String hostname;
 	protected static KalturaWebServicesServer webServicesServer;
 
+	private static String OS;
+
 	protected List<IManager> managers;
 
 	protected KalturaServer() throws KalturaServerException {
@@ -236,6 +238,10 @@ public class KalturaServer {
 		}
 	}
 
+	public static boolean isInitialized() {
+		return (instance != null);
+	}
+
 	public static KalturaServer getInstance() throws KalturaServerException {
 		if (instance == null)
 			throw new KalturaServerException("Server not initialized");
@@ -257,5 +263,16 @@ public class KalturaServer {
 
 	public static Logger getLogger() {
 		return logger;
+	}
+
+	public static boolean isWindows() {
+		return getOsName().startsWith("Windows");
+	}
+
+	protected static String getOsName() {
+		if(OS == null)
+			OS = System.getProperty("os.name");
+		
+		return OS;
 	}
 }
