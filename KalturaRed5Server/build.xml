@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<project name="KalturaRed5Server" default="prepare" basedir="..">
+
+	
+	<!--
+	<property name="red5.dir" value="C:/Program Files (x86)/Red5"/>
+	-->
+	<property name="red5.dir" value="C:/opt/red5"/>
+	<property name="red5.lib.dir" value="${red5.dir}/lib"/>
+	<property name="red5.app.dir" value="${red5.dir}/webapps/kLive/WEB-INF"/>
+	<property name="jar.filename" value="KalturaRed5Server.jar"/>
+	<property name="core.web.dir" value="WEB-INF"/>
+	<property name="core.media.dir" value="./../KalturaMediaServer"/>
+	<property name="core.client.dir" value="C:/opt/kaltura/web/content/clientlibs/java"/>
+	<property name="core.build.dir" value="${core.web.dir}/classes"/>
+
+	<target name="jar">
+		<copy todir="${red5.lib.dir}" file="${core.web.dir}/lib/KalturaClient.jar"/>
+		<copy todir="${red5.lib.dir}" file="${core.web.dir}/lib/KalturaMediaServer.jar"/>
+		
+		<jar jarfile="${red5.lib.dir}/${jar.filename}">
+			<fileset dir="${core.build.dir}"/>
+		</jar>
+		
+		<!--
+		<jar jarfile="C:/opt/kalsource/server-bin-linux-64bit/wowza/${jar.filename}">
+			<fileset dir="${core.build.dir}"/>
+		</jar>
+		-->
+	</target>
+
+	<target name="prepare">
+		<copy todir="${red5.app.dir}">
+		    <fileset dir="${core.web.dir}"  />
+		</copy>
+		<copy todir="${red5.app.dir}/src">
+		    <fileset dir="${core.media.dir}/src"  />
+		    <fileset dir="${core.client.dir}/src"  />
+		</copy>
+		<copy todir="${red5.app.dir}/classes">
+		    <fileset dir="${core.media.dir}/bin"  />
+		    <fileset dir="${core.client.dir}/bin"  />
+		</copy>
+	</target>
+	
+</project>

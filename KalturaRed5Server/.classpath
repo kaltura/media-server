@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="WEB-INF/classes" path="WEB-INF/src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/red5.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/bcprov-jdk15on-1.47.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/com.springsource.javax.xml.stream-1.0.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/com.springsource.net.sf.cglib-2.2.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/com.springsource.org.antlr-3.1.3.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/com.springsource.org.aopalliance-1.0.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/com.springsource.org.apache.xerces-2.9.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/com.springsource.org.codehaus.groovy-1.7.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/com.springsource.org.mozilla.javascript-1.7.0.R2.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/com.springsource.org.objectweb.asm.commons-3.2.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/com.springsource.org.objectweb.asm-3.2.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/commons-beanutils-1.8.3.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/commons-codec-1.6.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/commons-collections-3.2.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/commons-lang3-3.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/commons-modeler-2.0.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/commons-pool-1.5.6.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/ehcache-core-2.5.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/httpclient-4.2.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/httpcore-4.2.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/jaudiotagger-2.0.4-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/javaee-api-5.1.2.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/jcl-over-slf4j-1.6.6.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/jruby-1.6.7.2.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/jul-to-slf4j-1.6.6.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/jython-standalone-2.5.2.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/log4j-over-slf4j-1.6.6.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/logback-classic-1.0.3.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/logback-core-1.0.3.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/mina-core-2.0.5.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/mina-integration-beans-2.0.5.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/mina-integration-jmx-2.0.5.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/quartz-1.8.5.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/red5-client.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/slf4j-api-1.6.6.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/spring-aop-3.1.1.RELEASE.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/spring-asm-3.1.1.RELEASE.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/spring-beans-3.1.1.RELEASE.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/spring-context-3.1.1.RELEASE.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/spring-context-support-3.1.1.RELEASE.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/spring-core-3.1.1.RELEASE.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/spring-expression-3.1.1.RELEASE.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/spring-web-3.1.1.RELEASE.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/sysout-over-slf4j-1.0.2.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/wrapper.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Red5/lib/xmlrpc-2.0.1.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/red5_server"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/java_client_library"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/KalturaMediaServer"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
