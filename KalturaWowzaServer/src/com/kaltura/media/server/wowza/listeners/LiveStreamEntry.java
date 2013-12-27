@@ -125,12 +125,21 @@ public class LiveStreamEntry extends ModuleBase {
 				return;
 
 			WMSProperties clientProperties = client.getProperties();
-			if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID))
+			if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
+				getLogger().error("LiveStreamListener::onPublish: unauthenticated client tried to publish stream");
+				client.rejectConnection("Client did not authenticated", "Client did not authenticated");
 				return;
+			}
 
 			KalturaLiveStreamEntry liveStreamEntry = liveStreamManager.get(clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID));
 			KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
+			getLogger().debug("LiveStreamListener::onPublish: " + liveStreamEntry.id);
+
+			if(liveStreamEntry.recordStatus == KalturaRecordStatus.ENABLED){
+				liveStreamManager.startRecord(liveStreamEntry.id, stream, serverIndex, true, true, false);
+			}
+			
 			liveStreamManager.onPublish(liveStreamEntry, serverIndex);
 		}
 
@@ -262,6 +271,9 @@ public class LiveStreamEntry extends ModuleBase {
 				field = null;
 			}
 		}
+		
+		if(!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID))
+			return;
 
 		int partnerId = Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
 		String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
