@@ -73,6 +73,10 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 			
 			return registerTime.before(new Date());
 		}
+
+		public void setLiveStreamEntry(KalturaLiveStreamEntry liveStreamEntry) {
+			this.liveStreamEntry = liveStreamEntry;
+		}
 	}
 	
 	protected void impersonate(int partnerId) {
@@ -94,6 +98,25 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 		}
 		
 		return null;
+	}
+
+	public KalturaLiveStreamEntry reloadEntry(String entryId, int partnerId) {
+		impersonate(partnerId);
+		KalturaLiveStreamEntry liveStreamEntry;
+		try {
+			liveStreamEntry = client.getLiveStreamService().get(entryId);
+		} catch (KalturaApiException e) {
+			logger.error("KalturaLiveStreamManager::reloadEntry unable to get entry [" + entryId + "]: " + e.getMessage());
+			return null;
+		}
+		unimpersonate();
+
+		synchronized (entries) {
+			LiveStreamEntryCache liveStreamEntryCache = entries.get(entryId);
+			liveStreamEntryCache.setLiveStreamEntry(liveStreamEntry);
+		}
+		
+		return liveStreamEntry;
 	}
 
 	@Override
@@ -229,7 +252,14 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 
 		if(liveStreamEntry.recordedEntryId == null){
 			logger.error("KalturaLiveStreamManager::setRedirect no recorded entry id on live entry [" + liveStreamEntry.id + "]");
-			return;
+			liveStreamEntry = reloadEntry(liveStreamEntry.id, liveStreamEntry.partnerId);
+			if(liveStreamEntry == null)
+				return;
+
+			if(liveStreamEntry.recordedEntryId == null){
+				logger.error("KalturaLiveStreamManager::setRedirect no recorded entry id on live entry [" + liveStreamEntry.id + "] after reloading");
+				return;
+			}
 		}
 		
 		impersonate(liveStreamEntry.partnerId);
@@ -281,7 +311,9 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 			logger.debug("KalturaLiveStreamManager::createMediaEntryOrAppend created media entry [" + mediaEntry.id + "] for live entry [" + liveStreamEntry.id + "]");
 		}
 
-		liveStreamEntry.recordedEntryId = mediaEntry.id;
+		synchronized (entries){
+			liveStreamEntry.recordedEntryId = mediaEntry.id;
+		}
 		
 		KalturaLiveStreamEntry updateLiveStreamEntry = new KalturaLiveStreamEntry();
 		updateLiveStreamEntry.recordedEntryId = mediaEntry.id;
@@ -309,6 +341,17 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 		unimpersonate();
 	}
 
+	public boolean isEntryRegistered(String entryId){
+		boolean registered = false;
+		synchronized (entries) {
+			LiveStreamEntryCache liveStreamEntryCache = entries.get(entryId);
+			if(liveStreamEntryCache != null)
+				registered = liveStreamEntryCache.isRegistered();
+		}
+		
+		return registered;
+	}
+
 	@Override
 	public void init() throws KalturaManagerException {
 		entries = new ConcurrentHashMap<String, LiveStreamEntryCache>();
@@ -325,38 +368,42 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 
 		long keepAliveInterval = Long.parseLong((String) serverConfiguration.get(KalturaLiveStreamManager.KALTURA_LIVE_STREAM_KEEP_ALIVE_INTERVAL)) * 1000;
 
-		TimerTask setMediaServerTask = new TimerTask(){
-
-			@Override
-			public void run() {
-				synchronized (entries) {
-					for(String entryId : entries.keySet()){
-						LiveStreamEntryCache liveStreamEntryCache = entries.get(entryId);
-						if(liveStreamEntryCache.isRegistered())
-							setEntryMediaServer(liveStreamEntryCache.liveStreamEntry, liveStreamEntryCache.index);
+		if(keepAliveInterval > 0){
+			TimerTask setMediaServerTask = new TimerTask(){
+	
+				@Override
+				public void run() {
+					synchronized (entries) {
+						for(String entryId : entries.keySet()){
+							LiveStreamEntryCache liveStreamEntryCache = entries.get(entryId);
+							if(liveStreamEntryCache.isRegistered())
+								setEntryMediaServer(liveStreamEntryCache.liveStreamEntry, liveStreamEntryCache.index);
+						}
 					}
 				}
-			}
-		};
-		
-		setMediaServerTimer = new Timer();
-		setMediaServerTimer.schedule(setMediaServerTask, keepAliveInterval, keepAliveInterval);
+			};
+			
+			setMediaServerTimer = new Timer();
+			setMediaServerTimer.schedule(setMediaServerTask, keepAliveInterval, keepAliveInterval);
+		}
 
 
 		long splitRecordingInterval = KalturaLiveStreamManager.DEFAULT_RECORDED_CHUNCK_MAX_DURATION * 60 * 1000;
 		if (serverConfiguration.containsKey(KalturaLiveStreamManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION))
 			splitRecordingInterval = Long.parseLong((String) serverConfiguration.get(KalturaLiveStreamManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION)) * 60 * 1000;
 
-		TimerTask splitRecordingTask = new TimerTask(){
-
-			@Override
-			public void run() {
-				restartRecordings();
-			}
-		};
-		
-		splitRecordingTimer = new Timer(true);
-		splitRecordingTimer.schedule(splitRecordingTask, splitRecordingInterval, splitRecordingInterval);
+		if(splitRecordingInterval > 0){
+			TimerTask splitRecordingTask = new TimerTask(){
+	
+				@Override
+				public void run() {
+					restartRecordings();
+				}
+			};
+			
+			splitRecordingTimer = new Timer(true);
+			splitRecordingTimer.schedule(splitRecordingTask, splitRecordingInterval, splitRecordingInterval);
+		}
 	}
 
 	@Override
