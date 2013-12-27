@@ -34,6 +34,7 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 	protected GroupPrincipal group;
 
 	class EntryRecorder extends LiveStreamRecorderMP4
+//	class EntryRecorder extends LiveStreamRecorderFLV
 	{
 		private KalturaMediaServerIndex index;
 		
@@ -50,15 +51,17 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 	public void init() throws KalturaManagerException {
 		super.init();
 
-		String groupName = LiveStreamManager.DEFAULT_RECORDED_FILE_GROUP;
-		if (serverConfiguration.containsKey(LiveStreamManager.KALTURA_RECORDED_FILE_GROUP))
-			groupName = (String) serverConfiguration.get(LiveStreamManager.KALTURA_RECORDED_FILE_GROUP);
-
-		UserPrincipalLookupService lookupService = FileSystems.getDefault().getUserPrincipalLookupService();
-		try {
-			group = lookupService.lookupPrincipalByGroupName(groupName);
-		} catch (IOException e) {
-			throw new KalturaManagerException("Group [" + groupName + "] not found", e);
+		if(!KalturaServer.isWindows()){
+			String groupName = LiveStreamManager.DEFAULT_RECORDED_FILE_GROUP;
+			if (serverConfiguration.containsKey(LiveStreamManager.KALTURA_RECORDED_FILE_GROUP))
+				groupName = (String) serverConfiguration.get(LiveStreamManager.KALTURA_RECORDED_FILE_GROUP);
+	
+			UserPrincipalLookupService lookupService = FileSystems.getDefault().getUserPrincipalLookupService();
+			try {
+				group = lookupService.lookupPrincipalByGroupName(groupName);
+			} catch (IOException e) {
+				throw new KalturaManagerException("Group [" + groupName + "] not found", e);
+			}
 		}
 
 		hostname = KalturaServer.getHostName();
@@ -70,8 +73,12 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 		logger.debug("LiveStreamEntry::restartRecordings");
 		synchronized (recorders)
 		{
-			for(ILiveStreamRecord streamRecorder : recorders.values()){
-				streamRecorder.splitRecordingNow();
+			for(String entryId : recorders.keySet()){
+				if(isEntryRegistered(entryId)){
+					ILiveStreamRecord streamRecorder = recorders.get(entryId);
+					if(streamRecorder != null)
+						streamRecorder.splitRecordingNow();
+				}
 			}
 		}
 	}
@@ -105,6 +112,7 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 			recorders.remove(entryId);
 		}
 
+//		File writeFile = stream.getStreamFileForWrite(entryId, index.getHashCode() + ".flv", "");
 		File writeFile = stream.getStreamFileForWrite(entryId, index.getHashCode() + ".mp4", "");
 		String filePath = writeFile.getAbsolutePath();
 		
@@ -140,13 +148,15 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements IMedi
 		String entryId = stream.getName();
 		float duration = (float) stream.getElapsedTime().getTimeSeconds();
 
-		Path path = Paths.get(file.getAbsolutePath());
-		PosixFileAttributeView fileAttributes = Files.getFileAttributeView(path, PosixFileAttributeView.class);
-			
-		try {
-			fileAttributes.setGroup(group);
-		} catch (IOException e) {
-			logger.error(e.getMessage());
+		if(group != null){
+			Path path = Paths.get(file.getAbsolutePath());
+			PosixFileAttributeView fileAttributes = Files.getFileAttributeView(path, PosixFileAttributeView.class);
+				
+			try {
+				fileAttributes.setGroup(group);
+			} catch (IOException e) {
+				logger.error(e.getMessage());
+			}
 		}
 		
 		KalturaServerFileResource resource = new KalturaServerFileResource();
