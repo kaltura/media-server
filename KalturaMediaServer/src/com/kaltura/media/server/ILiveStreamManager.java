@@ -14,7 +14,7 @@ public interface ILiveStreamManager extends IManager {
 
 	public KalturaLiveStreamEntry get(String entryId);
 
-	public KalturaLiveStreamEntry get(String entryId, int partnerId) throws KalturaApiException;
+	public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token) throws KalturaApiException;
 	
 	public Integer getDvrWindow(KalturaLiveStreamEntry liveStreamEntry);
 

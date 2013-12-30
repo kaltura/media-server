@@ -279,24 +279,18 @@ public class LiveStreamEntry extends ModuleBase {
 		String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
 		String token = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_TOKEN);
 
-		clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
-		clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
-
-		KalturaLiveStreamEntry liveStreamEntry;
 		try {
-			liveStreamEntry = liveStreamManager.get(entryId, partnerId);
+			liveStreamManager.authenticate(entryId, partnerId, token);
+			clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
+			clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
+			clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
+			getLogger().info("LiveStreamEntry::onConnect: Entry added [" + entryId + "]");
 		} catch (KalturaApiException e) {
-			getLogger().error("LiveStreamEntry::onConnect: unable to get entry [" + entryId + "]: " + e.getMessage());
-			client.rejectConnection("Unable to get entry [" + entryId + "]", "Unable to get entry [" + entryId + "]");
-			return;
+			getLogger().error("LiveStreamEntry::onConnect: Entry authentication failed [" + entryId + "]: " + e.getMessage());
+			client.rejectConnection("Unable to authenticate entry [" + entryId + "]", "Unable to authenticate entry [" + entryId + "]");
 		}
-		clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
-		getLogger().info("LiveStreamEntry::onConnect: Entry added [" + entryId + "]");
 
-		if (token.compareTo(liveStreamEntry.streamPassword) != 0) {
-			getLogger().error("LiveStreamEntry::onConnect: Invalid token [" + token + "] for entry [" + entryId + "] with token [" + liveStreamEntry.streamPassword + "]");
-			client.rejectConnection("Invalid token", "Invalid token");
-		}
+
 	}
 
 	public void onAppStart(IApplicationInstance appInstance) {

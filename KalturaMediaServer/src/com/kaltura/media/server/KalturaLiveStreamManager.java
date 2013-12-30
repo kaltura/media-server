@@ -87,6 +87,18 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 		config.setPartnerId(KalturaServer.MEDIA_SERVER_PARTNER_ID);
 	}
 
+	public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token) throws KalturaApiException {
+		impersonate(partnerId);
+		KalturaLiveStreamEntry liveStreamEntry = client.getLiveStreamService().authenticate(entryId, token);
+		unimpersonate();
+
+		synchronized (entries) {
+			entries.put(liveStreamEntry.id, new LiveStreamEntryCache(liveStreamEntry));
+		}
+		
+		return liveStreamEntry;
+	}
+	
 	@Override
 	public KalturaLiveStreamEntry get(String entryId) {
 		
@@ -114,24 +126,6 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 		synchronized (entries) {
 			LiveStreamEntryCache liveStreamEntryCache = entries.get(entryId);
 			liveStreamEntryCache.setLiveStreamEntry(liveStreamEntry);
-		}
-		
-		return liveStreamEntry;
-	}
-
-	@Override
-	public KalturaLiveStreamEntry get(String entryId, int partnerId) throws KalturaApiException {
-		
-		KalturaLiveStreamEntry liveStreamEntry = get(entryId);
-		if(liveStreamEntry != null)
-			return liveStreamEntry;
-		
-		impersonate(partnerId);
-		liveStreamEntry = client.getLiveStreamService().get(entryId);
-		unimpersonate();
-
-		synchronized (entries) {
-			entries.put(liveStreamEntry.id, new LiveStreamEntryCache(liveStreamEntry));
 		}
 		
 		return liveStreamEntry;

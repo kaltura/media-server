@@ -176,31 +176,17 @@ public class LiveStreamEntry extends ApplicationAdapter implements IStreamAwareS
 		String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
 		String token = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_TOKEN);
 
-		client.setAttribute(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
-		client.setAttribute(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
-
-		KalturaLiveStreamEntry liveStreamEntry;
 		try {
-			logger.debug("LiveStreamEntry::connect: entryId: " + entryId);
-			logger.debug("LiveStreamEntry::connect: entryId: " + partnerId);
-			if (liveStreamManager == null)
-				logger.debug("LiveStreamEntry::connect: liveStreamManager is null");
-			else
-				logger.debug("LiveStreamEntry::connect: liveStreamManager is " + liveStreamManager.getClass().getName());
-
-			liveStreamEntry = liveStreamManager.get(entryId, partnerId);
+			liveStreamManager.authenticate(entryId, partnerId, token);
+			client.setAttribute(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
+			client.setAttribute(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
+			client.setAttribute(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
+			logger.info("LiveStreamEntry::connect: Entry added [" + entryId + "]");
 		} catch (KalturaApiException e) {
-			logger.error("LiveStreamEntry::connect: unable to get entry [" + entryId + "]: " + e.getMessage());
+			logger.error("LiveStreamEntry::connect: Entry authentication failed [" + entryId + "]: " + e.getMessage());
 			return false;
 		}
-		client.setAttribute(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
-		logger.info("LiveStreamEntry::connect: Entry added [" + entryId + "]");
-
-		if (token.compareTo(liveStreamEntry.streamPassword) != 0) {
-			logger.error("LiveStreamEntry::connect: Invalid token [" + token + "] for entry [" + entryId + "] with token [" + liveStreamEntry.streamPassword + "]");
-			return false;
-		}
-
+		
 		return super.connect(conn, scope, params);
 	}
 
