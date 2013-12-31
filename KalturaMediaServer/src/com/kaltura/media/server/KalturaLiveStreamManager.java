@@ -158,7 +158,7 @@ abstract public class KalturaLiveStreamManager implements ILiveStreamManager {
 		try {
 			client.getLiveStreamService().unregisterMediaServer(liveStreamEntry.id, hostname, serverIndex);
 		} catch (KalturaApiException e) {
-			logger.error("KalturaLiveStreamManager::setEntryMediaServer unable to unregister media server: " + e.getMessage());
+			logger.error("KalturaLiveStreamManager::unsetEntryMediaServer unable to unregister media server: " + e.getMessage());
 		}
 		unimpersonate();
 	}
