@@ -18,22 +18,26 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 
 	@Override
 	public void restartRecordings(){
-		logger.debug("LiveStreamEntry::restartRecordings");
+		logger.debug("LiveStreamManager::restartRecordings");
 		recordingManager.restartRecordings();
 	}
 
 	protected boolean restartRecording(String entryId){
-		logger.debug("LiveStreamEntry::restartRecording: " + entryId);
+		logger.debug("LiveStreamManager::restartRecording: " + entryId);
 		return recordingManager.restartRecording(entryId);
 	}
 	
 	public String startRecord(String entryId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
-		logger.debug("LiveStreamEntry::startRecord: " + entryId);
+		logger.debug("LiveStreamManager::startRecord: " + entryId);
 		return recordingManager.startRecord(entryId, stream, index, versionFile, startOnKeyFrame, recordData);
 	}
 	
 	@Override
 	public boolean splitRecordingNow(String entryId) {
 		return restartRecording(entryId);
+	}
+
+	public RecordingManager getRecordingManager() {
+		return recordingManager;
 	}
 }
