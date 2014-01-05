@@ -82,6 +82,6 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 		unimpersonate();
 		
 		if(index == KalturaMediaServerIndex.PRIMARY)
-			createMediaEntryOrAppend(liveEntry);
+			appendRecording(liveEntry);
 	}
 }

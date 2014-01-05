@@ -15,6 +15,7 @@ import com.kaltura.client.KalturaParamsValueDefaults;
 import com.kaltura.client.enums.KalturaDVRStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.enums.KalturaMediaType;
+import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.enums.KalturaSourceType;
 import com.kaltura.client.types.KalturaEntryResource;
 import com.kaltura.client.types.KalturaLiveEntry;
@@ -155,6 +156,9 @@ abstract public class KalturaLiveManager implements ILiveManager {
 				entries.put(liveEntry.id, new LiveEntryCache(liveEntry, serverIndex, registerTime));
 			}
 		}
+		
+		if(liveEntry.recordStatus == KalturaRecordStatus.ENABLED)
+			createMediaEntry(liveEntry);
 	}
 
 	public void onUnPublish(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
@@ -244,19 +248,16 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		unimpersonate();
 	}
 
-	protected void createMediaEntryOrAppend(KalturaLiveEntry liveEntry) {
-		logger.debug("KalturaLiveManager::createMediaEntryOrAppend creating media entry for live entry [" + liveEntry.id + "]");
+	protected KalturaMediaEntry createMediaEntry(KalturaLiveEntry liveEntry) {
+		logger.debug("KalturaLiveManager::createMediaEntry creating media entry for live entry [" + liveEntry.id + "]");
 		impersonate(liveEntry.partnerId);
 
-		KalturaEntryResource resource = new KalturaEntryResource();
-		resource.entryId = liveEntry.id;
-		
 		KalturaMediaEntry mediaEntry = null;
 		if(liveEntry.recordedEntryId != null){
 			try {
 				mediaEntry = client.getMediaService().get(liveEntry.recordedEntryId);
 			} catch (KalturaApiException e) {
-				logger.warn("KalturaLiveManager::createMediaEntryOrAppend failed to get recorded media entry [" + liveEntry.recordedEntryId + "]: " + e.getMessage());
+				logger.warn("KalturaLiveManager::createMediaEntry failed to get recorded media entry [" + liveEntry.recordedEntryId + "]: " + e.getMessage());
 			}
 		}
 
@@ -271,11 +272,11 @@ abstract public class KalturaLiveManager implements ILiveManager {
 			try {
 				mediaEntry = client.getMediaService().add(mediaEntry);
 			} catch (KalturaApiException e) {
-				logger.error("KalturaLiveManager::createMediaEntryOrAppend failed to create media entry: " + e.getMessage());
+				logger.error("KalturaLiveManager::createMediaEntry failed to create media entry: " + e.getMessage());
 				unimpersonate();
-				return;
+				return null;
 			}
-			logger.debug("KalturaLiveManager::createMediaEntryOrAppend created media entry [" + mediaEntry.id + "] for live entry [" + liveEntry.id + "]");
+			logger.debug("KalturaLiveManager::createMediaEntry created media entry [" + mediaEntry.id + "] for live entry [" + liveEntry.id + "]");
 		}
 
 		synchronized (entries){
@@ -287,26 +288,55 @@ abstract public class KalturaLiveManager implements ILiveManager {
 			updateLiveEntry = liveEntry.getClass().newInstance();
 		} catch (Exception e) {
 			logger.error("KalturaLiveManager::cancelRedirect failed to instantiate [" + liveEntry.getClass().getName() + "]: " + e.getMessage());
-			return;
+			return null;
 		}
 		updateLiveEntry.recordedEntryId = mediaEntry.id;
 		try {
 			client.getBaseEntryService().update(liveEntry.id, updateLiveEntry);
 		} catch (KalturaApiException e) {
-			logger.error("KalturaLiveManager::createMediaEntryOrAppend failed to upload file: " + e.getMessage());
-			unimpersonate();
-			return;
+			logger.error("KalturaLiveManager::createMediaEntry failed to upload file: " + e.getMessage());
 		}
 		
+		unimpersonate();
+		
+		return mediaEntry;
+	}
+
+	protected void appendRecording(KalturaLiveEntry liveEntry) {
+		logger.debug("KalturaLiveManager::appendRecordingToMediaEntry creating media entry for live entry [" + liveEntry.id + "]");
+
+		KalturaMediaEntry mediaEntry;
+		
+		KalturaEntryResource resource = new KalturaEntryResource();
+		resource.entryId = liveEntry.id;
+		
+		String recordedEntryId = liveEntry.recordedEntryId;
+		if(recordedEntryId == null){
+			logger.warn("KalturaLiveManager::appendRecordingToMediaEntry recorded media entry is null for entry [" + liveEntry.id + "]: reloading");
+			liveEntry = reloadEntry(liveEntry.id, liveEntry.partnerId);
+			recordedEntryId = liveEntry.recordedEntryId;
+		}
+		
+		if(recordedEntryId == null){
+			logger.warn("KalturaLiveManager::appendRecordingToMediaEntry recorded media entry is null for entry [" + liveEntry.id + "]: creating media entry");
+			mediaEntry = createMediaEntry(liveEntry);
+			if(mediaEntry == null)
+				logger.error("KalturaLiveManager::appendRecordingToMediaEntry recorded media entry is null for entry [" + liveEntry.id + "]: creating media entry failed");
+			
+			recordedEntryId = mediaEntry.id;
+		}
+
+		impersonate(liveEntry.partnerId);
+
 		try {
-			client.getMediaService().cancelReplace(mediaEntry.id);
-			mediaEntry = client.getMediaService().updateContent(mediaEntry.id, resource);
+			client.getMediaService().cancelReplace(recordedEntryId);
+			mediaEntry = client.getMediaService().updateContent(recordedEntryId, resource);
 			
 			if(mediaEntry.replacingEntryId != null)
-				client.getMediaService().approveReplace(mediaEntry.id);
+				client.getMediaService().approveReplace(recordedEntryId);
 			
 		} catch (KalturaApiException e) {
-			logger.error("KalturaLiveManager::createMediaEntryOrAppend failed to add content resource [" + mediaEntry.id + "]: " + e.getMessage());
+			logger.error("KalturaLiveManager::appendRecordingToMediaEntry failed to add content resource [" + recordedEntryId + "]: " + e.getMessage());
 			unimpersonate();
 			return;
 		}

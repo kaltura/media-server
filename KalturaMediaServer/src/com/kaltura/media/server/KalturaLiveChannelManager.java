@@ -164,6 +164,6 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		unimpersonate();
 		
 		if(index == KalturaMediaServerIndex.PRIMARY)
-			createMediaEntryOrAppend(liveEntry);
+			appendRecording(liveEntry);
 	}
 }
