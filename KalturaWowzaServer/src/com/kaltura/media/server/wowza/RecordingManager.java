@@ -30,6 +30,7 @@ public class RecordingManager implements IMediaWriterActionNotify {
 	
 	static private Map<String, EntryRecorder> recorders = new ConcurrentHashMap<String, EntryRecorder>();
 
+	static protected Boolean groupInitialized = false;
 	static protected GroupPrincipal group;
 
 	private KalturaLiveManager liveManager;
@@ -54,8 +55,8 @@ public class RecordingManager implements IMediaWriterActionNotify {
 		logger = KalturaServer.getLogger();
 		
 		if(!KalturaServer.isWindows()){
-			synchronized (group) {
-				if(group == null){
+			synchronized (groupInitialized) {
+				if(!groupInitialized){
 					String groupName = RecordingManager.DEFAULT_RECORDED_FILE_GROUP;
 					Map<String, Object> serverConfiguration = KalturaServer.getConfiguration();
 					if (serverConfiguration.containsKey(RecordingManager.KALTURA_RECORDED_FILE_GROUP))
@@ -67,6 +68,7 @@ public class RecordingManager implements IMediaWriterActionNotify {
 					} catch (IOException e) {
 						throw new KalturaManagerException("Group [" + groupName + "] not found", e);
 					}
+					groupInitialized = true;
 				}
 			}
 		}
