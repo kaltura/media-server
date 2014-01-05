@@ -1,5 +1,8 @@
 package com.kaltura.media.server.wowza;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -9,6 +12,7 @@ import java.util.Set;
 
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.enums.KalturaFileSyncObjectType;
+import com.kaltura.client.enums.KalturaFlavorAssetStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.services.KalturaFileSyncService;
 import com.kaltura.client.types.KalturaAssetFilter;
@@ -50,6 +54,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 		private KalturaLiveChannel liveChannel;
 
 		private Set<String> renditions = new HashSet<String>();
+		private Map<String, Long> bitrates = new HashMap<String, Long>();
 		private Map<String, Playlist> playlists = new HashMap<String, Playlist>();
 		
 		private Map<String, Integer> flavorParams = new HashMap<String, Integer>();
@@ -92,7 +97,12 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 					assetsList = client.getFlavorAssetService().list(assetsFilter, pager);
 
 					for (KalturaFlavorAsset flavorAsset : assetsList.objects) {
+						
+						if(flavorAsset.status != KalturaFlavorAssetStatus.READY || flavorAsset.isOriginal)
+							continue;
+						
 						fileSyncKey = flavorAsset.entryId + "_" + flavorAsset.flavorParamsId;
+						logger.debug("LiveChannelContainer::initSegmentEntries associate file sync key [" + fileSyncKey + "] with flavor asset [" + flavorAsset.id + "]");
 						fileSyncKeys.put(flavorAsset.id, fileSyncKey);
 						assetParamsIds.add(flavorAsset.flavorParamsId);
 					}
@@ -100,20 +110,26 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 
 				// copmose maps for live and flavor params system names
 				KalturaFlavorParamsListResponse assetsParams = client.getFlavorParamsService().list(null, pager);
+				String systemName;
+				long bitrate;
+				
 				for (KalturaFlavorParams assetsParamsItem : assetsParams.objects) {
 
 					if (!assetParamsIds.contains(assetsParamsItem.id))
 						continue;
 
-					String systemName = "" + assetsParamsItem.id;
-					if (assetsParamsItem.systemName != null)
-						systemName = assetsParamsItem.systemName;
+					systemName = getFlavorParamsSystemName(assetsParamsItem);
 
 					if (assetsParamsItem instanceof KalturaLiveParams) {
 						liveParams.put(systemName, assetsParamsItem.id);
 					} else {
 						flavorParams.put(systemName, assetsParamsItem.id);
 					}
+
+					bitrate = assetsParamsItem.videoBitrate * 1000;
+					if(bitrates.containsKey(systemName))
+						bitrate = Math.max(bitrates.get(systemName), bitrate);
+					bitrates.put(systemName, bitrate);
 
 					assetParamsIds.remove(assetsParamsItem.id);
 				}
@@ -128,6 +144,24 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 
 			initRenditions();
 			initPlaylists(segmentEntries);
+		}
+
+		private String getFlavorParamsSystemName(KalturaFlavorParams flavorParams) {
+			
+			if (flavorParams.systemName == null)
+				return "" + flavorParams.id;
+			
+			String systemName = flavorParams.systemName
+			.replace(' ', '_')
+			.replace('-', '_')
+			.replace("(", "")
+			.replace(")", "")
+			.replace("/", "")
+			.replace("\\", "")
+			.replace("[", "")
+			.replace("]", "");
+			
+			return systemName;
 		}
 
 		private void initRenditions() {
@@ -181,32 +215,28 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			KalturaFileSyncFilter fileSyncFilter = new KalturaFileSyncFilter();
 			fileSyncFilter.fileObjectTypeEqual = KalturaFileSyncObjectType.ASSET;
 			fileSyncFilter.objectSubTypeEqual = LiveChannelContainer.FILE_SYNC_ASSET_SUB_TYPE_ASSET;
-			fileSyncFilter.objectIdIn = StringUtils.toStringList(fileSyncKeys.keySet().toArray(new String[] {}));
+			fileSyncFilter.objectIdIn = StringUtils.toStringList(fileSyncKeys.keySet().toArray(new String[] {})).replaceAll(" ", "");
 
 			KalturaFileSyncService fileSyncService = new KalturaFileSyncService(client);
 			
 			Map<String, KalturaFileSync> fileSyncs = new HashMap<String, KalturaFileSync>();
 			try {
-				impersonate(liveChannel.partnerId);
-
-				KalturaFileSyncListResponse fileSyncsList = fileSyncService.list(fileSyncFilter, pager);
-	
+				KalturaFileSyncListResponse fileSyncsList;
 				String fileSyncKey;
 				
-				while (fileSyncsList.objects.size() == pager.pageSize) {
+				do {
+					fileSyncsList = fileSyncService.list(fileSyncFilter, pager);
+					
 					for (KalturaFileSync fileSync : fileSyncsList.objects) {
 						fileSyncKey = fileSyncKeys.get(fileSync.objectId);
+						logger.debug("LiveChannelContainer::getFileSyncs add file sync [" + fileSync.id + "] for flavor asset [" + fileSync.objectId + "] with key [" + fileSyncKey + "]");
 						fileSyncs.put(fileSyncKey, fileSync);
 					}
-	
 					pager.pageIndex++;
-					fileSyncsList = fileSyncService.list(fileSyncFilter, pager);
-				}
-	
-				unimpersonate();
+					
+				} while (fileSyncsList.objects.size() == pager.pageSize);
 	
 			} catch (KalturaApiException e) {
-				unimpersonate();
 				logger.error("LiveChannelContainer::getFileSyncs failed to start channel [" + liveChannel.id + "]: " + e.getMessage());
 				return null;
 			}
@@ -232,9 +262,18 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 						} else {
 							int assetsParamsId = flavorParams.get(rendition);
 							fileSyncKey = entry.id + "_" + assetsParamsId;
+							
+							logger.debug("LiveChannelContainer::initPlaylists adding file sync key [" + fileSyncKey + "] to playlist [" + playlist.getName() + "]");
 							KalturaFileSync fileSync = fileSyncs.get(fileSyncKey);
-	
-							playlist.addItem("mp4:" + fileSync.filePath, 0, -1);
+							
+							if(fileSync != null){
+								logger.debug("LiveChannelContainer::initPlaylists adding file  [" + fileSync.filePath + "] to playlist [" + playlist.getName() + "]");
+								playlist.addItem("mp4:" + fileSync.filePath, 0, -1);
+							}
+							else{
+								logger.error("LiveChannelContainer::initPlaylists file sync key [" + fileSyncKey + "] not found");
+								break;
+							}
 						}
 					}
 				}
@@ -244,12 +283,11 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 		}
 
 		public void start() {
-			
 			Stream stream;
 			Map<String, Stream> streams = new HashMap<String, Stream>();
 			
 			for(String rendition : renditions){
-				stream = Stream.createInstance(appInstance, rendition);
+				stream = Stream.createInstance(appInstance, liveChannel.id + "_" + rendition);
 				streams.put(rendition, stream);
 			}
 
@@ -260,7 +298,42 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			}
 			long time = System.currentTimeMillis() - startTime;
 			
-			logger.error("LiveChannelContainer::start started channel [" + liveChannel.id + "] renditions [" + StringUtils.toStringList(renditions.toArray(new String[] {})) + "] start time [" + time + "]");
+			logger.info("LiveChannelContainer::start started channel [" + liveChannel.id + "] renditions [" + StringUtils.toStringList(renditions.toArray(new String[] {})) + "] start time [" + time + "]");
+			
+			generateSmilFiles();
+			
+			onPublish(liveChannel, KalturaMediaServerIndex.PRIMARY); // TODO support fallback
+		}
+
+		private void generateSmilFiles() {
+
+			String streamGroupName = liveChannel.id + "_all"; // TODO implement for all tags
+			
+			String smil = "<smil>\n";
+			smil += "	<head></head>\n";
+			smil += "	<body>\n";
+			smil += "		<switch>\n";
+			
+			long bitrate;
+			for(String rendition : bitrates.keySet()){
+				bitrate = bitrates.get(rendition);
+				smil += "			<video src=\"" + liveChannel.id + "_" + rendition + "\" system-bitrate=\"" + bitrate + "\" />\n";				
+			}
+			
+			smil += "		</switch>\n";
+			smil += "	</body>\n";
+			smil += "</smil>";
+ 
+			String filePath = appInstance.getStreamStoragePath() + File.separator + streamGroupName + ".smil";
+			try {
+				PrintWriter out = new PrintWriter(filePath);
+				out.print(smil);
+				out.close();
+
+				logger.info("LiveChannelContainer::generateSmilFile: Generated smil file [" + filePath + "]");
+			} catch (FileNotFoundException e) {
+				logger.error("LiveChannelContainer::generateSmilFile: Failed writing to file [" + filePath + "]: " + e.getMessage());
+			}
 		}
 	}
 
