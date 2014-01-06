@@ -2,6 +2,7 @@ package com.kaltura.media.server;
 
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.client.types.KalturaServerFileResource;
@@ -81,7 +82,7 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 		}
 		unimpersonate();
 		
-		if(index == KalturaMediaServerIndex.PRIMARY)
+		if(liveEntry.recordStatus == KalturaRecordStatus.ENABLED && index == KalturaMediaServerIndex.PRIMARY)
 			appendRecording(liveEntry);
 	}
 }

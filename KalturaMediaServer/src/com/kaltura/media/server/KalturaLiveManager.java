@@ -157,7 +157,7 @@ abstract public class KalturaLiveManager implements ILiveManager {
 			}
 		}
 		
-		if(liveEntry.recordStatus == KalturaRecordStatus.ENABLED)
+		if(liveEntry.recordStatus == KalturaRecordStatus.ENABLED && serverIndex == KalturaMediaServerIndex.PRIMARY)
 			createMediaEntry(liveEntry);
 	}
 

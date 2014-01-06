@@ -6,6 +6,7 @@ import java.util.TimerTask;
 
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.KalturaBaseEntry;
 import com.kaltura.client.types.KalturaLiveChannel;
 import com.kaltura.client.types.KalturaLiveEntry;
@@ -163,7 +164,7 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		}
 		unimpersonate();
 		
-		if(index == KalturaMediaServerIndex.PRIMARY)
+		if(liveEntry.recordStatus == KalturaRecordStatus.ENABLED && index == KalturaMediaServerIndex.PRIMARY)
 			appendRecording(liveEntry);
 	}
 }
