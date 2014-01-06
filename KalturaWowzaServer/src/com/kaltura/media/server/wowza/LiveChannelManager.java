@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.kaltura.client.KalturaApiException;
+import com.kaltura.client.KalturaClient;
 import com.kaltura.client.enums.KalturaFileSyncObjectType;
 import com.kaltura.client.enums.KalturaFlavorAssetStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
@@ -87,14 +88,14 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			assetParamsIds = new HashSet<Integer>();
 
 			try {
-				impersonate(liveChannel.partnerId);
+				KalturaClient impersonateClient = impersonate(liveChannel.partnerId);
 
 				// compose a list of all needed asset params
 				for (KalturaBaseEntry entry : segmentEntries) {
 
 					assetsFilter.entryIdEqual = entry.id;
 
-					assetsList = client.getFlavorAssetService().list(assetsFilter, pager);
+					assetsList = impersonateClient.getFlavorAssetService().list(assetsFilter, pager);
 
 					for (KalturaFlavorAsset flavorAsset : assetsList.objects) {
 						
@@ -109,7 +110,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 				}
 
 				// copmose maps for live and flavor params system names
-				KalturaFlavorParamsListResponse assetsParams = client.getFlavorParamsService().list(null, pager);
+				KalturaFlavorParamsListResponse assetsParams = impersonateClient.getFlavorParamsService().list(null, pager);
 				String systemName;
 				long bitrate;
 				

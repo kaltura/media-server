@@ -1,6 +1,7 @@
 package com.kaltura.media.server;
 
 import com.kaltura.client.KalturaApiException;
+import com.kaltura.client.KalturaClient;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.KalturaLiveEntry;
@@ -10,8 +11,8 @@ import com.kaltura.client.types.KalturaServerFileResource;
 abstract public class KalturaLiveStreamManager extends KalturaLiveManager implements ILiveStreamManager {
 	
 	public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token) throws KalturaApiException {
-		impersonate(partnerId);
-		KalturaLiveStreamEntry liveStreamEntry = client.getLiveStreamService().authenticate(entryId, token);
+		KalturaClient impersonateClient = impersonate(partnerId);
+		KalturaLiveStreamEntry liveStreamEntry = impersonateClient.getLiveStreamService().authenticate(entryId, token);
 		unimpersonate();
 
 		synchronized (entries) {
@@ -27,10 +28,10 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 	}
 
 	public KalturaLiveStreamEntry reloadEntry(String entryId, int partnerId) {
-		impersonate(partnerId);
+		KalturaClient impersonateClient = impersonate(partnerId);
 		KalturaLiveStreamEntry liveStreamEntry;
 		try {
-			liveStreamEntry = client.getLiveStreamService().get(entryId);
+			liveStreamEntry = impersonateClient.getLiveStreamService().get(entryId);
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::reloadEntry unable to get entry [" + entryId + "]: " + e.getMessage());
 			return null;
@@ -47,9 +48,9 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 
 	@Override
 	protected void setEntryMediaServer(KalturaLiveEntry liveStreamEntry, KalturaMediaServerIndex serverIndex) {
-		impersonate(liveStreamEntry.partnerId);
+		KalturaClient impersonateClient = impersonate(liveStreamEntry.partnerId);
 		try {
-			client.getLiveStreamService().registerMediaServer(liveStreamEntry.id, hostname, serverIndex);
+			impersonateClient.getLiveStreamService().registerMediaServer(liveStreamEntry.id, hostname, serverIndex);
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::setEntryMediaServer unable to register media server: " + e.getMessage());
 		}
@@ -58,9 +59,9 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 
 	@Override
 	protected void unsetEntryMediaServer(KalturaLiveEntry liveStreamEntry, KalturaMediaServerIndex serverIndex) {
-		impersonate(liveStreamEntry.partnerId);
+		KalturaClient impersonateClient = impersonate(liveStreamEntry.partnerId);
 		try {
-			client.getLiveStreamService().unregisterMediaServer(liveStreamEntry.id, hostname, serverIndex);
+			impersonateClient.getLiveStreamService().unregisterMediaServer(liveStreamEntry.id, hostname, serverIndex);
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::unsetEntryMediaServer unable to unregister media server: " + e.getMessage());
 		}
@@ -74,9 +75,9 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 		resource.localFilePath = filePath;
 		
 		KalturaLiveStreamEntry liveEntry = get(entryId);
-		impersonate(liveEntry.partnerId);
+		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		try {
-			client.getLiveStreamService().appendRecording(entryId, index, resource, duration);
+			impersonateClient.getLiveStreamService().appendRecording(entryId, index, resource, duration);
 		} catch (KalturaApiException e) {
 			logger.error("Append live recording error: " + e.getMessage());
 		}

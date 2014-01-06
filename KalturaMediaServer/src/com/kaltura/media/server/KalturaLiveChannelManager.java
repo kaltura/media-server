@@ -5,6 +5,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.kaltura.client.KalturaApiException;
+import com.kaltura.client.KalturaClient;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.KalturaBaseEntry;
@@ -53,8 +54,8 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 	}
 
 	public KalturaLiveChannel get(String liveChannelId, int partnerId) throws KalturaApiException{
-		impersonate(partnerId);
-		KalturaLiveChannel liveEntry = client.getLiveChannelService().get(liveChannelId);
+		KalturaClient impersonateClient = impersonate(partnerId);
+		KalturaLiveChannel liveEntry = impersonateClient.getLiveChannelService().get(liveChannelId);
 		unimpersonate();
 
 		synchronized (entries) {
@@ -76,9 +77,9 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		
 		if(liveChannel.playlistId != null){
 			List<KalturaBaseEntry> segmentEntries;
-			impersonate(partnerId);
+			KalturaClient impersonateClient = impersonate(partnerId);
 			try {
-				segmentEntries = client.getPlaylistService().execute(liveChannel.playlistId);
+				segmentEntries = impersonateClient.getPlaylistService().execute(liveChannel.playlistId);
 			} catch (KalturaApiException e) {
 				logger.error("KalturaLiveChannelManager::start failed to execute playlist [" + liveChannel.playlistId + "] for channel [" + liveChannelId + "]: " + e.getMessage());
 				unimpersonate();
@@ -109,10 +110,10 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 	}
 
 	public KalturaLiveChannel reloadEntry(String entryId, int partnerId) {
-		impersonate(partnerId);
+		KalturaClient impersonateClient = impersonate(partnerId);
 		KalturaLiveChannel liveChannel;
 		try {
-			liveChannel = client.getLiveChannelService().get(entryId);
+			liveChannel = impersonateClient.getLiveChannelService().get(entryId);
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::reloadEntry unable to get entry [" + entryId + "]: " + e.getMessage());
 			return null;
@@ -129,9 +130,9 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 
 	@Override
 	protected void setEntryMediaServer(KalturaLiveEntry liveChannel, KalturaMediaServerIndex serverIndex) {
-		impersonate(liveChannel.partnerId);
+		KalturaClient impersonateClient = impersonate(liveChannel.partnerId);
 		try {
-			client.getLiveChannelService().registerMediaServer(liveChannel.id, hostname, serverIndex);
+			impersonateClient.getLiveChannelService().registerMediaServer(liveChannel.id, hostname, serverIndex);
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::setEntryMediaServer unable to register media server: " + e.getMessage());
 		}
@@ -140,9 +141,9 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 
 	@Override
 	protected void unsetEntryMediaServer(KalturaLiveEntry liveChannel, KalturaMediaServerIndex serverIndex) {
-		impersonate(liveChannel.partnerId);
+		KalturaClient impersonateClient = impersonate(liveChannel.partnerId);
 		try {
-			client.getLiveChannelService().unregisterMediaServer(liveChannel.id, hostname, serverIndex);
+			impersonateClient.getLiveChannelService().unregisterMediaServer(liveChannel.id, hostname, serverIndex);
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::unsetEntryMediaServer unable to unregister media server: " + e.getMessage());
 		}
@@ -156,9 +157,9 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		resource.localFilePath = filePath;
 		
 		KalturaLiveChannel liveEntry = get(entryId);
-		impersonate(liveEntry.partnerId);
+		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		try {
-			client.getLiveChannelService().appendRecording(entryId, index, resource, duration);
+			impersonateClient.getLiveChannelService().appendRecording(entryId, index, resource, duration);
 		} catch (KalturaApiException e) {
 			logger.error("Append live recording error: " + e.getMessage());
 		}

@@ -94,8 +94,17 @@ abstract public class KalturaLiveManager implements ILiveManager {
 	
 	abstract public void restartRecordings();
 	
-	protected void impersonate(int partnerId) {
-		config.setPartnerId(partnerId);
+	protected KalturaClient impersonate(int partnerId) {
+		KalturaConfiguration impersonateConfig = new KalturaConfiguration();
+		impersonateConfig.setPartnerId(partnerId);
+		impersonateConfig.setClientTag(config.getClientTag());
+		impersonateConfig.setEndpoint(config.getEndpoint());
+		impersonateConfig.setTimeout(config.getTimeout());
+
+		KalturaClient cloneClient = new KalturaClient(impersonateConfig);
+		cloneClient.setSessionId(client.getSessionId());
+		
+		return cloneClient;
 	}
 
 	protected void unimpersonate() {
@@ -199,9 +208,9 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		}
 		updateLiveEntry.redirectEntryId = KalturaParamsValueDefaults.KALTURA_NULL_STRING;
 		
-		impersonate(liveEntry.partnerId);
+		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		try {
-			client.getBaseEntryService().update(liveEntry.id, updateLiveEntry);
+			impersonateClient.getBaseEntryService().update(liveEntry.id, updateLiveEntry);
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveManager::cancelRedirect failed to upload file: " + e.getMessage());
 			unimpersonate();
@@ -236,9 +245,9 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		updateLiveEntry.redirectEntryId = liveEntry.recordedEntryId;
 		
 
-		impersonate(liveEntry.partnerId);
+		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		try {
-			client.getBaseEntryService().update(liveEntry.id, updateLiveEntry);
+			impersonateClient.getBaseEntryService().update(liveEntry.id, updateLiveEntry);
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveManager::setRedirect failed to upload file: " + e.getMessage());
 			unimpersonate();
@@ -250,12 +259,12 @@ abstract public class KalturaLiveManager implements ILiveManager {
 
 	protected KalturaMediaEntry createMediaEntry(KalturaLiveEntry liveEntry) {
 		logger.debug("KalturaLiveManager::createMediaEntry creating media entry for live entry [" + liveEntry.id + "]");
-		impersonate(liveEntry.partnerId);
+		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 
 		KalturaMediaEntry mediaEntry = null;
 		if(liveEntry.recordedEntryId != null){
 			try {
-				mediaEntry = client.getMediaService().get(liveEntry.recordedEntryId);
+				mediaEntry = impersonateClient.getMediaService().get(liveEntry.recordedEntryId);
 			} catch (KalturaApiException e) {
 				logger.warn("KalturaLiveManager::createMediaEntry failed to get recorded media entry [" + liveEntry.recordedEntryId + "]: " + e.getMessage());
 			}
@@ -270,7 +279,7 @@ abstract public class KalturaLiveManager implements ILiveManager {
 			mediaEntry.mediaType = KalturaMediaType.VIDEO;
 	
 			try {
-				mediaEntry = client.getMediaService().add(mediaEntry);
+				mediaEntry = impersonateClient.getMediaService().add(mediaEntry);
 			} catch (KalturaApiException e) {
 				logger.error("KalturaLiveManager::createMediaEntry failed to create media entry: " + e.getMessage());
 				unimpersonate();
@@ -292,7 +301,7 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		}
 		updateLiveEntry.recordedEntryId = mediaEntry.id;
 		try {
-			client.getBaseEntryService().update(liveEntry.id, updateLiveEntry);
+			impersonateClient.getBaseEntryService().update(liveEntry.id, updateLiveEntry);
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveManager::createMediaEntry failed to upload file: " + e.getMessage());
 		}
@@ -326,14 +335,14 @@ abstract public class KalturaLiveManager implements ILiveManager {
 			recordedEntryId = mediaEntry.id;
 		}
 
-		impersonate(liveEntry.partnerId);
+		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 
 		try {
-			client.getMediaService().cancelReplace(recordedEntryId);
-			mediaEntry = client.getMediaService().updateContent(recordedEntryId, resource);
+			impersonateClient.getMediaService().cancelReplace(recordedEntryId);
+			mediaEntry = impersonateClient.getMediaService().updateContent(recordedEntryId, resource);
 			
 			if(mediaEntry.replacingEntryId != null)
-				client.getMediaService().approveReplace(recordedEntryId);
+				impersonateClient.getMediaService().approveReplace(recordedEntryId);
 			
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveManager::appendRecordingToMediaEntry failed to add content resource [" + recordedEntryId + "]: " + e.getMessage());
