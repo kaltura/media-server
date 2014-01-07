@@ -15,6 +15,7 @@ import com.kaltura.client.KalturaClient;
 import com.kaltura.client.enums.KalturaFileSyncObjectType;
 import com.kaltura.client.enums.KalturaFlavorAssetStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.enums.KalturaNullableBoolean;
 import com.kaltura.client.services.KalturaFileSyncService;
 import com.kaltura.client.types.KalturaAssetFilter;
 import com.kaltura.client.types.KalturaBaseEntry;
@@ -249,7 +250,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			
 			for (String rendition : renditions) {
 				Playlist playlist = new Playlist("pl_" + liveChannel.id + "_" + rendition);
-				playlist.setRepeat(liveChannel.repeat);
+				playlist.setRepeat(liveChannel.repeat == KalturaNullableBoolean.TRUE_VALUE);
 
 				if(segmentEntries != null){
 
