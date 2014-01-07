@@ -26,7 +26,6 @@ import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.IMediaStreamActionNotify;
-import com.wowza.wms.stream.IMediaWriterActionNotify;
 import com.wowza.wms.stream.livedvr.ILiveStreamDvrRecorderControl;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerControl;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoder;
@@ -306,7 +305,7 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 
 		liveStreamManager = (LiveStreamManager) serverLiveStreamManager;
-		appInstance.addMediaWriterListener((IMediaWriterActionNotify) liveStreamManager);
+		appInstance.addMediaWriterListener(liveStreamManager.getRecordingManager());
 		appInstance.addLiveStreamTranscoderListener(new LiveStreamTranscoderListener());
 	}
 }
