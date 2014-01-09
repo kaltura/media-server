@@ -230,13 +230,23 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		}
 	}
 
-	public void onDisconnect(String entryId) {
+	public void onDisconnect(final String entryId) {
 		logger.debug("KalturaLiveManager::onDisconnect entry [" + entryId + "]");
-		synchronized (entries) {
-			if (entries.containsKey(entryId)) {
-				entries.remove(entryId);
+
+		TimerTask task = new TimerTask() {
+			
+			@Override
+			public void run() {
+				synchronized (entries) {
+					if (entries.containsKey(entryId)) {
+						entries.remove(entryId);
+					}
+				}
 			}
-		}
+		};
+		
+		Timer delayedRemoveTimer = new Timer();
+		delayedRemoveTimer.schedule(task, 5000);
 	}
 
 	protected void cancelRedirect(KalturaLiveEntry liveEntry) {
