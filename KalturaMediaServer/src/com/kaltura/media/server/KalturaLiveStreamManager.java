@@ -67,6 +67,8 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 	@Override
 	public void appendRecording(String entryId, KalturaMediaServerIndex index, String filePath, float duration) {
 
+		logger.info("KalturaLiveStreamManager::appendRecording: entry [" + entryId + "] index [" + index + "] filePath [" + filePath + "] duration [" + duration + "]");
+		
 		KalturaServerFileResource resource = new KalturaServerFileResource();
 		resource.localFilePath = filePath;
 		
