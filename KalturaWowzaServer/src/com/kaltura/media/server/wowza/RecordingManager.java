@@ -60,7 +60,7 @@ public class RecordingManager {
 
 		@Override
 		public void onSegmentEnd(ILiveStreamRecord liveStreamRecord) {
-			logger.info("MediaWriterListener::onWriteComplete: stream [" + stream.getName() + "] file [" + file.getAbsolutePath() + "] folder [" + file.getParent() + "]");
+			logger.info("RecordingManager::EntryRecorder::onSegmentEnd: stream [" + stream.getName() + "] file [" + file.getAbsolutePath() + "] folder [" + file.getParent() + "]");
 			float duration = (float) stream.getElapsedTime().getTimeSeconds();
 
 			if(group != null){
@@ -73,7 +73,7 @@ public class RecordingManager {
 					logger.error(e.getMessage());
 				}
 			}
-			
+
 			liveManager.appendRecording(entryId, index, file.getAbsolutePath(), duration);
 		}
 	}
