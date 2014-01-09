@@ -106,7 +106,15 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 	@Override
 	public void stop() {
 		reloadScheduledChannelsTimer.cancel();
+		reloadScheduledChannelsTimer.purge();
+		
 		super.stop();
+
+		synchronized (entries) {
+			for(LiveEntryCache liveEntryCache : entries.values()){
+				onUnPublish(liveEntryCache.getLiveEntry(), liveEntryCache.getIndex());
+			}
+		}
 	}
 
 	public KalturaLiveChannel reloadEntry(String entryId, int partnerId) {

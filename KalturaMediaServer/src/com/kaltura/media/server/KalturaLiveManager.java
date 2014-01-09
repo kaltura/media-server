@@ -64,8 +64,8 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		}
 
 		public void unregister() {
-			this.index = null;
-			this.registerTime = null;
+			index = null;
+			registerTime = null;
 		}
 
 		public boolean isRegistered() {
@@ -80,7 +80,11 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		}
 
 		public KalturaLiveEntry getLiveEntry() {
-			return this.liveEntry;
+			return liveEntry;
+		}
+
+		public KalturaMediaServerIndex getIndex() {
+			return index;
 		}
 	}
 
@@ -420,6 +424,9 @@ abstract public class KalturaLiveManager implements ILiveManager {
 
 	public void stop() {
 		setMediaServerTimer.cancel();
+		setMediaServerTimer.purge();
+
 		splitRecordingTimer.cancel();
+		splitRecordingTimer.purge();
 	}
 }
