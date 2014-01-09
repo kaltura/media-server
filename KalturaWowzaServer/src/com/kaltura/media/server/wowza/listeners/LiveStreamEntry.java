@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.enums.KalturaDVRStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
-import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.media.server.ILiveStreamManager;
 import com.kaltura.media.server.KalturaServer;
@@ -120,26 +119,52 @@ public class LiveStreamEntry extends ModuleBase {
 
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 			IClient client = stream.getClient();
-			if (client == null)
-				return;
-
-			WMSProperties clientProperties = client.getProperties();
-			if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
-				getLogger().error("LiveStreamListener::onPublish: unauthenticated client tried to publish stream");
-				client.rejectConnection("Client did not authenticated", "Client did not authenticated");
-				return;
+			if (client != null){
+				WMSProperties clientProperties = client.getProperties();
+				if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
+					getLogger().error("LiveStreamListener::onPublish: unauthenticated client tried to publish stream [" + streamName + "]");
+					client.rejectConnection("Client did not authenticated", "Client did not authenticated");
+					return;
+				}
+	
+				String entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
+				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+	
+				getLogger().debug("LiveStreamListener::onPublish: " + entryId);
+	
+				liveStreamManager.onPublish(entryId, serverIndex);
 			}
+			else{
 
-			KalturaLiveStreamEntry liveStreamEntry = liveStreamManager.get(clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID));
-			KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+				Pattern pattern = Pattern.compile("^([01]_.{8})_(\\d+)$");
+				Matcher matcher = pattern.matcher(streamName);
 
-			getLogger().debug("LiveStreamListener::onPublish: " + liveStreamEntry.id);
+				if (!matcher.find()) {
+					getLogger().error("LiveStreamListener::onPublish: unknown published stream [" + streamName + "]");
+					return;
+				}
 
-			if(liveStreamEntry.recordStatus == KalturaRecordStatus.ENABLED){
-				liveStreamManager.startRecord(liveStreamEntry.id, stream, serverIndex, true, true, false);
+				String entryId = matcher.group(1);
+				int assetParamsId = Integer.parseInt(matcher.group(2));
+				getLogger().debug("LiveStreamListener::onPublish stream [" + streamName + "] entry [" + entryId + "] asset params id [" + assetParamsId + "]");
+				
+				IMediaStream sourceStream = stream.getStreams().getStream(entryId);
+				if(sourceStream == null){
+					getLogger().error("LiveStreamListener::onPublish: source stream not found for stream [" + streamName + "]");
+					return;
+				}
+				
+				client = sourceStream.getClient();
+				if(client == null){
+					getLogger().error("LiveStreamListener::onPublish: client not found for stream [" + streamName + "]");
+					return;
+				}
+				
+				WMSProperties clientProperties = client.getProperties();
+				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+
+				liveStreamManager.onPublish(stream, entryId, serverIndex, assetParamsId);
 			}
-			
-			liveStreamManager.onPublish(liveStreamEntry, serverIndex);
 		}
 
 		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
@@ -305,7 +330,6 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 
 		liveStreamManager = (LiveStreamManager) serverLiveStreamManager;
-		appInstance.addMediaWriterListener(liveStreamManager.getRecordingManager());
 		appInstance.addLiveStreamTranscoderListener(new LiveStreamTranscoderListener());
 	}
 }

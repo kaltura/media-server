@@ -5,7 +5,7 @@ import com.kaltura.client.types.KalturaLiveEntry;
 
 public interface ILiveManager extends IManager {
 
-	public void onPublish(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex);
+	public void onPublish(String entryId, KalturaMediaServerIndex serverIndex);
 	
 	public void onUnPublish(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex);
 	

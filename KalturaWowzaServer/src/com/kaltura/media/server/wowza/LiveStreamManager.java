@@ -1,6 +1,9 @@
 package com.kaltura.media.server.wowza;
 
+import com.kaltura.client.enums.KalturaAssetParamsOrigin;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.types.KalturaConversionProfileAssetParams;
+import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media.server.KalturaLiveStreamManager;
 import com.kaltura.media.server.KalturaManagerException;
 import com.wowza.wms.stream.IMediaStream;
@@ -39,5 +42,23 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 
 	public RecordingManager getRecordingManager() {
 		return recordingManager;
+	}
+
+	public void onPublish(IMediaStream stream, String entryId, KalturaMediaServerIndex serverIndex, int assetParamsId) {
+
+		KalturaLiveEntry liveEntry = get(entryId);
+		if(liveEntry == null){
+			logger.error("KalturaLiveManager::onPublish entry [" + entryId + "] not found for asset params id [" + assetParamsId + "]");
+			return;
+		}
+		
+		KalturaConversionProfileAssetParams conversionProfileAssetParams = getConversionProfileAssetParams(entryId, assetParamsId);
+		if(conversionProfileAssetParams.origin != KalturaAssetParamsOrigin.INGEST){
+			logger.debug("KalturaLiveManager::onPublish entry [" + entryId + "] asset params id [" + assetParamsId + "] is not the source");
+			return;
+		}
+
+		String fileName = startRecord(liveEntry.id, stream, serverIndex, true, true, false);
+		logger.debug("KalturaLiveManager::onPublish entry [" + entryId + "] asset params id [" + assetParamsId + "] recording to file [" + fileName + "]");
 	}
 }

@@ -135,11 +135,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 
 					assetParamsIds.remove(assetsParamsItem.id);
 				}
-
-				unimpersonate();
-
 			} catch (KalturaApiException e) {
-				unimpersonate();
 				logger.error("LiveChannelContainer::initSegmentEntries failed to start channel [" + liveChannel.id + "]: " + e.getMessage());
 				return;
 			}
@@ -304,7 +300,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			
 			generateSmilFiles();
 			
-			onPublish(liveChannel, KalturaMediaServerIndex.PRIMARY); // TODO support fallback
+			onPublish(liveChannel.id, KalturaMediaServerIndex.PRIMARY); // TODO support fallback
 		}
 
 		private void generateSmilFiles() {

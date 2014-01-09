@@ -56,7 +56,6 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 	public KalturaLiveChannel get(String liveChannelId, int partnerId) throws KalturaApiException{
 		KalturaClient impersonateClient = impersonate(partnerId);
 		KalturaLiveChannel liveEntry = impersonateClient.getLiveChannelService().get(liveChannelId);
-		unimpersonate();
 
 		synchronized (entries) {
 			entries.put(liveEntry.id, new LiveEntryCache(liveEntry));
@@ -82,10 +81,8 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 				segmentEntries = impersonateClient.getPlaylistService().execute(liveChannel.playlistId);
 			} catch (KalturaApiException e) {
 				logger.error("KalturaLiveChannelManager::start failed to execute playlist [" + liveChannel.playlistId + "] for channel [" + liveChannelId + "]: " + e.getMessage());
-				unimpersonate();
 				return;
 			}
-			unimpersonate();
 			start(liveChannel, segmentEntries);
 		}
 		else{
@@ -118,7 +115,6 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 			logger.error("KalturaLiveStreamManager::reloadEntry unable to get entry [" + entryId + "]: " + e.getMessage());
 			return null;
 		}
-		unimpersonate();
 
 		synchronized (entries) {
 			LiveEntryCache liveChannelCache = entries.get(entryId);
@@ -136,7 +132,6 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::setEntryMediaServer unable to register media server: " + e.getMessage());
 		}
-		unimpersonate();
 	}
 
 	@Override
@@ -147,7 +142,6 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::unsetEntryMediaServer unable to unregister media server: " + e.getMessage());
 		}
-		unimpersonate();
 	}
 	
 	@Override
@@ -163,7 +157,6 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		} catch (KalturaApiException e) {
 			logger.error("Append live recording error: " + e.getMessage());
 		}
-		unimpersonate();
 		
 		if(liveEntry.recordStatus == KalturaRecordStatus.ENABLED && index == KalturaMediaServerIndex.PRIMARY)
 			appendRecording(liveEntry);

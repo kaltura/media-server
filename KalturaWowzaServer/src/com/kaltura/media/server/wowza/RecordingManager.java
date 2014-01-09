@@ -19,11 +19,11 @@ import com.kaltura.media.server.KalturaLiveManager;
 import com.kaltura.media.server.KalturaManagerException;
 import com.kaltura.media.server.KalturaServer;
 import com.wowza.wms.livestreamrecord.model.ILiveStreamRecord;
+import com.wowza.wms.livestreamrecord.model.ILiveStreamRecordNotify;
 import com.wowza.wms.livestreamrecord.model.LiveStreamRecorderMP4;
 import com.wowza.wms.stream.IMediaStream;
-import com.wowza.wms.stream.IMediaWriterActionNotify;
 
-public class RecordingManager implements IMediaWriterActionNotify {
+public class RecordingManager {
 
 	protected final static String KALTURA_RECORDED_FILE_GROUP = "KalturaRecordedFileGroup";
 	protected final static String DEFAULT_RECORDED_FILE_GROUP = "kaltura";
@@ -36,16 +36,45 @@ public class RecordingManager implements IMediaWriterActionNotify {
 	private KalturaLiveManager liveManager;
 	private Logger logger;
 	
-	class EntryRecorder extends LiveStreamRecorderMP4
+	class EntryRecorder extends LiveStreamRecorderMP4 implements ILiveStreamRecordNotify
 	{
+		private String entryId;
 		private KalturaMediaServerIndex index;
 		
-		public EntryRecorder(KalturaMediaServerIndex index) {
+		public EntryRecorder(String entryId, KalturaMediaServerIndex index) {
+			super();
+
+			this.entryId = entryId;
 			this.index = index;
+			
+			this.addListener(this);
 		}
 
 		public KalturaMediaServerIndex getIndex() {
 			return index;
+		}
+
+		@Override
+		public void onSegmentStart(ILiveStreamRecord ilivestreamrecord) {
+		}
+
+		@Override
+		public void onSegmentEnd(ILiveStreamRecord liveStreamRecord) {
+			logger.info("MediaWriterListener::onWriteComplete: stream [" + stream.getName() + "] file [" + file.getAbsolutePath() + "] folder [" + file.getParent() + "]");
+			float duration = (float) stream.getElapsedTime().getTimeSeconds();
+
+			if(group != null){
+				Path path = Paths.get(file.getAbsolutePath());
+				PosixFileAttributeView fileAttributes = Files.getFileAttributeView(path, PosixFileAttributeView.class);
+					
+				try {
+					fileAttributes.setGroup(group);
+				} catch (IOException e) {
+					logger.error(e.getMessage());
+				}
+			}
+			
+			liveManager.appendRecording(entryId, index, file.getAbsolutePath(), duration);
 		}
 	}
 
@@ -104,10 +133,11 @@ public class RecordingManager implements IMediaWriterActionNotify {
 	}
 	
 	public String startRecord(String entryId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
-		logger.debug("RecordingManager::startRecord: " + entryId);
+		logger.debug("RecordingManager::startRecord: entry [" + entryId + "]");
+		logger.debug("RecordingManager::startRecord: stream name [" + stream.getName() + "] entry [" + entryId + "]");
 
 		// create a stream recorder and save it in a map of recorders
-		EntryRecorder recorder = new EntryRecorder(index);
+		EntryRecorder recorder = new EntryRecorder(entryId, index);
 
 		// remove existing recorder from the recorders list
 		synchronized (recorders){
@@ -121,7 +151,7 @@ public class RecordingManager implements IMediaWriterActionNotify {
 		File writeFile = stream.getStreamFileForWrite(entryId, index.getHashCode() + ".mp4", "");
 		String filePath = writeFile.getAbsolutePath();
 		
-		logger.debug("StreamRecorder: entry [" + entryId + "]  file path [" + filePath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");
+		logger.debug("RecordingManager::startRecord: entry [" + entryId + "]  file path [" + filePath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");
 		
 		// if you want to record data packets as well as video/audio
 		recorder.setRecordData(recordData);
@@ -133,7 +163,7 @@ public class RecordingManager implements IMediaWriterActionNotify {
 		recorder.setStartOnKeyFrame(startOnKeyFrame);
 		
 		// start recording
-		recorder.startRecording(stream, filePath, false);	
+		recorder.startRecording(stream, filePath, false);
 
 		// add it to the recorders list
 		synchronized (recorders){
@@ -143,42 +173,6 @@ public class RecordingManager implements IMediaWriterActionNotify {
 		return filePath;
 	}
 	
-	@Override
-	public void onFLVAddMetadata(IMediaStream stream, Map<String, Object> extraMetadata) {
-	}
-
-	@Override
-	public void onWriteComplete(IMediaStream stream, File file) {
-		logger.info("MediaWriterListener::onWriteComplete: stream [" + stream.getName() + "] file [" + file.getAbsolutePath() + "] folder [" + file.getParent() + "]");
-		String entryId = stream.getName();
-		float duration = (float) stream.getElapsedTime().getTimeSeconds();
-
-		if(group != null){
-			Path path = Paths.get(file.getAbsolutePath());
-			PosixFileAttributeView fileAttributes = Files.getFileAttributeView(path, PosixFileAttributeView.class);
-				
-			try {
-				fileAttributes.setGroup(group);
-			} catch (IOException e) {
-				logger.error(e.getMessage());
-			}
-		}
-		
-		KalturaMediaServerIndex index;
-		
-		synchronized (recorders)
-		{
-			EntryRecorder streamRecorder = recorders.get(entryId);
-			if (streamRecorder == null){
-				logger.error("Unable to find recorder for entry [" + entryId + "]");
-			}
-			
-			index = streamRecorder.getIndex();
-		}
-
-		liveManager.appendRecording(entryId, index, file.getAbsolutePath(), duration);
-	}
-
 	public boolean splitRecordingNow(String entryId) {
 		return restartRecording(entryId);
 	}

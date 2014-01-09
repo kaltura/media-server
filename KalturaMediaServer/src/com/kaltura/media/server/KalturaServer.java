@@ -148,7 +148,7 @@ public class KalturaServer {
 		String sessionId;
 		
 		try {
-			sessionId = client.generateSessionV2(adminSecretForSigning, userId, type, KalturaServer.MEDIA_SERVER_PARTNER_ID, expiry, privileges);
+			sessionId = client.generateSession(adminSecretForSigning, userId, type, KalturaServer.MEDIA_SERVER_PARTNER_ID, expiry, privileges);
 		} catch (Exception e) {
 			logger.error("Initializing Kaltura client, URL: " + client.getKalturaConfiguration().getEndpoint());
 			return;
