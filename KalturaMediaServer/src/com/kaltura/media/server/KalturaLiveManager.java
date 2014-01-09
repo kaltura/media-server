@@ -107,6 +107,10 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		public ArrayList<KalturaConversionProfileAssetParams> getConversionProfileAssetParams() {
 			return conversionProfileAssetParams;
 		}
+
+		public KalturaMediaServerIndex getIndex() {
+			return index;
+		}
 	}
 
 	abstract protected void setEntryMediaServer(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex);
@@ -459,6 +463,9 @@ abstract public class KalturaLiveManager implements ILiveManager {
 
 	public void stop() {
 		setMediaServerTimer.cancel();
+		setMediaServerTimer.purge();
+
 		splitRecordingTimer.cancel();
+		splitRecordingTimer.purge();
 	}
 }

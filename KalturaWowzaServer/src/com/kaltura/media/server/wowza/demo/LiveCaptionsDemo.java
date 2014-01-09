@@ -62,6 +62,7 @@ public class LiveCaptionsDemo extends ModuleBase
 		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend)
 		{
 			timer.cancel();
+			timer.purge();
 		}
 
 		public void onPause(IMediaStream stream, boolean isPause, double location) {
