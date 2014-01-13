@@ -103,8 +103,8 @@ public class RecordingManager {
 		}
 	}
 
-	public void restartRecordings(){
-		logger.debug("RecordingManager::restartRecordings");
+	public void restart(){
+		logger.debug("RecordingManager::restart");
 		synchronized (recorders)
 		{
 			for(String entryId : recorders.keySet()){
@@ -117,8 +117,8 @@ public class RecordingManager {
 		}
 	}
 	
-	public boolean restartRecording(String entryId){
-		logger.debug("RecordingManager::restartRecording: " + entryId);
+	public boolean restart(String entryId){
+		logger.debug("RecordingManager::restart: " + entryId);
 
 		synchronized (recorders)
 		{
@@ -132,9 +132,21 @@ public class RecordingManager {
 		return false;
 	}
 	
-	public String startRecord(String entryId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
-		logger.debug("RecordingManager::startRecord: entry [" + entryId + "]");
-		logger.debug("RecordingManager::startRecord: stream name [" + stream.getName() + "] entry [" + entryId + "]");
+	public void stop(String entryId){
+		logger.debug("RecordingManager::stop: " + entryId);
+
+		synchronized (recorders)
+		{
+			ILiveStreamRecord streamRecorder = recorders.remove(entryId);
+			if (streamRecorder != null){
+				streamRecorder.stopRecording();
+			}
+		}
+	}
+	
+	public String start(String entryId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
+		logger.debug("RecordingManager::start: entry [" + entryId + "]");
+		logger.debug("RecordingManager::start: stream name [" + stream.getName() + "] entry [" + entryId + "]");
 
 		// create a stream recorder and save it in a map of recorders
 		EntryRecorder recorder = new EntryRecorder(entryId, index);
@@ -151,7 +163,7 @@ public class RecordingManager {
 		File writeFile = stream.getStreamFileForWrite(entryId, index.getHashCode() + ".mp4", "");
 		String filePath = writeFile.getAbsolutePath();
 		
-		logger.debug("RecordingManager::startRecord: entry [" + entryId + "]  file path [" + filePath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");
+		logger.debug("RecordingManager::start: entry [" + entryId + "]  file path [" + filePath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");
 		
 		// if you want to record data packets as well as video/audio
 		recorder.setRecordData(recordData);
@@ -171,9 +183,5 @@ public class RecordingManager {
 		}
 		
 		return filePath;
-	}
-	
-	public boolean splitRecordingNow(String entryId) {
-		return restartRecording(entryId);
 	}
 }
