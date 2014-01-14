@@ -31,7 +31,7 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 			reloadScheduledChannelsInterval = Long.parseLong((String) serverConfiguration.get(KalturaLiveChannelManager.KALTURA_RELOAD_SCHEDULED_CHANNELS_INTERVAL)) * 1000;
 
 		if(reloadScheduledChannelsInterval > 0){
-			TimerTask splitRecordingTask = new TimerTask(){
+			TimerTask reloadScheduledChannelsTask = new TimerTask(){
 	
 				@Override
 				public void run() {
@@ -41,7 +41,7 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 			};
 			
 			reloadScheduledChannelsTimer = new Timer(true);
-			reloadScheduledChannelsTimer.schedule(splitRecordingTask, reloadScheduledChannelsInterval, reloadScheduledChannelsInterval);
+			reloadScheduledChannelsTimer.schedule(reloadScheduledChannelsTask, reloadScheduledChannelsInterval, reloadScheduledChannelsInterval);
 		}
 	}
 

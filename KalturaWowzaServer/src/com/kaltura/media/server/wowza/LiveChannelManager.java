@@ -376,17 +376,17 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 	@Override
 	public void restartRecordings() {
 		logger.debug("LiveStreamEntry::restartRecordings");
-		recordingManager.restartRecordings();
+		recordingManager.restart();
 	}
 
 	protected boolean restartRecording(String entryId) {
 		logger.debug("LiveStreamEntry::restartRecording: " + entryId);
-		return recordingManager.restartRecording(entryId);
+		return recordingManager.restart(entryId);
 	}
 
 	public String startRecord(String entryId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData) {
 		logger.debug("LiveStreamEntry::startRecord: " + entryId);
-		return recordingManager.startRecord(entryId, stream, index, versionFile, startOnKeyFrame, recordData);
+		return recordingManager.start(entryId, stream, index, versionFile, startOnKeyFrame, recordData);
 	}
 
 	@Override
