@@ -327,6 +327,7 @@ abstract public class KalturaLiveManager implements ILiveManager {
 			mediaEntry.description = liveEntry.description;
 			mediaEntry.sourceType = KalturaSourceType.RECORDED_LIVE;
 			mediaEntry.mediaType = KalturaMediaType.VIDEO;
+			mediaEntry.accessControlId = liveEntry.accessControlId;
 
 			try {
 				mediaEntry = impersonateClient.getMediaService().add(mediaEntry);
