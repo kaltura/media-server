@@ -1,8 +1,12 @@
 package com.kaltura.media.server.wowza;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.kaltura.client.enums.KalturaAssetParamsOrigin;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.types.KalturaConversionProfileAssetParams;
+import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media.server.KalturaLiveStreamManager;
 import com.kaltura.media.server.KalturaManagerException;
@@ -10,6 +14,8 @@ import com.wowza.wms.stream.IMediaStream;
 
 public class LiveStreamManager extends KalturaLiveStreamManager {
 
+	protected final static String KALTURA_ASSET_TAG_SOURCE = "source";
+	
 	private RecordingManager recordingManager;
 
 	@Override
@@ -30,9 +36,9 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 		return recordingManager.restart(entryId);
 	}
 	
-	public String startRecord(String entryId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
+	public String startRecord(String entryId, String assetId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
 		logger.debug("LiveStreamManager::startRecord: " + entryId);
-		return recordingManager.start(entryId, stream, index, versionFile, startOnKeyFrame, recordData);
+		return recordingManager.start(entryId, assetId, stream, index, versionFile, startOnKeyFrame, recordData);
 	}
 	
 	@Override
@@ -57,8 +63,16 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 			logger.debug("KalturaLiveManager::onPublish entry [" + entryId + "] asset params id [" + assetParamsId + "] is not the source");
 			return;
 		}
+		
+		KalturaLiveAsset liveAsset = getLiveAsset(entryId, assetParamsId);
+		String[] liveAssetTags = liveAsset.tags.split(",");
+		List<String> liveAssetTagsSet = Arrays.asList(liveAssetTags);
+		if(!liveAssetTagsSet.contains(LiveStreamManager.KALTURA_ASSET_TAG_SOURCE)){
+			logger.debug("KalturaLiveManager::onPublish entry [" + entryId + "] asset params id [" + assetParamsId + "] asset id [" + liveAsset.id + "] is not the source");
+			return;
+		}
 
-		String fileName = startRecord(liveEntry.id, stream, serverIndex, true, true, false);
+		String fileName = startRecord(liveEntry.id, liveAsset.id, stream, serverIndex, true, true, false);
 		logger.debug("KalturaLiveManager::onPublish entry [" + entryId + "] asset params id [" + assetParamsId + "] recording to file [" + fileName + "]");
 	}
 

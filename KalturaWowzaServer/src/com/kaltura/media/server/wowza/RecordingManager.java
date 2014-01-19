@@ -144,7 +144,7 @@ public class RecordingManager {
 		}
 	}
 	
-	public String start(String entryId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
+	public String start(String entryId, String assetId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
 		logger.debug("RecordingManager::start: entry [" + entryId + "]");
 		logger.debug("RecordingManager::start: stream name [" + stream.getName() + "] entry [" + entryId + "]");
 
@@ -160,7 +160,7 @@ public class RecordingManager {
 		}
 
 //		File writeFile = stream.getStreamFileForWrite(entryId, index.getHashCode() + ".flv", "");
-		File writeFile = stream.getStreamFileForWrite(entryId, index.getHashCode() + ".mp4", "");
+		File writeFile = stream.getStreamFileForWrite(entryId + "." + assetId, index.getHashCode() + ".mp4", "");
 		String filePath = writeFile.getAbsolutePath();
 		
 		logger.debug("RecordingManager::start: entry [" + entryId + "]  file path [" + filePath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");

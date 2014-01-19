@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.KalturaClient;
 import com.kaltura.client.KalturaConfiguration;
+import com.kaltura.client.KalturaMultiResponse;
 import com.kaltura.client.KalturaParamsValueDefaults;
 import com.kaltura.client.enums.KalturaDVRStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
@@ -22,6 +23,10 @@ import com.kaltura.client.types.KalturaConversionProfileAssetParams;
 import com.kaltura.client.types.KalturaConversionProfileAssetParamsFilter;
 import com.kaltura.client.types.KalturaConversionProfileAssetParamsListResponse;
 import com.kaltura.client.types.KalturaEntryResource;
+import com.kaltura.client.types.KalturaFlavorAsset;
+import com.kaltura.client.types.KalturaFlavorAssetListResponse;
+import com.kaltura.client.types.KalturaLiveAsset;
+import com.kaltura.client.types.KalturaLiveAssetFilter;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaMediaEntry;
 
@@ -48,13 +53,16 @@ abstract public class KalturaLiveManager implements ILiveManager {
 
 	protected class LiveEntryCache {
 		private KalturaLiveEntry liveEntry;
+		private boolean registered = false;
 		private KalturaMediaServerIndex index = null;
 		private Date registerTime = null;
 		private ArrayList<KalturaConversionProfileAssetParams> conversionProfileAssetParams;
+		private ArrayList<KalturaFlavorAsset> liveAssets;
+		private Timer timer = new Timer();
 
-		public LiveEntryCache(KalturaLiveEntry liveEntry, KalturaMediaServerIndex index, Date registerTime) {
+		public LiveEntryCache(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
 			this(liveEntry);
-			register(index, registerTime);
+			register(serverIndex);
 		}
 
 		public LiveEntryCache(KalturaLiveEntry liveEntry) {
@@ -66,31 +74,71 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		private void loadAssetParams() {
 			if(liveEntry.conversionProfileId <= 0)
 				return;
-			
-			KalturaConversionProfileAssetParamsFilter filter = new KalturaConversionProfileAssetParamsFilter();
-			filter.conversionProfileIdEqual = liveEntry.conversionProfileId;
+
+			KalturaConversionProfileAssetParamsFilter assetParamsFilter = new KalturaConversionProfileAssetParamsFilter();
+			assetParamsFilter.conversionProfileIdEqual = liveEntry.conversionProfileId;
+
+			KalturaLiveAssetFilter asstesFilter = new KalturaLiveAssetFilter();
+			asstesFilter.entryIdEqual = liveEntry.id;
 			
 			KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
+			impersonateClient.startMultiRequest();
 			try {
-				KalturaConversionProfileAssetParamsListResponse conversionProfileAssetParamsList = impersonateClient.getConversionProfileAssetParamsService().list(filter);
-				conversionProfileAssetParams = conversionProfileAssetParamsList.objects;
+				impersonateClient.getConversionProfileAssetParamsService().list(assetParamsFilter);
+				impersonateClient.getFlavorAssetService().list(asstesFilter);
+				KalturaMultiResponse responses = impersonateClient.doMultiRequest();
+				
+				
+				Object conversionProfileAssetParamsList = responses.get(0);
+				Object flavorAssetsList = responses.get(1);
+				
+				if(conversionProfileAssetParamsList instanceof KalturaConversionProfileAssetParamsListResponse)
+					conversionProfileAssetParams = ((KalturaConversionProfileAssetParamsListResponse) conversionProfileAssetParamsList).objects;
+
+				if(flavorAssetsList instanceof KalturaFlavorAssetListResponse)
+					liveAssets = ((KalturaFlavorAssetListResponse) flavorAssetsList).objects;
+				
 			} catch (KalturaApiException e) {
 				logger.error("KalturaLiveManager::LiveEntryCache.loadAssetParams failed to load asset params for live entry [" + liveEntry.id + "]:" + e.getMessage());
 			}
 		}
 
-		public void register(KalturaMediaServerIndex index, Date registerTime) {
-			this.index = index;
-			this.registerTime = registerTime;
+		public synchronized void register(KalturaMediaServerIndex serverIndex) {
+			if(registered)
+				return;
+			
+			index = serverIndex;
+
+			if (index == KalturaMediaServerIndex.PRIMARY)
+				cancelRedirect(liveEntry);
+
+			TimerTask setMediaServerTask = new TimerTask() {
+
+				@Override
+				public void run() {
+					setEntryMediaServer(liveEntry, index);
+				}
+			};
+			timer.schedule(setMediaServerTask, isLiveRegistrationMinBufferTime);
+
+			registerTime = new Date();
+			registerTime.setTime(registerTime.getTime() + isLiveRegistrationMinBufferTime);
+
+			if (liveEntry.recordStatus == KalturaRecordStatus.ENABLED && index == KalturaMediaServerIndex.PRIMARY)
+				createMediaEntry(liveEntry);
 		}
 
-		public void unregister() {
+		public synchronized void unregister() {
 			index = null;
 			registerTime = null;
+
+			timer.cancel();
+			timer.purge();
+			registered = false;
 		}
 
 		public boolean isRegistered() {
-			if (index == null)
+			if (!registered)
 				return false;
 
 			return registerTime.before(new Date());
@@ -106,6 +154,10 @@ abstract public class KalturaLiveManager implements ILiveManager {
 
 		public ArrayList<KalturaConversionProfileAssetParams> getConversionProfileAssetParams() {
 			return conversionProfileAssetParams;
+		}
+
+		public ArrayList<KalturaFlavorAsset> getLiveAssets() {
+			return liveAssets;
 		}
 
 		public KalturaMediaServerIndex getIndex() {
@@ -148,6 +200,23 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		return null;
 	}
 
+	
+	protected KalturaLiveAsset getLiveAsset(String entryId, int assetParamsId) {
+
+		synchronized (entries) {
+			if (entries.containsKey(entryId)) {
+				LiveEntryCache liveEntryCache = entries.get(entryId);
+				ArrayList<KalturaFlavorAsset> liveAssets = liveEntryCache.getLiveAssets();
+				for(KalturaFlavorAsset liveAsset : liveAssets){
+					if(liveAsset instanceof KalturaLiveAsset && liveAsset.flavorParamsId == assetParamsId)
+						return (KalturaLiveAsset) liveAsset;
+				}
+			}
+		}
+
+		return null;
+	}
+	
 	protected KalturaConversionProfileAssetParams getConversionProfileAssetParams(String entryId, int assetParamsId) {
 
 		synchronized (entries) {
@@ -180,41 +249,16 @@ abstract public class KalturaLiveManager implements ILiveManager {
 	public void onPublish(String entryId, final KalturaMediaServerIndex serverIndex) {
 		logger.debug("KalturaLiveManager::onPublish entry [" + entryId + "]");
 
-		final KalturaLiveEntry liveEntry = get(entryId);
-		if(liveEntry == null){
-			logger.error("KalturaLiveManager::onPublish entry [" + entryId + "] not found");
-			return;
-		}
-		
-		if (serverIndex == KalturaMediaServerIndex.PRIMARY)
-			cancelRedirect(liveEntry);
-
-		TimerTask setMediaServerTask = new TimerTask() {
-
-			@Override
-			public void run() {
-				setEntryMediaServer(liveEntry, serverIndex);
-			}
-		};
-
-		Timer timer = new Timer();
-		timer.schedule(setMediaServerTask, isLiveRegistrationMinBufferTime);
-
-		Date registerTime = new Date();
-		registerTime.setTime(registerTime.getTime() + isLiveRegistrationMinBufferTime);
-
 		synchronized (entries) {
 
-			if (entries.containsKey(entryId)) {
+			if (entries.containsKey(entryId)){
 				LiveEntryCache liveEntryCache = entries.get(entryId);
-				liveEntryCache.register(serverIndex, registerTime);
-			} else {
-				entries.put(entryId, new LiveEntryCache(liveEntry, serverIndex, registerTime));
+				liveEntryCache.register(serverIndex);
+			}
+			else{
+				logger.error("KalturaLiveManager::onPublish entry [" + entryId + "] not found in entries array");
 			}
 		}
-
-		if (liveEntry.recordStatus == KalturaRecordStatus.ENABLED && serverIndex == KalturaMediaServerIndex.PRIMARY)
-			createMediaEntry(liveEntry);
 	}
 
 	public void onUnPublish(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
