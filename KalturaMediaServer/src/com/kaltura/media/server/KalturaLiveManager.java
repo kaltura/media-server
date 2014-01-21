@@ -2,6 +2,7 @@ package com.kaltura.media.server;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -25,9 +26,12 @@ import com.kaltura.client.types.KalturaConversionProfileAssetParamsListResponse;
 import com.kaltura.client.types.KalturaEntryResource;
 import com.kaltura.client.types.KalturaFlavorAsset;
 import com.kaltura.client.types.KalturaFlavorAssetListResponse;
+import com.kaltura.client.types.KalturaFlavorParams;
+import com.kaltura.client.types.KalturaFlavorParamsListResponse;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveAssetFilter;
 import com.kaltura.client.types.KalturaLiveEntry;
+import com.kaltura.client.types.KalturaLiveParams;
 import com.kaltura.client.types.KalturaMediaEntry;
 
 abstract public class KalturaLiveManager implements ILiveManager {
@@ -44,7 +48,8 @@ abstract public class KalturaLiveManager implements ILiveManager {
 	protected KalturaClient client;
 	protected KalturaConfiguration config;
 	protected Map<String, Object> serverConfiguration;
-	protected ConcurrentHashMap<String, LiveEntryCache> entries;
+	protected ConcurrentHashMap<String, LiveEntryCache> entries = new ConcurrentHashMap<String, LiveEntryCache>();
+	protected ConcurrentHashMap<Integer, KalturaLiveParams> liveAssetParams = new ConcurrentHashMap<Integer, KalturaLiveParams>();
 	protected Logger logger;
 	protected long isLiveRegistrationMinBufferTime = KalturaLiveManager.DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME;
 
@@ -57,7 +62,7 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		private KalturaMediaServerIndex index = null;
 		private Date registerTime = null;
 		private ArrayList<KalturaConversionProfileAssetParams> conversionProfileAssetParams;
-		private ArrayList<KalturaFlavorAsset> liveAssets;
+		private Map<Integer, KalturaLiveAsset> liveAssets = new HashMap<Integer, KalturaLiveAsset>();
 		private Timer timer = new Timer();
 
 		public LiveEntryCache(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
@@ -95,11 +100,22 @@ abstract public class KalturaLiveManager implements ILiveManager {
 				if(conversionProfileAssetParamsList instanceof KalturaConversionProfileAssetParamsListResponse)
 					conversionProfileAssetParams = ((KalturaConversionProfileAssetParamsListResponse) conversionProfileAssetParamsList).objects;
 
-				if(flavorAssetsList instanceof KalturaFlavorAssetListResponse)
-					liveAssets = ((KalturaFlavorAssetListResponse) flavorAssetsList).objects;
+				if(flavorAssetsList instanceof KalturaFlavorAssetListResponse){
+					for(KalturaFlavorAsset liveAsset : ((KalturaFlavorAssetListResponse) flavorAssetsList).objects){
+						if(liveAsset instanceof KalturaLiveAsset){
+							liveAssets.put(liveAsset.flavorParamsId, (KalturaLiveAsset) liveAsset);
+							
+							if(!liveAssetParams.containsKey(liveAsset.flavorParamsId)){
+								KalturaFlavorParams liveParams = impersonateClient.getFlavorParamsService().get(liveAsset.flavorParamsId);
+								if(liveParams instanceof KalturaLiveParams)
+									liveAssetParams.put(liveAsset.flavorParamsId, (KalturaLiveParams) liveParams);
+							}
+						}
+					}
+				}
 				
 			} catch (KalturaApiException e) {
-				logger.error("KalturaLiveManager::LiveEntryCache.loadAssetParams failed to load asset params for live entry [" + liveEntry.id + "]:" + e.getMessage());
+				logger.error("KalturaLiveManager::LiveEntryCache::loadAssetParams failed to load asset params for live entry [" + liveEntry.id + "]:" + e.getMessage());
 			}
 		}
 
@@ -156,8 +172,12 @@ abstract public class KalturaLiveManager implements ILiveManager {
 			return conversionProfileAssetParams;
 		}
 
-		public ArrayList<KalturaFlavorAsset> getLiveAssets() {
-			return liveAssets;
+		public KalturaLiveAsset getLiveAsset(int assetParamsId) {
+			if(liveAssets.containsKey(assetParamsId))
+				return liveAssets.get(assetParamsId);
+			
+			logger.error("KalturaLiveManager::LiveEntryCache::getLiveAsset asset params id [" + assetParamsId + "] not found");
+			return null;
 		}
 
 		public KalturaMediaServerIndex getIndex() {
@@ -200,39 +220,51 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		return null;
 	}
 
+	public KalturaLiveParams getLiveAssetParams(int assetParamsId){
+
+		synchronized (liveAssetParams) {
+			if (!liveAssetParams.containsKey(assetParamsId)) {
+				logger.error("KalturaLiveManager::getLiveAssetParams asset params id [" + assetParamsId + "] not found");
+				return null;
+			}
+			
+			return liveAssetParams.get(assetParamsId);
+		}
+	}
 	
-	protected KalturaLiveAsset getLiveAsset(String entryId, int assetParamsId) {
+	public KalturaLiveAsset getLiveAsset(String entryId, int assetParamsId) {
 
 		synchronized (entries) {
-			if (entries.containsKey(entryId)) {
-				LiveEntryCache liveEntryCache = entries.get(entryId);
-				ArrayList<KalturaFlavorAsset> liveAssets = liveEntryCache.getLiveAssets();
-				for(KalturaFlavorAsset liveAsset : liveAssets){
-					if(liveAsset instanceof KalturaLiveAsset && liveAsset.flavorParamsId == assetParamsId)
-						return (KalturaLiveAsset) liveAsset;
-				}
+			if (!entries.containsKey(entryId)) {
+				logger.error("KalturaLiveManager::getLiveAsset entry id [" + entryId + "] not found");
+				return null;
+			}
+			
+			LiveEntryCache liveEntryCache = entries.get(entryId);
+			return liveEntryCache.getLiveAsset(assetParamsId);
+		}
+	}
+	
+	public KalturaConversionProfileAssetParams getConversionProfileAssetParams(String entryId, int assetParamsId) {
+
+		synchronized (entries) {
+			if (!entries.containsKey(entryId)) {
+				logger.error("KalturaLiveManager::getConversionProfileAssetParams entry id [" + entryId + "] not found");
+				return null;
+			}
+			
+			LiveEntryCache liveEntryCache = entries.get(entryId);
+			ArrayList<KalturaConversionProfileAssetParams> conversionProfileAssetParamsList = liveEntryCache.getConversionProfileAssetParams();
+			for(KalturaConversionProfileAssetParams conversionProfileAssetParams : conversionProfileAssetParamsList){
+				if(conversionProfileAssetParams.assetParamsId == assetParamsId)
+					return conversionProfileAssetParams;
 			}
 		}
 
+		logger.error("KalturaLiveManager::getConversionProfileAssetParams asset id [" + assetParamsId + "] in entry [" + entryId + "] not found");
 		return null;
 	}
 	
-	protected KalturaConversionProfileAssetParams getConversionProfileAssetParams(String entryId, int assetParamsId) {
-
-		synchronized (entries) {
-			if (entries.containsKey(entryId)) {
-				LiveEntryCache liveEntryCache = entries.get(entryId);
-				ArrayList<KalturaConversionProfileAssetParams> conversionProfileAssetParamsList = liveEntryCache.getConversionProfileAssetParams();
-				for(KalturaConversionProfileAssetParams conversionProfileAssetParams : conversionProfileAssetParamsList){
-					if(conversionProfileAssetParams.assetParamsId == assetParamsId)
-						return conversionProfileAssetParams;
-				}
-			}
-		}
-
-		return null;
-	}
-
 	public Integer getDvrWindow(KalturaLiveEntry liveEntry) {
 		if (liveEntry.dvrStatus != KalturaDVRStatus.ENABLED)
 			return null;
@@ -455,14 +487,14 @@ abstract public class KalturaLiveManager implements ILiveManager {
 
 	public void init() throws KalturaManagerException {
 
-		entries = new ConcurrentHashMap<String, LiveEntryCache>();
-
 		hostname = KalturaServer.getHostName();
 		client = KalturaServer.getClient();
 		config = client.getKalturaConfiguration();
 		serverConfiguration = KalturaServer.getConfiguration();
 		logger = KalturaServer.getLogger();
 
+		loadLiveParams();
+		
 		isLiveRegistrationMinBufferTime = KalturaLiveManager.DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME * 1000;
 		if (serverConfiguration.containsKey(KalturaLiveManager.KALTURA_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME))
 			isLiveRegistrationMinBufferTime = Long.parseLong((String) serverConfiguration.get(KalturaLiveManager.KALTURA_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME)) * 1000;
@@ -503,6 +535,19 @@ abstract public class KalturaLiveManager implements ILiveManager {
 
 			splitRecordingTimer = new Timer(true);
 			splitRecordingTimer.schedule(splitRecordingTask, splitRecordingInterval, splitRecordingInterval);
+		}
+	}
+
+	private void loadLiveParams() {
+		try {
+			KalturaFlavorParamsListResponse flavorParamsList = client.getFlavorParamsService().list();
+			for(KalturaFlavorParams flavorParams : flavorParamsList.objects){
+				if(flavorParams instanceof KalturaLiveParams)
+					liveAssetParams.put(flavorParams.id, (KalturaLiveParams) flavorParams);
+			}
+			logger.info("KalturaLiveManager::loadLiveParams: loaded live params [" + liveAssetParams.size() + "]");
+		} catch (KalturaApiException e) {
+			logger.error("KalturaLiveManager::loadLiveParams: faild to load live params: " + e.getMessage());
 		}
 	}
 

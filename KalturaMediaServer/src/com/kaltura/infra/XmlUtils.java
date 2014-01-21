@@ -1,8 +1,6 @@
 package com.kaltura.infra;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;

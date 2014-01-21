@@ -30,9 +30,9 @@ import com.kaltura.client.types.KalturaFlavorParamsListResponse;
 import com.kaltura.client.types.KalturaLiveChannel;
 import com.kaltura.client.types.KalturaLiveParams;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
+import com.kaltura.infra.StringUtils;
 import com.kaltura.media.server.KalturaLiveChannelManager;
 import com.kaltura.media.server.KalturaManagerException;
-import com.wowza.util.StringUtils;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.publish.Playlist;
@@ -85,8 +85,6 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			KalturaFlavorAssetListResponse assetsList;
 
 			String fileSyncKey;
-			fileSyncKeys = new HashMap<String, String>();
-			assetParamsIds = new HashSet<Integer>();
 
 			try {
 				KalturaClient impersonateClient = impersonate(liveChannel.partnerId);
@@ -166,7 +164,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 
 			// validate that all asset params found
 			if (!assetParamsIds.isEmpty()) {
-				logger.error("LiveChannelContainer::initRenditions not all assets params found for channel [" + liveChannel.id + "]: " + StringUtils.toStringList(assetParamsIds.toArray(new String[] {})));
+				logger.error("LiveChannelContainer::initRenditions not all assets params found for channel [" + liveChannel.id + "]: " + StringUtils.join(assetParamsIds));
 				return;
 			}
 
@@ -213,7 +211,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			KalturaFileSyncFilter fileSyncFilter = new KalturaFileSyncFilter();
 			fileSyncFilter.fileObjectTypeEqual = KalturaFileSyncObjectType.ASSET;
 			fileSyncFilter.objectSubTypeEqual = LiveChannelContainer.FILE_SYNC_ASSET_SUB_TYPE_ASSET;
-			fileSyncFilter.objectIdIn = StringUtils.toStringList(fileSyncKeys.keySet().toArray(new String[] {})).replaceAll(" ", "");
+			fileSyncFilter.objectIdIn = StringUtils.join(fileSyncKeys.values()).replaceAll(" ", "");
 
 			KalturaFileSyncService fileSyncService = new KalturaFileSyncService(client);
 			
@@ -296,7 +294,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			}
 			long time = System.currentTimeMillis() - startTime;
 			
-			logger.info("LiveChannelContainer::start started channel [" + liveChannel.id + "] renditions [" + StringUtils.toStringList(renditions.toArray(new String[] {})) + "] start time [" + time + "]");
+			logger.info("LiveChannelContainer::start started channel [" + liveChannel.id + "] renditions [" + StringUtils.join(renditions) + "] start time [" + time + "]");
 			
 			generateSmilFiles();
 			

@@ -52,28 +52,39 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 
 	public void onPublish(IMediaStream stream, String entryId, KalturaMediaServerIndex serverIndex, int assetParamsId) {
 
+		logger.debug("LiveStreamManager::onPublish stream [" + stream.getName() + "] entry [" + entryId + "] index [" + serverIndex.hashCode + "] asset params id [" + assetParamsId + "]");
+		
 		KalturaLiveEntry liveEntry = get(entryId);
 		if(liveEntry == null){
-			logger.error("KalturaLiveManager::onPublish entry [" + entryId + "] not found for asset params id [" + assetParamsId + "]");
+			logger.error("LiveStreamManager::onPublish entry [" + entryId + "] not found for asset params id [" + assetParamsId + "]");
 			return;
 		}
 		
 		KalturaConversionProfileAssetParams conversionProfileAssetParams = getConversionProfileAssetParams(entryId, assetParamsId);
+		if(conversionProfileAssetParams == null){
+			logger.error("LiveStreamManager::onPublish entry [" + entryId + "] conversion profile asset params id [" + assetParamsId + "] not found");
+			return;
+		}
 		if(conversionProfileAssetParams.origin != KalturaAssetParamsOrigin.INGEST){
-			logger.debug("KalturaLiveManager::onPublish entry [" + entryId + "] asset params id [" + assetParamsId + "] is not the source");
+			logger.debug("LiveStreamManager::onPublish entry [" + entryId + "] asset params id [" + assetParamsId + "] is not ingested");
 			return;
 		}
 		
 		KalturaLiveAsset liveAsset = getLiveAsset(entryId, assetParamsId);
+		if(liveAsset == null){
+			logger.error("LiveStreamManager::onPublish entry [" + entryId + "] asset params id [" + assetParamsId + "] asset not found");
+			return;
+		}
+		
 		String[] liveAssetTags = liveAsset.tags.split(",");
 		List<String> liveAssetTagsSet = Arrays.asList(liveAssetTags);
 		if(!liveAssetTagsSet.contains(LiveStreamManager.KALTURA_ASSET_TAG_SOURCE)){
-			logger.debug("KalturaLiveManager::onPublish entry [" + entryId + "] asset params id [" + assetParamsId + "] asset id [" + liveAsset.id + "] is not the source");
+			logger.debug("LiveStreamManager::onPublish entry [" + entryId + "] asset params id [" + assetParamsId + "] asset id [" + liveAsset.id + "] is not the source");
 			return;
 		}
 
 		String fileName = startRecord(liveEntry.id, liveAsset.id, stream, serverIndex, true, true, false);
-		logger.debug("KalturaLiveManager::onPublish entry [" + entryId + "] asset params id [" + assetParamsId + "] recording to file [" + fileName + "]");
+		logger.debug("LiveStreamManager::onPublish entry [" + entryId + "] asset params id [" + assetParamsId + "] recording to file [" + fileName + "]");
 	}
 
 	@Override

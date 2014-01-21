@@ -2,7 +2,6 @@ package com.kaltura.media.server.wowza.listeners;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +13,7 @@ import java.util.regex.Pattern;
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.enums.KalturaDVRStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.types.KalturaLiveParams;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.infra.XmlUtils;
 import com.kaltura.media.server.ILiveStreamManager;
@@ -82,7 +82,7 @@ public class LiveStreamEntry extends ModuleBase {
 				Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_");
 				Matcher matcher = pattern.matcher(streamName);
 				if (!matcher.find()) {
-					getLogger().info("DvrRecorderControl.isThatStreamNeeded: stream [" + streamName + "] has no client");
+					getLogger().info("DvrRecorderControl.isThatStreamNeeded: stream [" + streamName + "] does not match regex");
 					return false;
 				}
 
@@ -125,6 +125,7 @@ public class LiveStreamEntry extends ModuleBase {
 	class LiveStreamListener implements IMediaStreamActionNotify {
 
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
+
 			IClient client = stream.getClient();
 			if (client != null){ // streamed from the client
 				WMSProperties clientProperties = client.getProperties();
@@ -162,7 +163,7 @@ public class LiveStreamEntry extends ModuleBase {
 				Matcher matcher = pattern.matcher(streamName);
 
 				if (!matcher.find()) {
-					getLogger().error("LiveStreamListener::onPublish: unknown published stream [" + streamName + "]");
+					getLogger().error("LiveStreamListener::onPublish: transcoder published stream [" + streamName + "]");
 					return;
 				}
 
@@ -170,22 +171,30 @@ public class LiveStreamEntry extends ModuleBase {
 				int assetParamsId = Integer.parseInt(matcher.group(2));
 				getLogger().debug("LiveStreamListener::onPublish stream [" + streamName + "] entry [" + entryId + "] asset params id [" + assetParamsId + "]");
 				
-				IMediaStream sourceStream = stream.getStreams().getStream(entryId);
-				if(sourceStream == null){
-					getLogger().error("LiveStreamListener::onPublish: source stream not found for stream [" + streamName + "]");
-					return;
-				}
 				
-				client = sourceStream.getClient();
-				if(client == null){
-					getLogger().error("LiveStreamListener::onPublish: client not found for stream [" + streamName + "]");
-					return;
+				KalturaLiveParams liveAssetParams = liveStreamManager.getLiveAssetParams(assetParamsId);
+				if(liveAssetParams != null && liveAssetParams.streamSuffix != null)
+				{
+					String sourceStreamName = entryId + "_" + liveAssetParams.streamSuffix;
+					IMediaStream sourceStream = stream.getStreams().getStream(sourceStreamName);
+					if(sourceStream == null){
+						getLogger().error("LiveStreamListener::onPublish: source stream [" + sourceStreamName + "] not found for stream [" + streamName + "]");
+						return;
+					}
+					getLogger().debug("LiveStreamListener::onPublish: source stream [" + sourceStreamName + "] found for stream [" + streamName + "]");
+					
+					client = sourceStream.getClient();
+					if(client == null){
+						getLogger().error("LiveStreamListener::onPublish: client not found for stream [" + streamName + "]");
+						return;
+					}
+					getLogger().debug("LiveStreamListener::onPublish: client found for stream [" + streamName + "]");
+					
+					WMSProperties clientProperties = client.getProperties();
+					KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+	
+					liveStreamManager.onPublish(stream, entryId, serverIndex, assetParamsId);
 				}
-				
-				WMSProperties clientProperties = client.getProperties();
-				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
-
-				liveStreamManager.onPublish(stream, entryId, serverIndex, assetParamsId);
 			}
 		}
 
@@ -223,31 +232,29 @@ public class LiveStreamEntry extends ModuleBase {
 		protected final static String SMIL_VIDEOS_XPATH = "/smil/body/switch";
 
 		private IApplicationInstance appInstance;
-		private String entryId;
 		
-		public LiveStreamTranscoderSmilManager(IApplicationInstance appInstance, String entryId) {
+		public LiveStreamTranscoderSmilManager(IApplicationInstance appInstance) {
 			this.appInstance = appInstance;
-			this.entryId = entryId;
 		}
 
-		public synchronized void generate(String groupName) {
+		public synchronized void generate(String sourceGroupName, String destGroupName) {
 			String appName = appInstance.getContextStr();
-			getLogger().debug("LiveStreamEntry#LiveStreamTranscoderSmilManager.generate [" + appName + "/" + groupName + "]");
+			getLogger().debug("LiveStreamEntry#LiveStreamTranscoderSmilManager.generate [" + appName + "/" + destGroupName + "] from source [" + sourceGroupName + "]");
 
-			MediaList mediaList = MediaListUtils.parseMediaList(appInstance, groupName, "ngrp", null);
+			MediaList mediaList = MediaListUtils.parseMediaList(appInstance, sourceGroupName, "ngrp", null);
 			if (mediaList == null) {
-				getLogger().error("LiveStreamEntry#LiveStreamTranscoderSmilManager.generate: MediaList not found: " + appName + "/" + groupName);
+				getLogger().error("LiveStreamEntry#LiveStreamTranscoderSmilManager.generate: MediaList not found: " + appName + "/" + sourceGroupName);
 				return;
 			}
 
 			String smil = mediaList.toSMILString();
 			
-			String filePath = appInstance.getStreamStoragePath() + File.separator + entryId + ".smil";
+			String filePath = appInstance.getStreamStoragePath() + File.separator + destGroupName + ".smil";
 			File file = new File(filePath);
 			if(file.exists()){
 				File tmpFile;
 				try {
-					tmpFile = File.createTempFile(groupName, ".smil");
+					tmpFile = File.createTempFile(destGroupName, ".smil");
 					PrintWriter out = new PrintWriter(tmpFile);
 					out.print(smil);
 					out.close();
@@ -262,6 +269,8 @@ public class LiveStreamEntry extends ModuleBase {
 					getLogger().error("LiveStreamEntry#LiveStreamTranscoderSmilManager.generate: Failed merging files [" + filePath + ", " + tmpFile.getAbsolutePath() + "]: " + e.getMessage());
 					return;
 				}
+				
+				tmpFile.delete();
 			}
 			else{
 				try {
@@ -274,7 +283,7 @@ public class LiveStreamEntry extends ModuleBase {
 				}
 			}
 
-			getLogger().info("LiveStreamEntry#LiveStreamTranscoderSmilManager.generate: Created smil file [" + filePath + "] for stream " + appName + "/" + groupName + ":\n" + smil + "\n\n");
+			getLogger().info("LiveStreamEntry#LiveStreamTranscoderSmilManager.generate: Created smil file [" + filePath + "] for stream " + appName + "/" + destGroupName + ":\n" + smil + "\n\n");
 		}
 
 	}
@@ -287,28 +296,44 @@ public class LiveStreamEntry extends ModuleBase {
 		public void onRegisterStreamNameGroup(LiveStreamTranscoder liveStreamTranscoder, TranscoderStreamNameGroup streamNameGroup){
 
 			final IApplicationInstance appInstance = liveStreamTranscoder.getAppInstance();
+			final String sourceGroupName = streamNameGroup.getStreamName();
 
-			final String groupName = streamNameGroup.getStreamName();
+			Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_([^_]+)_(.+)$");
+			Matcher matcher = pattern.matcher(sourceGroupName);
+			if (!matcher.find()) {
+				getLogger().info("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup: group name [" + sourceGroupName + "] does not match group name regex");
+				return;
+			}
+
+			final String entryId = matcher.group(1);
+			String tag = matcher.group(3);
+			
+			final String destGroupName = entryId + "_" + tag;
 			String appName = appInstance.getContextStr();
+			
+			getLogger().debug("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup [" + appName + "/" + destGroupName + "] for group name [" + streamNameGroup.getStreamName() + "]");
 			
 			IMediaStream stream = liveStreamTranscoder.getStream();
 			if(stream == null){
-				getLogger().error("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup [" + appName + "/" + groupName + "] source stream not found");
+				getLogger().error("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup [" + appName + "/" + destGroupName + "] source stream not found");
 				return;
 			}
 			
 			IClient client = stream.getClient();
 			if(client == null){
-				getLogger().error("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup [" + appName + "/" + groupName + "] client not found");
+				getLogger().error("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup [" + appName + "/" + destGroupName + "] client not found");
 				return;
 			}
 
 			WMSProperties clientProperties = client.getProperties();
 			if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
-				getLogger().error("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup [" + appName + "/" + groupName + "] entry id not defined");
+				getLogger().error("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup [" + appName + "/" + destGroupName + "] entry id not defined");
 				return;
 			}
-			final String entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
+			if(!entryId.equals(clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID))) {
+				getLogger().error("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup [" + appName + "/" + destGroupName + "] entry id does not match group name");
+				return;
+			}
 			
 			TimerTask generateSmilTask = new TimerTask() {
 				
@@ -323,11 +348,11 @@ public class LiveStreamEntry extends ModuleBase {
 							smilManager = smilManagers.get(entryId);
 						}
 						else{
-							smilManager = new LiveStreamTranscoderSmilManager(appInstance, entryId);
+							smilManager = new LiveStreamTranscoderSmilManager(appInstance);
 							smilManagers.put(entryId, smilManager);
 						}
 					}
-					smilManager.generate(groupName);
+					smilManager.generate(sourceGroupName, destGroupName);
 				}
 			};
 			
@@ -340,18 +365,31 @@ public class LiveStreamEntry extends ModuleBase {
 
 			IApplicationInstance appInstance = liveStreamTranscoder.getAppInstance();
 			
-			String groupName = streamNameGroup.getStreamName();
 			String appName = appInstance.getContextStr();
 
-			getLogger().debug("LiveStreamEntry#LiveStreamTranscoderActionListener.onUnregisterStreamNameGroup [" + appName + "/" + groupName + "]");
+			String sourceGroupName = streamNameGroup.getStreamName();
 
-			String filePath = appInstance.getStreamStoragePath() + File.separator + groupName + ".smil";
+			Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_([^_]+)_(.+)$");
+			Matcher matcher = pattern.matcher(sourceGroupName);
+			if (!matcher.find()) {
+				getLogger().info("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup: group name [" + sourceGroupName + "] does not match group name regex");
+				return;
+			}
+
+			final String entryId = matcher.group(1);
+			String tag = matcher.group(3);
+			
+			final String destGroupName = entryId + "_" + tag;
+			
+			getLogger().debug("LiveStreamEntry#LiveStreamTranscoderActionListener.onUnregisterStreamNameGroup [" + appName + "/" + destGroupName + "]");
+
+			String filePath = appInstance.getStreamStoragePath() + File.separator + destGroupName + ".smil";
 			
 			File file = new File(filePath);
 			if(file.exists())
 				file.delete();
 			
-			getLogger().info("LiveStreamEntry#LiveStreamTranscoderActionListener.onUnregisterStreamNameGroup: Deleted smil file [" + filePath + "] for stream " + appName + "/" + groupName);
+			getLogger().info("LiveStreamEntry#LiveStreamTranscoderActionListener.onUnregisterStreamNameGroup: Deleted smil file [" + filePath + "] for stream " + appName + "/" + destGroupName);
 		}
 	}
 		
