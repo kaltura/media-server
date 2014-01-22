@@ -284,10 +284,8 @@ public class LiveStreamEntry extends ModuleBase {
 		getLogger().debug("LiveStreamEntry::onConnect: " + entryPoint);
 
 		String[] requestParts = entryPoint.split("\\?", 2);
-		if(requestParts.length < 2){
-			getLogger().error("LiveStreamEntry::onConnect: No query string supplied [" + entryPoint + "]");
-			client.rejectConnection("No query string supplied [" + entryPoint + "]", "No query string supplied [" + entryPoint + "]");
-		}
+		if(requestParts.length < 2)
+			return;
 			
 		String[] queryParams = requestParts[1].split("&");
 		HashMap<String, String> requestParams = new HashMap<String, String>();
