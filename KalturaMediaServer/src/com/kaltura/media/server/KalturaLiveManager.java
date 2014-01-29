@@ -303,8 +303,8 @@ abstract public class KalturaLiveManager implements ILiveManager {
 			if (entries.containsKey(liveEntry.id)) {
 				LiveEntryCache liveEntryCache = entries.get(liveEntry.id);
 				if (liveEntryCache.index != null) {
-					unsetEntryMediaServer(liveEntry, liveEntryCache.index);
 					liveEntryCache.unregister();
+					unsetEntryMediaServer(liveEntry, liveEntryCache.index);
 				}
 			}
 		}
