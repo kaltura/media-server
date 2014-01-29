@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.enums.KalturaDVRStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveParams;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.infra.XmlUtils;
@@ -27,6 +28,7 @@ import com.wowza.wms.dvr.DvrApplicationContext;
 import com.wowza.wms.dvr.IDvrConstants;
 import com.wowza.wms.medialist.MediaList;
 import com.wowza.wms.module.ModuleBase;
+import com.wowza.wms.plugin.pushpublish.protocol.rtp.PushPublisherRTP;
 import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.IMediaStreamActionNotify;
@@ -54,6 +56,8 @@ public class LiveStreamEntry extends ModuleBase {
 
 	protected final static int INVALID_SERVER_INDEX = -1;
 
+	public static int port = 10000;
+	
 	private LiveStreamManager liveStreamManager;
 	private LiveStreamTranscoderActionListener liveStreamTranscoderActionListener = new LiveStreamTranscoderActionListener();
 
@@ -214,6 +218,71 @@ public class LiveStreamEntry extends ModuleBase {
 			liveStreamManager.onUnPublish(liveStreamEntry, serverIndex);
 		}
 
+		public void onPause(IMediaStream stream, boolean isPause, double location) {
+		}
+
+		public void onPlay(IMediaStream stream, String streamName, double playStart, double playLen, int playReset) {
+		}
+
+		public void onSeek(IMediaStream stream, double location) {
+		}
+
+		public void onStop(IMediaStream stream) {
+		}
+	}
+	
+	class PushPublisherListener implements IMediaStreamActionNotify
+	{
+		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
+			IClient client = stream.getClient();
+			if (!streamName.startsWith("push-") && client == null) {
+				getLogger().info("PushPublisherListener::onPublish - pushing stream streamName" + streamName);
+				Pattern pattern = Pattern.compile("^([01]_.{8})_(\\d+)$");
+				Matcher matcher = pattern.matcher(streamName);
+	
+				if (!matcher.find()) {
+					getLogger().error("LiveStreamListener::onPublish: transcoder published stream [" + streamName + "]");
+					return;
+				}
+	
+				String entryId = matcher.group(1);
+				int assetParamsId = Integer.parseInt(matcher.group(2));
+				getLogger().debug("LiveStreamListener::onPublish stream [" + streamName + "] entry [" + entryId + "] asset params id [" + assetParamsId + "]");
+				
+				KalturaLiveAsset liveAsset = liveStreamManager.getLiveAsset(entryId, assetParamsId);
+				if (liveAsset == null) {
+					getLogger().error("LiveStreamListener::onPublish: live asset for entry [" + entryId + "] and assetParamsId [" + assetParamsId + "] was not found");
+				}
+					
+				
+			    PushPublisherRTP publisher = new PushPublisherRTP();
+			    publisher.setAppInstance(stream.getStreams().getAppInstance());
+			   
+			    // Destination stream
+			    publisher.setHost("239.1.1.1");
+			    LiveStreamEntry.port += 5;
+			    publisher.setPort(LiveStreamEntry.port);
+			   
+			    getLogger().debug("listen on port " +LiveStreamEntry.port  );
+			   
+			    publisher.setDstStreamName("push-" + streamName);
+			  // publisher.setAudioPort("10002");
+			  // publisher.setVideoPort("10004");
+			    getLogger().debug("publishing stream " + publisher.getDstStreamName());
+			    publisher.setStreamName(streamName);
+			
+			    publisher.setDebugLog(true);
+			   
+			   
+			   publisher.connect();
+			}
+		}
+		
+		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend)
+		{
+			
+		}
+		
 		public void onPause(IMediaStream stream, boolean isPause, double location) {
 		}
 
@@ -411,6 +480,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 	public void onStreamCreate(IMediaStream stream) {
 		stream.addClientListener(new LiveStreamListener());
+		stream.addClientListener(new PusherListener());
 	}
 
 	public void onDisconnect(IClient client) {
