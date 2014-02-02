@@ -493,40 +493,40 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
-		WMSProperties clientProperties = client.getProperties();
-		String entryPoint = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_CONNECT_APP);
-		getLogger().debug("LiveStreamEntry::onConnect: " + entryPoint);
+		 WMSProperties clientProperties = client.getProperties();
+         String entryPoint = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_CONNECT_APP);
+         getLogger().debug("LiveStreamEntry::onConnect: " + entryPoint);
 
-		String[] requestParts = entryPoint.split("/");
-		HashMap<String, String> requestParams = new HashMap<String, String>();
-		String field = null;
-		for (int i = 1; i < requestParts.length; ++i) {
-			if (field == null) {
-				field = requestParts[i];
-			} else {
-				requestParams.put(field, requestParts[i]);
-				getLogger().debug("LiveStreamEntry::onConnect: " + field + ": " + requestParams.get(field));
-				field = null;
-			}
-		}
-		
-		if(!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID))
-			return;
+         String[] requestParts = entryPoint.split("\\?", 2);
+         if(requestParts.length < 2)
+                 return;
+                 
+         String[] queryParams = requestParts[1].split("&");
+         HashMap<String, String> requestParams = new HashMap<String, String>();
+         String[] queryParamsParts;
+         for (int i = 0; i < queryParams.length; ++i) {
+                 queryParamsParts = queryParams[i].split("=", 2);
+                 if(queryParamsParts.length == 2)
+                         requestParams.put(queryParamsParts[0], queryParamsParts[1]);
+         }
+         
+         if(!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID))
+                 return;
 
-		int partnerId = Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
-		String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
-		String token = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_TOKEN);
+         int partnerId = Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
+         String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
+         String token = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_TOKEN);
 
-		try {
-			liveStreamManager.authenticate(entryId, partnerId, token);
-			clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
-			clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
-			clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
-			getLogger().info("LiveStreamEntry::onConnect: Entry added [" + entryId + "]");
-		} catch (KalturaApiException e) {
-			getLogger().error("LiveStreamEntry::onConnect: Entry authentication failed [" + entryId + "]: " + e.getMessage());
-			client.rejectConnection("Unable to authenticate entry [" + entryId + "]", "Unable to authenticate entry [" + entryId + "]");
-		}
+         try {
+                 liveStreamManager.authenticate(entryId, partnerId, token);
+                 clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
+                 clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
+                 clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
+                 getLogger().info("LiveStreamEntry::onConnect: Entry added [" + entryId + "]");
+         } catch (KalturaApiException e) {
+                 getLogger().error("LiveStreamEntry::onConnect: Entry authentication failed [" + entryId + "]: " + e.getMessage());
+                 client.rejectConnection("Unable to authenticate entry [" + entryId + "]", "Unable to authenticate entry [" + entryId + "]");
+         }
 
 
 	}
