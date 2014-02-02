@@ -34,7 +34,7 @@ public class KalturaServer {
 	protected final static String KALTURA_SERVER_WEB_SERVICES_PORT = "KalturaServerWebServicesPort";
 	protected final static String KALTURA_SERVER_WEB_SERVICES_HOST = "KalturaServerWebServicesHost";
 
-	protected static Logger logger;
+	protected static Logger logger = Logger.getLogger(KalturaServer.class);
 	protected static KalturaServer instance;
 	protected static Map<String, Object> config;
 	protected static KalturaClient client;
@@ -220,8 +220,7 @@ public class KalturaServer {
 		return null;
 	}
 
-	public static KalturaServer init(Logger logger, Map<String, Object> config) throws KalturaServerException {
-		KalturaServer.logger = logger;
+	public static KalturaServer init(Map<String, Object> config) throws KalturaServerException {
 		KalturaServer.config = config;
 		
 		if (instance == null)
