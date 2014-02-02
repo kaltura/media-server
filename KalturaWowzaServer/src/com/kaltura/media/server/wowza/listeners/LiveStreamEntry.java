@@ -231,70 +231,70 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 	
-	class PushPublisherListener implements IMediaStreamActionNotify
-	{
-		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
-			IClient client = stream.getClient();
-			if (!streamName.startsWith("push-") && client == null) {
-				getLogger().info("PushPublisherListener::onPublish - pushing stream streamName" + streamName);
-				Pattern pattern = Pattern.compile("^([01]_.{8})_(\\d+)$");
-				Matcher matcher = pattern.matcher(streamName);
-	
-				if (!matcher.find()) {
-					getLogger().error("LiveStreamListener::onPublish: transcoder published stream [" + streamName + "]");
-					return;
-				}
-	
-				String entryId = matcher.group(1);
-				int assetParamsId = Integer.parseInt(matcher.group(2));
-				getLogger().debug("LiveStreamListener::onPublish stream [" + streamName + "] entry [" + entryId + "] asset params id [" + assetParamsId + "]");
-				
-				KalturaLiveAsset liveAsset = liveStreamManager.getLiveAsset(entryId, assetParamsId);
-				if (liveAsset == null) {
-					getLogger().error("LiveStreamListener::onPublish: live asset for entry [" + entryId + "] and assetParamsId [" + assetParamsId + "] was not found");
-				}
-					
-				
-			    PushPublisherRTP publisher = new PushPublisherRTP();
-			    publisher.setAppInstance(stream.getStreams().getAppInstance());
-			   
-			    // Destination stream
-			    publisher.setHost("239.1.1.1");
-			    LiveStreamEntry.port += 5;
-			    publisher.setPort(LiveStreamEntry.port);
-			   
-			    getLogger().debug("listen on port " +LiveStreamEntry.port  );
-			   
-			    publisher.setDstStreamName("push-" + streamName);
-			  // publisher.setAudioPort("10002");
-			  // publisher.setVideoPort("10004");
-			    getLogger().debug("publishing stream " + publisher.getDstStreamName());
-			    publisher.setStreamName(streamName);
-			
-			    publisher.setDebugLog(true);
-			   
-			   
-			   publisher.connect();
-			}
-		}
-		
-		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend)
-		{
-			
-		}
-		
-		public void onPause(IMediaStream stream, boolean isPause, double location) {
-		}
-
-		public void onPlay(IMediaStream stream, String streamName, double playStart, double playLen, int playReset) {
-		}
-
-		public void onSeek(IMediaStream stream, double location) {
-		}
-
-		public void onStop(IMediaStream stream) {
-		}
-	}
+//	class PushPublisherListener implements IMediaStreamActionNotify
+//	{
+//		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
+//			IClient client = stream.getClient();
+//			if (!streamName.startsWith("push-") && client == null) {
+//				getLogger().info("PushPublisherListener::onPublish - pushing stream streamName" + streamName);
+//				Pattern pattern = Pattern.compile("^([01]_.{8})_(\\d+)$");
+//				Matcher matcher = pattern.matcher(streamName);
+//	
+//				if (!matcher.find()) {
+//					getLogger().error("LiveStreamListener::onPublish: transcoder published stream [" + streamName + "]");
+//					return;
+//				}
+//	
+//				String entryId = matcher.group(1);
+//				int assetParamsId = Integer.parseInt(matcher.group(2));
+//				getLogger().debug("LiveStreamListener::onPublish stream [" + streamName + "] entry [" + entryId + "] asset params id [" + assetParamsId + "]");
+//				
+//				KalturaLiveAsset liveAsset = liveStreamManager.getLiveAsset(entryId, assetParamsId);
+//				if (liveAsset == null) {
+//					getLogger().error("LiveStreamListener::onPublish: live asset for entry [" + entryId + "] and assetParamsId [" + assetParamsId + "] was not found");
+//				}
+//					
+//				
+//			    PushPublisherRTP publisher = new PushPublisherRTP();
+//			    publisher.setAppInstance(stream.getStreams().getAppInstance());
+//			   
+//			    // Destination stream
+//			    publisher.setHost("239.1.1.1");
+//			    LiveStreamEntry.port += 5;
+//			    publisher.setPort(LiveStreamEntry.port);
+//			   
+//			    getLogger().debug("listen on port " +LiveStreamEntry.port  );
+//			   
+//			    publisher.setDstStreamName("push-" + streamName);
+//			  // publisher.setAudioPort("10002");
+//			  // publisher.setVideoPort("10004");
+//			    getLogger().debug("publishing stream " + publisher.getDstStreamName());
+//			    publisher.setStreamName(streamName);
+//			
+//			    publisher.setDebugLog(true);
+//			   
+//			   
+//			   publisher.connect();
+//			}
+//		}
+//		
+//		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend)
+//		{
+//			
+//		}
+//		
+//		public void onPause(IMediaStream stream, boolean isPause, double location) {
+//		}
+//
+//		public void onPlay(IMediaStream stream, String streamName, double playStart, double playLen, int playReset) {
+//		}
+//
+//		public void onSeek(IMediaStream stream, double location) {
+//		}
+//
+//		public void onStop(IMediaStream stream) {
+//		}
+//	}
 
 	class LiveStreamTranscoderSmilManager {
 
@@ -480,7 +480,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 	public void onStreamCreate(IMediaStream stream) {
 		stream.addClientListener(new LiveStreamListener());
-		stream.addClientListener(new PusherListener());
+		//stream.addClientListener(new PusherListener());
 	}
 
 	public void onDisconnect(IClient client) {
