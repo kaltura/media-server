@@ -303,8 +303,8 @@ abstract public class KalturaLiveManager implements ILiveManager {
 			if (entries.containsKey(liveEntry.id)) {
 				LiveEntryCache liveEntryCache = entries.get(liveEntry.id);
 				if (liveEntryCache.index != null) {
-					unsetEntryMediaServer(liveEntry, liveEntryCache.index);
 					liveEntryCache.unregister();
+					unsetEntryMediaServer(liveEntry, liveEntryCache.index);
 				}
 			}
 		}
@@ -404,6 +404,7 @@ abstract public class KalturaLiveManager implements ILiveManager {
 			mediaEntry.sourceType = KalturaSourceType.RECORDED_LIVE;
 			mediaEntry.mediaType = KalturaMediaType.VIDEO;
 			mediaEntry.accessControlId = liveEntry.accessControlId;
+			mediaEntry.userId = liveEntry.userId;
 
 			try {
 				mediaEntry = impersonateClient.getMediaService().add(mediaEntry);

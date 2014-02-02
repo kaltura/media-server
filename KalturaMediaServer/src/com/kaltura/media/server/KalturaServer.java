@@ -144,7 +144,7 @@ public class KalturaServer {
 		String userId = "MediaServer";
 		KalturaSessionType type = KalturaSessionType.ADMIN;
 		int expiry = 86400;
-		String privileges = "";
+		String privileges = "disableentitlement";
 		String sessionId;
 		
 		try {
