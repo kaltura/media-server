@@ -79,7 +79,6 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 		
 		KalturaLiveStreamEntry liveEntry = get(entryId);
 		KalturaDataCenterContentResource resource = getContentResource(filePath, liveEntry);
-		resource.localFilePath = filePath;
 		
 		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		try {

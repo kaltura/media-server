@@ -1,17 +1,24 @@
 package com.kaltura.media.server;
 
+import java.io.File;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.KalturaClient;
+import com.kaltura.client.KalturaFile;
+import com.kaltura.client.KalturaMultiResponse;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.KalturaBaseEntry;
+import com.kaltura.client.types.KalturaDataCenterContentResource;
 import com.kaltura.client.types.KalturaLiveChannel;
 import com.kaltura.client.types.KalturaLiveEntry;
+import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.client.types.KalturaServerFileResource;
+import com.kaltura.client.types.KalturaUploadToken;
+import com.kaltura.client.types.KalturaUploadedFileTokenResource;
 
 
 abstract public class KalturaLiveChannelManager extends KalturaLiveManager implements ILiveChannelManager {
@@ -155,10 +162,9 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 	@Override
 	public void appendRecording(String entryId, KalturaMediaServerIndex index, String filePath, float duration) {
 
-		KalturaServerFileResource resource = new KalturaServerFileResource();
-		resource.localFilePath = filePath;
-		
 		KalturaLiveChannel liveEntry = get(entryId);
+		KalturaDataCenterContentResource resource = getContentResource  (filePath, liveEntry);
+		
 		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		try {
 			impersonateClient.getLiveChannelService().appendRecording(entryId, index, resource, duration);
@@ -169,4 +175,40 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		if(liveEntry.recordStatus == KalturaRecordStatus.ENABLED && index == KalturaMediaServerIndex.PRIMARY)
 			appendRecording(liveEntry);
 	}
+	
+	protected KalturaDataCenterContentResource getContentResource (String filePath, KalturaLiveChannel liveEntry) {
+		if (this.serverConfiguration.get(KALTURA_WOWZA_SERVER_WORK_MODE) == KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA) {
+			KalturaServerFileResource resource = new KalturaServerFileResource();
+			resource.localFilePath = filePath;
+			return resource;
+		}
+		else {
+			KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
+			try {
+				impersonateClient.startMultiRequest();
+				impersonateClient.getUploadTokenService().add(new KalturaUploadToken());
+				
+				File fileData = new File(filePath);
+				impersonateClient.getUploadTokenService().upload("{1:result:objects:0:id}", new KalturaFile(fileData));
+				KalturaMultiResponse responses = impersonateClient.doMultiRequest();
+				
+				KalturaUploadedFileTokenResource resource = new KalturaUploadedFileTokenResource();
+				Object response = responses.get(1);
+				if (response instanceof KalturaUploadToken)
+					resource.token = ((KalturaUploadToken)response).id;
+				else {
+					if (response instanceof KalturaApiException) {
+				}
+					logger.error("Content resource creation error: " + ((KalturaApiException)response).getMessage());
+					return null;
+				}
+					
+				return resource;
+				
+			} catch (KalturaApiException e) {
+				logger.error("Content resource creation error: " + e.getMessage());
+			}
+		}
+		
+		return null;
 }
