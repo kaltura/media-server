@@ -120,6 +120,7 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		}
 
 		public synchronized void register(KalturaMediaServerIndex serverIndex) {
+			logger.debug("LiveEntryCache::register");
 			if(registered)
 				return;
 			
@@ -142,9 +143,12 @@ abstract public class KalturaLiveManager implements ILiveManager {
 
 			if (liveEntry.recordStatus == KalturaRecordStatus.ENABLED && index == KalturaMediaServerIndex.PRIMARY)
 				createMediaEntry(liveEntry);
+			
+			registered = true;
 		}
 
 		public synchronized void unregister() {
+			logger.debug("LiveEntryCache::unregister");
 			index = null;
 			registerTime = null;
 
@@ -303,8 +307,9 @@ abstract public class KalturaLiveManager implements ILiveManager {
 			if (entries.containsKey(liveEntry.id)) {
 				LiveEntryCache liveEntryCache = entries.get(liveEntry.id);
 				if (liveEntryCache.index != null) {
+					KalturaMediaServerIndex index = liveEntryCache.index;
 					liveEntryCache.unregister();
-					unsetEntryMediaServer(liveEntry, liveEntryCache.index);
+					unsetEntryMediaServer(liveEntry, index);
 				}
 			}
 		}
@@ -507,11 +512,15 @@ abstract public class KalturaLiveManager implements ILiveManager {
 
 				@Override
 				public void run() {
+					logger.debug("KalturaLiveManager::setMediaServerTask:: running scheduled task");
 					synchronized (entries) {
 						for (String entryId : entries.keySet()) {
 							LiveEntryCache liveEntryCache = entries.get(entryId);
-							if (liveEntryCache.isRegistered())
+							logger.debug("KalturaLiveManager::setMediaServerTask:: handling entry " + entryId);
+							if (liveEntryCache.isRegistered()) {
+								logger.debug("KalturaLiveManager::setMediaServerTask:: re-registering media server");
 								setEntryMediaServer(liveEntryCache.getLiveEntry(), liveEntryCache.index);
+							}
 						}
 					}
 				}
@@ -519,6 +528,7 @@ abstract public class KalturaLiveManager implements ILiveManager {
 
 			setMediaServerTimer = new Timer();
 			setMediaServerTimer.schedule(setMediaServerTask, keepAliveInterval, keepAliveInterval);
+			logger.debug("KalturaLiveManager::init: scheduled setMediaServerTask");
 		}
 
 		long splitRecordingInterval = KalturaLiveManager.DEFAULT_RECORDED_CHUNCK_MAX_DURATION * 60 * 1000;
