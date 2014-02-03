@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.kaltura.client.enums.KalturaAssetParamsOrigin;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.KalturaConversionProfileAssetParams;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
@@ -57,6 +58,11 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 		KalturaLiveEntry liveEntry = get(entryId);
 		if(liveEntry == null){
 			logger.error("LiveStreamManager::onPublish entry [" + entryId + "] not found for asset params id [" + assetParamsId + "]");
+			return;
+		}
+
+		if(liveEntry.recordStatus != KalturaRecordStatus.ENABLED){
+			logger.info("LiveStreamManager::onPublish entry [" + entryId + "] recording is not enabled");
 			return;
 		}
 		

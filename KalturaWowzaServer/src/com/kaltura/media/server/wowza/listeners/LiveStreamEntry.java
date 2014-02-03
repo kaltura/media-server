@@ -499,7 +499,7 @@ public class LiveStreamEntry extends ModuleBase {
 
          String[] requestParts = entryPoint.split("\\?", 2);
          if(requestParts.length < 2)
-                 return;
+        	 return;
                  
          String[] queryParams = requestParts[1].split("&");
          HashMap<String, String> requestParams = new HashMap<String, String>();
@@ -511,7 +511,7 @@ public class LiveStreamEntry extends ModuleBase {
          }
          
          if(!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID))
-                 return;
+        	 return;
 
          int partnerId = Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
          String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);

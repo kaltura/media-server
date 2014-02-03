@@ -22,7 +22,7 @@ public class ServerListener implements IServerNotify2 {
 		WMSLogger logger = WMSLoggerFactory.getLogger(null);
 		WMSProperties config = server.getProperties();
 		try {
-			kalturaServer = KalturaServer.init(logger, config);
+			kalturaServer = KalturaServer.init(config);
 			logger.info("ServerListener::onServerInit Initialized Kaltura server");
 		} catch (KalturaServerException e) {
 			logger.error("ServerListener::onServerInit Failed to initialize Kaltura server: " + e.getMessage());
