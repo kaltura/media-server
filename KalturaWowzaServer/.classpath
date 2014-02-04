@@ -4,155 +4,43 @@
 	<classpathentry kind="src" path="KalturaClientLib"/>
 	<classpathentry kind="src" path="KalturaMediaServer"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/bcprov-ext-jdk15on-147.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/commons-lang-2.6.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/jackson-annotations-2.1.1.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/jackson-core-2.1.1.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/jackson-databind-2.1.1.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/jid3lib-0.5.4.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/joda-time-2.1.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/log4j-1.2.17.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-amazonutil.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-ant.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-bootstrap.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-commons-modeler.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-core.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-drm.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-dvr.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-httpstreamer-cupertinostreaming.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-httpstreamer-directstreaming.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-httpstreamer-mpegdashstreaming.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-httpstreamer-sanjosestreaming.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-httpstreamer-smoothstreaming.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-jlayer.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-mediareader-flv.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-mediareader-h264.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-mediareader-mp3.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-mediareader-smil.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-mediawriter-flv.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-mediawriter-h264.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-server.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-stream-file.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-stream-live.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-stream-publish.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-stream-record.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-stream-rtp.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-stream-shoutcast.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-transcoder.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/documentation/serverapi"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/java_client_library"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/KalturaMediaServer"/>
 	<classpathentry kind="lib" path="C:/opt/kaltura/web/content/clientlibs/java/lib/commons-codec-1.4.jar"/>
 	<classpathentry kind="lib" path="C:/opt/kaltura/web/content/clientlibs/java/lib/commons-httpclient-3.1.jar"/>
 	<classpathentry kind="lib" path="C:/opt/kaltura/web/content/clientlibs/java/lib/commons-logging-1.1.1.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-plugin-integrationrecord.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.2/lib/wms-plugin-livestreamrecord.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/bcprov-ext-jdk15on-147.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/jackson-annotations-2.1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/jackson-core-2.1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/jackson-databind-2.1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/jain-sip-sdp-1.2.115.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/jid3lib-0.5.4.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/joda-time-2.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-amazonutil.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-ant.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-bootstrap.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-commons-modeler.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-core.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-drm.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-dvr.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-httpstreamer-cupertinostreaming.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-httpstreamer-directstreaming.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-httpstreamer-mpegdashstreaming.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-httpstreamer-sanjosestreaming.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-httpstreamer-smoothstreaming.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-jlayer.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-mediareader-flv.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-mediareader-h264.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-mediareader-mp3.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-mediareader-smil.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-mediawriter-flv.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-mediawriter-h264.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-server.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-stream-file.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-stream-live.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-stream-publish.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-stream-record.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-stream-rtp.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-stream-shoutcast.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-transcoder.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

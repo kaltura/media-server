@@ -4,14 +4,18 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.enums.KalturaDVRStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
-import com.kaltura.client.enums.KalturaRecordStatus;
+import com.kaltura.client.types.KalturaLiveParams;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
+import com.kaltura.infra.XmlUtils;
 import com.kaltura.media.server.ILiveStreamManager;
 import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.wowza.LiveStreamManager;
@@ -26,7 +30,6 @@ import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.IMediaStreamActionNotify;
-import com.wowza.wms.stream.IMediaWriterActionNotify;
 import com.wowza.wms.stream.livedvr.ILiveStreamDvrRecorderControl;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerControl;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoder;
@@ -47,10 +50,12 @@ public class LiveStreamEntry extends ModuleBase {
 	protected final static String CLIENT_PROPERTY_PARTNER_ID = "partnerId";
 	protected final static String CLIENT_PROPERTY_SERVER_INDEX = "serverIndex";
 	protected final static String CLIENT_PROPERTY_ENTRY_ID = "entryId";
+	protected final static String STREAM_PROPERTY_SUFFIX = "suffix";
 
 	protected final static int INVALID_SERVER_INDEX = -1;
 
 	private LiveStreamManager liveStreamManager;
+	private LiveStreamTranscoderActionListener liveStreamTranscoderActionListener = new LiveStreamTranscoderActionListener();
 
 	private class DvrRecorderControl implements ILiveStreamDvrRecorderControl, ILiveStreamPacketizerControl {
 
@@ -74,10 +79,10 @@ public class LiveStreamEntry extends ModuleBase {
 				}
 				entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
 			} else {
-				Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_\\d+$");
+				Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_");
 				Matcher matcher = pattern.matcher(streamName);
 				if (!matcher.find()) {
-					getLogger().info("DvrRecorderControl.isThatStreamNeeded: stream [" + streamName + "] has no client");
+					getLogger().info("DvrRecorderControl.isThatStreamNeeded: stream [" + streamName + "] does not match regex");
 					return false;
 				}
 
@@ -120,27 +125,90 @@ public class LiveStreamEntry extends ModuleBase {
 	class LiveStreamListener implements IMediaStreamActionNotify {
 
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
+
 			IClient client = stream.getClient();
-			if (client == null)
-				return;
+			if (client != null){ // streamed from the client
+				WMSProperties clientProperties = client.getProperties();
+				if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
+					onClientConnect(client);
+					if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
+						getLogger().error("LiveStreamListener::onPublish: unauthenticated client tried to publish stream [" + streamName + "]");
+						client.rejectConnection("Client did not authenticated", "Client did not authenticated");
+						return;
+					}
+				}
+	
+				String entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
+				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+	
+				if(liveStreamManager.get(entryId) == null){
+					getLogger().debug("LiveStreamListener::onPublish: unplanned disconnect occured earlier. Attempting reconnect.");
+					onClientConnect(client);
+					if(liveStreamManager.get(entryId) == null){
+						getLogger().error("LiveStreamListener::onPublish: following reconnection attempt, client still not authenticated for stream [" + streamName + "]");
+						client.rejectConnection("Client is not authenticated", "Client not authenticated");
+						return;						
+					}
+				}
+				
+				getLogger().debug("LiveStreamListener::onPublish: " + entryId);
 
-			WMSProperties clientProperties = client.getProperties();
-			if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
-				getLogger().error("LiveStreamListener::onPublish: unauthenticated client tried to publish stream");
-				client.rejectConnection("Client did not authenticated", "Client did not authenticated");
-				return;
+				if (!entryId.equals(streamName)){
+					Pattern pattern = Pattern.compile("^([01]_.{8})_(.+)$");
+					Matcher matcher = pattern.matcher(streamName);
+	
+					if (!matcher.find()) {
+						getLogger().error("LiveStreamListener::onPublish: unknown published stream [" + streamName + "]");
+						return;
+					}
+	
+					if (!entryId.equals(matcher.group(1))) {
+						getLogger().error("LiveStreamListener::onPublish: published stream stream name [" + streamName + "] does not match entry id [" + entryId + "]");
+						return;
+					}
+				}
+				
+				liveStreamManager.onPublish(entryId, serverIndex);
 			}
+			else{ // streamed from the transcoder
 
-			KalturaLiveStreamEntry liveStreamEntry = liveStreamManager.get(clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID));
-			KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+				Pattern pattern = Pattern.compile("^([01]_.{8})_(\\d+)$");
+				Matcher matcher = pattern.matcher(streamName);
 
-			getLogger().debug("LiveStreamListener::onPublish: " + liveStreamEntry.id);
+				if (!matcher.find()) {
+					getLogger().error("LiveStreamListener::onPublish: transcoder published stream [" + streamName + "]");
+					return;
+				}
 
-			if(liveStreamEntry.recordStatus == KalturaRecordStatus.ENABLED){
-				liveStreamManager.startRecord(liveStreamEntry.id, stream, serverIndex, true, true, false);
+				String entryId = matcher.group(1);
+				int assetParamsId = Integer.parseInt(matcher.group(2));
+				getLogger().debug("LiveStreamListener::onPublish stream [" + streamName + "] entry [" + entryId + "] asset params id [" + assetParamsId + "]");
+				
+				
+				KalturaLiveParams liveAssetParams = liveStreamManager.getLiveAssetParams(assetParamsId);
+				if(liveAssetParams != null && liveAssetParams.streamSuffix != null)
+				{
+					String sourceStreamName = entryId + "_" + liveAssetParams.streamSuffix;
+					IMediaStream sourceStream = stream.getStreams().getStream(sourceStreamName);
+					if(sourceStream == null){
+						getLogger().error("LiveStreamListener::onPublish: source stream [" + sourceStreamName + "] not found for stream [" + streamName + "]");
+						return;
+					}
+					getLogger().debug("LiveStreamListener::onPublish: source stream [" + sourceStreamName + "] found for stream [" + streamName + "]");
+					
+					client = sourceStream.getClient();
+					if(client == null){
+						getLogger().error("LiveStreamListener::onPublish: client not found for stream [" + streamName + "]");
+						return;
+					}
+					getLogger().debug("LiveStreamListener::onPublish: client found for stream [" + streamName + "]");
+					
+					WMSProperties clientProperties = client.getProperties();
+					KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+	
+					liveStreamManager.onPublish(stream, entryId, serverIndex, assetParamsId);
+				}
 			}
-			
-			liveStreamManager.onPublish(liveStreamEntry, serverIndex);
 		}
 
 		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
@@ -172,37 +240,137 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
-	class LiveStreamTranscoderActionListener extends LiveStreamTranscoderActionNotifyBase {
+	class LiveStreamTranscoderSmilManager {
 
-		@Override
-		public void onRegisterStreamNameGroup(LiveStreamTranscoder liveStreamTranscoder, TranscoderStreamNameGroup streamNameGroup){
-			
-			IApplicationInstance appInstance = liveStreamTranscoder.getAppInstance();
+		protected final static String SMIL_VIDEOS_XPATH = "/smil/body/switch";
 
-			String groupName = streamNameGroup.getStreamName();
+		private IApplicationInstance appInstance;
+		
+		public LiveStreamTranscoderSmilManager(IApplicationInstance appInstance) {
+			this.appInstance = appInstance;
+		}
+
+		public synchronized void generate(String sourceGroupName, String destGroupName) {
 			String appName = appInstance.getContextStr();
+			getLogger().debug("LiveStreamEntry#LiveStreamTranscoderSmilManager.generate [" + appName + "/" + destGroupName + "] from source [" + sourceGroupName + "]");
 
-			getLogger().debug("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup [" + appName + "/" + groupName + "]");
-
-			MediaList mediaList = MediaListUtils.parseMediaList(appInstance, groupName, "ngrp", null);
+			MediaList mediaList = MediaListUtils.parseMediaList(appInstance, sourceGroupName, "ngrp", null);
 			if (mediaList == null) {
-				getLogger().error("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup: MediaList not found: " + appName + "/" + groupName);
+				getLogger().error("LiveStreamEntry#LiveStreamTranscoderSmilManager.generate: MediaList not found: " + appName + "/" + sourceGroupName);
 				return;
 			}
 
 			String smil = mediaList.toSMILString();
-			String filePath = appInstance.getStreamStoragePath() + File.separator + groupName + ".smil";
+			
+			String filePath = appInstance.getStreamStoragePath() + File.separator + destGroupName + ".smil";
+			File file = new File(filePath);
+			if(file.exists()){
+				File tmpFile;
+				try {
+					tmpFile = File.createTempFile(destGroupName, ".smil");
+					PrintWriter out = new PrintWriter(tmpFile);
+					out.print(smil);
+					out.close();
+				} catch (Exception e) {
+					getLogger().error("LiveStreamEntry#LiveStreamTranscoderSmilManager.generate: Failed writing to temp file [" + filePath + "]: " + e.getMessage());
+					return;
+				}
+				
+				try {
+					XmlUtils.merge(file, LiveStreamTranscoderSmilManager.SMIL_VIDEOS_XPATH, file, tmpFile);
+				} catch (Exception e) {
+					getLogger().error("LiveStreamEntry#LiveStreamTranscoderSmilManager.generate: Failed merging files [" + filePath + ", " + tmpFile.getAbsolutePath() + "]: " + e.getMessage());
+					return;
+				}
+				
+				tmpFile.delete();
+			}
+			else{
+				try {
+					PrintWriter out = new PrintWriter(file);
+					out.print(smil);
+					out.close();
+				} catch (FileNotFoundException e) {
+					getLogger().error("LiveStreamEntry#LiveStreamTranscoderSmilManager.generate: Failed writing to file [" + filePath + "]: " + e.getMessage());
+					return;
+				}
+			}
 
-			try {
-				PrintWriter out = new PrintWriter(filePath);
-				out.print(smil);
-				out.close();
-			} catch (FileNotFoundException e) {
-				getLogger().error("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup: Failed writing to file [" + filePath + "]: " + e.getMessage());
+			getLogger().info("LiveStreamEntry#LiveStreamTranscoderSmilManager.generate: Created smil file [" + filePath + "] for stream " + appName + "/" + destGroupName + ":\n" + smil + "\n\n");
+		}
+
+	}
+
+	class LiveStreamTranscoderActionListener extends LiveStreamTranscoderActionNotifyBase {
+
+		Map<String, LiveStreamTranscoderSmilManager> smilManagers = new HashMap<String, LiveStreamTranscoderSmilManager>();
+		
+		@Override
+		public void onRegisterStreamNameGroup(LiveStreamTranscoder liveStreamTranscoder, TranscoderStreamNameGroup streamNameGroup){
+
+			final IApplicationInstance appInstance = liveStreamTranscoder.getAppInstance();
+			final String sourceGroupName = streamNameGroup.getStreamName();
+
+			Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_([^_]+)_(.+)$");
+			Matcher matcher = pattern.matcher(sourceGroupName);
+			if (!matcher.find()) {
+				getLogger().info("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup: group name [" + sourceGroupName + "] does not match group name regex");
 				return;
 			}
 
-			getLogger().info("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup: Created smil file [" + filePath + "] for stream " + appName + "/" + groupName + ":\n" + smil + "\n\n");
+			final String entryId = matcher.group(1);
+			String tag = matcher.group(3);
+			
+			final String destGroupName = entryId + "_" + tag;
+			String appName = appInstance.getContextStr();
+			
+			getLogger().debug("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup [" + appName + "/" + destGroupName + "] for group name [" + streamNameGroup.getStreamName() + "]");
+			
+			IMediaStream stream = liveStreamTranscoder.getStream();
+			if(stream == null){
+				getLogger().error("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup [" + appName + "/" + destGroupName + "] source stream not found");
+				return;
+			}
+			
+			IClient client = stream.getClient();
+			if(client == null){
+				getLogger().error("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup [" + appName + "/" + destGroupName + "] client not found");
+				return;
+			}
+
+			WMSProperties clientProperties = client.getProperties();
+			if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
+				getLogger().error("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup [" + appName + "/" + destGroupName + "] entry id not defined");
+				return;
+			}
+			if(!entryId.equals(clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID))) {
+				getLogger().error("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup [" + appName + "/" + destGroupName + "] entry id does not match group name");
+				return;
+			}
+			
+			TimerTask generateSmilTask = new TimerTask() {
+				
+				@Override
+				public void run() {
+
+					LiveStreamTranscoderSmilManager smilManager = null;
+					
+					synchronized (smilManagers) {
+						
+						if(smilManagers.containsKey(entryId)){
+							smilManager = smilManagers.get(entryId);
+						}
+						else{
+							smilManager = new LiveStreamTranscoderSmilManager(appInstance);
+							smilManagers.put(entryId, smilManager);
+						}
+					}
+					smilManager.generate(sourceGroupName, destGroupName);
+				}
+			};
+			
+			Timer timer = new Timer();
+			timer.schedule(generateSmilTask, 1);
 		}
 
 		@Override
@@ -210,18 +378,31 @@ public class LiveStreamEntry extends ModuleBase {
 
 			IApplicationInstance appInstance = liveStreamTranscoder.getAppInstance();
 			
-			String groupName = streamNameGroup.getStreamName();
 			String appName = appInstance.getContextStr();
 
-			getLogger().debug("LiveStreamEntry#LiveStreamTranscoderActionListener.onUnregisterStreamNameGroup [" + appName + "/" + groupName + "]");
+			String sourceGroupName = streamNameGroup.getStreamName();
 
-			String filePath = appInstance.getStreamStoragePath() + File.separator + groupName + ".smil";
+			Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_([^_]+)_(.+)$");
+			Matcher matcher = pattern.matcher(sourceGroupName);
+			if (!matcher.find()) {
+				getLogger().info("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup: group name [" + sourceGroupName + "] does not match group name regex");
+				return;
+			}
+
+			final String entryId = matcher.group(1);
+			String tag = matcher.group(3);
+			
+			final String destGroupName = entryId + "_" + tag;
+			
+			getLogger().debug("LiveStreamEntry#LiveStreamTranscoderActionListener.onUnregisterStreamNameGroup [" + appName + "/" + destGroupName + "]");
+
+			String filePath = appInstance.getStreamStoragePath() + File.separator + destGroupName + ".smil";
 			
 			File file = new File(filePath);
 			if(file.exists())
 				file.delete();
 			
-			getLogger().info("LiveStreamEntry#LiveStreamTranscoderActionListener.onUnregisterStreamNameGroup: Deleted smil file [" + filePath + "] for stream " + appName + "/" + groupName);
+			getLogger().info("LiveStreamEntry#LiveStreamTranscoderActionListener.onUnregisterStreamNameGroup: Deleted smil file [" + filePath + "] for stream " + appName + "/" + destGroupName);
 		}
 	}
 		
@@ -229,7 +410,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 		@Override
 		public void onLiveStreamTranscoderCreate(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream mediaStream) {
-		       ((LiveStreamTranscoder)liveStreamTranscoder).addActionListener(new LiveStreamTranscoderActionListener());
+			((LiveStreamTranscoder)liveStreamTranscoder).addActionListener(liveStreamTranscoderActionListener);
 		}
 
 		@Override
@@ -237,7 +418,7 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 
 		@Override
-		public void onLiveStreamTranscoderInit(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream mediaStream) {
+		public void onLiveStreamTranscoderInit(ILiveStreamTranscoder iLiveStreamTranscoder, IMediaStream mediaStream) {
 		}
 	}
 
@@ -255,40 +436,44 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
-		WMSProperties clientProperties = client.getProperties();
-		String entryPoint = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_CONNECT_APP);
-		getLogger().debug("LiveStreamEntry::onConnect: " + entryPoint);
+		onClientConnect(client);
+	}
 
-		String[] requestParts = entryPoint.split("/");
-		HashMap<String, String> requestParams = new HashMap<String, String>();
-		String field = null;
-		for (int i = 1; i < requestParts.length; ++i) {
-			if (field == null) {
-				field = requestParts[i];
-			} else {
-				requestParams.put(field, requestParts[i]);
-				getLogger().debug("LiveStreamEntry::onConnect: " + field + ": " + requestParams.get(field));
-				field = null;
-			}
-		}
-		
-		if(!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID))
-			return;
+	public void onClientConnect(IClient client) {
+		 WMSProperties clientProperties = client.getProperties();
+         String entryPoint = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_CONNECT_APP);
+         getLogger().debug("LiveStreamEntry::onConnect: " + entryPoint);
 
-		int partnerId = Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
-		String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
-		String token = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_TOKEN);
+         String[] requestParts = entryPoint.split("\\?", 2);
+         if(requestParts.length < 2)
+        	 return;
+                 
+         String[] queryParams = requestParts[1].split("&");
+         HashMap<String, String> requestParams = new HashMap<String, String>();
+         String[] queryParamsParts;
+         for (int i = 0; i < queryParams.length; ++i) {
+                 queryParamsParts = queryParams[i].split("=", 2);
+                 if(queryParamsParts.length == 2)
+                         requestParams.put(queryParamsParts[0], queryParamsParts[1]);
+         }
+         
+         if(!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID))
+        	 return;
 
-		try {
-			liveStreamManager.authenticate(entryId, partnerId, token);
-			clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
-			clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
-			clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
-			getLogger().info("LiveStreamEntry::onConnect: Entry added [" + entryId + "]");
-		} catch (KalturaApiException e) {
-			getLogger().error("LiveStreamEntry::onConnect: Entry authentication failed [" + entryId + "]: " + e.getMessage());
-			client.rejectConnection("Unable to authenticate entry [" + entryId + "]", "Unable to authenticate entry [" + entryId + "]");
-		}
+         int partnerId = Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
+         String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
+         String token = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_TOKEN);
+
+         try {
+                 liveStreamManager.authenticate(entryId, partnerId, token);
+                 clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
+                 clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
+                 clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
+                 getLogger().info("LiveStreamEntry::onConnect: Entry added [" + entryId + "]");
+         } catch (KalturaApiException e) {
+                 getLogger().error("LiveStreamEntry::onConnect: Entry authentication failed [" + entryId + "]: " + e.getMessage());
+                 client.rejectConnection("Unable to authenticate entry [" + entryId + "]", "Unable to authenticate entry [" + entryId + "]");
+         }
 
 
 	}
@@ -306,7 +491,6 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 
 		liveStreamManager = (LiveStreamManager) serverLiveStreamManager;
-		appInstance.addMediaWriterListener((IMediaWriterActionNotify) liveStreamManager);
 		appInstance.addLiveStreamTranscoderListener(new LiveStreamTranscoderListener());
 	}
 }
