@@ -63,7 +63,7 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		private Date registerTime = null;
 		private ArrayList<KalturaConversionProfileAssetParams> conversionProfileAssetParams;
 		private Map<Integer, KalturaLiveAsset> liveAssets = new HashMap<Integer, KalturaLiveAsset>();
-		private Timer timer = new Timer();
+		private Timer timer;
 
 		public LiveEntryCache(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
 			this(liveEntry);
