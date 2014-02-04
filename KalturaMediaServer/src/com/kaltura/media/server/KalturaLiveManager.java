@@ -133,10 +133,14 @@ abstract public class KalturaLiveManager implements ILiveManager {
 
 				@Override
 				public void run() {
+					logger.debug("LiveEntryCache::register: initial timer task running");
 					setEntryMediaServer(liveEntry, index);
 				}
 			};
+			
+			timer = new Timer();
 			timer.schedule(setMediaServerTask, isLiveRegistrationMinBufferTime);
+			logger.debug("LiveEntryCache::register: scheduled initial timer");
 
 			registerTime = new Date();
 			registerTime.setTime(registerTime.getTime() + isLiveRegistrationMinBufferTime);
@@ -149,12 +153,15 @@ abstract public class KalturaLiveManager implements ILiveManager {
 
 		public synchronized void unregister() {
 			logger.debug("LiveEntryCache::unregister");
+			KalturaMediaServerIndex tmpIndex = index;
 			index = null;
 			registerTime = null;
 
 			timer.cancel();
 			timer.purge();
 			registered = false;
+			
+			unsetEntryMediaServer(liveEntry, tmpIndex);
 		}
 
 		public boolean isRegistered() {
@@ -307,9 +314,7 @@ abstract public class KalturaLiveManager implements ILiveManager {
 			if (entries.containsKey(liveEntry.id)) {
 				LiveEntryCache liveEntryCache = entries.get(liveEntry.id);
 				if (liveEntryCache.index != null) {
-					KalturaMediaServerIndex index = liveEntryCache.index;
 					liveEntryCache.unregister();
-					unsetEntryMediaServer(liveEntry, index);
 				}
 			}
 		}
