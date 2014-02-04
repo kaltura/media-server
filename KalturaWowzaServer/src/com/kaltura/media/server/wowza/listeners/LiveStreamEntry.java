@@ -130,14 +130,27 @@ public class LiveStreamEntry extends ModuleBase {
 			if (client != null){ // streamed from the client
 				WMSProperties clientProperties = client.getProperties();
 				if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
-					getLogger().error("LiveStreamListener::onPublish: unauthenticated client tried to publish stream [" + streamName + "]");
-					client.rejectConnection("Client did not authenticated", "Client did not authenticated");
-					return;
+					onClientConnect(client);
+					if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
+						getLogger().error("LiveStreamListener::onPublish: unauthenticated client tried to publish stream [" + streamName + "]");
+						client.rejectConnection("Client did not authenticated", "Client did not authenticated");
+						return;
+					}
 				}
 	
 				String entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
 				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 	
+				if(liveStreamManager.get(entryId) == null){
+					getLogger().debug("LiveStreamListener::onPublish: unplanned disconnect occured earlier. Attempting reconnect.");
+					onClientConnect(client);
+					if(liveStreamManager.get(entryId) == null){
+						getLogger().error("LiveStreamListener::onPublish: following reconnection attempt, client still not authenticated for stream [" + streamName + "]");
+						client.rejectConnection("Client is not authenticated", "Client not authenticated");
+						return;						
+					}
+				}
+				
 				getLogger().debug("LiveStreamListener::onPublish: " + entryId);
 
 				if (!entryId.equals(streamName)){
@@ -423,6 +436,10 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
+		onClientConnect(client);
+	}
+
+	public void onClientConnect(IClient client) {
 		 WMSProperties clientProperties = client.getProperties();
          String entryPoint = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_CONNECT_APP);
          getLogger().debug("LiveStreamEntry::onConnect: " + entryPoint);
