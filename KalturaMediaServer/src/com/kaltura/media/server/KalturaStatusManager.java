@@ -44,6 +44,7 @@ public abstract class KalturaStatusManager implements IStatusManager {
 	@Override
 	public void stop() {
 		timer.cancel();
+		timer.purge();
 	}
 
 	public void reportStatus() {

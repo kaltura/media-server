@@ -34,7 +34,7 @@ public class KalturaServer {
 	protected final static String KALTURA_SERVER_WEB_SERVICES_PORT = "KalturaServerWebServicesPort";
 	protected final static String KALTURA_SERVER_WEB_SERVICES_HOST = "KalturaServerWebServicesHost";
 
-	protected static Logger logger;
+	protected static Logger logger = Logger.getLogger(KalturaServer.class);
 	protected static KalturaServer instance;
 	protected static Map<String, Object> config;
 	protected static KalturaClient client;
@@ -53,15 +53,15 @@ public class KalturaServer {
 		try {
 			version = versionBufferedReader.readLine();
 		} catch (IOException e1) {
-			logger.error("Failed to read version file");
+			logger.error("KalturaServer::KalturaServer Failed to read version file");
 		}
 		
-		logger.debug("Initializing Kaltura server [" + version + "]");
+		logger.debug("KalturaServer::KalturaServer Initializing Kaltura server [" + version + "]");
 		KalturaServer.instance = this;
 		
 		try {
 			hostname = InetAddress.getLocalHost().getHostName();
-			logger.debug("Kaltura server host name: " + hostname);
+			logger.debug("KalturaServer::KalturaServer Kaltura server host name: " + hostname);
 		} catch (UnknownHostException e) {
 			throw new KalturaServerException("Failed to determine server host name");
 		}
@@ -71,7 +71,7 @@ public class KalturaServer {
 		managers = new ArrayList<IManager>();
 		if (config.containsKey(KalturaServer.KALTURA_SERVER_MANAGERS)) {
 			String managersNames = (String) config.get(KalturaServer.KALTURA_SERVER_MANAGERS);
-			logger.debug("Initializing server managers: " + managersNames);
+			logger.debug("KalturaServer::KalturaServer Initializing server managers: " + managersNames);
 			initManagers(managersNames.replaceAll(" ", "").split(","));
 		}
 
@@ -89,7 +89,7 @@ public class KalturaServer {
 	                }
 	            }
 			} catch (SocketException e) {
-				logger.error("Find local server IP address: " + e.getMessage());
+				logger.error("KalturaServer::KalturaServer Find local server IP address: " + e.getMessage());
 			}
 			
 			if (config.containsKey(KalturaServer.KALTURA_SERVER_WEB_SERVICES_PORT)) 
@@ -100,7 +100,7 @@ public class KalturaServer {
 			
 			webServicesServer = new KalturaWebServicesServer(host, port, logger);
 			String servicesNames = (String) config.get(KalturaServer.KALTURA_SERVER_WEB_SERVICES);
-			logger.debug("Initializing web services: " + servicesNames);
+			logger.debug("KalturaServer::KalturaServer Initializing web services: " + servicesNames);
 			initWebServices(servicesNames.replaceAll(" ", "").split(","));
 		}
 	}
@@ -144,11 +144,11 @@ public class KalturaServer {
 		String userId = "MediaServer";
 		KalturaSessionType type = KalturaSessionType.ADMIN;
 		int expiry = 86400;
-		String privileges = "";
+		String privileges = "disableentitlement";
 		String sessionId;
 		
 		try {
-			sessionId = client.generateSessionV2(adminSecretForSigning, userId, type, KalturaServer.MEDIA_SERVER_PARTNER_ID, expiry, privileges);
+			sessionId = client.generateSession(adminSecretForSigning, userId, type, KalturaServer.MEDIA_SERVER_PARTNER_ID, expiry, privileges);
 		} catch (Exception e) {
 			logger.error("Initializing Kaltura client, URL: " + client.getKalturaConfiguration().getEndpoint());
 			return;
@@ -188,7 +188,7 @@ public class KalturaServer {
 		for (String managerName : managersNames) {
 			try {
 				obj = Class.forName(managerName).newInstance();
-				logger.debug("Initializing Kaltura manager " + obj.getClass().getName());
+				logger.debug("KalturaServer::initManagers Initializing Kaltura manager " + obj.getClass().getName());
 			} catch (ClassNotFoundException e) {
 				throw new KalturaServerException("Server manager class [" + managerName + "] not found");
 			} catch (Exception e) {
@@ -201,7 +201,7 @@ public class KalturaServer {
 			manager = (IManager) obj;
 			managers.add(manager);
 			manager.init();
-			logger.info("Initialized Kaltura manager " + obj.getClass().getName());
+			logger.info("KalturaServer::initManagers Initialized Kaltura manager " + obj.getClass().getName());
 		}
 	}
 
@@ -220,8 +220,7 @@ public class KalturaServer {
 		return null;
 	}
 
-	public static KalturaServer init(Logger logger, Map<String, Object> config) throws KalturaServerException {
-		KalturaServer.logger = logger;
+	public static KalturaServer init(Map<String, Object> config) throws KalturaServerException {
 		KalturaServer.config = config;
 		
 		if (instance == null)
