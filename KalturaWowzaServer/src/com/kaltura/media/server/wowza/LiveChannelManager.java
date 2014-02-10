@@ -211,7 +211,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			KalturaFileSyncFilter fileSyncFilter = new KalturaFileSyncFilter();
 			fileSyncFilter.fileObjectTypeEqual = KalturaFileSyncObjectType.ASSET;
 			fileSyncFilter.objectSubTypeEqual = LiveChannelContainer.FILE_SYNC_ASSET_SUB_TYPE_ASSET;
-			fileSyncFilter.objectIdIn = StringUtils.join(fileSyncKeys.values()).replaceAll(" ", "");
+			fileSyncFilter.objectIdIn = StringUtils.join(fileSyncKeys.keySet());
 
 			KalturaFileSyncService fileSyncService = new KalturaFileSyncService(client);
 			
@@ -225,15 +225,17 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 					
 					for (KalturaFileSync fileSync : fileSyncsList.objects) {
 						fileSyncKey = fileSyncKeys.get(fileSync.objectId);
-						logger.debug("LiveChannelContainer::getFileSyncs add file sync [" + fileSync.id + "] for flavor asset [" + fileSync.objectId + "] with key [" + fileSyncKey + "]");
-						fileSyncs.put(fileSyncKey, fileSync);
+						if(!fileSyncs.containsKey(fileSyncKey) || Integer.parseInt(fileSyncs.get(fileSyncKey).version) < Integer.parseInt(fileSync.version)){
+							fileSyncs.put(fileSyncKey, fileSync);
+							logger.debug("Add file sync [" + fileSync.id + "] for flavor asset [" + fileSync.objectId + "] with key [" + fileSyncKey + "]");
+						}
 					}
 					pager.pageIndex++;
 					
 				} while (fileSyncsList.objects.size() == pager.pageSize);
 	
 			} catch (KalturaApiException e) {
-				logger.error("LiveChannelContainer::getFileSyncs failed to start channel [" + liveChannel.id + "]: " + e.getMessage());
+				logger.error("Failed to start channel [" + liveChannel.id + "]: " + e.getMessage());
 				return null;
 			}
 			
@@ -241,6 +243,8 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 		}
 
 		private void initPlaylists(List<KalturaBaseEntry> segmentEntries) {
+
+			Map<String, KalturaFileSync> fileSyncs = getFileSyncs(segmentEntries);
 			
 			for (String rendition : renditions) {
 				Playlist playlist = new Playlist("pl_" + liveChannel.id + "_" + rendition);
@@ -249,8 +253,6 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 				if(segmentEntries != null){
 
 					String fileSyncKey;
-					Map<String, KalturaFileSync> fileSyncs = getFileSyncs(segmentEntries);
-
 					for (KalturaBaseEntry entry : segmentEntries) {
 	
 						if (entry instanceof KalturaLiveStreamEntry) {
@@ -259,15 +261,15 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 							int assetsParamsId = flavorParams.get(rendition);
 							fileSyncKey = entry.id + "_" + assetsParamsId;
 							
-							logger.debug("LiveChannelContainer::initPlaylists adding file sync key [" + fileSyncKey + "] to playlist [" + playlist.getName() + "]");
+							logger.debug("Adding file sync key [" + fileSyncKey + "] to playlist [" + playlist.getName() + "]");
 							KalturaFileSync fileSync = fileSyncs.get(fileSyncKey);
 							
 							if(fileSync != null){
-								logger.debug("LiveChannelContainer::initPlaylists adding file  [" + fileSync.filePath + "] to playlist [" + playlist.getName() + "]");
+								logger.debug("Adding file  [" + fileSync.filePath + "] to playlist [" + playlist.getName() + "]");
 								playlist.addItem("mp4:" + fileSync.filePath, 0, -1);
 							}
 							else{
-								logger.error("LiveChannelContainer::initPlaylists file sync key [" + fileSyncKey + "] not found");
+								logger.error("File sync key [" + fileSyncKey + "] not found");
 								break;
 							}
 						}
@@ -326,9 +328,9 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 				out.print(smil);
 				out.close();
 
-				logger.info("LiveChannelContainer::generateSmilFile: Generated smil file [" + filePath + "]");
+				logger.info("Generated smil file [" + filePath + "]");
 			} catch (FileNotFoundException e) {
-				logger.error("LiveChannelContainer::generateSmilFile: Failed writing to file [" + filePath + "]: " + e.getMessage());
+				logger.error("Failed writing to file [" + filePath + "]: " + e.getMessage());
 			}
 		}
 	}
@@ -339,18 +341,24 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 
 		String vhostName = IVHost.VHOST_DEFAULT;
 		String appName = LiveChannelManager.DEFAULT_CHANNELS_APP_NAME;
-		String appInstanceName = "p";
 
 		if (serverConfiguration.containsKey(LiveChannelManager.KALTURA_CHANNELS_VHOST_NAME))
 			vhostName = (String) serverConfiguration.get(LiveChannelManager.KALTURA_CHANNELS_VHOST_NAME);
 		if (serverConfiguration.containsKey(LiveChannelManager.KALTURA_CHANNELS_APP_NAME))
 			appName = (String) serverConfiguration.get(LiveChannelManager.KALTURA_CHANNELS_APP_NAME);
 
-		loadApplicationInstance(vhostName, appName, appInstanceName);
+		loadApplicationInstance(vhostName, appName);
 		recordingManager = new RecordingManager(this);
 	}
 
+	private void loadApplicationInstance(String vhostName, String appName) {
+		loadApplicationInstance(vhostName, appName, null);
+	}
+
 	private void loadApplicationInstance(String vhostName, String appName, String appInstanceName) {
+		if(appInstanceName == null)
+			appInstanceName = IApplicationInstance.DEFAULT_APPINSTANCE_NAME;
+		
 		List<?> vhostNames = VHostSingleton.getVHostNames();
 		Iterator<?> vhostIterator = vhostNames.iterator();
 		while (vhostIterator.hasNext()) {
