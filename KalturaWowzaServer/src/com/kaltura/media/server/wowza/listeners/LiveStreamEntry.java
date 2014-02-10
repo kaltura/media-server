@@ -176,7 +176,7 @@ public class LiveStreamEntry extends ModuleBase {
 				Matcher matcher = pattern.matcher(streamName);
 
 				if (!matcher.find()) {
-					getLogger().error("LiveStreamListener::onPublish: transcoder published stream [" + streamName + "]");
+					getLogger().error("LiveStreamListener::onPublish: transcoder published stream [" + streamName + "] does not mtach entry regex");
 					return;
 				}
 
