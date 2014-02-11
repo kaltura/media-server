@@ -104,7 +104,7 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 				impersonateClient.getUploadTokenService().add(new KalturaUploadToken());
 				
 				File fileData = new File(filePath);
-				impersonateClient.getUploadTokenService().upload("{1:result:objects:0:id}", new KalturaFile(fileData));
+				impersonateClient.getUploadTokenService().upload("{1:result:id}", new KalturaFile(fileData));
 				KalturaMultiResponse responses = impersonateClient.doMultiRequest();
 				
 				KalturaUploadedFileTokenResource resource = new KalturaUploadedFileTokenResource();

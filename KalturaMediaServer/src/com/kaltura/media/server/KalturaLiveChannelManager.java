@@ -211,4 +211,5 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		}
 		
 		return null;
+	}
 }
