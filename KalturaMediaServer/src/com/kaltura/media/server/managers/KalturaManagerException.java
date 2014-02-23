@@ -1,4 +1,6 @@
-package com.kaltura.media.server;
+package com.kaltura.media.server.managers;
+
+import com.kaltura.media.server.KalturaServerException;
 
 @SuppressWarnings("serial")
 public class KalturaManagerException extends KalturaServerException {

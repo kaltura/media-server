@@ -15,9 +15,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 
 import com.kaltura.client.enums.KalturaMediaServerIndex;
-import com.kaltura.media.server.KalturaLiveManager;
-import com.kaltura.media.server.KalturaManagerException;
 import com.kaltura.media.server.KalturaServer;
+import com.kaltura.media.server.managers.KalturaLiveManager;
+import com.kaltura.media.server.managers.KalturaManagerException;
 import com.wowza.wms.livestreamrecord.model.ILiveStreamRecord;
 import com.wowza.wms.livestreamrecord.model.ILiveStreamRecordNotify;
 import com.wowza.wms.livestreamrecord.model.LiveStreamRecorderMP4;
@@ -27,6 +27,8 @@ public class RecordingManager {
 
 	protected final static String KALTURA_RECORDED_FILE_GROUP = "KalturaRecordedFileGroup";
 	protected final static String DEFAULT_RECORDED_FILE_GROUP = "kaltura";
+
+	protected static Logger logger = Logger.getLogger(RecordingManager.class);
 	
 	static private Map<String, EntryRecorder> recorders = new ConcurrentHashMap<String, EntryRecorder>();
 
@@ -34,7 +36,6 @@ public class RecordingManager {
 	static protected GroupPrincipal group;
 
 	private KalturaLiveManager liveManager;
-	private Logger logger;
 	
 	class EntryRecorder extends LiveStreamRecorderMP4 implements ILiveStreamRecordNotify
 	{
@@ -60,7 +61,7 @@ public class RecordingManager {
 
 		@Override
 		public void onSegmentEnd(ILiveStreamRecord liveStreamRecord) {
-			logger.info("RecordingManager::EntryRecorder::onSegmentEnd: stream [" + stream.getName() + "] file [" + file.getAbsolutePath() + "] folder [" + file.getParent() + "]");
+			logger.info("Stream [" + stream.getName() + "] file [" + file.getAbsolutePath() + "] folder [" + file.getParent() + "]");
 			float duration = (float) stream.getElapsedTime().getTimeSeconds();
 
 			if(group != null){
@@ -81,8 +82,6 @@ public class RecordingManager {
 	public RecordingManager(KalturaLiveManager liveManager) throws KalturaManagerException {
 		this.liveManager = liveManager;
 
-		logger = KalturaServer.getLogger();
-		
 		if(!KalturaServer.isWindows()){
 			synchronized (groupInitialized) {
 				if(!groupInitialized){
@@ -104,7 +103,7 @@ public class RecordingManager {
 	}
 
 	public void restart(){
-		logger.debug("RecordingManager::restart");
+		logger.debug("Restart");
 		synchronized (recorders)
 		{
 			for(String entryId : recorders.keySet()){
@@ -118,7 +117,7 @@ public class RecordingManager {
 	}
 	
 	public boolean restart(String entryId){
-		logger.debug("RecordingManager::restart: " + entryId);
+		logger.debug("Restart: " + entryId);
 
 		synchronized (recorders)
 		{
@@ -133,7 +132,7 @@ public class RecordingManager {
 	}
 	
 	public void stop(String entryId){
-		logger.debug("RecordingManager::stop: " + entryId);
+		logger.debug("Stop: " + entryId);
 
 		synchronized (recorders)
 		{
@@ -145,8 +144,7 @@ public class RecordingManager {
 	}
 	
 	public String start(String entryId, String assetId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
-		logger.debug("RecordingManager::start: entry [" + entryId + "]");
-		logger.debug("RecordingManager::start: stream name [" + stream.getName() + "] entry [" + entryId + "]");
+		logger.debug("Stream name [" + stream.getName() + "] entry [" + entryId + "]");
 
 		// create a stream recorder and save it in a map of recorders
 		EntryRecorder recorder = new EntryRecorder(entryId, index);
@@ -163,7 +161,7 @@ public class RecordingManager {
 		File writeFile = stream.getStreamFileForWrite(entryId + "." + assetId, index.getHashCode() + ".mp4", "");
 		String filePath = writeFile.getAbsolutePath();
 		
-		logger.debug("RecordingManager::start: entry [" + entryId + "]  file path [" + filePath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");
+		logger.debug("Entry [" + entryId + "]  file path [" + filePath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");
 		
 		// if you want to record data packets as well as video/audio
 		recorder.setRecordData(recordData);

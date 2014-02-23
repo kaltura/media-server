@@ -1,4 +1,4 @@
-package com.kaltura.media.server;
+package com.kaltura.media.server.managers;
 
 import java.io.File;
 import java.util.List;

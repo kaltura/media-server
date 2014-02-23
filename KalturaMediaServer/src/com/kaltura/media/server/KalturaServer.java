@@ -22,6 +22,7 @@ import com.kaltura.client.KalturaConfiguration;
 import com.kaltura.client.enums.KalturaSessionType;
 import com.kaltura.media.server.api.IWebService;
 import com.kaltura.media.server.api.KalturaWebServicesServer;
+import com.kaltura.media.server.managers.IManager;
 
 public class KalturaServer {
 	public static int MEDIA_SERVER_PARTNER_ID = -5;
@@ -259,10 +260,6 @@ public class KalturaServer {
 
 	public static String getHostName() {
 		return hostname;
-	}
-
-	public static Logger getLogger() {
-		return logger;
 	}
 
 	public static boolean isWindows() {
