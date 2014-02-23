@@ -39,7 +39,7 @@ public abstract class KalturaCuePointsManager implements ICuePointsManager, IKal
 							remove(entryId);
 						}
 						else{
-							createTimeCuePoint(entryId);
+							createSyncPoint(entryId);
 						}
 					}
 				}
@@ -94,7 +94,7 @@ public abstract class KalturaCuePointsManager implements ICuePointsManager, IKal
 		}
 	}
 
-	public boolean createTimeCuePoints(String liveEntryId, int interval, int duration){
+	public boolean createPeriodicSyncPoints(String liveEntryId, int interval, int duration){
 
 		Date stopTime = new Date();
 		stopTime.setTime(stopTime.getTime() + (duration * 1000000));

@@ -2,8 +2,8 @@ package com.kaltura.media.server.managers;
 
 public interface ICuePointsManager extends IManager {
 
-	boolean createTimeCuePoints(String liveEntryId, int interval, int duration);
+	boolean createPeriodicSyncPoints(String liveEntryId, int interval, int duration);
 	
-	boolean createTimeCuePoint(String liveEntryId);
+	boolean createSyncPoint(String liveEntryId);
 
 }

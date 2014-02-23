@@ -261,7 +261,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 	}
 	
 	@Override
-	public boolean createTimeCuePoint(String entryId) {
+	public boolean createSyncPoint(String entryId) {
 
 		if(!streams.containsKey(entryId))
 			return false;
