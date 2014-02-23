@@ -115,7 +115,7 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 			return;
 		}
 
-		String fileName = startRecord(liveEntry.id, liveAsset.id, stream, serverIndex, true, true, false);
+		String fileName = startRecord(liveEntry.id, liveAsset.id, stream, serverIndex, true, true, true);
 		logger.debug("Entry [" + entryId + "] asset params id [" + assetParamsId + "] recording to file [" + fileName + "]");
 	}
 
