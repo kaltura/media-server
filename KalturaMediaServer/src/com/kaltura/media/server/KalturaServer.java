@@ -108,7 +108,7 @@ public class KalturaServer {
 
 	protected void initClient() throws KalturaServerException {
 		final KalturaConfiguration clientConfig = new KalturaConfiguration();
-		clientConfig.setPartnerId(KalturaServer.MEDIA_SERVER_PARTNER_ID);
+		clientConfig.setPartnerId((int) config.get("KalturaPartnerId"));
 		clientConfig.setClientTag("MediaServer-" + hostname);
 
 		if (!config.containsKey(KalturaServer.KALTURA_SERVER_URL))
@@ -141,6 +141,7 @@ public class KalturaServer {
 	}
 
 	protected void generateClientSession() {
+		int partnerId = (int) config.get("KalturaPartnerId");
 		String adminSecretForSigning = (String) config.get(KalturaServer.KALTURA_SERVER_ADMIN_SECRET);
 		String userId = "MediaServer";
 		KalturaSessionType type = KalturaSessionType.ADMIN;
@@ -149,7 +150,7 @@ public class KalturaServer {
 		String sessionId;
 		
 		try {
-			sessionId = client.generateSession(adminSecretForSigning, userId, type, KalturaServer.MEDIA_SERVER_PARTNER_ID, expiry, privileges);
+			sessionId = client.generateSession(adminSecretForSigning, userId, type, partnerId, expiry, privileges);
 		} catch (Exception e) {
 			logger.error("Initializing Kaltura client, URL: " + client.getKalturaConfiguration().getEndpoint());
 			return;

@@ -46,9 +46,12 @@ abstract public class KalturaLiveManager implements ILiveManager, IKalturaEventC
 	protected final static String KALTURA_LIVE_STREAM_KEEP_ALIVE_INTERVAL = "KalturaLiveStreamKeepAliveInterval";
 	protected final static String KALTURA_LIVE_STREAM_MAX_DVR_WINDOW = "KalturaLiveStreamMaxDvrWindow";
 	protected final static String KALTURA_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME = "KalturaIsLiveRegistrationMinBufferTime";
-
+	protected final static String KALTURA_WOWZA_SERVER_WORK_MODE = "KalturaWorkMode";
+	
 	protected final static long DEFAULT_RECORDED_CHUNCK_MAX_DURATION = 60;
 	protected final static long DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME = 5;
+	protected final static String KALTURA_WOWZA_SERVER_WORK_MODE_REMOTE = "remote";
+	protected final static String KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA = "kaltura";
 
 	protected static Logger logger = Logger.getLogger(KalturaLiveManager.class);
 	
