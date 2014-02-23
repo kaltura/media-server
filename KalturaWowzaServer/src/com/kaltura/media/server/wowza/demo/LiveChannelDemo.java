@@ -1,6 +1,6 @@
 package com.kaltura.media.server.wowza.demo;
 
-import com.kaltura.media.server.KalturaManagerException;
+import com.kaltura.media.server.managers.KalturaManagerException;
 import com.kaltura.media.server.wowza.LiveChannelManager;
 
 public class LiveChannelDemo extends LiveChannelManager implements Runnable {

@@ -31,8 +31,8 @@ import com.kaltura.client.types.KalturaLiveChannel;
 import com.kaltura.client.types.KalturaLiveParams;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.infra.StringUtils;
-import com.kaltura.media.server.KalturaLiveChannelManager;
-import com.kaltura.media.server.KalturaManagerException;
+import com.kaltura.media.server.managers.KalturaLiveChannelManager;
+import com.kaltura.media.server.managers.KalturaManagerException;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.publish.Playlist;
@@ -102,7 +102,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 							continue;
 						
 						fileSyncKey = flavorAsset.entryId + "_" + flavorAsset.flavorParamsId;
-						logger.debug("LiveChannelContainer::initSegmentEntries associate file sync key [" + fileSyncKey + "] with flavor asset [" + flavorAsset.id + "]");
+						logger.debug("Associate file sync key [" + fileSyncKey + "] with flavor asset [" + flavorAsset.id + "]");
 						fileSyncKeys.put(flavorAsset.id, fileSyncKey);
 						assetParamsIds.add(flavorAsset.flavorParamsId);
 					}
@@ -134,7 +134,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 					assetParamsIds.remove(assetsParamsItem.id);
 				}
 			} catch (KalturaApiException e) {
-				logger.error("LiveChannelContainer::initSegmentEntries failed to start channel [" + liveChannel.id + "]: " + e.getMessage());
+				logger.error("Failed to start channel [" + liveChannel.id + "]: " + e.getMessage());
 				return;
 			}
 
@@ -164,13 +164,13 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 
 			// validate that all asset params found
 			if (!assetParamsIds.isEmpty()) {
-				logger.error("LiveChannelContainer::initRenditions not all assets params found for channel [" + liveChannel.id + "]: " + StringUtils.join(assetParamsIds));
+				logger.error("Not all assets params found for channel [" + liveChannel.id + "]: " + StringUtils.join(assetParamsIds));
 				return;
 			}
 
 			// make sure that there are asset params
 			if (liveParams.isEmpty() && flavorParams.isEmpty()) {
-				logger.error("LiveChannelContainer::initRenditions no asset params items found for channel [" + liveChannel.id + "]");
+				logger.error("No asset params items found for channel [" + liveChannel.id + "]");
 				return;
 			}
 
@@ -179,13 +179,13 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			if (!liveParams.isEmpty() && !flavorParams.isEmpty()) {
 				for (String systemName : liveParams.keySet()) {
 					if (!flavorParams.containsKey(systemName)) {
-						logger.error("LiveChannelContainer::initRenditions live params [" + systemName + "] don't have a matching system name in the flavor params items for channel [" + liveChannel.id + "]");
+						logger.error("Live params [" + systemName + "] don't have a matching system name in the flavor params items for channel [" + liveChannel.id + "]");
 						return;
 					}
 				}
 				for (String systemName : flavorParams.keySet()) {
 					if (!liveParams.containsKey(systemName)) {
-						logger.error("LiveChannelContainer::initRenditions flavor params [" + systemName + "] don't have a matching system name in the live params items for channel [" + liveChannel.id + "]");
+						logger.error("Flavor params [" + systemName + "] don't have a matching system name in the live params items for channel [" + liveChannel.id + "]");
 						return;
 					}
 				}
