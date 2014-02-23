@@ -25,6 +25,7 @@ import com.kaltura.media.server.events.KalturaEventType;
 import com.kaltura.media.server.events.KalturaStreamEvent;
 import com.kaltura.media.server.managers.ILiveStreamManager;
 import com.kaltura.media.server.wowza.LiveStreamManager;
+import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
 import com.wowza.wms.amf.AMFDataList;
@@ -520,5 +521,9 @@ public class LiveStreamEntry extends ModuleBase {
 
 		liveStreamManager = (LiveStreamManager) serverLiveStreamManager;
 		appInstance.addLiveStreamTranscoderListener(new LiveStreamTranscoderListener());
+
+		KalturaApplicationInstanceEvent event = new KalturaApplicationInstanceEvent(KalturaMediaEventType.APPLICATION_INSTANCE_STARTED);
+		event.setApplicationInstance(appInstance);
+		KalturaEventsManager.raiseEvent(event);
 	}
 }
