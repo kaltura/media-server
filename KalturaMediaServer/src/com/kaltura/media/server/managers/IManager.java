@@ -1,4 +1,5 @@
-package com.kaltura.media.server;
+package com.kaltura.media.server.managers;
+
 
 public interface IManager {
 

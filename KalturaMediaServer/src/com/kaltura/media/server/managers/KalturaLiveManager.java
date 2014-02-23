@@ -1,4 +1,4 @@
-package com.kaltura.media.server;
+package com.kaltura.media.server.managers;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,8 +33,14 @@ import com.kaltura.client.types.KalturaLiveAssetFilter;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveParams;
 import com.kaltura.client.types.KalturaMediaEntry;
+import com.kaltura.media.server.KalturaEventsManager;
+import com.kaltura.media.server.KalturaServer;
+import com.kaltura.media.server.events.IKalturaEvent;
+import com.kaltura.media.server.events.IKalturaEventConsumer;
+import com.kaltura.media.server.events.KalturaEventType;
+import com.kaltura.media.server.events.KalturaStreamEvent;
 
-abstract public class KalturaLiveManager implements ILiveManager {
+abstract public class KalturaLiveManager implements ILiveManager, IKalturaEventConsumer {
 
 	protected final static String KALTURA_RECORDED_CHUNCK_MAX_DURATION = "KalturaRecordedChunckMaxDuration";
 	protected final static String KALTURA_LIVE_STREAM_KEEP_ALIVE_INTERVAL = "KalturaLiveStreamKeepAliveInterval";
@@ -44,13 +50,14 @@ abstract public class KalturaLiveManager implements ILiveManager {
 	protected final static long DEFAULT_RECORDED_CHUNCK_MAX_DURATION = 60;
 	protected final static long DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME = 5;
 
+	protected static Logger logger = Logger.getLogger(KalturaLiveManager.class);
+	
 	protected String hostname;
 	protected KalturaClient client;
 	protected KalturaConfiguration config;
 	protected Map<String, Object> serverConfiguration;
 	protected ConcurrentHashMap<String, LiveEntryCache> entries = new ConcurrentHashMap<String, LiveEntryCache>();
 	protected ConcurrentHashMap<Integer, KalturaLiveParams> liveAssetParams = new ConcurrentHashMap<Integer, KalturaLiveParams>();
-	protected Logger logger;
 	protected long isLiveRegistrationMinBufferTime = KalturaLiveManager.DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME;
 
 	private Timer setMediaServerTimer;
@@ -288,8 +295,36 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		return dvrWindowSeconds;
 	}
 
+
 	@Override
-	public void onPublish(String entryId, final KalturaMediaServerIndex serverIndex) {
+	public void onEvent(IKalturaEvent event){
+		KalturaStreamEvent streamEvent;
+
+		if(event.getType() instanceof KalturaEventType){
+			switch((KalturaEventType) event.getType())
+			{
+				case STREAM_PUBLISHED:
+					streamEvent = (KalturaStreamEvent) event;
+					onPublish(streamEvent.getEntryId(), streamEvent.getServerIndex());
+					break;
+		
+				case STREAM_UNPUBLISHED:
+					streamEvent = (KalturaStreamEvent) event;
+					onUnPublish(streamEvent.getEntry(), streamEvent.getServerIndex());
+					break;
+		
+				case STREAM_DISCONNECTED:
+					streamEvent = (KalturaStreamEvent) event;
+					onDisconnect(streamEvent.getEntryId());
+					break;
+					
+				default:
+					break;
+			}
+		}
+	}
+	
+	protected void onPublish(String entryId, final KalturaMediaServerIndex serverIndex) {
 		logger.debug("KalturaLiveManager::onPublish entry [" + entryId + "]");
 
 		synchronized (entries) {
@@ -304,7 +339,7 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		}
 	}
 
-	public void onUnPublish(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
+	protected void onUnPublish(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
 		logger.debug("KalturaLiveManager::onUnPublish entry [" + liveEntry.id + "]");
 
 		if (serverIndex == KalturaMediaServerIndex.PRIMARY)
@@ -320,7 +355,7 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		}
 	}
 
-	public void onDisconnect(final String entryId) {
+	protected void onDisconnect(final String entryId) {
 		logger.debug("KalturaLiveManager::onDisconnect entry [" + entryId + "]");
 
 		TimerTask task = new TimerTask() {
@@ -502,7 +537,6 @@ abstract public class KalturaLiveManager implements ILiveManager {
 		client = KalturaServer.getClient();
 		config = client.getKalturaConfiguration();
 		serverConfiguration = KalturaServer.getConfiguration();
-		logger = KalturaServer.getLogger();
 
 		loadLiveParams();
 		
@@ -552,6 +586,8 @@ abstract public class KalturaLiveManager implements ILiveManager {
 			splitRecordingTimer = new Timer(true);
 			splitRecordingTimer.schedule(splitRecordingTask, splitRecordingInterval, splitRecordingInterval);
 		}
+		
+		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_PUBLISHED, KalturaEventType.STREAM_UNPUBLISHED, KalturaEventType.STREAM_DISCONNECTED);
 	}
 
 	private void loadLiveParams() {
