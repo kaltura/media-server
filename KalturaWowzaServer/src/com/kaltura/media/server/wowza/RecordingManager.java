@@ -41,6 +41,7 @@ public class RecordingManager {
 	{
 		private String entryId;
 		private KalturaMediaServerIndex index;
+		private float appendedDuration = 0;
 		
 		public EntryRecorder(String entryId, KalturaMediaServerIndex index) {
 			super();
@@ -63,6 +64,8 @@ public class RecordingManager {
 		public void onSegmentEnd(ILiveStreamRecord liveStreamRecord) {
 			logger.info("Stream [" + stream.getName() + "] file [" + file.getAbsolutePath() + "] folder [" + file.getParent() + "]");
 			float duration = (float) stream.getElapsedTime().getTimeSeconds();
+			float currentChunkDuration = duration - appendedDuration;
+			appendedDuration = duration;
 
 			if(group != null){
 				Path path = Paths.get(file.getAbsolutePath());
@@ -75,7 +78,8 @@ public class RecordingManager {
 				}
 			}
 
-			liveManager.appendRecording(entryId, index, file.getAbsolutePath(), duration);
+			// TODO appendRecordedSyncPoints
+			liveManager.appendRecording(entryId, index, file.getAbsolutePath(), currentChunkDuration);
 		}
 	}
 
