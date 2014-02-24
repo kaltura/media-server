@@ -23,6 +23,7 @@ public class KalturaCuePointsService implements IWebService{
 			)
 	{
 		ICuePointsManager cuePointsManager = (ICuePointsManager) KalturaServer.getManager(ICuePointsManager.class);
-		return cuePointsManager.createPeriodicSyncPoints(liveEntryId, interval, duration);
+		cuePointsManager.createPeriodicSyncPoints(liveEntryId, interval, duration);
+		return true;
 	}
 }

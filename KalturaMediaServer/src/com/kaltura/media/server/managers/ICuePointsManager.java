@@ -1,9 +1,16 @@
 package com.kaltura.media.server.managers;
 
+import com.kaltura.client.types.KalturaLiveEntry;
+import com.kaltura.client.types.KalturaSyncPoint;
+
 public interface ICuePointsManager extends IManager {
 
-	boolean createPeriodicSyncPoints(String liveEntryId, int interval, int duration);
+	void createPeriodicSyncPoints(String liveEntryId, int interval, int duration);
 	
-	boolean createSyncPoint(String liveEntryId);
+	void createSyncPoint(String liveEntryId);
+	
+	float getEntryCurrentTime(KalturaLiveEntry liveEntry) throws KalturaManagerException;
+
+	void sendSyncPoint(String entryId, KalturaSyncPoint syncPoint) throws KalturaManagerException;
 
 }

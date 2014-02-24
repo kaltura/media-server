@@ -1,11 +1,12 @@
 package com.kaltura.media.server.wowza;
 
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import com.kaltura.infra.StringUtils;
+import com.kaltura.client.KalturaParams;
+import com.kaltura.client.types.KalturaLiveEntry;
+import com.kaltura.client.types.KalturaSyncPoint;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.managers.KalturaCuePointsManager;
@@ -32,7 +33,7 @@ import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
 
 public class CuePointsManager extends KalturaCuePointsManager {
 
-	protected Map<String, IMediaStream> streams = new HashMap<String, IMediaStream>();
+	protected ConcurrentHashMap<String, IMediaStream> streams = new ConcurrentHashMap<String, IMediaStream>();
 
 	class LiveStreamPacketizerDataHandler implements IHTTPStreamerCupertinoLivePacketizerDataHandler {
 		String streamName = null;
@@ -251,35 +252,49 @@ public class CuePointsManager extends KalturaCuePointsManager {
 
 	protected void onPublish(IMediaStream stream, String entryId) {
 		logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "]");
-		streams.put(entryId, stream);
+		synchronized (streams) {
+			streams.put(entryId, stream);
+		}
 	}
 
 	@Override
 	protected void onUnPublish(String entryId) {
-		streams.remove(entryId);
+		synchronized (streams) {
+			streams.remove(entryId);
+		}
 		super.onUnPublish(entryId);
 	}
-	
+
 	@Override
-	public boolean createSyncPoint(String entryId) {
+	public float getEntryCurrentTime(KalturaLiveEntry liveEntry) throws KalturaManagerException {
+		IMediaStream stream;
+		synchronized (streams) {
+			if(!streams.containsKey(liveEntry.id))
+				throw new KalturaManagerException("Entry media stream not found");
+			
+			stream = streams.get(liveEntry.id);
+		}
+		
+		return (float) (liveEntry.msDuration + stream.getElapsedTime().getTimeSeconds());
+	}
 
-		if(!streams.containsKey(entryId))
-			return false;
+	@Override
+	public void sendSyncPoint(String entryId, KalturaSyncPoint syncPoint) throws KalturaManagerException {
+		IMediaStream stream;
+		synchronized (streams) {
+			if(!streams.containsKey(entryId))
+				throw new KalturaManagerException("Entry media stream not found");
+			
+			stream = streams.get(entryId);
+		}
 		
-		IMediaStream stream = streams.get(entryId);
-		
-		String id = StringUtils.getUniqueId();
-		if(id == null)
-			return false;
-		
-		Date now = new Date();
-
 		AMFDataObj data = new AMFDataObj();
-		data.put("time", new AMFDataItem(now.getTime() / 1000));
-		data.put("id", new AMFDataItem(id));
-
+		KalturaParams params = syncPoint.toParams();
+		for (Map.Entry<String, String> param : params.entrySet()) {
+			data.put(param.getKey(), param.getValue());
+		}
+		
 		stream.sendDirect("onTextData", data);
-		logger.info("Sent time cue-point [" + id + "]");
-		return true;
+		logger.info("Sent sync-point [" + syncPoint.id + "] to entry [" + entryId + "]");
 	}
 }

@@ -2,23 +2,31 @@ package com.kaltura.media.server.managers;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 
+import com.kaltura.client.KalturaApiException;
+import com.kaltura.client.KalturaClient;
+import com.kaltura.client.types.KalturaLiveEntry;
+import com.kaltura.client.types.KalturaSyncPoint;
+import com.kaltura.infra.StringUtils;
 import com.kaltura.media.server.KalturaEventsManager;
+import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.IKalturaEventConsumer;
 import com.kaltura.media.server.events.KalturaEventType;
 import com.kaltura.media.server.events.KalturaStreamEvent;
 
-public abstract class KalturaCuePointsManager implements ICuePointsManager, IKalturaEventConsumer {
+public abstract class KalturaCuePointsManager extends KalturaManager implements ICuePointsManager, IKalturaEventConsumer {
 
 	protected static Logger logger = Logger.getLogger(KalturaCuePointsManager.class);
 	
-	private Map<Integer, CuePointsCreator> cuePointsCreators = new HashMap<Integer, CuePointsCreator>();
+	private ConcurrentHashMap<Integer, CuePointsCreator> cuePointsCreators = new ConcurrentHashMap<Integer, CuePointsCreator>();
+
+	private ILiveManager liveManager;
 	
 	@SuppressWarnings("serial")
 	class CuePointsCreator extends HashMap<String, Date>{
@@ -53,6 +61,7 @@ public abstract class KalturaCuePointsManager implements ICuePointsManager, IKal
 	@Override
 	public void init() throws KalturaManagerException {
 		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_UNPUBLISHED);
+		liveManager = (ILiveManager) KalturaServer.getManager(ILiveManager.class);
 	}
 
 	@Override
@@ -74,13 +83,15 @@ public abstract class KalturaCuePointsManager implements ICuePointsManager, IKal
 	}
 	
 	protected void onUnPublish(String entryId) {
-		for(CuePointsCreator cuePointsCreator: cuePointsCreators.values()){
-			if(cuePointsCreator.containsKey(entryId)){
-				cuePointsCreator.remove(entryId);
-				if(cuePointsCreator.size() == 0){
-					cuePointsCreator.timer.cancel();
-					cuePointsCreator.timer.purge();
-					cuePointsCreators.remove(cuePointsCreator.interval);
+		synchronized (cuePointsCreators) {
+			for(CuePointsCreator cuePointsCreator: cuePointsCreators.values()){
+				if(cuePointsCreator.containsKey(entryId)){
+					cuePointsCreator.remove(entryId);
+					if(cuePointsCreator.size() == 0){
+						cuePointsCreator.timer.cancel();
+						cuePointsCreator.timer.purge();
+						cuePointsCreators.remove(cuePointsCreator.interval);
+					}
 				}
 			}
 		}
@@ -88,27 +99,62 @@ public abstract class KalturaCuePointsManager implements ICuePointsManager, IKal
 
 	@Override
 	public void stop() {
-		for(CuePointsCreator cuePointsCreator: cuePointsCreators.values()){
-			cuePointsCreator.timer.cancel();
-			cuePointsCreator.timer.purge();
+		synchronized (cuePointsCreators) {
+			for(CuePointsCreator cuePointsCreator: cuePointsCreators.values()){
+				cuePointsCreator.timer.cancel();
+				cuePointsCreator.timer.purge();
+			}
 		}
 	}
 
-	public boolean createPeriodicSyncPoints(String liveEntryId, int interval, int duration){
+	public void createPeriodicSyncPoints(String liveEntryId, int interval, int duration){
 
 		Date stopTime = new Date();
 		stopTime.setTime(stopTime.getTime() + (duration * 1000000));
 		
 		CuePointsCreator cuePointsCreator;
-		if(cuePointsCreators.containsKey(interval)){
-			cuePointsCreator = cuePointsCreators.get(interval);
-		}
-		else{
-			cuePointsCreator = new CuePointsCreator(interval);
-			cuePointsCreators.put(interval, cuePointsCreator);
+		synchronized (cuePointsCreators) {
+			if(cuePointsCreators.containsKey(interval)){
+				cuePointsCreator = cuePointsCreators.get(interval);
+			}
+			else{
+				cuePointsCreator = new CuePointsCreator(interval);
+				cuePointsCreators.put(interval, cuePointsCreator);
+			}
 		}
 		cuePointsCreator.put(liveEntryId, stopTime);
+	}
+
+	@Override
+	public void createSyncPoint(final String entryId) {
+
+		final KalturaLiveEntry liveEntry = liveManager.get(entryId);
+		final KalturaSyncPoint syncPoint = new KalturaSyncPoint();
 		
-		return true;
+		try {
+			syncPoint.id = StringUtils.getUniqueId();
+			syncPoint.offset = getEntryCurrentTime(liveEntry);
+			
+			sendSyncPoint(entryId, syncPoint);
+		} catch (KalturaManagerException e) {
+			logger.error("Failed sending sync-point [" + syncPoint.id + "] to entry [" + entryId + "]: " + e.getMessage());
+		}
+		
+
+		TimerTask timerTask = new TimerTask() {
+			
+			@Override
+			public void run() {
+				KalturaClient impersonatedClient = impersonate(liveEntry.partnerId);
+				try {
+					impersonatedClient.getLiveStreamService().addSyncPoint(entryId, syncPoint);
+				} catch (KalturaApiException e) {
+					logger.error("Failed adding sync-point [" + syncPoint.id + "] to entry [" + entryId + "]: " + e.getMessage());
+				}
+			}
+		};
+		
+		Timer timer = new Timer();
+		timer.schedule(timerTask, 0);
 	}
 }
