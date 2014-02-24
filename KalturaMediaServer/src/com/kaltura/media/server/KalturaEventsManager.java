@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.IKalturaEventConsumer;
@@ -30,13 +32,22 @@ public class KalturaEventsManager{
 		consumersMap.add(eventConsumer);
 	}
 
-	public static void raiseEvent(IKalturaEvent event){
+	public static void raiseEvent(final IKalturaEvent event){
 		
-		if(map.containsKey(event.getClass())){
-			Set<IKalturaEventConsumer> consumersMap = map.get(event.getClass());
-			for(IKalturaEventConsumer eventConsumer : consumersMap){
-				eventConsumer.onEvent(event);
+		TimerTask timerTask = new TimerTask() {
+			
+			@Override
+			public void run() {
+				if(map.containsKey(event.getClass())){
+					Set<IKalturaEventConsumer> consumersMap = map.get(event.getClass());
+					for(IKalturaEventConsumer eventConsumer : consumersMap){
+						eventConsumer.onEvent(event);
+					}
+				}
 			}
-		}
+		};
+		
+		Timer timer = new Timer();
+		timer.schedule(timerTask, 0);
 	}
 }
