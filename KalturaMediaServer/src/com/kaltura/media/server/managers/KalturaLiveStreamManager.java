@@ -75,7 +75,11 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 		KalturaLiveStreamEntry liveEntry = get(entryId);
 		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		try {
-			impersonateClient.getLiveStreamService().appendRecording(entryId, index, resource, duration);
+			KalturaLiveEntry updatedEntry = impersonateClient.getLiveStreamService().appendRecording(entryId, index, resource, duration);
+			synchronized (entries) {
+				LiveEntryCache liveStreamEntryCache = entries.get(entryId);
+				liveStreamEntryCache.setLiveEntry(updatedEntry);
+			}
 		} catch (KalturaApiException e) {
 			logger.error("Append live recording error: " + e.getMessage());
 		}
