@@ -40,7 +40,7 @@ import com.kaltura.media.server.events.IKalturaEventConsumer;
 import com.kaltura.media.server.events.KalturaEventType;
 import com.kaltura.media.server.events.KalturaStreamEvent;
 
-abstract public class KalturaLiveManager implements ILiveManager, IKalturaEventConsumer {
+abstract public class KalturaLiveManager extends KalturaManager implements ILiveManager, IKalturaEventConsumer {
 
 	protected final static String KALTURA_RECORDED_CHUNCK_MAX_DURATION = "KalturaRecordedChunckMaxDuration";
 	protected final static String KALTURA_LIVE_STREAM_KEEP_ALIVE_INTERVAL = "KalturaLiveStreamKeepAliveInterval";
@@ -52,10 +52,6 @@ abstract public class KalturaLiveManager implements ILiveManager, IKalturaEventC
 
 	protected static Logger logger = Logger.getLogger(KalturaLiveManager.class);
 	
-	protected String hostname;
-	protected KalturaClient client;
-	protected KalturaConfiguration config;
-	protected Map<String, Object> serverConfiguration;
 	protected ConcurrentHashMap<String, LiveEntryCache> entries = new ConcurrentHashMap<String, LiveEntryCache>();
 	protected ConcurrentHashMap<Integer, KalturaLiveParams> liveAssetParams = new ConcurrentHashMap<Integer, KalturaLiveParams>();
 	protected long isLiveRegistrationMinBufferTime = KalturaLiveManager.DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME;
@@ -212,19 +208,6 @@ abstract public class KalturaLiveManager implements ILiveManager, IKalturaEventC
 	abstract public void appendRecording(String entryId, KalturaMediaServerIndex index, String filePath, float duration);
 
 	abstract public void restartRecordings();
-
-	protected KalturaClient impersonate(int partnerId) {
-		KalturaConfiguration impersonateConfig = new KalturaConfiguration();
-		impersonateConfig.setPartnerId(partnerId);
-		impersonateConfig.setClientTag(config.getClientTag());
-		impersonateConfig.setEndpoint(config.getEndpoint());
-		impersonateConfig.setTimeout(config.getTimeout());
-
-		KalturaClient cloneClient = new KalturaClient(impersonateConfig);
-		cloneClient.setSessionId(client.getSessionId());
-
-		return cloneClient;
-	}
 
 	public KalturaLiveEntry get(String entryId) {
 
@@ -532,11 +515,6 @@ abstract public class KalturaLiveManager implements ILiveManager, IKalturaEventC
 	}
 
 	public void init() throws KalturaManagerException {
-
-		hostname = KalturaServer.getHostName();
-		client = KalturaServer.getClient();
-		config = client.getKalturaConfiguration();
-		serverConfiguration = KalturaServer.getConfiguration();
 
 		loadLiveParams();
 		
