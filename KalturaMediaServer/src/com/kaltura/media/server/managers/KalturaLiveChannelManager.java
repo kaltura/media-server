@@ -15,7 +15,6 @@ import com.kaltura.client.types.KalturaBaseEntry;
 import com.kaltura.client.types.KalturaDataCenterContentResource;
 import com.kaltura.client.types.KalturaLiveChannel;
 import com.kaltura.client.types.KalturaLiveEntry;
-import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.client.types.KalturaServerFileResource;
 import com.kaltura.client.types.KalturaUploadToken;
 import com.kaltura.client.types.KalturaUploadedFileTokenResource;
