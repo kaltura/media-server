@@ -1,12 +1,9 @@
 package com.kaltura.media.server.wowza;
 
 import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.kaltura.client.KalturaParams;
 import com.kaltura.client.types.KalturaLiveEntry;
-import com.kaltura.client.types.KalturaSyncPoint;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.managers.KalturaCuePointsManager;
