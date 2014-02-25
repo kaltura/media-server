@@ -12,7 +12,6 @@ import org.apache.log4j.Logger;
 
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.KalturaClient;
-import com.kaltura.client.KalturaConfiguration;
 import com.kaltura.client.KalturaMultiResponse;
 import com.kaltura.client.KalturaParamsValueDefaults;
 import com.kaltura.client.enums.KalturaDVRStatus;
@@ -34,7 +33,6 @@ import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveParams;
 import com.kaltura.client.types.KalturaMediaEntry;
 import com.kaltura.media.server.KalturaEventsManager;
-import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.IKalturaEventConsumer;
 import com.kaltura.media.server.events.KalturaEventType;
