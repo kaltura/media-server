@@ -8,10 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 
-import com.kaltura.client.KalturaApiException;
-import com.kaltura.client.KalturaClient;
 import com.kaltura.client.types.KalturaLiveEntry;
-import com.kaltura.client.types.KalturaSyncPoint;
 import com.kaltura.infra.StringUtils;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.KalturaServer;
@@ -127,35 +124,15 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 	}
 
 	@Override
-	public void createSyncPoint(final String entryId) {
+	public void createSyncPoint(String entryId) {
 
-		final KalturaLiveEntry liveEntry = liveManager.get(entryId);
-		final KalturaSyncPoint syncPoint = new KalturaSyncPoint();
-		
-		try {
-			syncPoint.id = StringUtils.getUniqueId();
-			syncPoint.offset = getEntryCurrentTime(liveEntry);
+		KalturaLiveEntry liveEntry = liveManager.get(entryId);
+		String id = StringUtils.getUniqueId();
 			
-			sendSyncPoint(entryId, syncPoint);
+		try{
+			sendSyncPoint(entryId, id, getEntryCurrentTime(liveEntry));
 		} catch (KalturaManagerException e) {
-			logger.error("Failed sending sync-point [" + syncPoint.id + "] to entry [" + entryId + "]: " + e.getMessage());
+			logger.error("Failed sending sync-point [" + id + "] to entry [" + entryId + "]: " + e.getMessage());
 		}
-		
-
-		TimerTask timerTask = new TimerTask() {
-			
-			@Override
-			public void run() {
-				KalturaClient impersonatedClient = impersonate(liveEntry.partnerId);
-				try {
-					impersonatedClient.getLiveStreamService().addSyncPoint(entryId, syncPoint);
-				} catch (KalturaApiException e) {
-					logger.error("Failed adding sync-point [" + syncPoint.id + "] to entry [" + entryId + "]: " + e.getMessage());
-				}
-			}
-		};
-		
-		Timer timer = new Timer();
-		timer.schedule(timerTask, 0);
 	}
 }

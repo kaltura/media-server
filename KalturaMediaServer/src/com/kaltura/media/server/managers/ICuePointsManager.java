@@ -1,7 +1,6 @@
 package com.kaltura.media.server.managers;
 
 import com.kaltura.client.types.KalturaLiveEntry;
-import com.kaltura.client.types.KalturaSyncPoint;
 
 public interface ICuePointsManager extends IManager {
 
@@ -11,6 +10,6 @@ public interface ICuePointsManager extends IManager {
 	
 	float getEntryCurrentTime(KalturaLiveEntry liveEntry) throws KalturaManagerException;
 
-	void sendSyncPoint(String entryId, KalturaSyncPoint syncPoint) throws KalturaManagerException;
+	void sendSyncPoint(String entryId, String id, float offset) throws KalturaManagerException;
 
 }

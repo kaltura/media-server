@@ -279,7 +279,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 	}
 
 	@Override
-	public void sendSyncPoint(String entryId, KalturaSyncPoint syncPoint) throws KalturaManagerException {
+	public void sendSyncPoint(String entryId, String id, float offset) throws KalturaManagerException {
 		IMediaStream stream;
 		synchronized (streams) {
 			if(!streams.containsKey(entryId))
@@ -289,12 +289,10 @@ public class CuePointsManager extends KalturaCuePointsManager {
 		}
 		
 		AMFDataObj data = new AMFDataObj();
-		KalturaParams params = syncPoint.toParams();
-		for (Map.Entry<String, String> param : params.entrySet()) {
-			data.put(param.getKey(), param.getValue());
-		}
+		data.put("id", id);
+		data.put("offset", offset);
 		
 		stream.sendDirect("onTextData", data);
-		logger.info("Sent sync-point [" + syncPoint.id + "] to entry [" + entryId + "]");
+		logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "]");
 	}
 }
