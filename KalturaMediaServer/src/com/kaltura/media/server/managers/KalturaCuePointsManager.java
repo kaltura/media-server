@@ -108,7 +108,8 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 	}
 
 	public void createPeriodicSyncPoints(String liveEntryId, int interval, int duration){
-
+		createSyncPoint(liveEntryId);
+		
 		Date stopTime = new Date();
 		stopTime.setTime(stopTime.getTime() + (duration * 1000000));
 		
