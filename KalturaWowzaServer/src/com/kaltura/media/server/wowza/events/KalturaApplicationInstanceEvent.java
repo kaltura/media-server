@@ -11,12 +11,6 @@ public class KalturaApplicationInstanceEvent extends KalturaStreamEvent {
 	}
 
 	private IApplicationInstance applicationInstance;
-	private KalturaMediaEventType type;
-
-	@Override
-	public IKalturaEventType getType() {
-		return type;
-	}
 
 	public IApplicationInstance getApplicationInstance() {
 		return applicationInstance;
