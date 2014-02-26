@@ -29,6 +29,7 @@ public class KalturaServer {
 
 	protected final static String KALTURA_SERVER_URL = "KalturaServerURL";
 	protected final static String KALTURA_SERVER_ADMIN_SECRET = "KalturaServerAdminSecret";
+	protected final static String KALTURA_SERVER_PARTNER_ID = "KalturaPartnerId";
 	protected final static String KALTURA_SERVER_TIMEOUT = "KalturaServerTimeout";
 	protected final static String KALTURA_SERVER_MANAGERS = "KalturaServerManagers";
 	protected final static String KALTURA_SERVER_WEB_SERVICES = "KalturaServerWebServices";
@@ -108,7 +109,11 @@ public class KalturaServer {
 
 	protected void initClient() throws KalturaServerException {
 		final KalturaConfiguration clientConfig = new KalturaConfiguration();
-		clientConfig.setPartnerId((int) config.get("KalturaPartnerId"));
+		
+		if (!config.containsKey(KalturaServer.KALTURA_SERVER_PARTNER_ID))
+			throw new KalturaServerException("Missing configuration [" + KalturaServer.KALTURA_SERVER_PARTNER_ID + "]");
+		
+		clientConfig.setPartnerId((int) config.get(KalturaServer.KALTURA_SERVER_PARTNER_ID));
 		clientConfig.setClientTag("MediaServer-" + hostname);
 
 		if (!config.containsKey(KalturaServer.KALTURA_SERVER_URL))

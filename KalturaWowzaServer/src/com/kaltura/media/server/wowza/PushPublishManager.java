@@ -4,6 +4,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 
+import com.kaltura.client.enums.KalturaLivePublishStatus;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media.server.KalturaEventsManager;
@@ -92,18 +93,22 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	
 	protected void onPublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId)
 	{
+		if (entry.pushPublishEnabled == KalturaLivePublishStatus.DISABLED)
+		{
+			return;
+		}
+		
 		IClient client = stream.getClient();
 		String streamName = stream.getName();
 		if (!streamName.startsWith("push-") && client == null) {
-			logger.info("pushing stream streamName" + streamName);
-			logger.debug("stream [" + streamName + "] entry [" + entry.id + "] asset params id [" + assetParamsId + "]");
+			logger.debug("Attempting to publish stream [" + streamName + "] entry [" + entry.id + "] asset params id [" + assetParamsId + "]");
 			
 			KalturaLiveAsset liveAsset = liveManager.getLiveAsset(entry.id, assetParamsId);
 			if (liveAsset == null) {
 				logger.error("live asset for entry [" + entry.id + "] and assetParamsId [" + assetParamsId + "] was not found");
 			}
 			
-			if (!entry.pushPublishEnabled || !liveAsset.tags.contains((String) serverConfiguration.get(PushPublishManager.MULTICAST_TAG_FIELD_NAME)))
+			if (!liveAsset.tags.contains((String) serverConfiguration.get(PushPublishManager.MULTICAST_TAG_FIELD_NAME)))
 			{
 				return;
 			}
@@ -117,12 +122,13 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 		    publisher.setHost((String)serverConfiguration.get(PushPublishManager.MULTICAST_IP_CONFIG_FIELD_NAME));
 		    publisher.setPort(minFreePort);
 		    
-		    multicastPortsInUse.put(entry.id, minFreePort);
-		    
-		    while (multicastPortsInUse.containsValue(minFreePort))
-		    {
-		    	minFreePort += 4; 
-		    }
+		    synchronized (multicastPortsInUse) {
+		    	multicastPortsInUse.put(entry.id, minFreePort);
+		    	while (multicastPortsInUse.containsValue(minFreePort))
+		    	{
+		    		minFreePort += 4; 
+		    	}
+			}
 		    
 		    publisher.setDstStreamName("push-" + streamName);
 		    logger.debug("publishing stream " + publisher.getDstStreamName());
@@ -131,20 +137,26 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 		    publisher.setDebugLog(true);
 		    publisher.connect();
 		    
-		    multicastPublishers.put(entry.id, publisher);
+		    synchronized (multicastPublishers) {
+		    	multicastPublishers.put(entry.id, publisher);
+		    }
 		}
 	}
 	
 	protected void onUnPublish (String entryId)
 	{
 		logger.info("unpublishing entry [" + entryId + "]");
-		PushPublisherRTP currentPublisher = multicastPublishers.remove(entryId);
-		if (currentPublisher != null)
-			currentPublisher.disconnect();
+		synchronized (multicastPublishers) {
+			PushPublisherRTP currentPublisher = multicastPublishers.remove(entryId);
+			if (currentPublisher != null)
+				currentPublisher.disconnect();
+		}
 		
-		int freePort = multicastPortsInUse.remove(entryId);
-		if (freePort < minFreePort)
-			minFreePort = freePort;
+		synchronized (multicastPortsInUse) {
+			int freePort = multicastPortsInUse.remove(entryId);
+			if (freePort < minFreePort)
+				minFreePort = freePort;
+		}
 	}
 	
 }

@@ -12,12 +12,6 @@ public class KalturaMediaStreamEvent extends KalturaStreamEvent {
 
 	private IMediaStream mediaStream;
 	private int assetParamsId;
-	private KalturaMediaEventType type;
-
-	@Override
-	public IKalturaEventType getType() {
-		return type;
-	}
 
 	public IMediaStream getMediaStream() {
 		return mediaStream;

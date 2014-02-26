@@ -7,7 +7,7 @@ public class KalturaStreamEvent implements IKalturaEvent {
 
 	private KalturaLiveEntry entry;
 	private KalturaMediaServerIndex serverIndex;
-	private IKalturaEventType type;
+	protected IKalturaEventType type;
 
 	public KalturaStreamEvent(IKalturaEventType type) {
 		this.type = type;
