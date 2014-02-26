@@ -57,6 +57,7 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 	
 	@Override
 	public void init() throws KalturaManagerException {
+		super.init();
 		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_UNPUBLISHED);
 		liveManager = (ILiveManager) KalturaServer.getManager(ILiveManager.class);
 	}

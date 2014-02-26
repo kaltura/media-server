@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.IKalturaEventConsumer;
 import com.kaltura.media.server.events.IKalturaEventType;
@@ -27,9 +26,8 @@ public class KalturaEventsManager{
 				consumersMap = new HashSet<IKalturaEventConsumer>();
 				map.put(eventType, consumersMap);
 			}
+			consumersMap.add(eventConsumer);
 		}
-		
-		consumersMap.add(eventConsumer);
 	}
 
 	public static void raiseEvent(final IKalturaEvent event){
@@ -38,8 +36,8 @@ public class KalturaEventsManager{
 			
 			@Override
 			public void run() {
-				if(map.containsKey(event.getClass())){
-					Set<IKalturaEventConsumer> consumersMap = map.get(event.getClass());
+				if(map.containsKey(event.getType())){
+					Set<IKalturaEventConsumer> consumersMap = map.get(event.getType());
 					for(IKalturaEventConsumer eventConsumer : consumersMap){
 						eventConsumer.onEvent(event);
 					}
