@@ -55,15 +55,15 @@ public class KalturaServer {
 		try {
 			version = versionBufferedReader.readLine();
 		} catch (IOException e1) {
-			logger.error("KalturaServer::KalturaServer Failed to read version file");
+			logger.error("Failed to read version file");
 		}
 		
-		logger.debug("KalturaServer::KalturaServer Initializing Kaltura server [" + version + "]");
+		logger.debug("Initializing Kaltura server [" + version + "]");
 		KalturaServer.instance = this;
 		
 		try {
 			hostname = InetAddress.getLocalHost().getHostName();
-			logger.debug("KalturaServer::KalturaServer Kaltura server host name: " + hostname);
+			logger.debug("Kaltura server host name: " + hostname);
 		} catch (UnknownHostException e) {
 			throw new KalturaServerException("Failed to determine server host name");
 		}
@@ -71,9 +71,12 @@ public class KalturaServer {
 		initClient();
 
 		managers = new ArrayList<IManager>();
-		if (config.containsKey(KalturaServer.KALTURA_SERVER_MANAGERS)) {
+		if (!config.containsKey(KalturaServer.KALTURA_SERVER_MANAGERS)) {
+			logger.error("Server managers [" + KalturaServer.KALTURA_SERVER_MANAGERS + "] are not defined");
+		}
+		else{
 			String managersNames = (String) config.get(KalturaServer.KALTURA_SERVER_MANAGERS);
-			logger.debug("KalturaServer::KalturaServer Initializing server managers: " + managersNames);
+			logger.debug("Initializing server managers: " + managersNames);
 			initManagers(managersNames.replaceAll(" ", "").split(","));
 		}
 
@@ -91,7 +94,7 @@ public class KalturaServer {
 	                }
 	            }
 			} catch (SocketException e) {
-				logger.error("KalturaServer::KalturaServer Find local server IP address: " + e.getMessage());
+				logger.error("Find local server IP address: " + e.getMessage());
 			}
 			
 			if (config.containsKey(KalturaServer.KALTURA_SERVER_WEB_SERVICES_PORT)) 
@@ -102,18 +105,19 @@ public class KalturaServer {
 			
 			webServicesServer = new KalturaWebServicesServer(host, port, logger);
 			String servicesNames = (String) config.get(KalturaServer.KALTURA_SERVER_WEB_SERVICES);
-			logger.debug("KalturaServer::KalturaServer Initializing web services: " + servicesNames);
+			logger.debug("Initializing web services: " + servicesNames);
 			initWebServices(servicesNames.replaceAll(" ", "").split(","));
 		}
 	}
 
 	protected void initClient() throws KalturaServerException {
 		final KalturaConfiguration clientConfig = new KalturaConfiguration();
-		
+
 		if (!config.containsKey(KalturaServer.KALTURA_SERVER_PARTNER_ID))
 			throw new KalturaServerException("Missing configuration [" + KalturaServer.KALTURA_SERVER_PARTNER_ID + "]");
 		
-		clientConfig.setPartnerId((int) config.get(KalturaServer.KALTURA_SERVER_PARTNER_ID));
+		clientConfig.setPartnerId(Integer.parseInt((String) config.get(KalturaServer.KALTURA_SERVER_PARTNER_ID)));
+
 		clientConfig.setClientTag("MediaServer-" + hostname);
 
 		if (!config.containsKey(KalturaServer.KALTURA_SERVER_URL))
@@ -146,7 +150,7 @@ public class KalturaServer {
 	}
 
 	protected void generateClientSession() {
-		int partnerId = (int) config.get("KalturaPartnerId");
+		int partnerId = Integer.parseInt((String) config.get("KalturaPartnerId"));
 		String adminSecretForSigning = (String) config.get(KalturaServer.KALTURA_SERVER_ADMIN_SECRET);
 		String userId = "MediaServer";
 		KalturaSessionType type = KalturaSessionType.ADMIN;
@@ -213,9 +217,11 @@ public class KalturaServer {
 	}
 
 	public static <T extends IManager> IManager getManager(Class<T> managerInterface){
-		if(instance == null)
+		if(instance == null || instance.managers == null){
+			logger.error("Managers are not initialized");
 			return null;
-		
+		}
+
 		if(!managerInterface.isInterface() || !IManager.class.isAssignableFrom(managerInterface))
 			return null;
 		
@@ -223,7 +229,8 @@ public class KalturaServer {
 			if(managerInterface.isInstance(manager))
 				return manager;
 		}
-		
+
+		logger.error("Manager [" + managerInterface.getName() + "] not found");
 		return null;
 	}
 
