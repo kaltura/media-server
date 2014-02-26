@@ -517,6 +517,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 	public void init() throws KalturaManagerException {
 
+		super.init();
 		loadLiveParams();
 		
 		isLiveRegistrationMinBufferTime = KalturaLiveManager.DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME * 1000;
