@@ -51,7 +51,7 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 			};
 
 			timer = new Timer(true);
-			timer.schedule(timerTask, 0, interval * 1000);
+			timer.schedule(timerTask, interval * 1000, interval * 1000);
 		}
 	}
 	
@@ -101,6 +101,7 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 			for(CuePointsCreator cuePointsCreator: cuePointsCreators.values()){
 				cuePointsCreator.timer.cancel();
 				cuePointsCreator.timer.purge();
+				cuePointsCreators.remove(cuePointsCreator.interval);
 			}
 		}
 	}
