@@ -119,7 +119,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				}
 				
 			} catch (KalturaApiException e) {
-				logger.error("KalturaLiveManager::LiveEntryCache::loadAssetParams failed to load asset params for live entry [" + liveEntry.id + "]:" + e.getMessage());
+				logger.error("Failed to load asset params for live entry [" + liveEntry.id + "]:" + e.getMessage());
 			}
 		}
 
@@ -191,7 +191,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			if(liveAssets.containsKey(assetParamsId))
 				return liveAssets.get(assetParamsId);
 			
-			logger.error("KalturaLiveManager::LiveEntryCache::getLiveAsset asset params id [" + assetParamsId + "] not found");
+			logger.error("Asset params id [" + assetParamsId + "] not found");
 			return null;
 		}
 
@@ -226,7 +226,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 		synchronized (liveAssetParams) {
 			if (!liveAssetParams.containsKey(assetParamsId)) {
-				logger.error("KalturaLiveManager::getLiveAssetParams asset params id [" + assetParamsId + "] not found");
+				logger.error("Asset params id [" + assetParamsId + "] not found");
 				return null;
 			}
 			
@@ -238,7 +238,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 		synchronized (entries) {
 			if (!entries.containsKey(entryId)) {
-				logger.error("KalturaLiveManager::getLiveAsset entry id [" + entryId + "] not found");
+				logger.error("Entry id [" + entryId + "] not found");
 				return null;
 			}
 			
@@ -251,7 +251,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 		synchronized (entries) {
 			if (!entries.containsKey(entryId)) {
-				logger.error("KalturaLiveManager::getConversionProfileAssetParams entry id [" + entryId + "] not found");
+				logger.error("Entry id [" + entryId + "] not found");
 				return null;
 			}
 			
@@ -263,7 +263,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			}
 		}
 
-		logger.error("KalturaLiveManager::getConversionProfileAssetParams asset id [" + assetParamsId + "] in entry [" + entryId + "] not found");
+		logger.error("Asset id [" + assetParamsId + "] in entry [" + entryId + "] not found");
 		return null;
 	}
 	
@@ -309,7 +309,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	}
 	
 	protected void onPublish(String entryId, final KalturaMediaServerIndex serverIndex) {
-		logger.debug("KalturaLiveManager::onPublish entry [" + entryId + "]");
+		logger.debug("Entry [" + entryId + "]");
 
 		synchronized (entries) {
 
