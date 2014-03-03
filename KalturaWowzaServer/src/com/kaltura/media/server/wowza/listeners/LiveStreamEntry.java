@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -25,21 +26,26 @@ import com.kaltura.media.server.events.KalturaEventType;
 import com.kaltura.media.server.events.KalturaStreamEvent;
 import com.kaltura.media.server.managers.ILiveStreamManager;
 import com.kaltura.media.server.wowza.LiveStreamManager;
-
 import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
+import com.wowza.wms.amf.AMFData;
 import com.wowza.wms.amf.AMFDataList;
+import com.wowza.wms.amf.AMFDataObj;
+import com.wowza.wms.amf.AMFPacket;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.application.WMSProperties;
 import com.wowza.wms.client.IClient;
 import com.wowza.wms.dvr.DvrApplicationContext;
 import com.wowza.wms.dvr.IDvrConstants;
+import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameBase;
+import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameTextInformation;
 import com.wowza.wms.medialist.MediaList;
 import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.IMediaStreamActionNotify;
+import com.wowza.wms.stream.IMediaStreamActionNotify2;
 import com.wowza.wms.stream.livedvr.ILiveStreamDvrRecorderControl;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerControl;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoder;
@@ -135,7 +141,7 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
-	class LiveStreamListener implements IMediaStreamActionNotify {
+	class LiveStreamListener implements IMediaStreamActionNotify2 {
 
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
@@ -263,6 +269,51 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 
 		public void onStop(IMediaStream stream) {
+		}
+
+		@Override
+		public void onMetaData(IMediaStream stream, AMFPacket packet) {
+			byte[] buffer = packet.getData();
+			if (buffer == null) {
+				logger.info("Empty buffer");
+				return;
+			}
+
+			if (packet.getSize() <= 2) {
+				logger.info("Packet size [" + packet.getSize() + "]");
+				return;
+			}
+
+			int offset = 0;
+			if (buffer[0] == 0)
+				offset++;
+
+			AMFDataList amfList = new AMFDataList(buffer, offset, buffer.length - offset);
+
+			if (amfList.size() <= 1) {
+				logger.info("Stream [" + stream.getName() + "] AMFList size [" + amfList.size() + "]");
+				return;
+			}
+
+			if (amfList.get(0).getType() != AMFData.DATA_TYPE_STRING) {
+				logger.info("Stream [" + stream.getName() + "] AMFList type [" + amfList.get(0).getType() + ", " + amfList.get(1).getType() + "]");
+				return;
+			}
+
+			String method = amfList.getString(0);
+			AMFDataObj cuePointData = (AMFDataObj)  amfList.getObject(1);
+
+			logger.info("Stream [" + stream.getName() + "] metadata [" + method + "]");
+
+			Iterator i = cuePointData.getKeys().iterator();
+			while (i.hasNext()) {
+				String attributeName = (String) i.next();
+				logger.info("Stream [" + stream.getName() + "] [" + attributeName + "]:" + cuePointData.get(attributeName));
+			}
+		}
+
+		@Override
+		public void onPauseRaw(IMediaStream imediastream, boolean flag, double d) {
 		}
 	}
 	
