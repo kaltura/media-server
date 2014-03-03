@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import com.kaltura.media.server.managers.KalturaCuePointsManager;
 import com.wowza.wms.application.IApplication;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.http.HTTProvider2Base;
