@@ -215,7 +215,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 	public void init() throws KalturaManagerException {
 		super.init();
 
-		KalturaEventsManager.registerEventConsumer(this, KalturaMediaEventType.MEDIA_STREAM_PUBLISHED);
+		KalturaEventsManager.registerEventConsumer(this, KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, KalturaMediaEventType.APPLICATION_INSTANCE_STARTED);
 	}
 
 	@Override
