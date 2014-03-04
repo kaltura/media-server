@@ -96,7 +96,7 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 	}
 	
 	protected KalturaDataCenterContentResource getContentResource (String filePath, KalturaLiveStreamEntry liveEntry) {
-		if (this.serverConfiguration.get(KALTURA_WOWZA_SERVER_WORK_MODE) == KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA) {
+		if (this.serverConfiguration.get(KALTURA_WOWZA_SERVER_WORK_MODE).equals(KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA)) {
 			KalturaServerFileResource resource = new KalturaServerFileResource();
 			resource.localFilePath = filePath;
 			return resource;
