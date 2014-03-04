@@ -4,8 +4,11 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.kaltura.client.types.KalturaLiveEntry;
+import com.kaltura.client.types.KalturaLiveParams;
+import com.kaltura.infra.StringUtils;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.events.IKalturaEvent;
+import com.kaltura.media.server.events.KalturaEventType;
 import com.kaltura.media.server.managers.KalturaCuePointsManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
 import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
@@ -198,7 +201,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 	class LiveStreamPacketizerListener implements ILiveStreamPacketizerActionNotify {
 
 		public void onLiveStreamPacketizerCreate(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {
-			logger.info("Create [" + streamName + "]");
+			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
 			if (liveStreamPacketizer instanceof LiveStreamPacketizerCupertino) {
 				((LiveStreamPacketizerCupertino) liveStreamPacketizer).setDataHandler(new LiveStreamPacketizerDataHandler(streamName));
 			}
@@ -215,7 +218,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 	public void init() throws KalturaManagerException {
 		super.init();
 
-		KalturaEventsManager.registerEventConsumer(this, KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, KalturaMediaEventType.APPLICATION_INSTANCE_STARTED);
+		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_PUBLISHED, KalturaMediaEventType.APPLICATION_INSTANCE_STARTED);
 	}
 
 	@Override
@@ -225,14 +228,24 @@ public class CuePointsManager extends KalturaCuePointsManager {
 			
 			switch((KalturaMediaEventType) event.getType())
 			{
-				case MEDIA_STREAM_PUBLISHED:
-					KalturaMediaStreamEvent streamEvent = (KalturaMediaStreamEvent) event;
-					onPublish(streamEvent.getMediaStream(), streamEvent.getEntryId());
-					break;
-	
 				case APPLICATION_INSTANCE_STARTED:
 					KalturaApplicationInstanceEvent applicationInstanceEvent = (KalturaApplicationInstanceEvent) event;
 					onAppStart(applicationInstanceEvent.getApplicationInstance());
+					break;
+					
+				default:
+					break;
+			}
+		}
+
+		if(event.getType() instanceof KalturaEventType){
+			
+			switch((KalturaEventType) event.getType())
+			{
+				case STREAM_PUBLISHED:
+					KalturaMediaStreamEvent streamEvent = (KalturaMediaStreamEvent) event;
+					KalturaLiveParams assetParams = liveManager.getLiveAssetParams(streamEvent.getAssetParamsId());
+					onPublish(streamEvent.getMediaStream(), streamEvent.getEntryId(), assetParams);
 					break;
 					
 				default:
@@ -247,8 +260,13 @@ public class CuePointsManager extends KalturaCuePointsManager {
 		applicationInstance.addLiveStreamPacketizerListener(new LiveStreamPacketizerListener());
 	}
 
-	protected void onPublish(IMediaStream stream, String entryId) {
-		logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "]");
+	protected void onPublish(IMediaStream stream, String entryId, KalturaLiveParams assetParams) {		
+		if(!StringUtils.contains(assetParams.tags, LiveStreamManager.KALTURA_ASSET_TAG_SOURCE)){
+			logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "] asset params [" + assetParams.id + "] tags [" + assetParams.tags + "]");
+			return;
+		}
+		
+		logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "] asset params [" + assetParams.id + "]");
 		synchronized (streams) {
 			streams.put(entryId, stream);
 		}
@@ -280,7 +298,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 		IMediaStream stream;
 		synchronized (streams) {
 			if(!streams.containsKey(entryId))
-				throw new KalturaManagerException("Entry media stream not found");
+				throw new KalturaManagerException("Entry [" + entryId + "] media stream not found");
 			
 			stream = streams.get(entryId);
 		}
@@ -290,6 +308,6 @@ public class CuePointsManager extends KalturaCuePointsManager {
 		data.put("offset", offset);
 		
 		stream.sendDirect("onTextData", data);
-		logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "]");
+		logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "] stream [" + stream.getName() + "]");
 	}
 }
