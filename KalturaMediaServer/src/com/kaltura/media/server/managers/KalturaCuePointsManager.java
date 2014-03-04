@@ -23,7 +23,7 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 	
 	private ConcurrentHashMap<Integer, CuePointsCreator> cuePointsCreators = new ConcurrentHashMap<Integer, CuePointsCreator>();
 
-	private ILiveManager liveManager;
+	protected ILiveManager liveManager;
 	
 	@SuppressWarnings("serial")
 	class CuePointsCreator extends HashMap<String, Date>{
