@@ -195,6 +195,19 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			return null;
 		}
 
+		public KalturaLiveAsset getLiveAsset(String streamSuffix) {
+			KalturaLiveParams assetParams;
+			for(KalturaLiveAsset liveAsset : liveAssets.values()){
+				assetParams = getLiveAssetParams(liveAsset.flavorParamsId);
+				if(assetParams != null && assetParams.streamSuffix != null && assetParams.streamSuffix.equals(streamSuffix)){
+					return liveAsset;
+				}
+			}
+			
+			logger.error("Asset with stream suffix [" + streamSuffix + "] not found");
+			return null;
+		}
+
 		public KalturaMediaServerIndex getIndex() {
 			return index;
 		}
@@ -244,6 +257,19 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			
 			LiveEntryCache liveEntryCache = entries.get(entryId);
 			return liveEntryCache.getLiveAsset(assetParamsId);
+		}
+	}
+	
+	public KalturaLiveAsset getLiveAsset(String entryId, String streamSuffix) {
+
+		synchronized (entries) {
+			if (!entries.containsKey(entryId)) {
+				logger.error("Entry id [" + entryId + "] not found");
+				return null;
+			}
+			
+			LiveEntryCache liveEntryCache = entries.get(entryId);
+			return liveEntryCache.getLiveAsset(streamSuffix);
 		}
 	}
 	
