@@ -9,6 +9,7 @@ import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.KalturaConversionProfileAssetParams;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
+import com.kaltura.infra.StringUtils;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.managers.KalturaLiveStreamManager;
@@ -108,9 +109,7 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 			return;
 		}
 		
-		String[] liveAssetTags = liveAsset.tags.split(",");
-		List<String> liveAssetTagsSet = Arrays.asList(liveAssetTags);
-		if(!liveAssetTagsSet.contains(LiveStreamManager.KALTURA_ASSET_TAG_SOURCE)){
+		if(!StringUtils.contains(liveAsset.tags, LiveStreamManager.KALTURA_ASSET_TAG_SOURCE)){
 			logger.debug("Entry [" + entryId + "] asset params id [" + assetParamsId + "] asset id [" + liveAsset.id + "] is not the source");
 			return;
 		}
