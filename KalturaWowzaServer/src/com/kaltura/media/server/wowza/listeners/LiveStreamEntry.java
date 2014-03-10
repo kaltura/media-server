@@ -26,6 +26,7 @@ import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.events.KalturaEventType;
 import com.kaltura.media.server.events.KalturaStreamEvent;
 import com.kaltura.media.server.managers.ILiveStreamManager;
+import com.kaltura.media.server.wowza.CuePointsManager;
 import com.kaltura.media.server.wowza.LiveStreamManager;
 import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
@@ -71,6 +72,9 @@ public class LiveStreamEntry extends ModuleBase {
 	protected static Logger logger = Logger.getLogger(LiveStreamEntry.class);
 	
 	private LiveStreamManager liveStreamManager;
+	private DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
+	private LiveStreamListener liveStreamListener = new LiveStreamListener();
+	private LiveStreamTranscoderListener liveStreamTranscoderListener = new LiveStreamTranscoderListener();
 	private LiveStreamTranscoderActionListener liveStreamTranscoderActionListener = new LiveStreamTranscoderActionListener();
 	
 	private class DvrRecorderControl implements ILiveStreamDvrRecorderControl, ILiveStreamPacketizerControl {
@@ -306,6 +310,8 @@ public class LiveStreamEntry extends ModuleBase {
 				String attributeName = (String) i.next();
 				logger.info("Stream [" + stream.getName() + "] [" + attributeName + "]:" + cuePointData.get(attributeName));
 			}
+			
+			stream.sendDirect(CuePointsManager.INTERNAL_METADATA, cuePointData);
 		}
 
 		@Override
@@ -458,7 +464,7 @@ public class LiveStreamEntry extends ModuleBase {
 			Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_([^_]+)_(.+)$");
 			Matcher matcher = pattern.matcher(sourceGroupName);
 			if (!matcher.find()) {
-				logger.info("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup: group name [" + sourceGroupName + "] does not match group name regex");
+				logger.info("Group name [" + sourceGroupName + "] does not match group name regex");
 				return;
 			}
 
@@ -469,6 +475,8 @@ public class LiveStreamEntry extends ModuleBase {
 			
 			logger.debug("Group [" + appName + "/" + destGroupName + "]");
 
+			smilManagers.remove(entryId);
+			
 			String filePath = appInstance.getStreamStoragePath() + File.separator + destGroupName + ".smil";
 			
 			File file = new File(filePath);
@@ -497,7 +505,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 	public void onStreamCreate(IMediaStream stream) {
 		logger.debug("LiveStreamEntry::onStreamCreate");
-		stream.addClientListener(new LiveStreamListener());
+		stream.addClientListener(liveStreamListener);
 	}
 
 	public void onDisconnect(IClient client) {
@@ -557,7 +565,6 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	public void onAppStart(IApplicationInstance appInstance) {
-		DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
 		appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
 		appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
 
@@ -569,7 +576,7 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 
 		liveStreamManager = (LiveStreamManager) serverLiveStreamManager;
-		appInstance.addLiveStreamTranscoderListener(new LiveStreamTranscoderListener());
+		appInstance.addLiveStreamTranscoderListener(liveStreamTranscoderListener);
 
 		KalturaApplicationInstanceEvent event = new KalturaApplicationInstanceEvent(KalturaMediaEventType.APPLICATION_INSTANCE_STARTED, appInstance);
 		KalturaEventsManager.raiseEvent(event);
