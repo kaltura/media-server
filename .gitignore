@@ -1,3 +1,5 @@
+github-php-client
+bin/*
 *.class
 
 # Package Files #
