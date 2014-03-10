@@ -116,7 +116,7 @@ public class KalturaServer {
 		if (!config.containsKey(KalturaServer.KALTURA_SERVER_PARTNER_ID))
 			throw new KalturaServerException("Missing configuration [" + KalturaServer.KALTURA_SERVER_PARTNER_ID + "]");
 		
-		clientConfig.setPartnerId(Integer.parseInt((String) config.get(KalturaServer.KALTURA_SERVER_PARTNER_ID)));
+		clientConfig.setPartnerId((int) config.get(KalturaServer.KALTURA_SERVER_PARTNER_ID));
 
 		clientConfig.setClientTag("MediaServer-" + hostname);
 
@@ -150,7 +150,7 @@ public class KalturaServer {
 	}
 
 	protected void generateClientSession() {
-		int partnerId = Integer.parseInt((String) config.get("KalturaPartnerId"));
+		int partnerId = (int) config.get(KalturaServer.KALTURA_SERVER_PARTNER_ID);
 		String adminSecretForSigning = (String) config.get(KalturaServer.KALTURA_SERVER_ADMIN_SECRET);
 		String userId = "MediaServer";
 		KalturaSessionType type = KalturaSessionType.ADMIN;
