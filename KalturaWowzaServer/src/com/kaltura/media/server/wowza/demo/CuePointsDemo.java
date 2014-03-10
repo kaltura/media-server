@@ -16,40 +16,42 @@ public class CuePointsDemo extends CuePointsManager {
 
 	protected static Logger logger = Logger.getLogger(KalturaCuePointsManager.class);
 	
-	private Timer timer;
+	private Timer timer = null;
 
 	@Override
 	protected void onAppStart(final IApplicationInstance applicationInstance) {
-
-		final Date start = new Date();
-
-		TimerTask timerTask = new TimerTask() {
+		
+		if(timer == null){
+			final Date start = new Date();
 			
-			@Override
-			public void run() {
-
-				logger.info("Running");
+			TimerTask timerTask = new TimerTask() {
 				
-				Date now = new Date();
-				float offset = now.getTime() - start.getTime();
-				String id = StringUtils.getUniqueId();
+				@Override
+				public void run() {
+	
+					logger.info("Running");
 					
-				synchronized (streams) {
-					for(String entryId : streams.keySet()){
-						try {
-							sendSyncPoint(entryId, id, offset);
-						} catch (KalturaManagerException e) {
-							logger.error(e.getMessage());
+					Date now = new Date();
+					float offset = now.getTime() - start.getTime();
+					String id = StringUtils.getUniqueId();
+						
+					synchronized (streams) {
+						for(String entryId : streams.keySet()){
+							try {
+								sendSyncPoint(entryId, id, offset);
+							} catch (KalturaManagerException e) {
+								logger.error(e.getMessage());
+							}
 						}
 					}
 				}
-			}
-		};
-		
-		timer = new Timer();
-		timer.schedule(timerTask, 3000, 3000);
-		
-		logger.info("Started");
+			};
+			
+			timer = new Timer();
+			timer.schedule(timerTask, 3000, 3000);
+			
+			logger.info("Started");
+		}
 
 		super.onAppStart(applicationInstance);
 	}
