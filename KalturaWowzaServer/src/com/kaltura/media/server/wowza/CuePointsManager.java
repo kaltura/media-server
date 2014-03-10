@@ -3,9 +3,10 @@ package com.kaltura.media.server.wowza;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.codec.binary.Base64;
+
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveParams;
-import com.kaltura.infra.StringUtils;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
@@ -26,15 +27,47 @@ import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.IHTTPS
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.LiveStreamPacketizerCupertino;
 import com.wowza.wms.media.mp3.model.idtags.ID3Frames;
 import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameBase;
-import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameTextInformation;
+import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameRawBytes;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizer;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
 
 public class CuePointsManager extends KalturaCuePointsManager {
 
+	public static final String INTERNAL_METADATA = "internalMetadata";
+	
 	protected ConcurrentHashMap<String, IMediaStream> streams = new ConcurrentHashMap<String, IMediaStream>();
 
+	class ID3V2FrameObject extends ID3V2FrameRawBytes{
+
+		private int textEncoding = ID3V2FrameBase.TEXTENCODING_UTF8;
+		private String text = null;
+
+		public ID3V2FrameObject() {
+			super(ID3V2FrameBase.TAG_TEXT);
+		}
+
+		public int getBodySize() {
+			return 1 + serializeStringLen(text);
+		}
+		
+		public int serializeBody(byte bytes[], int pos){
+
+			int length = 0;
+			bytes[pos] = (byte)(textEncoding & 255);
+			length += 1;
+
+			if(text != null)
+				length += serializeString(text, bytes, pos + length);
+			
+			return length;
+		}
+
+		public void setText(String text) {
+			this.text = text;
+		}
+	}
+	
 	class LiveStreamPacketizerDataHandler implements IHTTPStreamerCupertinoLivePacketizerDataHandler {
 		String streamName = null;
 
@@ -183,28 +216,35 @@ public class CuePointsManager extends KalturaCuePointsManager {
 			String metaDataStr = amfList.getString(0);
 			AMFData data = amfList.getObject(1);
 
-			if (!metaDataStr.equalsIgnoreCase("onTextData")) {
+			if (!metaDataStr.equals(CuePointsManager.INTERNAL_METADATA)) {
 				logger.info("Stream [" + streamName + "] metadata [" + metaDataStr + "]");
 				return;
 			}
 
 			String json = jsonAMF(data);
-			logger.info("Stream [" + streamName + "] packet sent:\n" + json);
+			logger.info("Stream [" + streamName + "] JSON:\n" + json);
 
-			ID3V2FrameTextInformation comment = new ID3V2FrameTextInformation(ID3V2FrameBase.TAG_COMM);
-			comment.setTextEncoding(ID3V2FrameBase.TEXTENCODING_UTF8);
-			comment.setValue(json);
-			id3Frames.putFrame(comment);
+			String hashedString = new String(Base64.encodeBase64(json.getBytes()));
+			logger.info("Stream [" + streamName + "] Hasged: " + hashedString);
+
+			ID3V2FrameBase frame;
+			
+			
+			frame = new ID3V2FrameObject();
+			((ID3V2FrameObject) frame).setText(json);
+			
+			id3Frames.putFrame(frame);
 		}
 	}
 
 	class LiveStreamPacketizerListener implements ILiveStreamPacketizerActionNotify {
 
 		public void onLiveStreamPacketizerCreate(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {
+			if (!(liveStreamPacketizer instanceof LiveStreamPacketizerCupertino))
+				return;
+			
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
-			if (liveStreamPacketizer instanceof LiveStreamPacketizerCupertino) {
-				((LiveStreamPacketizerCupertino) liveStreamPacketizer).setDataHandler(new LiveStreamPacketizerDataHandler(streamName));
-			}
+			((LiveStreamPacketizerCupertino) liveStreamPacketizer).setDataHandler(new LiveStreamPacketizerDataHandler(streamName));
 		}
 
 		public void onLiveStreamPacketizerDestroy(ILiveStreamPacketizer liveStreamPacketizer) {
@@ -261,8 +301,8 @@ public class CuePointsManager extends KalturaCuePointsManager {
 	}
 
 	protected void onPublish(IMediaStream stream, String entryId, KalturaLiveParams assetParams) {		
-		if(!StringUtils.contains(assetParams.tags, LiveStreamManager.KALTURA_ASSET_TAG_SOURCE)){
-			logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "] asset params [" + assetParams.id + "] tags [" + assetParams.tags + "]");
+		if(stream.getClientId() < 0){
+			logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "] is a transcoded rendition");
 			return;
 		}
 		
@@ -304,10 +344,11 @@ public class CuePointsManager extends KalturaCuePointsManager {
 		}
 		
 		AMFDataObj data = new AMFDataObj();
+		data.put("objectType", "KalturaSyncPoint");
 		data.put("id", id);
 		data.put("offset", offset);
 		
-		stream.sendDirect("onTextData", data);
+		stream.sendDirect(CuePointsManager.INTERNAL_METADATA, data);
 		logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "] stream [" + stream.getName() + "]");
 	}
 }
