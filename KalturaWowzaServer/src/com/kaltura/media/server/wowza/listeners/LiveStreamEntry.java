@@ -304,6 +304,10 @@ public class LiveStreamEntry extends ModuleBase {
 
 			logger.info("Stream [" + stream.getName() + "] metadata [" + method + "]");
 
+			if(!method.equalsIgnoreCase(CuePointsManager.PUBLIC_METADATA)){
+				return;
+			}
+			
 			@SuppressWarnings("rawtypes")
 			Iterator i = cuePointData.getKeys().iterator();
 			while (i.hasNext()) {

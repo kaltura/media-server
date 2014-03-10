@@ -4,9 +4,6 @@
 	<classpathentry kind="src" path="KalturaClientLib"/>
 	<classpathentry kind="src" path="KalturaMediaServer"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/opt/kaltura/web/content/clientlibs/java/lib/commons-codec-1.4.jar"/>
-	<classpathentry kind="lib" path="C:/opt/kaltura/web/content/clientlibs/java/lib/commons-httpclient-3.1.jar"/>
-	<classpathentry kind="lib" path="C:/opt/kaltura/web/content/clientlibs/java/lib/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/bcprov-ext-jdk15on-147.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/jackson-annotations-2.1.1.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/jackson-core-2.1.1.jar"/>
@@ -42,5 +39,10 @@
 	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-stream-rtp.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-stream-shoutcast.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-transcoder.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/wms-plugin-pushpublish.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/commons-codec-1.4.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/commons-httpclient-3.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
