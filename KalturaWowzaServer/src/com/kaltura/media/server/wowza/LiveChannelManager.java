@@ -86,8 +86,8 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 
 			String fileSyncKey;
 
+			KalturaClient impersonateClient = impersonate(liveChannel.partnerId);
 			try {
-				KalturaClient impersonateClient = impersonate(liveChannel.partnerId);
 
 				// compose a list of all needed asset params
 				for (KalturaBaseEntry entry : segmentEntries) {
@@ -133,7 +133,10 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 
 					assetParamsIds.remove(assetsParamsItem.id);
 				}
+				
+				impersonateClient = null;
 			} catch (KalturaApiException e) {
+				impersonateClient = null;
 				logger.error("Failed to start channel [" + liveChannel.id + "]: " + e.getMessage());
 				return;
 			}

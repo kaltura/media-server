@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import com.kaltura.media.server.managers.KalturaCuePointsManager;
 import com.wowza.wms.application.IApplication;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.http.HTTProvider2Base;
@@ -28,8 +27,49 @@ public class ID3Demo extends HTTProvider2Base {
 
 	protected static Logger logger = Logger.getLogger(ID3Demo.class);
 	
+	public int sendTag(IMediaStream mediaStream, String tagType, String data) throws Exception {
+
+		ILiveStreamPacketizer packetizer = mediaStream.getLiveStreamPacketizer("cupertinostreamingpacketizer");
+		if(packetizer == null || !(packetizer instanceof LiveStreamPacketizerCupertino)){
+			throw new Exception("Packetizer not found for stream [" + mediaStream.getName() + "]!");
+		}
+
+		LiveStreamPacketizerCupertino cupertinoLiveStreamPacketizer = (LiveStreamPacketizerCupertino) packetizer;
+		ID3Frames id3Frames = cupertinoLiveStreamPacketizer.getID3FramesHeader();
+
+		ID3V2FrameBase frame;
+		switch(tagType){
+			case ID3V2FrameBase.TAG_COMM:
+				frame = new ID3V2FrameComment();
+				((ID3V2FrameComment) frame).setDescription("test description");
+				((ID3V2FrameComment) frame).setValue(data);
+				break;
+
+			case ID3V2FrameBase.TAG_PRIV:
+				frame = new ID3V2FramePrivate();
+				((ID3V2FramePrivate) frame).setOwnerIdentifier("testOwnerIdentifier");
+				((ID3V2FramePrivate) frame).setData(data.getBytes());
+				break;
+				
+			case ID3V2FrameBase.TAG_WXXX:
+			case ID3V2FrameBase.TAG_TXXX:
+			case ID3V2FrameBase.TAG_TIT1:
+			case ID3V2FrameBase.TAG_TIT2:
+			case ID3V2FrameBase.TAG_TIT3:
+			case ID3V2FrameBase.TAG_TEXT:
+			default: 
+				frame = new ID3V2FrameTextInformation(tagType);
+				((ID3V2FrameTextInformation) frame).setTextEncoding(ID3V2FrameBase.TEXTENCODING_UTF8);
+				((ID3V2FrameTextInformation) frame).setValue(data);
+		}
+		id3Frames.putFrame(frame);
+		
+		return (cupertinoLiveStreamPacketizer.getLastChunkId() + 1);
+	}
+	
 	@Override
 	public void onHTTPRequest(IVHost iVhost, IHTTPRequest httpRequest, IHTTPResponse httpResponse) {
+		logger.debug("http request [" + httpRequest.getRequestURL() + "]");
 		httpRequest.parseBodyForParams(true);
 		
 		Map<String, List<String>> params = httpRequest.getParameterMap();
@@ -51,60 +91,50 @@ public class ID3Demo extends HTTProvider2Base {
 			else{
 				MediaStreamMap streams = appInstance.getStreams();
 				for(IMediaStream mediaStream : streams.getStreams()){
-					streamsOptions += "				<OPTION>" + mediaStream.getName() + "</OPTION>\n";
+					if(mediaStream.getStreamType().equals("live") && mediaStream.getClientId() < 0){
+						streamsOptions += "				<OPTION>" + mediaStream.getName() + "</OPTION>\n";
+					}
 				}
 				
 				if (params.containsKey("streamName")) {
+					int lastChunkId;
 					String streamName = params.get("streamName").get(0);
-					IMediaStream mediaStream = streams.getStream(streamName);
-					if(mediaStream == null){
-						errorMessage = "Stream name [" + streamName + "] not found!";
+					if(streamName.equals("All")){
+						for(IMediaStream mediaStream : streams.getStreams()){
+							if(mediaStream.getStreamType().equals("live") && mediaStream.getClientId() < 0){
+								try {
+									lastChunkId = sendTag(mediaStream, params.get("tagType").get(0), params.get("data").get(0));				
+									String link = "http://dev-hudson9.dev.kaltura.com:1935/kLive/" + streamName + "/playlist.m3u8";
+									okMessage += "ID3 tag sent to stream [" + streamName + "] to chunk [" + lastChunkId + "]: <A href=\"" + link + "\">" + link + "</A><BR/>\n";
+								} catch (Exception e) {
+									errorMessage += e.getMessage() + "<BR/>\n";
+								}
+							}
+						}
 					}
 					else{
-						ILiveStreamPacketizer packetizer = mediaStream.getLiveStreamPacketizer("cupertinostreamingpacketizer");
-						if(packetizer == null || !(packetizer instanceof LiveStreamPacketizerCupertino)){
-							errorMessage = "Packetizer not found for stream [" + streamName + "]!";
+						IMediaStream mediaStream = streams.getStream(streamName);
+						if(mediaStream == null){
+							errorMessage = "Stream name [" + streamName + "] not found!";
 						}
 						else{
-							LiveStreamPacketizerCupertino cupertinoLiveStreamPacketizer = (LiveStreamPacketizerCupertino) packetizer;
-							ID3Frames id3Frames = cupertinoLiveStreamPacketizer.getID3FramesHeaderAudio();
-
-							String tagType = params.get("tagType").get(0);
-							String data = params.get("data").get(0);
-							ID3V2FrameBase frame;
-							switch(tagType){
-								case ID3V2FrameBase.TAG_COMM:
-									frame = new ID3V2FrameComment();
-									((ID3V2FrameComment) frame).setDescription("test description");
-									((ID3V2FrameComment) frame).setValue(data);
-									break;
-
-								case ID3V2FrameBase.TAG_PRIV:
-									frame = new ID3V2FramePrivate();
-									((ID3V2FramePrivate) frame).setOwnerIdentifier("testOwnerIdentifier");
-									((ID3V2FramePrivate) frame).setData(data.getBytes());
-									break;
-									
-								case ID3V2FrameBase.TAG_WXXX:
-								case ID3V2FrameBase.TAG_TXXX:
-								case ID3V2FrameBase.TAG_TIT1:
-								case ID3V2FrameBase.TAG_TIT2:
-								case ID3V2FrameBase.TAG_TIT3:
-								case ID3V2FrameBase.TAG_TEXT:
-								default: 
-									frame = new ID3V2FrameTextInformation(tagType);
-									((ID3V2FrameTextInformation) frame).setTextEncoding(ID3V2FrameBase.TEXTENCODING_UTF8);
-									((ID3V2FrameTextInformation) frame).setValue(data);
+							try {
+								lastChunkId = sendTag(mediaStream, params.get("tagType").get(0), params.get("data").get(0));				
+								String link = "http://dev-hudson9.dev.kaltura.com:1935/kLive/" + streamName + "/playlist.m3u8";
+								okMessage = "ID3 tag sent to stream [" + streamName + "] to chunk [" + lastChunkId + "]: <A href=\"" + link + "\">" + link + "</A>";
+							} catch (Exception e) {
+								errorMessage = e.getMessage();
 							}
-							id3Frames.putFrame(frame);
-							
-							String link = "http://dev-hudson9.dev.kaltura.com:1935/kLive/" + streamName + "/playlist.m3u8";
-							okMessage = "ID3 tag sent to stream [" + streamName + "] to chunk [" + (cupertinoLiveStreamPacketizer.getLastChunkId() + 1) + "]: <A href=\"" + link + "\">" + link + "</A>";
 						}
 					}
 				}
 			}
 		}
+
+		if(errorMessage.length() > 0)
+			logger.error(errorMessage);
+		if(okMessage.length() > 0)
+			logger.info(okMessage);
 		
 		String responseBody = "<HTML>\n"
 				+ "	<BODY>\n"
@@ -112,7 +142,8 @@ public class ID3Demo extends HTTProvider2Base {
 				+ "		<P style=\"color: green\">" + okMessage + "</P><BR/>\n"
 				+ "		<FORM method=\"POST\">\n"
 				+ "			Stream Name: \n"
-				+ "			<SELECT name=\"streamName\">\n" + streamsOptions
+				+ "			<SELECT name=\"streamName\">"
+				+ "				<OPTION>All</OPTION>\n" + streamsOptions
 				+ "			</SELECT><BR/>\n"
 				+ "			ID3 Tag Type: \n"
 				+ "			<SELECT name=\"tagType\">\n"

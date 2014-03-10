@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -15,6 +16,7 @@ import org.apache.log4j.Logger;
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.enums.KalturaDVRStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveParams;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
@@ -24,12 +26,15 @@ import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.events.KalturaEventType;
 import com.kaltura.media.server.events.KalturaStreamEvent;
 import com.kaltura.media.server.managers.ILiveStreamManager;
+import com.kaltura.media.server.wowza.CuePointsManager;
 import com.kaltura.media.server.wowza.LiveStreamManager;
-
 import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
+import com.wowza.wms.amf.AMFData;
 import com.wowza.wms.amf.AMFDataList;
+import com.wowza.wms.amf.AMFDataObj;
+import com.wowza.wms.amf.AMFPacket;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.application.WMSProperties;
 import com.wowza.wms.client.IClient;
@@ -39,7 +44,7 @@ import com.wowza.wms.medialist.MediaList;
 import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.stream.IMediaStream;
-import com.wowza.wms.stream.IMediaStreamActionNotify;
+import com.wowza.wms.stream.IMediaStreamActionNotify2;
 import com.wowza.wms.stream.livedvr.ILiveStreamDvrRecorderControl;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerControl;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoder;
@@ -67,6 +72,9 @@ public class LiveStreamEntry extends ModuleBase {
 	protected static Logger logger = Logger.getLogger(LiveStreamEntry.class);
 	
 	private LiveStreamManager liveStreamManager;
+	private DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
+	private LiveStreamListener liveStreamListener = new LiveStreamListener();
+	private LiveStreamTranscoderListener liveStreamTranscoderListener = new LiveStreamTranscoderListener();
 	private LiveStreamTranscoderActionListener liveStreamTranscoderActionListener = new LiveStreamTranscoderActionListener();
 	
 	private class DvrRecorderControl implements ILiveStreamDvrRecorderControl, ILiveStreamPacketizerControl {
@@ -135,11 +143,12 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
-	class LiveStreamListener implements IMediaStreamActionNotify {
+	class LiveStreamListener implements IMediaStreamActionNotify2 {
 
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
 			IClient client = stream.getClient();
+			int assetParamsId = Integer.MIN_VALUE;
 			if (client != null){ // streamed from the client
 				WMSProperties clientProperties = client.getProperties();
 				if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
@@ -180,11 +189,13 @@ public class LiveStreamEntry extends ModuleBase {
 						logger.error("Published stream stream name [" + streamName + "] does not match entry id [" + entryId + "]");
 						return;
 					}
+					
+					String streamSuffix = matcher.group(2);
+					KalturaLiveAsset liveAsset = liveStreamManager.getLiveAsset(entry.id, streamSuffix);
+					assetParamsId = liveAsset.flavorParamsId;
 				}
 				
-				KalturaStreamEvent event = new KalturaStreamEvent(KalturaEventType.STREAM_PUBLISHED);
-				event.setEntry(entry);
-				event.setServerIndex(serverIndex);
+				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_PUBLISHED, entry, serverIndex, stream, assetParamsId);
 				KalturaEventsManager.raiseEvent(event);
 			}
 			else{ // streamed from the transcoder
@@ -198,7 +209,7 @@ public class LiveStreamEntry extends ModuleBase {
 				}
 
 				String entryId = matcher.group(1);
-				int assetParamsId = Integer.parseInt(matcher.group(2));
+				assetParamsId = Integer.parseInt(matcher.group(2));
 				logger.debug("Stream [" + streamName + "] entry [" + entryId + "] asset params id [" + assetParamsId + "]");
 				
 				
@@ -223,11 +234,7 @@ public class LiveStreamEntry extends ModuleBase {
 					WMSProperties clientProperties = client.getProperties();
 					KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
-					KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED);
-					event.setMediaStream(stream);
-					event.setEntry(liveStreamManager.get(entryId));
-					event.setServerIndex(serverIndex);
-					event.setAssetParamsId(assetParamsId);
+					KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, liveStreamManager.get(entryId), serverIndex, stream, assetParamsId);
 					KalturaEventsManager.raiseEvent(event);
 				}
 			}
@@ -247,9 +254,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 			logger.debug("UnPublish: " + liveStreamEntry.id);
 
-			KalturaStreamEvent event = new KalturaStreamEvent(KalturaEventType.STREAM_UNPUBLISHED);
-			event.setEntry(liveStreamEntry);
-			event.setServerIndex(serverIndex);
+			KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_UNPUBLISHED, liveStreamEntry, serverIndex, stream);
 			KalturaEventsManager.raiseEvent(event);
 		}
 
@@ -263,6 +268,54 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 
 		public void onStop(IMediaStream stream) {
+		}
+
+		@Override
+		public void onMetaData(IMediaStream stream, AMFPacket packet) {
+			byte[] buffer = packet.getData();
+			if (buffer == null) {
+				logger.info("Empty buffer");
+				return;
+			}
+
+			if (packet.getSize() <= 2) {
+				logger.info("Packet size [" + packet.getSize() + "]");
+				return;
+			}
+
+			int offset = 0;
+			if (buffer[0] == 0)
+				offset++;
+
+			AMFDataList amfList = new AMFDataList(buffer, offset, buffer.length - offset);
+
+			if (amfList.size() <= 1) {
+				logger.info("Stream [" + stream.getName() + "] AMFList size [" + amfList.size() + "]");
+				return;
+			}
+
+			if (amfList.get(0).getType() != AMFData.DATA_TYPE_STRING) {
+				logger.info("Stream [" + stream.getName() + "] AMFList type [" + amfList.get(0).getType() + ", " + amfList.get(1).getType() + "]");
+				return;
+			}
+
+			String method = amfList.getString(0);
+			AMFDataObj cuePointData = (AMFDataObj)  amfList.getObject(1);
+
+			logger.info("Stream [" + stream.getName() + "] metadata [" + method + "]");
+
+			@SuppressWarnings("rawtypes")
+			Iterator i = cuePointData.getKeys().iterator();
+			while (i.hasNext()) {
+				String attributeName = (String) i.next();
+				logger.info("Stream [" + stream.getName() + "] [" + attributeName + "]:" + cuePointData.get(attributeName));
+			}
+			
+			stream.sendDirect(CuePointsManager.INTERNAL_METADATA, cuePointData);
+		}
+
+		@Override
+		public void onPauseRaw(IMediaStream imediastream, boolean flag, double d) {
 		}
 	}
 	
@@ -411,7 +464,7 @@ public class LiveStreamEntry extends ModuleBase {
 			Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_([^_]+)_(.+)$");
 			Matcher matcher = pattern.matcher(sourceGroupName);
 			if (!matcher.find()) {
-				logger.info("LiveStreamEntry#LiveStreamTranscoderActionListener.onRegisterStreamNameGroup: group name [" + sourceGroupName + "] does not match group name regex");
+				logger.info("Group name [" + sourceGroupName + "] does not match group name regex");
 				return;
 			}
 
@@ -422,6 +475,8 @@ public class LiveStreamEntry extends ModuleBase {
 			
 			logger.debug("Group [" + appName + "/" + destGroupName + "]");
 
+			smilManagers.remove(entryId);
+			
 			String filePath = appInstance.getStreamStoragePath() + File.separator + destGroupName + ".smil";
 			
 			File file = new File(filePath);
@@ -450,7 +505,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 	public void onStreamCreate(IMediaStream stream) {
 		logger.debug("LiveStreamEntry::onStreamCreate");
-		stream.addClientListener(new LiveStreamListener());
+		stream.addClientListener(liveStreamListener);
 	}
 
 	public void onDisconnect(IClient client) {
@@ -459,8 +514,7 @@ public class LiveStreamEntry extends ModuleBase {
 			String entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
 			logger.info("Entry removed [" + entryId + "]");
 
-			KalturaStreamEvent event = new KalturaStreamEvent(KalturaEventType.STREAM_DISCONNECTED);
-			event.setEntry(liveStreamManager.get(entryId));
+			KalturaStreamEvent event = new KalturaStreamEvent(KalturaEventType.STREAM_DISCONNECTED, liveStreamManager.get(entryId));
 			KalturaEventsManager.raiseEvent(event);
 		}
 	}
@@ -511,7 +565,6 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	public void onAppStart(IApplicationInstance appInstance) {
-		DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
 		appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
 		appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
 
@@ -523,10 +576,9 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 
 		liveStreamManager = (LiveStreamManager) serverLiveStreamManager;
-		appInstance.addLiveStreamTranscoderListener(new LiveStreamTranscoderListener());
+		appInstance.addLiveStreamTranscoderListener(liveStreamTranscoderListener);
 
-		KalturaApplicationInstanceEvent event = new KalturaApplicationInstanceEvent(KalturaMediaEventType.APPLICATION_INSTANCE_STARTED);
-		event.setApplicationInstance(appInstance);
+		KalturaApplicationInstanceEvent event = new KalturaApplicationInstanceEvent(KalturaMediaEventType.APPLICATION_INSTANCE_STARTED, appInstance);
 		KalturaEventsManager.raiseEvent(event);
 	}
 }

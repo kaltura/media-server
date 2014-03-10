@@ -21,7 +21,8 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 	public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token) throws KalturaApiException {
 		KalturaClient impersonateClient = impersonate(partnerId);
 		KalturaLiveStreamEntry liveStreamEntry = impersonateClient.getLiveStreamService().authenticate(entryId, token);
-
+		impersonateClient = null;
+		
 		synchronized (entries) {
 			entries.put(liveStreamEntry.id, new LiveEntryCache(liveStreamEntry));
 		}
@@ -39,7 +40,9 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 		KalturaLiveStreamEntry liveStreamEntry;
 		try {
 			liveStreamEntry = impersonateClient.getLiveStreamService().get(entryId);
+			impersonateClient = null;
 		} catch (KalturaApiException e) {
+			impersonateClient = null;
 			logger.error("KalturaLiveStreamManager::reloadEntry unable to get entry [" + entryId + "]: " + e.getMessage());
 			return null;
 		}
@@ -60,6 +63,7 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::setEntryMediaServer unable to register media server: " + e.getMessage());
 		}
+		impersonateClient = null;
 	}
 
 	@Override
@@ -70,6 +74,7 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::unsetEntryMediaServer unable to unregister media server: " + e.getMessage());
 		}
+		impersonateClient = null;
 	}
 	
 	@Override
@@ -90,6 +95,7 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 		} catch (KalturaApiException e) {
 			logger.error("Append live recording error: " + e.getMessage());
 		}
+		impersonateClient = null;
 		
 		if(liveEntry.recordStatus == KalturaRecordStatus.ENABLED && index == KalturaMediaServerIndex.PRIMARY)
 			appendRecording(liveEntry);
@@ -127,6 +133,7 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 			} catch (KalturaApiException e) {
 				logger.error("Content resource creation error: " + e.getMessage());
 			}
+			impersonateClient = null;
 		}
 		
 		return null;
