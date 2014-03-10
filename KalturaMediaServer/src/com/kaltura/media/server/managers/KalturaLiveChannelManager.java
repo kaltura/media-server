@@ -62,6 +62,7 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 	public KalturaLiveChannel get(String liveChannelId, int partnerId) throws KalturaApiException{
 		KalturaClient impersonateClient = impersonate(partnerId);
 		KalturaLiveChannel liveEntry = impersonateClient.getLiveChannelService().get(liveChannelId);
+		impersonateClient = null;
 
 		synchronized (entries) {
 			entries.put(liveEntry.id, new LiveEntryCache(liveEntry));
@@ -85,7 +86,9 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 			KalturaClient impersonateClient = impersonate(partnerId);
 			try {
 				segmentEntries = impersonateClient.getPlaylistService().execute(liveChannel.playlistId);
+				impersonateClient = null;
 			} catch (KalturaApiException e) {
+				impersonateClient = null;
 				logger.error("KalturaLiveChannelManager::start failed to execute playlist [" + liveChannel.playlistId + "] for channel [" + liveChannelId + "]: " + e.getMessage());
 				return;
 			}
@@ -125,7 +128,9 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		KalturaLiveChannel liveChannel;
 		try {
 			liveChannel = impersonateClient.getLiveChannelService().get(entryId);
+			impersonateClient = null;
 		} catch (KalturaApiException e) {
+			impersonateClient = null;
 			logger.error("KalturaLiveStreamManager::reloadEntry unable to get entry [" + entryId + "]: " + e.getMessage());
 			return null;
 		}
@@ -146,6 +151,7 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::setEntryMediaServer unable to register media server: " + e.getMessage());
 		}
+		impersonateClient = null;
 	}
 
 	@Override
@@ -156,6 +162,7 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		} catch (KalturaApiException e) {
 			logger.error("KalturaLiveStreamManager::unsetEntryMediaServer unable to unregister media server: " + e.getMessage());
 		}
+		impersonateClient = null;
 	}
 	
 	@Override
@@ -173,6 +180,8 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		
 		if(liveEntry.recordStatus == KalturaRecordStatus.ENABLED && index == KalturaMediaServerIndex.PRIMARY)
 			appendRecording(liveEntry);
+		
+		impersonateClient = null;
 	}
 	
 	protected KalturaDataCenterContentResource getContentResource (String filePath, KalturaLiveChannel liveEntry) {
@@ -190,6 +199,7 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 				File fileData = new File(filePath);
 				impersonateClient.getUploadTokenService().upload("{1:result:objects:0:id}", new KalturaFile(fileData));
 				KalturaMultiResponse responses = impersonateClient.doMultiRequest();
+				impersonateClient = null;
 				
 				KalturaUploadedFileTokenResource resource = new KalturaUploadedFileTokenResource();
 				Object response = responses.get(1);

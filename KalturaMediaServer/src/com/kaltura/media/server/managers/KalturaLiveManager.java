@@ -121,6 +121,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			} catch (KalturaApiException e) {
 				logger.error("Failed to load asset params for live entry [" + liveEntry.id + "]:" + e.getMessage());
 			}
+			impersonateClient = null;
 		}
 
 		public synchronized void register(KalturaMediaServerIndex serverIndex) {
@@ -161,8 +162,11 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			index = null;
 			registerTime = null;
 
-			timer.cancel();
-			timer.purge();
+			if(timer != null){
+				timer.cancel();
+				timer.purge();
+				timer = null;
+			}
 			registered = false;
 			
 			unsetEntryMediaServer(liveEntry, tmpIndex);
@@ -374,7 +378,10 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			public void run() {
 				synchronized (entries) {
 					if (entries.containsKey(entryId)) {
-						entries.remove(entryId);
+						LiveEntryCache liveEntryCache = entries.remove(entryId);
+						if (liveEntryCache.index != null) {
+							liveEntryCache.unregister();
+						}
 					}
 				}
 			}
@@ -401,8 +408,8 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			impersonateClient.getBaseEntryService().update(liveEntry.id, updateLiveEntry);
 		} catch (KalturaApiException e) {
 			logger.error("failed to upload file: " + e.getMessage());
-			return;
 		}
+		impersonateClient = null;
 	}
 
 	protected void setRedirect(KalturaLiveEntry liveEntry) {
@@ -434,8 +441,8 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			impersonateClient.getBaseEntryService().update(liveEntry.id, updateLiveEntry);
 		} catch (KalturaApiException e) {
 			logger.error("failed to upload file: " + e.getMessage());
-			return;
 		}
+		impersonateClient = null;
 	}
 
 	protected KalturaMediaEntry createMediaEntry(KalturaLiveEntry liveEntry) {
@@ -464,6 +471,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			try {
 				mediaEntry = impersonateClient.getMediaService().add(mediaEntry);
 			} catch (KalturaApiException e) {
+				impersonateClient = null;
 				logger.error("failed to create media entry: " + e.getMessage());
 				return null;
 			}
@@ -478,6 +486,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		try {
 			updateLiveEntry = liveEntry.getClass().newInstance();
 		} catch (Exception e) {
+			impersonateClient = null;
 			logger.error("failed to instantiate [" + liveEntry.getClass().getName() + "]: " + e.getMessage());
 			return null;
 		}
@@ -487,6 +496,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		} catch (KalturaApiException e) {
 			logger.error("failed to upload file: " + e.getMessage());
 		}
+		impersonateClient = null;
 
 		return mediaEntry;
 	}
@@ -526,8 +536,8 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 		} catch (KalturaApiException e) {
 			logger.error("failed to add content resource [" + recordedEntryId + "]: " + e.getMessage());
-			return;
 		}
+		impersonateClient = null;
 	}
 
 	public boolean isEntryRegistered(String entryId) {
