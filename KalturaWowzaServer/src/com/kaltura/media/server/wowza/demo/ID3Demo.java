@@ -35,7 +35,7 @@ public class ID3Demo extends HTTProvider2Base {
 		}
 
 		LiveStreamPacketizerCupertino cupertinoLiveStreamPacketizer = (LiveStreamPacketizerCupertino) packetizer;
-		ID3Frames id3Frames = cupertinoLiveStreamPacketizer.getID3FramesHeaderAudio();
+		ID3Frames id3Frames = cupertinoLiveStreamPacketizer.getID3FramesHeader();
 
 		ID3V2FrameBase frame;
 		switch(tagType){
@@ -91,7 +91,7 @@ public class ID3Demo extends HTTProvider2Base {
 			else{
 				MediaStreamMap streams = appInstance.getStreams();
 				for(IMediaStream mediaStream : streams.getStreams()){
-					if(mediaStream.getStreamType().equals("live") && mediaStream.getClientId() > 0){
+					if(mediaStream.getStreamType().equals("live") && mediaStream.getClientId() < 0){
 						streamsOptions += "				<OPTION>" + mediaStream.getName() + "</OPTION>\n";
 					}
 				}
@@ -101,7 +101,7 @@ public class ID3Demo extends HTTProvider2Base {
 					String streamName = params.get("streamName").get(0);
 					if(streamName.equals("All")){
 						for(IMediaStream mediaStream : streams.getStreams()){
-							if(mediaStream.getStreamType().equals("live") && mediaStream.getClientId() > 0){
+							if(mediaStream.getStreamType().equals("live") && mediaStream.getClientId() < 0){
 								try {
 									lastChunkId = sendTag(mediaStream, params.get("tagType").get(0), params.get("data").get(0));				
 									String link = "http://dev-hudson9.dev.kaltura.com:1935/kLive/" + streamName + "/playlist.m3u8";
