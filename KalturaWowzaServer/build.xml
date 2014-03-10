@@ -3,7 +3,7 @@
 
 	<property name="wowza.lib.dir" value="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib" />
 	<property name="jar.filename" value="KalturaWowzaServer" />
-	<property name="core.build.dir" value="bin" />
+	<property name="core.build.dir" value="${basedir}/KalturaWowzaServer/bin" />
 	<property name="core.build.release" value="${basedir}/../bin" />
 
 	<target name="jar" depends="set-version">
