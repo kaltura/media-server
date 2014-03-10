@@ -35,6 +35,7 @@ import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
 public class CuePointsManager extends KalturaCuePointsManager {
 
 	public static final String INTERNAL_METADATA = "internalMetadata";
+	public static final String PUBLIC_METADATA = "onMetaData";
 	
 	protected ConcurrentHashMap<String, IMediaStream> streams = new ConcurrentHashMap<String, IMediaStream>();
 
@@ -348,7 +349,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 		data.put("id", id);
 		data.put("offset", offset);
 		
-		stream.sendDirect(CuePointsManager.INTERNAL_METADATA, data);
+		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
 		logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "] stream [" + stream.getName() + "]");
 	}
 }
