@@ -3,7 +3,7 @@
 
 	<property name="wowza.lib.dir" value="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib" />
 	<property name="jar.filename" value="KalturaWowzaServer" />
-	<property name="core.build.dir" value="bin" />
+	<property name="core.build.dir" value="${basedir}/KalturaWowzaServer/bin" />
 	<property name="core.build.release" value="${basedir}/../bin" />
 
 	<target name="jar" depends="set-version">
@@ -14,13 +14,13 @@
 		<jar jarfile="${core.build.release}/${jar.filename}-${jar.version}.jar">
 			<fileset dir="${core.build.dir}" />
 		</jar>
-		</target>
+	</target>
 
-		<target name="set-version">
-			<loadfile property="jar.version" srcFile="${basedir}/KalturaMediaServer/src/com/kaltura/media/server/VERSION.txt" />
-		</target>
+	<target name="set-version">
+		<loadfile property="jar.version" srcFile="${basedir}/KalturaMediaServer/src/com/kaltura/media/server/VERSION.txt" />
+	</target>
 
-		<target name="release" depends="github-client-check, download-github-client, set-version">
+	<target name="release" depends="jar, github-client-check, download-github-client, set-version">
 		<input message="Please enter git username:" addproperty="git.username" />
 		<input message="Please enter git password:" addproperty="git.password" />
 		<exec dir="./" executable="php">
