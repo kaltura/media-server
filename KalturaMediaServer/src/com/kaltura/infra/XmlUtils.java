@@ -57,11 +57,11 @@ public class XmlUtils {
 		return base;
 	}
 
-	private static void write(Document doc, String filePath) throws Exception {
+	public static void write(Document doc, String filePath) throws Exception {
 		write(doc, new File(filePath));
 	}
 
-	private static void write(Document doc, File file) throws Exception {
+	public static void write(Document doc, File file) throws Exception {
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer = transformerFactory.newTransformer();
 		DOMSource source = new DOMSource(doc);
