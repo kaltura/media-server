@@ -24,7 +24,7 @@ import com.kaltura.media.server.managers.KalturaManagerException;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
 import com.wowza.wms.client.IClient;
-import com.wowza.wms.pushpublish.protocol.rtp.PushPublishRTP;
+//import com.wowza.wms.pushpublish.protocol.rtp.PushPublishRTP;
 import com.wowza.wms.stream.IMediaStream;
 
 public class PushPublishManager extends KalturaManager implements IKalturaEventConsumer {
@@ -40,7 +40,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	protected int minFreePort;
 	
 	protected ConcurrentHashMap<String,Integer> multicastPortsInUse = new ConcurrentHashMap<String,Integer>();
-	protected ConcurrentHashMap<String,PushPublishRTP> multicastPublishers = new ConcurrentHashMap<String,PushPublishRTP>();
+//	protected ConcurrentHashMap<String,PushPublishRTP> multicastPublishers = new ConcurrentHashMap<String,PushPublishRTP>();
 	
 	@Override
 	public void init() throws KalturaManagerException {
@@ -119,63 +119,63 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 			
 			logger.info("live asset for entry [" + entry.id + "] and assetParamsId [" + assetParamsId + "] will be multicast");
 			
-		    PushPublishRTP publisher = new PushPublishRTP();
-		    publisher.setAppInstance(stream.getStreams().getAppInstance());
-		    publisher.setSrcStream(stream);
-		    //Destination stream
-		    publisher.setHost((String)serverConfiguration.get(PushPublishManager.MULTICAST_IP_CONFIG_FIELD_NAME));
-		    publisher.setPort(minFreePort);
-		    publisher.setTimeToLive("63");
-		    
-		    synchronized (multicastPortsInUse) {
-		    	multicastPortsInUse.put(entry.id, minFreePort);
-		    	while (multicastPortsInUse.containsValue(minFreePort))
-		    	{
-		    		minFreePort += 4; 
-		    	}
-			}
-		    publisher.setDstStreamName("push-" + streamName);
-		    logger.debug("publishing stream " + publisher.getDstStreamName());
-		    publisher.setStreamName(streamName);
-		    publisher.setDebugLog(true);
-		    publisher.connect();
-		    
-		    synchronized (multicastPublishers) {
-		    	multicastPublishers.put(entry.id, publisher);
-		    }
-		    
-//		    //Update the liveAsset
-		    liveAsset.multicastIP = publisher.getHostname();
-		    liveAsset.multicastPort = publisher.getPort();
-		    try
-		    {
-		    	KalturaClient impersonateClient = impersonate(entry.partnerId);
-		    	impersonateClient.startMultiRequest();
-		    	impersonateClient.getFlavorAssetService().update(liveAsset.id, liveAsset);
-		    	impersonateClient.getLiveStreamService().addLiveStreamPushPublishConfiguration(entry.id, KalturaPlaybackProtocol.MULTICAST_SL, publisher.getHostname() +  ":" + publisher.getPort());
-		    	KalturaMultiResponse responses = impersonateClient.doMultiRequest();
-		    	
-		    	for (Object response : responses) {
-		    		if (response instanceof KalturaApiException) {
-		    			logger.error("Error occured during request: [" +  ((KalturaApiException)response).getMessage() + "]");
-		    		}
-				}
-		    }
-		    catch (KalturaApiException e)
-		    {
-		    	logger.error("Operation failed. Exception message:  [" + e.getMessage() + "]");
-		    }
+//		    PushPublishRTP publisher = new PushPublishRTP();
+//		    publisher.setAppInstance(stream.getStreams().getAppInstance());
+//		    publisher.setSrcStream(stream);
+//		    //Destination stream
+//		    publisher.setHost((String)serverConfiguration.get(PushPublishManager.MULTICAST_IP_CONFIG_FIELD_NAME));
+//		    publisher.setPort(minFreePort);
+//		    publisher.setTimeToLive("63");
+//		    
+//		    synchronized (multicastPortsInUse) {
+//		    	multicastPortsInUse.put(entry.id, minFreePort);
+//		    	while (multicastPortsInUse.containsValue(minFreePort))
+//		    	{
+//		    		minFreePort += 4; 
+//		    	}
+//			}
+//		    publisher.setDstStreamName("push-" + streamName);
+//		    logger.debug("publishing stream " + publisher.getDstStreamName());
+//		    publisher.setStreamName(streamName);
+//		    publisher.setDebugLog(true);
+//		    publisher.connect();
+//		    
+//		    synchronized (multicastPublishers) {
+//		    	multicastPublishers.put(entry.id, publisher);
+//		    }
+//		    
+////		    //Update the liveAsset
+//		    liveAsset.multicastIP = publisher.getHostname();
+//		    liveAsset.multicastPort = publisher.getPort();
+//		    try
+//		    {
+//		    	KalturaClient impersonateClient = impersonate(entry.partnerId);
+//		    	impersonateClient.startMultiRequest();
+//		    	impersonateClient.getFlavorAssetService().update(liveAsset.id, liveAsset);
+//		    	impersonateClient.getLiveStreamService().addLiveStreamPushPublishConfiguration(entry.id, KalturaPlaybackProtocol.MULTICAST_SL, publisher.getHostname() +  ":" + publisher.getPort());
+//		    	KalturaMultiResponse responses = impersonateClient.doMultiRequest();
+//		    	
+//		    	for (Object response : responses) {
+//		    		if (response instanceof KalturaApiException) {
+//		    			logger.error("Error occured during request: [" +  ((KalturaApiException)response).getMessage() + "]");
+//		    		}
+//				}
+//		    }
+//		    catch (KalturaApiException e)
+//		    {
+//		    	logger.error("Operation failed. Exception message:  [" + e.getMessage() + "]");
+//		    }
 		}
 	}
 	
 	protected void onUnPublish (KalturaLiveEntry entry)
 	{
 		logger.info("unpublishing entry [" + entry.id + "]");
-		synchronized (multicastPublishers) {
-			PushPublishRTP currentPublisher = multicastPublishers.remove(entry.id);
-			if (currentPublisher != null)
-				currentPublisher.disconnect();
-		}
+//		synchronized (multicastPublishers) {
+//			PushPublishRTP currentPublisher = multicastPublishers.remove(entry.id);
+//			if (currentPublisher != null)
+//				currentPublisher.disconnect();
+//		}
 		
 		synchronized (multicastPortsInUse) {
 			int freePort = multicastPortsInUse.remove(entry.id);

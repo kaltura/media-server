@@ -1,5 +1,6 @@
 package com.kaltura.media.server.wowza;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -345,10 +346,12 @@ public class CuePointsManager extends KalturaCuePointsManager {
 			stream = streams.get(entryId);
 		}
 		
+		Date date = new Date();
 		AMFDataObj data = new AMFDataObj();
 		data.put("objectType", "KalturaSyncPoint");
 		data.put("id", id);
 		data.put("offset", offset * 1000);
+		data.put("timestamp", date.getTime());
 
 		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
 		logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "] stream [" + stream.getName() + "]");

@@ -11,7 +11,12 @@ import org.apache.log4j.Logger;
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.KalturaClient;
 import com.kaltura.client.KalturaObjectBase;
+import com.kaltura.client.enums.KalturaCuePointOrderBy;
+import com.kaltura.client.enums.KalturaCuePointStatus;
 import com.kaltura.client.types.KalturaCuePoint;
+import com.kaltura.client.types.KalturaCuePointFilter;
+import com.kaltura.client.types.KalturaCuePointListResponse;
+import com.kaltura.client.types.KalturaFilterPager;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.infra.StringUtils;
 import com.kaltura.media.server.KalturaEventsManager;
@@ -63,7 +68,7 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 	@Override
 	public void init() throws KalturaManagerException {
 		super.init();
-		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_UNPUBLISHED, KalturaEventType.METADATA);
+		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_PUBLISHED, KalturaEventType.STREAM_UNPUBLISHED, KalturaEventType.METADATA);
 		liveManager = (ILiveManager) KalturaServer.getManager(ILiveManager.class);
 	}
 
@@ -76,6 +81,10 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 				case STREAM_UNPUBLISHED:
 					onUnPublish(((KalturaStreamEvent) event).getEntryId());
 					break;
+	
+				case STREAM_PUBLISHED:
+					onPublish(((KalturaStreamEvent) event).getEntry());
+					break;
 
 				case METADATA:
 					onMetadata(((KalturaMetadataEvent) event).getEntry(), ((KalturaMetadataEvent) event).getObject());
@@ -87,14 +96,58 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 		}
 	}
 
-	private void onMetadata(KalturaLiveEntry entry, KalturaObjectBase object) {
+	private void onPublish(final KalturaLiveEntry liveEntry) {
+		// list all cue-points that should be triggered by absolute time
+		KalturaCuePointFilter filter = new KalturaCuePointFilter();
+		filter.entryIdEqual = liveEntry.id;
+		filter.statusEqual = KalturaCuePointStatus.READY;
+		filter.triggeredAtGreaterThanOrEqual = 0;
+		filter.orderBy = KalturaCuePointOrderBy.TRIGGERED_AT_ASC.hashCode;
+
+		KalturaFilterPager pager = new KalturaFilterPager();
+		pager.pageIndex = 1;
+		pager.pageSize = 100;
+
+		Timer timer;
+		Date date = new Date();
+		TimerTask timerTask = new TimerTask(){
+
+			@Override
+			public void run() {
+				createSyncPoint(liveEntry.id);
+			}
+		};
+		
+		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
+		try{
+			while(true){
+				KalturaCuePointListResponse CuePointsList = impersonateClient.getCuePointService().list(filter , pager);
+				if(CuePointsList.objects.size() == 0){
+					break;
+				}
+					
+				for(KalturaCuePoint cuePoint : CuePointsList.objects){
+					// create sync-point 30 seconds before the trigger time
+					date.setTime((cuePoint.triggeredAt / 1000) - 30000);
+					
+					timer = new Timer(true);
+					timer.schedule(timerTask, date);
+				}
+			}
+		} catch (KalturaApiException e) {
+			logger.error("Failed to list entry [" + liveEntry.id + "] cue-points: " + e.getMessage());
+		}
+		impersonateClient = null;		
+	}
+
+	protected void onMetadata(KalturaLiveEntry entry, KalturaObjectBase object) {
 		
 		if(object instanceof KalturaCuePoint){
 			onCuePoint(entry, (KalturaCuePoint) object);
 		}
 	}
 
-	private void onCuePoint(KalturaLiveEntry entry, KalturaCuePoint cuePoint) {
+	protected void onCuePoint(KalturaLiveEntry entry, KalturaCuePoint cuePoint) {
 		KalturaClient impersonateClient = impersonate(entry.partnerId);
 		
 		cuePoint.entryId = entry.id;
