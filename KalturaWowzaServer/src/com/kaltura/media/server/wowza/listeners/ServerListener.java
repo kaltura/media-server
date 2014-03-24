@@ -1,13 +1,15 @@
 package com.kaltura.media.server.wowza.listeners;
 
+import org.apache.log4j.Logger;
+
 import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.KalturaServerException;
 import com.wowza.wms.application.WMSProperties;
-import com.wowza.wms.logging.WMSLogger;
-import com.wowza.wms.logging.WMSLoggerFactory;
 import com.wowza.wms.server.*;
 
 public class ServerListener implements IServerNotify2 {
+
+	protected static Logger logger = Logger.getLogger(ServerListener.class);
 	
 	KalturaServer kalturaServer;
 
@@ -19,7 +21,6 @@ public class ServerListener implements IServerNotify2 {
 
 	@SuppressWarnings("unchecked")
 	public void onServerInit(IServer server) {
-		WMSLogger logger = WMSLoggerFactory.getLogger(null);
 		WMSProperties config = server.getProperties();
 		try {
 			kalturaServer = KalturaServer.init(config);

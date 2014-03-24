@@ -6,9 +6,9 @@ import javax.jws.WebService;
 import javax.xml.ws.RequestWrapper;
 import javax.xml.ws.ResponseWrapper;
 
-import com.kaltura.media.server.ILiveStreamManager;
 import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.api.IWebService;
+import com.kaltura.media.server.managers.ILiveStreamManager;
 
 @WebService(name = "live")
 public class KalturaLiveService implements IWebService{
