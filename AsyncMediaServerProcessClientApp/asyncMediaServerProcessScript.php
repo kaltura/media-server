@@ -5,13 +5,12 @@ $config = parse_ini_file($configFilePath);
 
 //Load configuration
 $files = glob($config['dirName'] . '/*.xml');
-while (!count($files))
+if (!count($files))
 {
-	sleep($config['waitTime']);
-	$files = glob($config['dirName'] . '/*.xml');
-	
-	var_dump(count($files). ' file found');
+	die ('No files at this time.');
 }
+
+var_dump(count ($files) . ' files found.');
 
 $inProgress = array();
 if (file_exists('in_progress'))
@@ -56,8 +55,20 @@ foreach ($files as $f)
 	$handled = false;
 	while (!$handled)
 	{
-		$uploadXML = new SimpleXMLElement(file_get_contents($f));
-		$entryId = strval($uploadXML->entryId);
+		$taskXml = new SimpleXMLElement(file_get_contents($f));
+		if ($taskXml->getName() == 'upload')
+		{
+			$handled = handleUploadXMLResource($taskXml, $client);	
+		}
+		
+	}
+	$complete[] = $f;
+	file_put_contents('complete', implode('\n', $complete));
+}
+
+function handleUploadXMLResource (SimpleXMLElement $uploadXML, KalturaClient $client)
+{
+	$entryId = strval($uploadXML->entryId);
 		$partnerId = strval ($uploadXML->partnerId);
 		$partnerAdminSecret = strval ($uploadXML->adminSecret);
 		$duration = intval ($uploadXML->duration);
@@ -78,12 +89,12 @@ foreach ($files as $f)
 		catch (Exception $e)
 		{
 			var_dump ("An error occured retrieving entry with id [$entryId]. Error message [" . $e->getMessage() . "]");
-			continue;
+			return false;
 		}
 		
 		$resource = getContentResource($filepath, $liveEntry, $workmode,$client);
 		if (!$resource)
-			continue;
+			return false;
 		
 		try {
 			$updatedEntry = $client->liveStream->appendRecording($entryId, $index, $resource, $duration);
@@ -91,16 +102,11 @@ foreach ($files as $f)
 		catch (Exception $e)
 		{
 			var_dump('Append live recording error: ' . $e->getMessage());
-			continue;
+			return false;
 		}
 		
 		appendRecording($liveEntry, $client);
 		
-		$complete[] = $f;
-		file_put_contents('complete', implode('\n', $complete));
-		
-		$handled = true;
-	}
 }
 
 /**
