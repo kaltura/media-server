@@ -3,6 +3,7 @@ package com.kaltura.media.server.wowza.listeners;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -14,6 +15,7 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 import com.kaltura.client.KalturaApiException;
+import com.kaltura.client.KalturaObjectBase;
 import com.kaltura.client.enums.KalturaDVRStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.types.KalturaLiveAsset;
@@ -23,10 +25,11 @@ import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.infra.XmlUtils;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.KalturaServer;
+import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
+import com.kaltura.media.server.events.KalturaMetadataEvent;
 import com.kaltura.media.server.events.KalturaStreamEvent;
 import com.kaltura.media.server.managers.ILiveStreamManager;
-import com.kaltura.media.server.wowza.CuePointsManager;
 import com.kaltura.media.server.wowza.LiveStreamManager;
 import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
@@ -270,16 +273,37 @@ public class LiveStreamEntry extends ModuleBase {
 		public void onStop(IMediaStream stream) {
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public void onMetaData(IMediaStream stream, AMFPacket packet) {
+			if(stream.getClientId() < 0){
+				return;
+			}
+
+			IClient client = stream.getClient();
+			if (client == null){
+				return;
+			}
+			
+			WMSProperties clientProperties = client.getProperties();
+			if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
+				return;
+			}
+
+			String entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
+			KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+
+			KalturaLiveEntry entry = liveStreamManager.get(entryId);
+			if(entry == null){
+				return;						
+			}
+			
 			byte[] buffer = packet.getData();
 			if (buffer == null) {
-				logger.info("Empty buffer");
 				return;
 			}
 
 			if (packet.getSize() <= 2) {
-				logger.info("Packet size [" + packet.getSize() + "]");
 				return;
 			}
 
@@ -290,32 +314,66 @@ public class LiveStreamEntry extends ModuleBase {
 			AMFDataList amfList = new AMFDataList(buffer, offset, buffer.length - offset);
 
 			if (amfList.size() <= 1) {
-				logger.info("Stream [" + stream.getName() + "] AMFList size [" + amfList.size() + "]");
 				return;
 			}
 
 			if (amfList.get(0).getType() != AMFData.DATA_TYPE_STRING) {
-				logger.info("Stream [" + stream.getName() + "] AMFList type [" + amfList.get(0).getType() + ", " + amfList.get(1).getType() + "]");
+				return;
+			}
+
+			if (amfList.get(1).getType() != AMFData.DATA_TYPE_OBJECT) {
 				return;
 			}
 
 			String method = amfList.getString(0);
-			AMFDataObj cuePointData = (AMFDataObj)  amfList.getObject(1);
+			AMFDataObj amfData = (AMFDataObj)  amfList.getObject(1);
 
-			logger.info("Stream [" + stream.getName() + "] metadata [" + method + "]");
-
-			if(!method.equalsIgnoreCase(CuePointsManager.PUBLIC_METADATA)){
+			if(!amfData.containsKey("objectType")){
 				return;
 			}
-			
+		
+			String objectType = amfData.getString("objectType");
+			logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] object type [" + objectType + "]");
+			String objectClassName = "com.kaltura.client.types." + objectType;
+			Class<KalturaObjectBase> clazz;
+			KalturaObjectBase object;
+			try {
+				clazz = (Class<KalturaObjectBase>) Class.forName(objectClassName);
+				object = clazz.newInstance();
+			} catch (ClassNotFoundException e) {
+				logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] not found");
+				return;
+			} catch (InstantiationException | IllegalAccessException e) {
+				logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] failed to initialize: " + e.getMessage());
+				return;
+			}
+
 			@SuppressWarnings("rawtypes")
-			Iterator i = cuePointData.getKeys().iterator();
+			Iterator i = amfData.getKeys().iterator();
+			Field field;
 			while (i.hasNext()) {
 				String attributeName = (String) i.next();
-				logger.info("Stream [" + stream.getName() + "] [" + attributeName + "]:" + cuePointData.get(attributeName));
+				field = null;
+				try {
+					field = clazz.getField(attributeName);
+				} catch (NoSuchFieldException e) {
+					logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] field [" + attributeName + "] not found");
+				} catch (SecurityException e) {
+					logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] field [" + attributeName + "]: " + e.getMessage());
+				}
+				if(field == null){
+					continue;
+				}
+
+				try {
+					field.set(object, amfData.get(attributeName));
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] set field [" + attributeName + "]: " + e.getMessage());
+				}
 			}
 			
-			stream.sendDirect(CuePointsManager.INTERNAL_METADATA, cuePointData);
+			IKalturaEvent event = new KalturaMetadataEvent(KalturaEventType.METADATA, entry, serverIndex, object);
+			KalturaEventsManager.raiseEvent(event);
 		}
 
 		@Override
@@ -524,6 +582,12 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
+		if(!setLiveStreamManager()){
+			logger.error("Live Stream Manager is not loaded yet");
+			client.rejectConnection("Live Stream Manager is not loaded yet", "Live Stream Manager is not loaded yet");
+			return;
+		}
+			
 		onClientConnect(client);
 	}
 
@@ -568,18 +632,27 @@ public class LiveStreamEntry extends ModuleBase {
          return null;
 	}
 
-	public void onAppStart(IApplicationInstance appInstance) {
-		appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
-		appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
-
+	public boolean setLiveStreamManager() {
+		if(liveStreamManager != null)
+			return true;
+		
 		ILiveStreamManager serverLiveStreamManager = (ILiveStreamManager) KalturaServer.getManager(ILiveStreamManager.class);
 
 		if (serverLiveStreamManager == null || !(serverLiveStreamManager instanceof LiveStreamManager)) {
 			logger.error("Live stream manager not defined");
-			return;
+			return false;
 		}
 
 		liveStreamManager = (LiveStreamManager) serverLiveStreamManager;
+		return true;
+	}
+
+	public void onAppStart(IApplicationInstance appInstance) {
+		appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
+		appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
+		
+		setLiveStreamManager();
+		
 		appInstance.addLiveStreamTranscoderListener(liveStreamTranscoderListener);
 
 		KalturaApplicationInstanceEvent event = new KalturaApplicationInstanceEvent(KalturaMediaEventType.APPLICATION_INSTANCE_STARTED, appInstance);

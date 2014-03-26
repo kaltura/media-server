@@ -1,5 +1,6 @@
 package com.kaltura.media.server.wowza;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,10 +35,10 @@ import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
 
 public class CuePointsManager extends KalturaCuePointsManager {
 
-	public static final String INTERNAL_METADATA = "internalMetadata";
 	public static final String PUBLIC_METADATA = "onMetaData";
 	
 	protected ConcurrentHashMap<String, IMediaStream> streams = new ConcurrentHashMap<String, IMediaStream>();
+	protected LiveStreamPacketizerListener liveStreamPacketizerListener = new LiveStreamPacketizerListener();
 
 	class ID3V2FrameObject extends ID3V2FrameRawBytes{
 
@@ -217,7 +218,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 			String metaDataStr = amfList.getString(0);
 			AMFData data = amfList.getObject(1);
 
-			if (!metaDataStr.equals(CuePointsManager.INTERNAL_METADATA)) {
+			if (!metaDataStr.equals(CuePointsManager.PUBLIC_METADATA)) {
 				logger.info("Stream [" + streamName + "] metadata [" + metaDataStr + "]");
 				return;
 			}
@@ -298,7 +299,8 @@ public class CuePointsManager extends KalturaCuePointsManager {
 	}
 	
 	protected void onAppStart(IApplicationInstance applicationInstance) {
-		applicationInstance.addLiveStreamPacketizerListener(new LiveStreamPacketizerListener());
+		logger.debug("Application instance started, adding live stream packetizer listener");
+		applicationInstance.addLiveStreamPacketizerListener(liveStreamPacketizerListener);
 	}
 
 	protected void onPublish(IMediaStream stream, String entryId, KalturaLiveParams assetParams) {		
@@ -344,11 +346,13 @@ public class CuePointsManager extends KalturaCuePointsManager {
 			stream = streams.get(entryId);
 		}
 		
+		Date date = new Date();
 		AMFDataObj data = new AMFDataObj();
 		data.put("objectType", "KalturaSyncPoint");
 		data.put("id", id);
-		data.put("offset", offset);
-		
+		data.put("offset", offset * 1000);
+		data.put("timestamp", date.getTime());
+
 		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
 		logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "] stream [" + stream.getName() + "]");
 	}
