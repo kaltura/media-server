@@ -1,15 +1,20 @@
-package com.kaltura.media.server;
+package com.kaltura.media.server.managers;
 
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.apache.log4j.Logger;
+
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.KalturaClient;
+import com.kaltura.media.server.KalturaServer;
 
 public abstract class KalturaStatusManager implements IStatusManager {
 
 	protected final static String KALTURA_SERVER_STATUS_INTERVAL = "KalturaServerStatusInterval";
+
+	protected static Logger logger = Logger.getLogger(KalturaStatusManager.class);
 	
 	protected long interval;
 	protected KalturaClient client;
@@ -49,7 +54,7 @@ public abstract class KalturaStatusManager implements IStatusManager {
 
 	public void reportStatus() {
 		try {
-			KalturaServer.getLogger().debug("KalturaStatusManager::reportStatus Reporting server status [" + hostname + "]");
+			logger.debug("KalturaStatusManager::reportStatus Reporting server status [" + hostname + "]");
 			client.getMediaServerService().reportStatus(hostname, getServerStatus());
 		} catch (KalturaApiException e) {
 			IExceptionManager exceptionManager = (IExceptionManager) KalturaServer.getManager(IExceptionManager.class);

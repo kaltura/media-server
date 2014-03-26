@@ -1,4 +1,4 @@
-package com.kaltura.media.server;
+package com.kaltura.media.server.managers;
 
 import java.util.List;
 import java.util.Timer;
@@ -6,12 +6,9 @@ import java.util.TimerTask;
 
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.KalturaClient;
-import com.kaltura.client.enums.KalturaMediaServerIndex;
-import com.kaltura.client.enums.KalturaRecordStatus;
+import com.kaltura.client.KalturaServiceBase;
 import com.kaltura.client.types.KalturaBaseEntry;
 import com.kaltura.client.types.KalturaLiveChannel;
-import com.kaltura.client.types.KalturaLiveEntry;
-import com.kaltura.client.types.KalturaServerFileResource;
 
 
 abstract public class KalturaLiveChannelManager extends KalturaLiveManager implements ILiveChannelManager {
@@ -56,6 +53,7 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 	public KalturaLiveChannel get(String liveChannelId, int partnerId) throws KalturaApiException{
 		KalturaClient impersonateClient = impersonate(partnerId);
 		KalturaLiveChannel liveEntry = impersonateClient.getLiveChannelService().get(liveChannelId);
+		impersonateClient = null;
 
 		synchronized (entries) {
 			entries.put(liveEntry.id, new LiveEntryCache(liveEntry));
@@ -79,7 +77,9 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 			KalturaClient impersonateClient = impersonate(partnerId);
 			try {
 				segmentEntries = impersonateClient.getPlaylistService().execute(liveChannel.playlistId);
+				impersonateClient = null;
 			} catch (KalturaApiException e) {
+				impersonateClient = null;
 				logger.error("KalturaLiveChannelManager::start failed to execute playlist [" + liveChannel.playlistId + "] for channel [" + liveChannelId + "]: " + e.getMessage());
 				return;
 			}
@@ -114,59 +114,9 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		}
 	}
 
-	public KalturaLiveChannel reloadEntry(String entryId, int partnerId) {
-		KalturaClient impersonateClient = impersonate(partnerId);
-		KalturaLiveChannel liveChannel;
-		try {
-			liveChannel = impersonateClient.getLiveChannelService().get(entryId);
-		} catch (KalturaApiException e) {
-			logger.error("KalturaLiveStreamManager::reloadEntry unable to get entry [" + entryId + "]: " + e.getMessage());
-			return null;
-		}
 
-		synchronized (entries) {
-			LiveEntryCache liveChannelCache = entries.get(entryId);
-			liveChannelCache.setLiveEntry(liveChannel);
-		}
-		
-		return liveChannel;
-	}
-
-	@Override
-	protected void setEntryMediaServer(KalturaLiveEntry liveChannel, KalturaMediaServerIndex serverIndex) {
-		KalturaClient impersonateClient = impersonate(liveChannel.partnerId);
-		try {
-			impersonateClient.getLiveChannelService().registerMediaServer(liveChannel.id, hostname, serverIndex);
-		} catch (KalturaApiException e) {
-			logger.error("KalturaLiveStreamManager::setEntryMediaServer unable to register media server: " + e.getMessage());
-		}
-	}
-
-	@Override
-	protected void unsetEntryMediaServer(KalturaLiveEntry liveChannel, KalturaMediaServerIndex serverIndex) {
-		KalturaClient impersonateClient = impersonate(liveChannel.partnerId);
-		try {
-			impersonateClient.getLiveChannelService().unregisterMediaServer(liveChannel.id, hostname, serverIndex);
-		} catch (KalturaApiException e) {
-			logger.error("KalturaLiveStreamManager::unsetEntryMediaServer unable to unregister media server: " + e.getMessage());
-		}
-	}
-	
-	@Override
-	public void appendRecording(String entryId, KalturaMediaServerIndex index, String filePath, float duration) {
-
-		KalturaServerFileResource resource = new KalturaServerFileResource();
-		resource.localFilePath = filePath;
-		
-		KalturaLiveChannel liveEntry = get(entryId);
-		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
-		try {
-			impersonateClient.getLiveChannelService().appendRecording(entryId, index, resource, duration);
-		} catch (KalturaApiException e) {
-			logger.error("Append live recording error: " + e.getMessage());
-		}
-		
-		if(liveEntry.recordStatus == KalturaRecordStatus.ENABLED && index == KalturaMediaServerIndex.PRIMARY)
-			appendRecording(liveEntry);
+	public KalturaServiceBase getLiveServiceInstance (KalturaClient impersonateClient)
+	{
+		return impersonateClient.getLiveChannelService();
 	}
 }

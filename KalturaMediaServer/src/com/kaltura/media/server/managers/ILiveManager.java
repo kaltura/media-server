@@ -1,18 +1,11 @@
-package com.kaltura.media.server;
+package com.kaltura.media.server.managers;
 
-import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.types.KalturaConversionProfileAssetParams;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveParams;
 
 public interface ILiveManager extends IManager {
-
-	public void onPublish(String entryId, KalturaMediaServerIndex serverIndex);
-	
-	public void onUnPublish(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex);
-	
-	public void onDisconnect(String entryId);
 
 	public KalturaLiveEntry get(String entryId);
 

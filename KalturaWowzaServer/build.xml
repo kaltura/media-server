@@ -3,17 +3,48 @@
 
 	<property name="wowza.lib.dir" value="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib" />
 	<property name="jar.filename" value="KalturaWowzaServer" />
-	<property name="core.build.dir" value="bin" />
+	<property name="core.build.dir" value="${basedir}/KalturaWowzaServer/bin" />
+	<property name="core.build.release" value="${basedir}/../bin" />
 
-	<target name="jar">
-		<loadfile property="jar.version" srcFile="../KalturaMediaServer/src/com/kaltura/media/server/VERSION.txt" />
+	<target name="jar" depends="set-version">
 
 		<jar jarfile="${wowza.lib.dir}/${jar.filename}.jar">
 			<fileset dir="${core.build.dir}" />
 		</jar>
-		<jar jarfile="C:/opt/kalsource/server-bin-linux-64bit/wowza/${jar.filename}-${jar.version}.jar">
+		<jar jarfile="${core.build.release}/${jar.filename}-${jar.version}.jar">
 			<fileset dir="${core.build.dir}" />
 		</jar>
+	</target>
+
+	<target name="set-version">
+		<loadfile property="jar.version" srcFile="${basedir}/KalturaMediaServer/src/com/kaltura/media/server/VERSION.txt" />
+	</target>
+
+	<target name="release" depends="jar, github-client-check, download-github-client, set-version">
+		<input message="Please enter git username:" addproperty="git.username" />
+		<input message="Please enter git password:" addproperty="git.password" />
+		<exec dir="./" executable="php">
+			<arg line="release.php"/>
+			<arg line="${git.username}"/>
+			<arg line="${git.password}"/>
+			<arg line="${jar.version}"/>
+		</exec>
+	</target>
+
+	<target name="github-client-check">
+		<condition property="github.client.exists">
+			<not>
+				<available file="${basedir}/github-php-client" type="dir" />
+			</not>
+		</condition>
+	</target>
+
+	<target name="download-github-client" if="github.client.exists">
+		<get src="https://github.com/tan-tan-kanarek/github-php-client/archive/master.zip" dest="${basedir}/github-php-client.zip"/>
+		<unzip src="${basedir}/github-php-client.zip" dest="./"/>
+		<delete file="${basedir}/github-php-client.zip"/>
+		<move file="${basedir}/github-php-client-master/client" tofile="${basedir}/github-php-client"/>
+		<delete dir="${basedir}/github-php-client-master"/>
 	</target>
 
 </project>

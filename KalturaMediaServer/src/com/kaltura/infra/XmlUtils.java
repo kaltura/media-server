@@ -19,14 +19,6 @@ import org.w3c.dom.Node;
 
 public class XmlUtils {
 
-	public static void main(String[] args) throws Exception {
-		// proper error/exception handling omitted for brevity
-		File file1 = new File("1.smil");
-		File file2 = new File("2.smil");
-		Document doc = merge("/smil/body/switch", file1, file2);
-		write(doc, "out.smil");
-	}
-
 	public static void merge(File outputFile, String expression, File... files) throws Exception {
 		Document doc = merge(expression, files);
 		write(doc, outputFile);
@@ -65,11 +57,11 @@ public class XmlUtils {
 		return base;
 	}
 
-	private static void write(Document doc, String filePath) throws Exception {
+	public static void write(Document doc, String filePath) throws Exception {
 		write(doc, new File(filePath));
 	}
 
-	private static void write(Document doc, File file) throws Exception {
+	public static void write(Document doc, File file) throws Exception {
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer = transformerFactory.newTransformer();
 		DOMSource source = new DOMSource(doc);
