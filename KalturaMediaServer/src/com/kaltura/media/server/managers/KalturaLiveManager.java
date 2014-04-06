@@ -683,7 +683,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	}
 	
 	protected KalturaDataCenterContentResource getContentResource (String filePath, KalturaLiveEntry liveEntry) {
-		if (!this.serverConfiguration.containsKey(KALTURA_WOWZA_SERVER_WORK_MODE) || !(this.serverConfiguration.get(KALTURA_WOWZA_SERVER_WORK_MODE).equals(KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA))) {
+		if (!this.serverConfiguration.containsKey(KALTURA_WOWZA_SERVER_WORK_MODE) || (this.serverConfiguration.get(KALTURA_WOWZA_SERVER_WORK_MODE).equals(KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA))) {
 			KalturaServerFileResource resource = new KalturaServerFileResource();
 			resource.localFilePath = filePath;
 			return resource;
