@@ -1,14 +1,15 @@
 <?xml version="1.0"?>
 <project name="KalturaWowzaServer" default="jar" basedir="..">
 
-	<property name="wowza.lib.dir" value="C:/Program Files (x86)/Wowza Media Systems/Wowza Media Server 3.6.3/lib" />
+	<property environment="env" />
+	<property name="wowza.lib.dir" value="${env.WMSINSTALL_HOME}" />
 	<property name="jar.filename" value="KalturaWowzaServer" />
 	<property name="core.build.dir" value="${basedir}/KalturaWowzaServer/bin" />
-	<property name="core.build.release" value="${basedir}/../bin" />
+	<property name="core.build.release" value="${basedir}/bin" />
 
 	<target name="jar" depends="set-version">
 
-		<jar jarfile="${wowza.lib.dir}/${jar.filename}.jar">
+		<jar jarfile="${wowza.lib.dir}/lib/${jar.filename}.jar">
 			<fileset dir="${core.build.dir}" />
 		</jar>
 		<jar jarfile="${core.build.release}/${jar.filename}-${jar.version}.jar">
