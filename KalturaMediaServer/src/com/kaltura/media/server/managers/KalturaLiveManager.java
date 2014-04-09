@@ -82,14 +82,15 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		private KalturaLiveEntry liveEntry;
 		private boolean registered = false;
 		private KalturaMediaServerIndex index = null;
+		private String applicationName = null;
 		private Date registerTime = null;
 		private ArrayList<KalturaConversionProfileAssetParams> conversionProfileAssetParams;
 		private Map<Integer, KalturaLiveAsset> liveAssets = new HashMap<Integer, KalturaLiveAsset>();
 		private Timer timer;
 
-		public LiveEntryCache(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
+		public LiveEntryCache(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex, String applicationName) {
 			this(liveEntry);
-			register(serverIndex);
+			register(serverIndex, applicationName);
 		}
 
 		public LiveEntryCache(KalturaLiveEntry liveEntry) {
@@ -142,12 +143,13 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			impersonateClient = null;
 		}
 
-		public synchronized void register(KalturaMediaServerIndex serverIndex) {
+		public synchronized void register(KalturaMediaServerIndex serverIndex, String appName) {
 			logger.debug("LiveEntryCache::register");
 			if(registered)
 				return;
-			
+
 			index = serverIndex;
+			applicationName = appName;
 
 			if (index == KalturaMediaServerIndex.PRIMARY)
 				cancelRedirect(liveEntry);
@@ -157,7 +159,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				@Override
 				public void run() {
 					logger.debug("LiveEntryCache::register: initial timer task running");
-					setEntryMediaServer(liveEntry, index);
+					setEntryMediaServer(liveEntry, index, applicationName);
 				}
 			};
 			
@@ -331,7 +333,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			{
 				case STREAM_PUBLISHED:
 					streamEvent = (KalturaStreamEvent) event;
-					onPublish(streamEvent.getEntryId(), streamEvent.getServerIndex());
+					onPublish(streamEvent.getEntryId(), streamEvent.getServerIndex(), streamEvent.getApplicationName());
 					break;
 		
 				case STREAM_UNPUBLISHED:
@@ -350,14 +352,14 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		}
 	}
 	
-	protected void onPublish(String entryId, final KalturaMediaServerIndex serverIndex) {
+	protected void onPublish(String entryId, final KalturaMediaServerIndex serverIndex, String applicationName) {
 		logger.debug("Entry [" + entryId + "]");
 
 		synchronized (entries) {
 
 			if (entries.containsKey(entryId)){
 				LiveEntryCache liveEntryCache = entries.get(entryId);
-				liveEntryCache.register(serverIndex);
+				liveEntryCache.register(serverIndex, applicationName);
 			}
 			else{
 				logger.error("entry [" + entryId + "] not found in entries array");
@@ -586,7 +588,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 							logger.debug("handling entry " + entryId);
 							if (liveEntryCache.isRegistered()) {
 								logger.debug("re-registering media server");
-								setEntryMediaServer(liveEntryCache.getLiveEntry(), liveEntryCache.index);
+								setEntryMediaServer(liveEntryCache.getLiveEntry(), liveEntryCache.index, liveEntryCache.applicationName);
 							}
 						}
 					}
@@ -720,12 +722,12 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		return null;
 	}
 	
-	protected void setEntryMediaServer(KalturaLiveEntry liveChannel, KalturaMediaServerIndex serverIndex) {
+	protected void setEntryMediaServer(KalturaLiveEntry liveChannel, KalturaMediaServerIndex serverIndex, String applicationName) {
 		KalturaClient impersonateClient = impersonate(liveChannel.partnerId);
 		KalturaServiceBase liveServiceInstance = getLiveServiceInstance(impersonateClient);
 		try {
 			Method method = liveServiceInstance.getClass().getMethod("registerMediaServer", String.class, String.class, KalturaMediaServerIndex.class);
-			method.invoke(liveServiceInstance, liveChannel.id, hostname, serverIndex);
+			method.invoke(liveServiceInstance, liveChannel.id, hostname, serverIndex, applicationName);
 		} catch (Exception e) {
 			logger.error("KalturaLiveManager::setEntryMediaServer unable to register media server: " + e.getMessage());
 		}

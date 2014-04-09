@@ -303,7 +303,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			
 			generateSmilFiles();
 			
-			onPublish(liveChannel.id, KalturaMediaServerIndex.PRIMARY); // TODO support fallback
+			onPublish(liveChannel.id, KalturaMediaServerIndex.PRIMARY, appInstance.getApplication().getName()); // TODO support fallback
 		}
 
 		private void generateSmilFiles() {

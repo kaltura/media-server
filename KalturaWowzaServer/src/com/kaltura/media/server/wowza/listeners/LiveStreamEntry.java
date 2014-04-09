@@ -73,7 +73,8 @@ public class LiveStreamEntry extends ModuleBase {
 	protected final static int INVALID_SERVER_INDEX = -1;
 
 	protected static Logger logger = Logger.getLogger(LiveStreamEntry.class);
-	
+
+	private String applicationName;
 	private LiveStreamManager liveStreamManager;
 	private DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
 	private LiveStreamListener liveStreamListener = new LiveStreamListener();
@@ -102,7 +103,7 @@ public class LiveStreamEntry extends ModuleBase {
 				}
 				entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
 			} else {
-				Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_");
+				Pattern pattern = Pattern.compile("(\\d_[\\d\\w]{8})_");
 				Matcher matcher = pattern.matcher(streamName);
 				if (!matcher.find()) {
 
@@ -180,7 +181,7 @@ public class LiveStreamEntry extends ModuleBase {
 				logger.debug("Publish: " + entryId);
 
 				if (!entryId.equals(streamName)){
-					Pattern pattern = Pattern.compile("^([01]_.{8})_(.+)$");
+					Pattern pattern = Pattern.compile("([01]_.{8})_(.+)$");
 					Matcher matcher = pattern.matcher(streamName);
 	
 					if (!matcher.find()) {
@@ -198,16 +199,16 @@ public class LiveStreamEntry extends ModuleBase {
 					assetParamsId = liveAsset.flavorParamsId;
 				}
 				
-				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_PUBLISHED, entry, serverIndex, stream, assetParamsId);
+				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_PUBLISHED, entry, serverIndex, applicationName, stream, assetParamsId);
 				KalturaEventsManager.raiseEvent(event);
 			}
 			else{ // streamed from the transcoder
 
-				Pattern pattern = Pattern.compile("^([01]_.{8})_(\\d+)$");
+				Pattern pattern = Pattern.compile("([01]_.{8})_(\\d+)$");
 				Matcher matcher = pattern.matcher(streamName);
 
 				if (!matcher.find()) {
-					logger.error("Transcoder published stream [" + streamName + "] does not mtach entry regex");
+					logger.error("Transcoder published stream [" + streamName + "] does not match entry regex");
 					return;
 				}
 
@@ -237,7 +238,7 @@ public class LiveStreamEntry extends ModuleBase {
 					WMSProperties clientProperties = client.getProperties();
 					KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
-					KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, liveStreamManager.get(entryId), serverIndex, stream, assetParamsId);
+					KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, liveStreamManager.get(entryId), serverIndex, applicationName, stream, assetParamsId);
 					KalturaEventsManager.raiseEvent(event);
 				}
 			}
@@ -257,7 +258,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 			logger.debug("UnPublish: " + liveStreamEntry.id);
 
-			KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_UNPUBLISHED, liveStreamEntry, serverIndex, stream);
+			KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_UNPUBLISHED, liveStreamEntry, serverIndex, applicationName, stream);
 			KalturaEventsManager.raiseEvent(event);
 		}
 
@@ -452,7 +453,7 @@ public class LiveStreamEntry extends ModuleBase {
 			final IApplicationInstance appInstance = liveStreamTranscoder.getAppInstance();
 			final String sourceGroupName = streamNameGroup.getStreamName();
 
-			Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_([^_]+)_(.+)$");
+			Pattern pattern = Pattern.compile("(\\d_[\\d\\w]{8})_([^_]+)_(.+)$");
 			Matcher matcher = pattern.matcher(sourceGroupName);
 			if (!matcher.find()) {
 				logger.info("Group name [" + sourceGroupName + "] does not match group name regex");
@@ -523,7 +524,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 			String sourceGroupName = streamNameGroup.getStreamName();
 
-			Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_([^_]+)_(.+)$");
+			Pattern pattern = Pattern.compile("(\\d_[\\d\\w]{8})_([^_]+)_(.+)$");
 			Matcher matcher = pattern.matcher(sourceGroupName);
 			if (!matcher.find()) {
 				logger.info("Group name [" + sourceGroupName + "] does not match group name regex");
@@ -648,6 +649,8 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	public void onAppStart(IApplicationInstance appInstance) {
+		applicationName = appInstance.getApplication().getName();
+		
 		appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
 		appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
 		
