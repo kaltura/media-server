@@ -332,8 +332,9 @@ public class CuePointsManager extends KalturaCuePointsManager {
 			
 			stream = streams.get(liveEntry.id);
 		}
-		
-		return (float) (liveEntry.msDuration + stream.getElapsedTime().getTimeSeconds());
+
+		logger.debug("Live entry duration [" + liveEntry.duration + "] stream elapsed time [" + stream.getElapsedTime().getTimeSeconds() + "]");
+		return (float) (liveEntry.duration + stream.getElapsedTime().getTimeSeconds());
 	}
 
 	@Override
@@ -354,6 +355,6 @@ public class CuePointsManager extends KalturaCuePointsManager {
 		data.put("timestamp", date.getTime());
 
 		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
-		logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "] stream [" + stream.getName() + "]");
+		logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "] stream [" + stream.getName() + "] offset [" + offset + "]");
 	}
 }
