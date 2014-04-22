@@ -286,8 +286,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 			{
 				case STREAM_PUBLISHED:
 					KalturaMediaStreamEvent streamEvent = (KalturaMediaStreamEvent) event;
-					KalturaLiveParams assetParams = liveManager.getLiveAssetParams(streamEvent.getAssetParamsId());
-					onPublish(streamEvent.getMediaStream(), streamEvent.getEntryId(), assetParams);
+					onPublish(streamEvent.getMediaStream(), streamEvent.getEntryId());
 					break;
 					
 				default:
@@ -303,13 +302,13 @@ public class CuePointsManager extends KalturaCuePointsManager {
 		applicationInstance.addLiveStreamPacketizerListener(liveStreamPacketizerListener);
 	}
 
-	protected void onPublish(IMediaStream stream, String entryId, KalturaLiveParams assetParams) {		
+	protected void onPublish(IMediaStream stream, String entryId) {		
 		if(stream.getClientId() < 0){
 			logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "] is a transcoded rendition");
 			return;
 		}
 		
-		logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "] asset params [" + assetParams.id + "]");
+		logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "]");
 		synchronized (streams) {
 			streams.put(entryId, stream);
 		}

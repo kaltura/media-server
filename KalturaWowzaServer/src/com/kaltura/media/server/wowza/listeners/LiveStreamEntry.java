@@ -196,7 +196,9 @@ public class LiveStreamEntry extends ModuleBase {
 					
 					String streamSuffix = matcher.group(2);
 					KalturaLiveAsset liveAsset = liveStreamManager.getLiveAsset(entry.id, streamSuffix);
-					assetParamsId = liveAsset.flavorParamsId;
+					if(liveAsset != null){
+						assetParamsId = liveAsset.flavorParamsId;
+					}
 				}
 				
 				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_PUBLISHED, entry, serverIndex, applicationName, stream, assetParamsId);
