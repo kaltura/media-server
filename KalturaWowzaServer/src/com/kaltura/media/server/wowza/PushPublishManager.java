@@ -38,6 +38,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	protected int maxPort;
 	protected int minPort;
 	protected int minFreePort;
+	protected int maxFreePort;
 	
 	protected ConcurrentHashMap<String,Integer> multicastPortsInUse = new ConcurrentHashMap<String,Integer>();
 	protected ConcurrentHashMap<String,PushPublishRTP> multicastPublishers = new ConcurrentHashMap<String,PushPublishRTP>();
@@ -54,6 +55,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	    minPort = Integer.parseInt(portRange[0]);
 	    maxPort = Integer.parseInt(portRange[1]);
 	    minFreePort = Integer.parseInt(portRange[0]);
+	    maxFreePort = Integer.parseInt(portRange[0]);
 	}
 	
 	@Override
@@ -124,14 +126,17 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 		    publisher.setSrcStream(stream);
 		    //Destination stream
 		    publisher.setHost((String)serverConfiguration.get(PushPublishManager.MULTICAST_IP_CONFIG_FIELD_NAME));
-		    publisher.setPort(minFreePort);
+		    publisher.setPort(maxFreePort);
 		    publisher.setTimeToLive("63");
 		    
 		    synchronized (multicastPortsInUse) {
-		    	multicastPortsInUse.put(entry.id, minFreePort);
-		    	while (multicastPortsInUse.containsValue(minFreePort))
+		    	multicastPortsInUse.put(entry.id, maxFreePort);
+		    	while (multicastPortsInUse.containsValue(maxFreePort))
 		    	{
-		    		minFreePort += 4; 
+		    		maxFreePort += 4;
+		    		if (maxFreePort > maxPort) {
+		    			maxFreePort = minFreePort;
+		    		}
 		    	}
 			}
 		    publisher.setDstStreamName("push-" + streamName);
