@@ -727,7 +727,8 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		KalturaServiceBase liveServiceInstance = getLiveServiceInstance(impersonateClient);
 		try {
 			Method method = liveServiceInstance.getClass().getMethod("registerMediaServer", String.class, String.class, KalturaMediaServerIndex.class);
-			method.invoke(liveServiceInstance, liveChannel.id, hostname, serverIndex, applicationName);
+//			method.invoke(liveServiceInstance, liveChannel.id, hostname, serverIndex, applicationName);
+			method.invoke(liveServiceInstance, liveChannel.id, hostname, serverIndex);
 		} catch (Exception e) {
 			logger.error("KalturaLiveManager::setEntryMediaServer unable to register media server: " + e.getMessage());
 		}
