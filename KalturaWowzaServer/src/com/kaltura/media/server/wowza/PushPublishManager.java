@@ -127,7 +127,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 		    //Destination stream
 		    publisher.setHost((String)serverConfiguration.get(PushPublishManager.MULTICAST_IP_CONFIG_FIELD_NAME));
 		    
-		    if (liveAsset.multicastPort > 0) {
+		    if (liveAsset.multicastPort > 0 && !(multicastPortsInUse.containsValue(liveAsset.multicastPort))) {
 		    	publisher.setPort(liveAsset.multicastPort);
 		    }
 		    else
