@@ -68,6 +68,8 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	protected final static long DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME = 5;
 	protected final static String KALTURA_WOWZA_SERVER_WORK_MODE_REMOTE = "remote";
 	protected final static String KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA = "kaltura";
+	
+	protected final static String LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION = "LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION";
 
 	protected static Logger logger = Logger.getLogger(KalturaLiveManager.class);
 	
@@ -674,7 +676,11 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			if(liveEntry.recordStatus == KalturaRecordStatus.ENABLED && index == KalturaMediaServerIndex.PRIMARY)
 				appendRecording(liveEntry);
 			
-		}  catch (Exception e) {
+		}
+		catch (Exception e) {
+			if(e instanceof KalturaApiException && ((KalturaApiException) e).code == KalturaLiveManager.LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION){
+				logger.info("Entry [" + entryId + "] exceeded max recording duration: " + e.getMessage());
+			}
 			logger.error("Unexpected error occurred: " + e.getMessage());
 		}
 		
