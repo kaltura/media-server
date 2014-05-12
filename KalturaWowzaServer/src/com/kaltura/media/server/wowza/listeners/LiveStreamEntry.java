@@ -35,6 +35,7 @@ import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
 import com.wowza.wms.amf.AMFData;
+import com.wowza.wms.amf.AMFDataItem;
 import com.wowza.wms.amf.AMFDataList;
 import com.wowza.wms.amf.AMFDataObj;
 import com.wowza.wms.amf.AMFPacket;
@@ -46,8 +47,14 @@ import com.wowza.wms.dvr.IDvrConstants;
 import com.wowza.wms.medialist.MediaList;
 import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
+import com.wowza.wms.rtp.model.IRTSPActionNotify;
+import com.wowza.wms.rtp.model.RTPSession;
+import com.wowza.wms.rtsp.RTSPRequestMessage;
+import com.wowza.wms.rtsp.RTSPResponseMessages;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.IMediaStreamActionNotify2;
+import com.wowza.wms.stream.IMediaStreamCallback;
+import com.wowza.wms.stream.MediaStream;
 import com.wowza.wms.stream.livedvr.ILiveStreamDvrRecorderControl;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerControl;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoder;
@@ -77,6 +84,8 @@ public class LiveStreamEntry extends ModuleBase {
 	private LiveStreamManager liveStreamManager;
 	private DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
 	private LiveStreamListener liveStreamListener = new LiveStreamListener();
+	//private RTPSessionListener rtpSessionListener = new RTPSessionListener();
+	private CallbackListener callbackListener = new CallbackListener ();
 	private LiveStreamTranscoderListener liveStreamTranscoderListener = new LiveStreamTranscoderListener();
 	private LiveStreamTranscoderActionListener liveStreamTranscoderActionListener = new LiveStreamTranscoderActionListener();
 	
@@ -566,11 +575,40 @@ public class LiveStreamEntry extends ModuleBase {
 		public void onLiveStreamTranscoderInit(ILiveStreamTranscoder iLiveStreamTranscoder, IMediaStream mediaStream) {
 		}
 	}
+	
+	
+	class CallbackListener implements IMediaStreamCallback {
+
+		@Override
+		public void onCallback(IMediaStream arg0, RequestFunction arg1,
+				AMFDataList arg2) {
+			logger.debug("LiveStreamEntry::onCallback: stream name ["+ arg0.getName() + "] request func: [" + arg1.toString() + "] AMFDataList [" + arg2.toString() + "]");
+			
+			String eventType = arg2.getString(0);
+			
+			if (eventType.equals("onCaption") ) {
+				
+				logger.debug("onTextData event received.");
+				AMFDataObj orig = (AMFDataObj) arg2.get(1);
+				AMFDataObj obj = new AMFDataObj();
+				obj.put("text", new AMFDataItem(orig.getString("text")));
+				obj.put("language", new AMFDataItem(orig.getString("language")));
+				obj.put("trackid", new AMFDataItem(orig.getInt("trackid")));
+				
+				arg0.sendDirect("onTextData", obj);
+				((MediaStream)arg0).processSendDirectMessages();
+			}
+			
+		}
+		
+	}
 
 	public void onStreamCreate(IMediaStream stream) {
 		logger.debug("LiveStreamEntry::onStreamCreate");
 		stream.addClientListener(liveStreamListener);
+		stream.addCalbackListener(callbackListener);
 	}
+
 
 	public void onDisconnect(IClient client) {
 		WMSProperties clientProperties = client.getProperties();
