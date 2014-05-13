@@ -105,7 +105,7 @@ function handleUploadXMLResource (SimpleXMLElement $uploadXML, KalturaClient $cl
 			return false;
 		}
 		
-		appendRecording($liveEntry, $client);
+		return appendRecording($liveEntry, $client);
 		
 }
 
@@ -172,7 +172,7 @@ function appendRecording (KalturaLiveStreamEntry $liveEntry, KalturaClient $clie
 		if (!$mediaEntry)
 		{
 			var_dump("recorded media entry is null for entry [" . $liveEntry->id . "]: creating media entry failed");
-			return;
+			return false;
 		}
 		$recordedEntryId = $mediaEntry->id;
 	}
@@ -186,7 +186,10 @@ function appendRecording (KalturaLiveStreamEntry $liveEntry, KalturaClient $clie
 
 	} catch (Exception $e) {
 		var_dump("failed to add content resource [$recordedEntryId]: " . $e->getMessage());
+		return false;
 	}
+	
+	return true;
 }
 
 function  reloadEntry($entryId, KalturaClient $client) {
