@@ -154,6 +154,7 @@ public class LiveStreamEntry extends ModuleBase {
 			int assetParamsId = Integer.MIN_VALUE;
 			if (client != null){ // streamed from the client
 				WMSProperties clientProperties = client.getProperties();
+				logger.debug("Client IP: " + client.getIp().toString());
 				if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
 					onClientConnect(client);
 					if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
@@ -174,6 +175,18 @@ public class LiveStreamEntry extends ModuleBase {
 						logger.error("Following reconnection attempt, client still not authenticated for stream [" + streamName + "]");
 						client.rejectConnection("Client is not authenticated", "Client not authenticated");
 						return;						
+					}
+				}
+				
+				if (liveStreamManager.disconnectingTimers.containsKey(entryId))
+				{
+					logger.info("This entry is scheduled for disconnect. Cancelling the diconnect.");
+					Timer disconnectTimer = liveStreamManager.disconnectingTimers.get(entryId);
+					disconnectTimer.cancel();
+					disconnectTimer.purge();
+					
+					synchronized (liveStreamManager.disconnectingTimers) {
+						liveStreamManager.disconnectingTimers.remove(entryId);
 					}
 				}
 				
