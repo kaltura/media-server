@@ -178,14 +178,13 @@ public class LiveStreamEntry extends ModuleBase {
 					}
 				}
 				
-				if (liveStreamManager.disconnectingTimers.containsKey(entryId))
-				{
-					logger.info("This entry is scheduled for disconnect. Cancelling the diconnect.");
-					Timer disconnectTimer = liveStreamManager.disconnectingTimers.get(entryId);
-					disconnectTimer.cancel();
-					disconnectTimer.purge();
-					
-					synchronized (liveStreamManager.disconnectingTimers) {
+				synchronized (liveStreamManager.disconnectingTimers) {
+					if (liveStreamManager.disconnectingTimers.containsKey(entryId))
+					{
+						logger.info("This entry is scheduled for disconnect. Cancelling the diconnect.");
+						Timer disconnectTimer = liveStreamManager.disconnectingTimers.get(entryId);
+						disconnectTimer.cancel();
+						disconnectTimer.purge();
 						liveStreamManager.disconnectingTimers.remove(entryId);
 					}
 				}

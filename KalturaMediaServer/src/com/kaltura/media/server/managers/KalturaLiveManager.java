@@ -391,18 +391,18 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			
 			@Override
 			public void run() {
-				synchronized (entries) {
-					if (entries.containsKey(entryId)) {
-						LiveEntryCache liveEntryCache = entries.remove(entryId);
-						if (liveEntryCache.index != null) {
-							liveEntryCache.unregister();
+				synchronized (disconnectingTimers) {
+					synchronized (entries) {
+						if (entries.containsKey(entryId)) {
+							LiveEntryCache liveEntryCache = entries.remove(entryId);
+							if (liveEntryCache.index != null) {
+								liveEntryCache.unregister();
+							}
 						}
 					}
-				}
-				
-				logger.info("Removing disconnect timer for entry [" + entryId + "]: disconnect process is complete");
-				synchronized (disconnectingTimers) {
-					disconnectingTimers.remove(entryId);
+					
+					logger.info("Removing disconnect timer for entry [" + entryId + "]: disconnect process is complete");
+						disconnectingTimers.remove(entryId);
 				}
 			}
 		};
