@@ -2,6 +2,8 @@ package com.kaltura.media.server.wowza;
 
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.codec.binary.Base64;
@@ -26,6 +28,7 @@ import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.CupertinoPacketHolder;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.IHTTPStreamerCupertinoLivePacketizerDataHandler;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.LiveStreamPacketizerCupertino;
+import com.wowza.wms.httpstreamer.cupertinostreaming.util.LiveStreamPacketizerCupertinoUtils;
 import com.wowza.wms.media.mp3.model.idtags.ID3Frames;
 import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameBase;
 import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameRawBytes;
@@ -338,7 +341,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 
 	@Override
 	public void sendSyncPoint(String entryId, String id, float offset) throws KalturaManagerException {
-		IMediaStream stream;
+		final IMediaStream stream;
 		synchronized (streams) {
 			if(!streams.containsKey(entryId))
 				throw new KalturaManagerException("Entry [" + entryId + "] media stream not found");
@@ -354,6 +357,21 @@ public class CuePointsManager extends KalturaCuePointsManager {
 		data.put("timestamp", date.getTime());
 
 		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
+		
 		logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "] stream [" + stream.getName() + "] offset [" + offset + "]");
+
+		TimerTask task = new TimerTask() {
+			
+			@Override
+			public void run() {
+				AMFDataObj clear = new AMFDataObj();
+				clear.put("objectType", "");
+				
+				stream.sendDirect(CuePointsManager.PUBLIC_METADATA, clear);
+			}
+		};
+		
+		Timer timer = new Timer();
+		timer.schedule(task, 1000);
 	}
 }
