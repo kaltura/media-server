@@ -10,4 +10,6 @@ public interface ILiveStreamManager extends IManager, ILiveManager {
 	public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token) throws KalturaApiException;
 
 	public boolean splitRecordingNow(String entryId);
+	
+	public boolean shouldSync(String entryId);
 }

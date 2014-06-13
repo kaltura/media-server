@@ -1,27 +1,44 @@
 package com.kaltura.media.server.wowza.packetizer;
 
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
+import com.kaltura.media.server.KalturaServer;
+import com.kaltura.media.server.managers.ILiveStreamManager;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.LiveStreamPacketizerCupertino;
-import com.wowza.wms.media.model.MediaCodecInfoAudio;
-import com.wowza.wms.media.model.MediaCodecInfoVideo;
 
 public class LiveStreamPacketizerKaltura extends LiveStreamPacketizerCupertino {
 
-	protected static Logger logger = Logger.getLogger(LiveStreamPacketizerKaltura.class);
+	protected int firstChunkId = 1;
+	protected ILiveStreamManager liveStreamManager = null;
 
-	int firstChunkId = 1;
+	protected static Logger logger = Logger.getLogger(LiveStreamPacketizerKaltura.class);
 	
 	public LiveStreamPacketizerKaltura() {
 		super();
+		
+		liveStreamManager = (ILiveStreamManager) KalturaServer.getManager(ILiveStreamManager.class);
 	}
 
 	@Override
 	public int getFirstChunkId() {
-		Date now = new Date();
-		firstChunkId = (new Long(now.getTime() / 10000)).intValue();
+		Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_publish");
+		Matcher matcher = pattern.matcher(streamName);
+		if (matcher.find()) {
+
+			String entryId = matcher.group(1);
+			logger.info("Stream [" + streamName + "] entry id [" + entryId + "]");
+			
+			if(liveStreamManager != null && liveStreamManager.shouldSync(entryId)){
+				logger.info("Stream [" + streamName + "] should be synched");
+				Date now = new Date();
+				firstChunkId = (new Long(now.getTime() / 10000)).intValue();
+			}
+		}
+		
 		return firstChunkId;
 	}
 
