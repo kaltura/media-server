@@ -65,7 +65,7 @@ public class KalturaServer {
 			hostname = InetAddress.getLocalHost().getHostName();
 			logger.debug("Kaltura server host name: " + hostname);
 		} catch (UnknownHostException e) {
-			throw new KalturaServerException("Failed to determine server host name");
+			throw new KalturaServerException("Failed to determine server host name: " + e.getMessage());
 		}
 
 		initClient();
