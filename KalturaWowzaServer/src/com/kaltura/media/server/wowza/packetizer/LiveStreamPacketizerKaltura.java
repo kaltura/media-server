@@ -25,7 +25,7 @@ public class LiveStreamPacketizerKaltura extends LiveStreamPacketizerCupertino {
 
 	@Override
 	public int getFirstChunkId() {
-		Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_publish");
+		Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_\\d+_publish");
 		Matcher matcher = pattern.matcher(streamName);
 		if (matcher.find()) {
 
@@ -38,6 +38,7 @@ public class LiveStreamPacketizerKaltura extends LiveStreamPacketizerCupertino {
 				firstChunkId = (new Long(now.getTime() / 10000)).intValue();
 			}
 		}
+		logger.info("Stream [" + streamName + "] didn't match entry regext");
 		
 		return firstChunkId;
 	}
