@@ -154,7 +154,7 @@ public class LiveStreamEntry extends ModuleBase {
 	class TranscoderControl implements ILiveStreamTranscoderControl {
 		public boolean isLiveStreamTranscode(String transcoder, IMediaStream stream)
 		{
-			if (stream.getName().endsWith("_publish")){
+			if (stream.getName().endsWith("_publish") || stream.isTranscodeResult()){
 				return false;
 			}
 				
@@ -169,6 +169,11 @@ public class LiveStreamEntry extends ModuleBase {
 		@Override
 		public void onPublish(IMediaStream mediaStream, String streamName, boolean flag, boolean flag1) {
 
+			if(!mediaStream.isTranscodeResult()){
+				logger.debug("Stream [" + streamName + "] already published");
+				return;
+			}
+			
 			Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_\\d+");
 			Matcher matcher = pattern.matcher(streamName);
 			if (!matcher.find()) {
