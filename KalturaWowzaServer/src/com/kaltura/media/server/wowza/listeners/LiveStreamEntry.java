@@ -52,6 +52,7 @@ import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import com.wowza.wms.stream.livedvr.ILiveStreamDvrRecorderControl;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerControl;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoder;
+import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoderControl;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoderNotify;
 import com.wowza.wms.stream.publish.Publisher;
 import com.wowza.wms.stream.publish.Stream;
@@ -150,6 +151,17 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
+	class TranscoderControl implements ILiveStreamTranscoderControl {
+		public boolean isLiveStreamTranscode(String transcoder, IMediaStream stream)
+		{
+			if (stream.getName().endsWith("_publish")){
+				return false;
+			}
+				
+			return true;
+		}
+	}
+	
 	class RestreamerStreamActionListener extends MediaStreamActionNotifyBase {
 		
 		Stream stream;
@@ -700,6 +712,7 @@ public class LiveStreamEntry extends ModuleBase {
 		this.appInstance = appInstance;
 		appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
 		appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
+		appInstance.setLiveStreamTranscoderControl(new TranscoderControl());
 		
 		setLiveStreamManager();
 		
