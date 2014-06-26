@@ -32,12 +32,15 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	protected final static String MULTICAST_IP_CONFIG_FIELD_NAME = "MulticastIP";
 	protected final static String MULTICAST_TAG_FIELD_NAME = "MulticastTag";
 	protected final static String MULTICAST_PORT_RANGE_FIELD_NAME = "MulticastPortRange";
+	protected final static String MULTICAST_STREAM_TIMEOUT = "multicastStreamTimeout";
+	protected final static int MULTICAST_DEFAULT_STREAM_TIMEOUT = 10000;
 	
 	protected static Logger logger = Logger.getLogger(KalturaLiveManager.class);
 	protected ILiveManager liveManager;
 	protected int maxPort;
 	protected int minPort;
 	protected int minFreePort;
+	protected int maxFreePort;
 	
 	protected ConcurrentHashMap<String,Integer> multicastPortsInUse = new ConcurrentHashMap<String,Integer>();
 	protected ConcurrentHashMap<String,PushPublishRTP> multicastPublishers = new ConcurrentHashMap<String,PushPublishRTP>();
@@ -54,6 +57,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	    minPort = Integer.parseInt(portRange[0]);
 	    maxPort = Integer.parseInt(portRange[1]);
 	    minFreePort = Integer.parseInt(portRange[0]);
+	    maxFreePort = Integer.parseInt(portRange[0]);
 	}
 	
 	@Override
@@ -124,14 +128,30 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 		    publisher.setSrcStream(stream);
 		    //Destination stream
 		    publisher.setHost((String)serverConfiguration.get(PushPublishManager.MULTICAST_IP_CONFIG_FIELD_NAME));
-		    publisher.setPort(minFreePort);
+		    
+		    int defaultStreamTimeout = serverConfiguration.containsKey(PushPublishManager.MULTICAST_STREAM_TIMEOUT) ? (int)serverConfiguration.get(PushPublishManager.MULTICAST_STREAM_TIMEOUT) : PushPublishManager.MULTICAST_DEFAULT_STREAM_TIMEOUT;
+		    
+		    logger.debug("timeout: " + defaultStreamTimeout);
+		    publisher.setRtpStreamWaitTimeout(defaultStreamTimeout);
+		    
+		    if (liveAsset.multicastPort > 0 && !(multicastPortsInUse.containsValue(liveAsset.multicastPort))) {
+		    	publisher.setPort(liveAsset.multicastPort);
+		    }
+		    else
+		    {
+		    	publisher.setPort (maxFreePort);
+		    }
+		    
 		    publisher.setTimeToLive("63");
 		    
 		    synchronized (multicastPortsInUse) {
-		    	multicastPortsInUse.put(entry.id, minFreePort);
-		    	while (multicastPortsInUse.containsValue(minFreePort))
+		    	multicastPortsInUse.put(entry.id, maxFreePort);
+		    	while (multicastPortsInUse.containsValue(maxFreePort))
 		    	{
-		    		minFreePort += 4; 
+		    		maxFreePort += 4;
+		    		if (maxFreePort > maxPort) {
+		    			maxFreePort = minFreePort;
+		    		}
 		    	}
 			}
 		    publisher.setDstStreamName("push-" + streamName);

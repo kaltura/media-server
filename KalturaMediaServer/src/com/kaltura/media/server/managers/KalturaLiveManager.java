@@ -68,11 +68,14 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	protected final static long DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME = 5;
 	protected final static String KALTURA_WOWZA_SERVER_WORK_MODE_REMOTE = "remote";
 	protected final static String KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA = "kaltura";
+	
+	protected final static String LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION = "LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION";
 
 	protected static Logger logger = Logger.getLogger(KalturaLiveManager.class);
 	
 	protected ConcurrentHashMap<String, LiveEntryCache> entries = new ConcurrentHashMap<String, LiveEntryCache>();
 	protected ConcurrentHashMap<Integer, KalturaLiveParams> liveAssetParams = new ConcurrentHashMap<Integer, KalturaLiveParams>();
+	public ConcurrentHashMap<String, Timer> disconnectingTimers = new ConcurrentHashMap<String, Timer>();
 	protected long isLiveRegistrationMinBufferTime = KalturaLiveManager.DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME;
 
 	private Timer setMediaServerTimer;
@@ -390,18 +393,27 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			
 			@Override
 			public void run() {
-				synchronized (entries) {
-					if (entries.containsKey(entryId)) {
-						LiveEntryCache liveEntryCache = entries.remove(entryId);
-						if (liveEntryCache.index != null) {
-							liveEntryCache.unregister();
+				synchronized (disconnectingTimers) {
+					synchronized (entries) {
+						if (entries.containsKey(entryId)) {
+							LiveEntryCache liveEntryCache = entries.remove(entryId);
+							if (liveEntryCache.index != null) {
+								liveEntryCache.unregister();
+							}
 						}
 					}
+					
+					logger.info("Removing disconnect timer for entry [" + entryId + "]: disconnect process is complete");
+						disconnectingTimers.remove(entryId);
 				}
 			}
 		};
 		
 		Timer delayedRemoveTimer = new Timer();
+		logger.info("Disconnect timer saved for entry["  + entryId + "]");
+		synchronized (disconnectingTimers) {
+			this.disconnectingTimers.put(entryId, delayedRemoveTimer);
+		}
 		delayedRemoveTimer.schedule(task, 5000);
 	}
 
@@ -676,7 +688,11 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			if(liveEntry.recordStatus == KalturaRecordStatus.ENABLED && index == KalturaMediaServerIndex.PRIMARY)
 				appendRecording(liveEntry);
 			
-		}  catch (Exception e) {
+		}
+		catch (Exception e) {
+			if(e instanceof KalturaApiException && ((KalturaApiException) e).code == KalturaLiveManager.LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION){
+				logger.info("Entry [" + entryId + "] exceeded max recording duration: " + e.getMessage());
+			}
 			logger.error("Unexpected error occurred: " + e.getMessage());
 		}
 		
