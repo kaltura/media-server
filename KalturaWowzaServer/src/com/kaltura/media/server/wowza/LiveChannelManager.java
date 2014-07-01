@@ -403,4 +403,10 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 		LiveChannelContainer liveChannelContainer = new LiveChannelContainer(liveChannel, segmentEntries);
 		liveChannelContainer.start();
 	}
+
+	@Override
+	protected void disconnectStream(String entryId) {
+		// TODO Auto-generated method stub
+		
+	}
 }
