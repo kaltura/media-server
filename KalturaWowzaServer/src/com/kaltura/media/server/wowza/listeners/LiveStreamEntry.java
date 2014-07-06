@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -47,18 +48,17 @@ import com.wowza.wms.dvr.IDvrConstants;
 import com.wowza.wms.medialist.MediaList;
 import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
-import com.wowza.wms.rtp.model.IRTSPActionNotify;
-import com.wowza.wms.rtp.model.RTPSession;
-import com.wowza.wms.rtsp.RTSPRequestMessage;
-import com.wowza.wms.rtsp.RTSPResponseMessages;
 import com.wowza.wms.stream.IMediaStream;
-import com.wowza.wms.stream.IMediaStreamActionNotify2;
 import com.wowza.wms.stream.IMediaStreamCallback;
 import com.wowza.wms.stream.MediaStream;
+import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import com.wowza.wms.stream.livedvr.ILiveStreamDvrRecorderControl;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerControl;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoder;
+import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoderControl;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoderNotify;
+import com.wowza.wms.stream.publish.Publisher;
+import com.wowza.wms.stream.publish.Stream;
 import com.wowza.wms.transcoder.model.LiveStreamTranscoder;
 import com.wowza.wms.transcoder.model.LiveStreamTranscoderActionNotifyBase;
 import com.wowza.wms.transcoder.model.TranscoderStreamNameGroup;
@@ -88,6 +88,7 @@ public class LiveStreamEntry extends ModuleBase {
 	private CallbackListener callbackListener = new CallbackListener ();
 	private LiveStreamTranscoderListener liveStreamTranscoderListener = new LiveStreamTranscoderListener();
 	private LiveStreamTranscoderActionListener liveStreamTranscoderActionListener = new LiveStreamTranscoderActionListener();
+	private IApplicationInstance appInstance;
 	
 	private class DvrRecorderControl implements ILiveStreamDvrRecorderControl, ILiveStreamPacketizerControl {
 
@@ -155,7 +156,69 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
-	class LiveStreamListener implements IMediaStreamActionNotify2 {
+	class TranscoderControl implements ILiveStreamTranscoderControl {
+		public boolean isLiveStreamTranscode(String transcoder, IMediaStream stream)
+		{
+			if (stream.getName().endsWith("_publish") || stream.isTranscodeResult()){
+				return false;
+			}
+				
+			return true;
+		}
+	}
+	
+	class RestreamerStreamActionListener extends MediaStreamActionNotifyBase {
+		
+		Stream stream;
+
+		@Override
+		public void onPublish(IMediaStream mediaStream, String streamName, boolean flag, boolean flag1) {
+
+			if(!mediaStream.isTranscodeResult()){
+				logger.debug("Stream [" + streamName + "] already published");
+				return;
+			}
+			
+			Pattern pattern = Pattern.compile("^(\\d_[\\d\\w]{8})_\\d+");
+			Matcher matcher = pattern.matcher(streamName);
+			if (!matcher.find()) {
+				logger.info("Stream [" + streamName + "] entry id regex didn't match");
+				return;
+			}
+
+			String entryId = matcher.group(1);
+			logger.info("Stream [" + streamName + "] entry id [" + entryId + "]");
+				
+			if(liveStreamManager == null || !liveStreamManager.shouldSync(entryId)){
+				logger.info("Stream [" + streamName + "] entry id [" + entryId + "] should not be restreamed");
+				return;
+			}
+			
+			if(appInstance.getStreams().getStream(streamName + "_publish") != null){
+				logger.debug("Stream [" + streamName + "] already published");
+				return;
+			}
+				
+			logger.info("Restreaming [" + streamName + "]");
+			byte bytes[] = new byte[]{};
+			Date date = new Date();
+		
+			stream = Stream.createInstance(appInstance, streamName + "_publish");
+			Publisher publisher = stream.getPublisher();
+			publisher.addVideoData(bytes, 0, date.getTime());
+			stream.play(streamName, -2, -1, false);
+		}
+
+		@Override
+		public void onUnPublish(IMediaStream imediastream, String s, boolean flag, boolean flag1) {
+			if(stream != null){
+				stream.close();
+				stream = null;
+			}
+		}
+	}
+	
+	class LiveStreamListener extends MediaStreamActionNotifyBase {
 
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
@@ -163,6 +226,7 @@ public class LiveStreamEntry extends ModuleBase {
 			int assetParamsId = Integer.MIN_VALUE;
 			if (client != null){ // streamed from the client
 				WMSProperties clientProperties = client.getProperties();
+				logger.debug("Client IP: " + client.getIp().toString());
 				if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
 					onClientConnect(client);
 					if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
@@ -183,6 +247,17 @@ public class LiveStreamEntry extends ModuleBase {
 						logger.error("Following reconnection attempt, client still not authenticated for stream [" + streamName + "]");
 						client.rejectConnection("Client is not authenticated", "Client not authenticated");
 						return;						
+					}
+				}
+				
+				synchronized (liveStreamManager.disconnectingTimers) {
+					if (liveStreamManager.disconnectingTimers.containsKey(entryId))
+					{
+						logger.info("This entry is scheduled for disconnect. Cancelling the diconnect.");
+						Timer disconnectTimer = liveStreamManager.disconnectingTimers.get(entryId);
+						disconnectTimer.cancel();
+						disconnectTimer.purge();
+						liveStreamManager.disconnectingTimers.remove(entryId);
 					}
 				}
 				
@@ -270,18 +345,6 @@ public class LiveStreamEntry extends ModuleBase {
 
 			KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_UNPUBLISHED, liveStreamEntry, serverIndex, stream);
 			KalturaEventsManager.raiseEvent(event);
-		}
-
-		public void onPause(IMediaStream stream, boolean isPause, double location) {
-		}
-
-		public void onPlay(IMediaStream stream, String streamName, double playStart, double playLen, int playReset) {
-		}
-
-		public void onSeek(IMediaStream stream, double location) {
-		}
-
-		public void onStop(IMediaStream stream) {
 		}
 
 		@SuppressWarnings("unchecked")
@@ -385,10 +448,6 @@ public class LiveStreamEntry extends ModuleBase {
 			
 			IKalturaEvent event = new KalturaMetadataEvent(KalturaEventType.METADATA, entry, serverIndex, object);
 			KalturaEventsManager.raiseEvent(event);
-		}
-
-		@Override
-		public void onPauseRaw(IMediaStream imediastream, boolean flag, double d) {
 		}
 	}
 	
@@ -607,6 +666,8 @@ public class LiveStreamEntry extends ModuleBase {
 		logger.debug("LiveStreamEntry::onStreamCreate");
 		stream.addClientListener(liveStreamListener);
 		stream.addCalbackListener(callbackListener);
+		stream.addClientListener(new RestreamerStreamActionListener());
+
 	}
 
 
@@ -688,8 +749,10 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	public void onAppStart(IApplicationInstance appInstance) {
+		this.appInstance = appInstance;
 		appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
 		appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
+		appInstance.setLiveStreamTranscoderControl(new TranscoderControl());
 		
 		setLiveStreamManager();
 		

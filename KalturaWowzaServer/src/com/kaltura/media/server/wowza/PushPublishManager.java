@@ -32,6 +32,8 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	protected final static String MULTICAST_IP_CONFIG_FIELD_NAME = "MulticastIP";
 	protected final static String MULTICAST_TAG_FIELD_NAME = "MulticastTag";
 	protected final static String MULTICAST_PORT_RANGE_FIELD_NAME = "MulticastPortRange";
+	protected final static String MULTICAST_STREAM_TIMEOUT = "multicastStreamTimeout";
+	protected final static int MULTICAST_DEFAULT_STREAM_TIMEOUT = 10000;
 	
 	protected static Logger logger = Logger.getLogger(KalturaLiveManager.class);
 	protected ILiveManager liveManager;
@@ -126,6 +128,11 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 		    publisher.setSrcStream(stream);
 		    //Destination stream
 		    publisher.setHost((String)serverConfiguration.get(PushPublishManager.MULTICAST_IP_CONFIG_FIELD_NAME));
+		    
+		    int defaultStreamTimeout = serverConfiguration.containsKey(PushPublishManager.MULTICAST_STREAM_TIMEOUT) ? (int)serverConfiguration.get(PushPublishManager.MULTICAST_STREAM_TIMEOUT) : PushPublishManager.MULTICAST_DEFAULT_STREAM_TIMEOUT;
+		    
+		    logger.debug("timeout: " + defaultStreamTimeout);
+		    publisher.setRtpStreamWaitTimeout(defaultStreamTimeout);
 		    
 		    if (liveAsset.multicastPort > 0 && !(multicastPortsInUse.containsValue(liveAsset.multicastPort))) {
 		    	publisher.setPort(liveAsset.multicastPort);
