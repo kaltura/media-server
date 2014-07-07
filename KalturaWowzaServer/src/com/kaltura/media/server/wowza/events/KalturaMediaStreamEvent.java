@@ -8,14 +8,14 @@ import com.wowza.wms.stream.IMediaStream;
 
 public class KalturaMediaStreamEvent extends KalturaStreamEvent {
 
-	public KalturaMediaStreamEvent(IKalturaEventType type, KalturaLiveEntry entry, KalturaMediaServerIndex serverIndex, IMediaStream mediaStream) {
-		super(type, entry, serverIndex);
+	public KalturaMediaStreamEvent(IKalturaEventType type, KalturaLiveEntry entry, KalturaMediaServerIndex serverIndex, String applicationName, IMediaStream mediaStream) {
+		super(type, entry, serverIndex, applicationName);
 
 		this.mediaStream = mediaStream;
 	}
 
-	public KalturaMediaStreamEvent(IKalturaEventType type, KalturaLiveEntry entry, KalturaMediaServerIndex serverIndex, IMediaStream mediaStream, int assetParamsId) {
-		this(type, entry, serverIndex, mediaStream);
+	public KalturaMediaStreamEvent(IKalturaEventType type, KalturaLiveEntry entry, KalturaMediaServerIndex serverIndex, String applicationName, IMediaStream mediaStream, int assetParamsId) {
+		this(type, entry, serverIndex, applicationName, mediaStream);
 
 		this.assetParamsId = assetParamsId;
 	}

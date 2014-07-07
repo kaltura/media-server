@@ -69,44 +69,44 @@ foreach ($files as $f)
 function handleUploadXMLResource (SimpleXMLElement $uploadXML, KalturaClient $client)
 {
 	$entryId = strval($uploadXML->entryId);
-		$partnerId = strval ($uploadXML->partnerId);
-		$partnerAdminSecret = strval ($uploadXML->adminSecret);
-		$duration = intval ($uploadXML->duration);
-		$index = intval($uploadXML->index);
-		$filepath = strval($uploadXML->filepath);
-		$workmode = strval($uploadXML->workMode);
+	$assetId = strval($uploadXML->assetId);
+	$partnerId = strval ($uploadXML->partnerId);
+	$partnerAdminSecret = strval ($uploadXML->adminSecret);
+	$duration = intval ($uploadXML->duration);
+	$index = intval($uploadXML->index);
+	$filepath = strval($uploadXML->filepath);
+	$workmode = strval($uploadXML->workMode);
+	
+	var_dump("append recording: entry [$entryId] asset [$assetId] index [$index] filePath [$filepath] duration [$duration]");
 		
-		var_dump("append recording: entry [$entryId] index [$index] filePath [$filepath] duration [$duration]");
-			
-		$clientConfig = $client->getConfig();
-		$clientConfig->partnerId = $partnerId;
-		$client->setConfig($clientConfig);
-		
-		try 
-		{
-			$liveEntry = $client->liveStream->get($entryId);
-		}
-		catch (Exception $e)
-		{
-			var_dump ("An error occured retrieving entry with id [$entryId]. Error message [" . $e->getMessage() . "]");
-			return false;
-		}
-		
-		$resource = getContentResource($filepath, $liveEntry, $workmode,$client);
-		if (!$resource)
-			return false;
-		
-		try {
-			$updatedEntry = $client->liveStream->appendRecording($entryId, $index, $resource, $duration);
-		}
-		catch (Exception $e)
-		{
-			var_dump('Append live recording error: ' . $e->getMessage());
-			return false;
-		}
-		
-		return appendRecording($liveEntry, $client);
-		
+	$clientConfig = $client->getConfig();
+	$clientConfig->partnerId = $partnerId;
+	$client->setConfig($clientConfig);
+	
+	try 
+	{
+		$liveEntry = $client->liveStream->get($entryId);
+	}
+	catch (Exception $e)
+	{
+		var_dump ("An error occured retrieving entry with id [$entryId]. Error message [" . $e->getMessage() . "]");
+		return false;
+	}
+	
+	$resource = getContentResource($filepath, $liveEntry, $workmode, $client);
+	if (!$resource)
+		return false;
+	
+	try {
+		$updatedEntry = $client->liveStream->appendRecording($entryId, $assetId, $index, $resource, $duration);
+	}
+	catch (Exception $e)
+	{
+		var_dump('Append live recording error: ' . $e->getMessage());
+		return false;
+	}
+	
+	return true;
 }
 
 /**
@@ -152,102 +152,3 @@ function getContentResource ($filepath, KalturaLiveStreamEntry $liveEntry, $work
 	
 	return null;
 }
-
-function appendRecording (KalturaLiveStreamEntry $liveEntry, KalturaClient $client){
-	var_dump("creating media entry for live entry [" . $liveEntry->id . "]");
-
-	$resource = new KalturaEntryResource();
-	$resource->entryId = $liveEntry->id;
-
-	$recordedEntryId = $liveEntry->recordedEntryId;
-	if (!$recordedEntryId) {
-		var_dump("recorded media entry is null for entry [" . $liveEntry->id . "]: reloading");
-		$liveEntry = reloadEntry($liveEntry->id, $liveEntry->partnerId, $client);
-		$recordedEntryId = $liveEntry->recordedEntryId;
-	}
-
-	if (!$recordedEntryId) {
-		var_dump("recorded media entry is null for entry [" . $liveEntry->id . "]: creating media entry");
-		$mediaEntry = createMediaEntry($liveEntry, $client);
-		if (!$mediaEntry)
-		{
-			var_dump("recorded media entry is null for entry [" . $liveEntry->id . "]: creating media entry failed");
-			return false;
-		}
-		$recordedEntryId = $mediaEntry->id;
-	}
-
-	try {
-		$client->media->cancelReplace($recordedEntryId);
-		$mediaEntry = $client->media->updateContent($recordedEntryId, $resource);
-
-		if (!is_null($mediaEntry->replacingEntryId))
-			$client->media->approveReplace($recordedEntryId);
-
-	} catch (Exception $e) {
-		var_dump("failed to add content resource [$recordedEntryId]: " . $e->getMessage());
-		return false;
-	}
-	
-	return true;
-}
-
-function  reloadEntry($entryId, KalturaClient $client) {
-	try {
-		$liveStreamEntry = $client->liveStream->get($entryId);
-	} catch (Exception $e) {
-		var_dump("KalturaLiveStreamManager::reloadEntry unable to get entry [$entryId]: " . $e->getMessage());
-		return null;
-	}
-
-	return $liveStreamEntry;
-}
-	
-
-function createMediaEntry(KalturaLiveEntry $liveEntry, KalturaClient $client) {
-	var_dump("creating media entry for live entry [{$liveEntry->id}]");
-
-	if ($liveEntry->recordedEntryId) {
-		try {
-			$mediaEntry = $client->media->get($liveEntry->recordedEntryId);
-		} catch (Exception $e) {
-			var_dump("failed to get recorded media entry [{$liveEntry->recordedEntryId}]: " . $e->getMessage());
-		}
-	}
-
-	if (!$mediaEntry) {
-		$mediaEntry = new KalturaMediaEntry();
-		$mediaEntry->rootEntryId = $liveEntry->id;
-		$mediaEntry->name = $liveEntry->name;
-		$mediaEntry->description = $liveEntry->description;
-		$mediaEntry->sourceType = KalturaSourceType::RECORDED_LIVE;
-		$mediaEntry->mediaType = KalturaMediaType::VIDEO;
-		$mediaEntry->accessControlId = $liveEntry->accessControlId;
-		$mediaEntry->userId = $liveEntry->userId;
-
-		try {
-			$mediaEntry = $client->media->add($mediaEntry);
-		} catch (Exception $e) {
-			var_dump("failed to create media entry: " . $e->getMessage());
-			return null;
-		}
-		var_dump("created media entry [" . $mediaEntry->id . "] for live entry [" . $liveEntry->id . "]");
-	}
-
-	try {
-		$class = get_class($liveEntry);
-		$updateLiveEntry = new $class();
-	} catch (Exception $e) {
-		var_dump("failed to instantiate [" . get_class($liveEntry).+ "]: " . $e->getMessage());
-		return null;
-	}
-	$updateLiveEntry->recordedEntryId = $mediaEntry->id;
-	try {
-		$client->baseEntry->update($liveEntry->id, $updateLiveEntry);
-	} catch (Exception $e) {
-		var_dump("failed to upload file: " . $e->getMessage());
-	}
-
-	return $mediaEntry;
-}
-	

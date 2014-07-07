@@ -2,12 +2,13 @@ package com.kaltura.media.server.wowza;
 
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.codec.binary.Base64;
 
 import com.kaltura.client.types.KalturaLiveEntry;
-import com.kaltura.client.types.KalturaLiveParams;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
@@ -331,13 +332,14 @@ public class CuePointsManager extends KalturaCuePointsManager {
 			
 			stream = streams.get(liveEntry.id);
 		}
-		
-		return (float) (liveEntry.msDuration + stream.getElapsedTime().getTimeSeconds());
+
+		logger.debug("Live entry duration [" + liveEntry.duration + "] stream elapsed time [" + stream.getElapsedTime().getTimeSeconds() + "]");
+		return (float) (liveEntry.duration + stream.getElapsedTime().getTimeSeconds());
 	}
 
 	@Override
 	public void sendSyncPoint(String entryId, String id, float offset) throws KalturaManagerException {
-		IMediaStream stream;
+		final IMediaStream stream;
 		synchronized (streams) {
 			if(!streams.containsKey(entryId))
 				throw new KalturaManagerException("Entry [" + entryId + "] media stream not found");
@@ -353,6 +355,21 @@ public class CuePointsManager extends KalturaCuePointsManager {
 		data.put("timestamp", date.getTime());
 
 		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
-		logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "] stream [" + stream.getName() + "]");
+		
+		logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "] stream [" + stream.getName() + "] offset [" + offset + "]");
+
+		TimerTask task = new TimerTask() {
+			
+			@Override
+			public void run() {
+				AMFDataObj clear = new AMFDataObj();
+				clear.put("objectType", "");
+				
+				stream.sendDirect(CuePointsManager.PUBLIC_METADATA, clear);
+			}
+		};
+		
+		Timer timer = new Timer();
+		timer.schedule(task, 1000);
 	}
 }

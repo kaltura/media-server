@@ -1,7 +1,9 @@
 package com.kaltura.media.server.managers;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,11 +31,110 @@ import com.kaltura.media.server.events.KalturaStreamEvent;
 
 public abstract class KalturaCuePointsManager extends KalturaManager implements ICuePointsManager, IKalturaEventConsumer {
 
-	protected static Logger logger = Logger.getLogger(KalturaCuePointsManager.class);
+	protected final static int CUE_POINTS_LIST_MAX_ENTRIES = 30;
 	
+	protected static Logger logger = Logger.getLogger(KalturaCuePointsManager.class);
+
 	private ConcurrentHashMap<Integer, CuePointsCreator> cuePointsCreators = new ConcurrentHashMap<Integer, CuePointsCreator>();
+	private List<CuePointsLoader> cuePointsLoaders = new ArrayList<CuePointsLoader>();
+	private CuePointsLoader currentCuePointsLoader;
 
 	protected ILiveManager liveManager;
+
+
+	/**
+	 * Periodically check if additional pre-defined cue-points created
+	 */
+	@SuppressWarnings("serial")
+	class CuePointsLoader extends ArrayList<String>{
+
+		private int lastUpdatedCuePoint = 0;
+		public Timer timer;
+		
+		public CuePointsLoader(){
+			
+			TimerTask timerTask = new TimerTask() {
+				@Override
+				public void run() {
+					load(getEntryIds(), true);
+				}
+			};
+			
+			timer = new Timer(true);
+			timer.schedule(timerTask, 60000, 60000);
+		}
+		
+		public List<String> getEntryIds() {
+			synchronized(this){
+				return this;
+			}
+		}
+		
+		public boolean isFull() {
+			return size() >= KalturaCuePointsManager.CUE_POINTS_LIST_MAX_ENTRIES;
+		}
+
+		public void add(KalturaLiveEntry liveEntry) {
+			add(liveEntry.id);
+			
+			List<String> entryIds = new ArrayList<String>();
+			entryIds.add(liveEntry.id);
+			load(entryIds, false);
+		}
+
+		public void load(final List<String> entryIds, boolean periodic) {
+			boolean setLastUpdatedAt = periodic || lastUpdatedCuePoint == 0;
+			
+			// list all cue-points that should be triggered by absolute time
+			KalturaCuePointFilter filter = new KalturaCuePointFilter();
+			filter.entryIdEqual = StringUtils.join(entryIds);
+			filter.statusEqual = KalturaCuePointStatus.READY;
+			filter.triggeredAtGreaterThanOrEqual = 0;
+			if(periodic){
+				filter.updatedAtGreaterThanOrEqual = lastUpdatedCuePoint;
+			}
+			
+			filter.orderBy = KalturaCuePointOrderBy.UPDATED_AT_ASC.hashCode;
+
+			KalturaFilterPager pager = new KalturaFilterPager();
+			pager.pageIndex = 1;
+			pager.pageSize = 100;
+
+			Timer timer;
+			TimerTask timerTask;
+			Date date = new Date();
+			
+			try{
+				while(true){
+					KalturaCuePointListResponse CuePointsList = client.getCuePointService().list(filter , pager);
+					if(CuePointsList.objects.size() == 0){
+						break;
+					}
+
+					for(final KalturaCuePoint cuePoint : CuePointsList.objects){
+						if(setLastUpdatedAt){
+							lastUpdatedCuePoint = Math.max(lastUpdatedCuePoint, cuePoint.updatedAt);
+						}
+						
+						// create sync-point 30 seconds before the trigger time
+						date.setTime((cuePoint.triggeredAt / 1000) - 30000);
+
+						timerTask = new TimerTask(){
+							@Override
+							public void run() {
+								createSyncPoint(cuePoint.entryId);
+							}
+						};
+						
+						timer = new Timer(true);
+						timer.schedule(timerTask, date);
+					}
+				}
+			} catch (KalturaApiException e) {
+				logger.error("Failed to list entries cue-points: " + e.getMessage());
+			}
+		}
+	}
 	
 	@SuppressWarnings("serial")
 	class CuePointsCreator extends HashMap<String, Date>{
@@ -97,47 +198,15 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 	}
 
 	private void onPublish(final KalturaLiveEntry liveEntry) {
-		// list all cue-points that should be triggered by absolute time
-		KalturaCuePointFilter filter = new KalturaCuePointFilter();
-		filter.entryIdEqual = liveEntry.id;
-		filter.statusEqual = KalturaCuePointStatus.READY;
-		filter.triggeredAtGreaterThanOrEqual = 0;
-		filter.orderBy = KalturaCuePointOrderBy.TRIGGERED_AT_ASC.hashCode;
-
-		KalturaFilterPager pager = new KalturaFilterPager();
-		pager.pageIndex = 1;
-		pager.pageSize = 100;
-
-		Timer timer;
-		Date date = new Date();
-		TimerTask timerTask = new TimerTask(){
-
-			@Override
-			public void run() {
-				createSyncPoint(liveEntry.id);
+		synchronized(cuePointsLoaders){
+			if(currentCuePointsLoader == null || currentCuePointsLoader.isFull()){
+				currentCuePointsLoader = new CuePointsLoader();
+				cuePointsLoaders.add(currentCuePointsLoader);
 			}
-		};
-		
-		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
-		try{
-			while(true){
-				KalturaCuePointListResponse CuePointsList = impersonateClient.getCuePointService().list(filter , pager);
-				if(CuePointsList.objects.size() == 0){
-					break;
-				}
-					
-				for(KalturaCuePoint cuePoint : CuePointsList.objects){
-					// create sync-point 30 seconds before the trigger time
-					date.setTime((cuePoint.triggeredAt / 1000) - 30000);
-					
-					timer = new Timer(true);
-					timer.schedule(timerTask, date);
-				}
+			synchronized(cuePointsLoaders){
+				currentCuePointsLoader.add(liveEntry);
 			}
-		} catch (KalturaApiException e) {
-			logger.error("Failed to list entry [" + liveEntry.id + "] cue-points: " + e.getMessage());
 		}
-		impersonateClient = null;		
 	}
 
 	protected void onMetadata(KalturaLiveEntry entry, KalturaObjectBase object) {
@@ -163,12 +232,32 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 	protected void onUnPublish(String entryId) {
 		synchronized (cuePointsCreators) {
 			for(CuePointsCreator cuePointsCreator: cuePointsCreators.values()){
-				if(cuePointsCreator.containsKey(entryId)){
-					cuePointsCreator.remove(entryId);
-					if(cuePointsCreator.size() == 0){
-						cuePointsCreator.timer.cancel();
-						cuePointsCreator.timer.purge();
-						cuePointsCreators.remove(cuePointsCreator.interval);
+				synchronized (cuePointsCreator) {
+					if(cuePointsCreator.containsKey(entryId)){
+						cuePointsCreator.remove(entryId);
+						if(cuePointsCreator.size() == 0){
+							cuePointsCreator.timer.cancel();
+							cuePointsCreator.timer.purge();
+							cuePointsCreators.remove(cuePointsCreator.interval);
+						}
+					}
+				}
+			}
+		}
+		synchronized (cuePointsLoaders) {
+			for(CuePointsLoader cuePointsLoader: cuePointsLoaders){
+				synchronized(cuePointsLoader){
+					if(cuePointsLoader.contains(entryId)){
+						cuePointsLoader.remove(entryId);
+						if(cuePointsLoader.size() == 0){
+							cuePointsLoader.timer.cancel();
+							cuePointsLoader.timer.purge();
+							cuePointsLoaders.remove(cuePointsLoader);
+							
+							if(cuePointsLoader == currentCuePointsLoader){
+								currentCuePointsLoader = null;
+							}
+						}
 					}
 				}
 			}
@@ -179,9 +268,20 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 	public void stop() {
 		synchronized (cuePointsCreators) {
 			for(CuePointsCreator cuePointsCreator: cuePointsCreators.values()){
-				cuePointsCreator.timer.cancel();
-				cuePointsCreator.timer.purge();
-				cuePointsCreators.remove(cuePointsCreator.interval);
+				synchronized (cuePointsCreator) {
+					cuePointsCreator.timer.cancel();
+					cuePointsCreator.timer.purge();
+					cuePointsCreators.remove(cuePointsCreator.interval);
+				}
+			}
+		}
+		synchronized (cuePointsLoaders) {
+			for(CuePointsLoader cuePointsLoader: cuePointsLoaders){
+				synchronized (cuePointsLoader) {
+					cuePointsLoader.timer.cancel();
+					cuePointsLoader.timer.purge();
+					cuePointsLoaders.remove(cuePointsLoader);
+				}
 			}
 		}
 	}
@@ -190,7 +290,7 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 		createSyncPoint(liveEntryId);
 		
 		Date stopTime = new Date();
-		stopTime.setTime(stopTime.getTime() + (duration * 1000000));
+		stopTime.setTime(stopTime.getTime() + (duration * 1000));
 		
 		CuePointsCreator cuePointsCreator;
 		synchronized (cuePointsCreators) {
@@ -201,8 +301,8 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 				cuePointsCreator = new CuePointsCreator(interval);
 				cuePointsCreators.put(interval, cuePointsCreator);
 			}
+			cuePointsCreator.put(liveEntryId, stopTime);
 		}
-		cuePointsCreator.put(liveEntryId, stopTime);
 	}
 
 	@Override

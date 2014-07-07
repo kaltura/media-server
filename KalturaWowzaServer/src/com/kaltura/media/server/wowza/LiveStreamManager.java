@@ -116,27 +116,12 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 			return;
 		}
 		
-		KalturaConversionProfileAssetParams conversionProfileAssetParams = getConversionProfileAssetParams(entryId, assetParamsId);
-		if(conversionProfileAssetParams == null){
-			logger.error("Entry [" + entryId + "] conversion profile asset params id [" + assetParamsId + "] not found");
-			return;
-		}
-		if(conversionProfileAssetParams.origin != KalturaAssetParamsOrigin.INGEST){
-			logger.debug("Entry [" + entryId + "] asset params id [" + assetParamsId + "] is not ingested");
-			return;
-		}
-		
 		KalturaLiveAsset liveAsset = getLiveAsset(entryId, assetParamsId);
 		if(liveAsset == null){
 			logger.error("Entry [" + entryId + "] asset params id [" + assetParamsId + "] asset not found");
 			return;
 		}
 		
-		if(!StringUtils.contains(liveAsset.tags, LiveStreamManager.KALTURA_ASSET_TAG_SOURCE)){
-			logger.debug("Entry [" + entryId + "] asset params id [" + assetParamsId + "] asset id [" + liveAsset.id + "] is not the source");
-			return;
-		}
-
 		String fileName = startRecord(liveEntry.id, liveAsset.id, stream, serverIndex, true, true, true);
 		logger.debug("Entry [" + entryId + "] asset params id [" + assetParamsId + "] recording to file [" + fileName + "]");
 	}

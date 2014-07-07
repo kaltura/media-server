@@ -7,6 +7,7 @@ public class KalturaStreamEvent extends KalturaEvent {
 
 	private KalturaLiveEntry entry;
 	private KalturaMediaServerIndex serverIndex;
+	private String applicationName;
 
 	public KalturaStreamEvent(IKalturaEventType type, KalturaLiveEntry entry) {
 		super(type);
@@ -19,6 +20,11 @@ public class KalturaStreamEvent extends KalturaEvent {
 		this.serverIndex = serverIndex;
 	}
 	
+	public KalturaStreamEvent(IKalturaEventType type, KalturaLiveEntry entry, KalturaMediaServerIndex serverIndex, String applicationName) {
+		this(type, entry, serverIndex);
+		this.applicationName = applicationName;
+	}
+	
 	public String getEntryId() {
 		return entry.id;
 	}
@@ -29,5 +35,9 @@ public class KalturaStreamEvent extends KalturaEvent {
 
 	public KalturaMediaServerIndex getServerIndex() {
 		return serverIndex;
+	}
+
+	public String getApplicationName() {
+		return applicationName;
 	}
 }
