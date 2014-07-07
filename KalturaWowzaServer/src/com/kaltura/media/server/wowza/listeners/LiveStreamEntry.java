@@ -155,10 +155,17 @@ public class LiveStreamEntry extends ModuleBase {
 	class TranscoderControl implements ILiveStreamTranscoderControl {
 		public boolean isLiveStreamTranscode(String transcoder, IMediaStream stream)
 		{
-			if (stream.getName().endsWith("_publish") || stream.isTranscodeResult()){
+			if (stream.getName().endsWith("_publish")){
+				logger.debug("Stream [" + stream.getName() + "] republished, no transcoding needed");
 				return false;
 			}
-				
+			
+			if (stream.isTranscodeResult()){
+				logger.debug("Stream [" + stream.getName() + "] transcoded, no transcoding needed");
+				return false;
+			}
+
+			logger.debug("Stream [" + stream.getName() + "] requires transcode");
 			return true;
 		}
 	}
@@ -283,7 +290,7 @@ public class LiveStreamEntry extends ModuleBase {
 				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_PUBLISHED, entry, serverIndex, applicationName, stream, assetParamsId);
 				KalturaEventsManager.raiseEvent(event);
 			}
-			else{ // streamed from the transcoder
+			else if(stream.isTranscodeResult()){
 
 				Pattern pattern = Pattern.compile("([01]_.{8})_(\\d+)$");
 				Matcher matcher = pattern.matcher(streamName);
@@ -297,31 +304,23 @@ public class LiveStreamEntry extends ModuleBase {
 				assetParamsId = Integer.parseInt(matcher.group(2));
 				logger.debug("Stream [" + streamName + "] entry [" + entryId + "] asset params id [" + assetParamsId + "]");
 				
-				
-				KalturaLiveParams liveAssetParams = liveStreamManager.getLiveAssetParams(assetParamsId);
-				if(liveAssetParams != null && liveAssetParams.streamSuffix != null)
-				{
-					String sourceStreamName = entryId + "_" + liveAssetParams.streamSuffix;
-					IMediaStream sourceStream = stream.getStreams().getStream(sourceStreamName);
-					if(sourceStream == null){
-						logger.error("Source stream [" + sourceStreamName + "] not found for stream [" + streamName + "]");
-						return;
+				for(IMediaStream mediaStream : stream.getStreams().getStreams()){
+					if(mediaStream.getClient() != null && mediaStream.getName().startsWith(entryId)){
+						client = mediaStream.getClient();
+						logger.debug("Source stream [" + mediaStream.getName() + "] found for stream [" + streamName + "]");
 					}
-					logger.debug("Source stream [" + sourceStreamName + "] found for stream [" + streamName + "]");
-					
-					client = sourceStream.getClient();
-					if(client == null){
-						logger.error("Client not found for stream [" + streamName + "]");
-						return;
-					}
-					logger.debug("Client found for stream [" + streamName + "]");
-					
-					WMSProperties clientProperties = client.getProperties();
-					KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
-
-					KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, liveStreamManager.get(entryId), serverIndex, applicationName, stream, assetParamsId);
-					KalturaEventsManager.raiseEvent(event);
 				}
+				
+				if(client == null){
+					logger.error("Source stream not found for stream [" + streamName + "]");
+					return;
+				}
+				
+				WMSProperties clientProperties = client.getProperties();
+				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+
+				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, liveStreamManager.get(entryId), serverIndex, applicationName, stream, assetParamsId);
+				KalturaEventsManager.raiseEvent(event);
 			}
 		}
 

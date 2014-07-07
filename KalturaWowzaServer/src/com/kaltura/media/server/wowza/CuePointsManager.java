@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.codec.binary.Base64;
 
 import com.kaltura.client.types.KalturaLiveEntry;
-import com.kaltura.client.types.KalturaLiveParams;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
@@ -28,7 +27,6 @@ import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.CupertinoPacketHolder;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.IHTTPStreamerCupertinoLivePacketizerDataHandler;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.LiveStreamPacketizerCupertino;
-import com.wowza.wms.httpstreamer.cupertinostreaming.util.LiveStreamPacketizerCupertinoUtils;
 import com.wowza.wms.media.mp3.model.idtags.ID3Frames;
 import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameBase;
 import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameRawBytes;

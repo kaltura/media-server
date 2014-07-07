@@ -30,7 +30,7 @@ public class RecordingManager {
 
 	protected static Logger logger = Logger.getLogger(RecordingManager.class);
 	
-	static private Map<String, EntryRecorder> recorders = new ConcurrentHashMap<String, EntryRecorder>();
+	static private Map<String, Map<String, EntryRecorder>> recorders = new ConcurrentHashMap<String, Map<String, EntryRecorder>>();
 
 	static protected Boolean groupInitialized = false;
 	static protected GroupPrincipal group;
@@ -40,13 +40,15 @@ public class RecordingManager {
 	class EntryRecorder extends LiveStreamRecorderMP4 implements ILiveStreamRecordNotify
 	{
 		private String entryId;
+		private String assetId;
 		private KalturaMediaServerIndex index;
 		private float appendedDuration = 0;
 		
-		public EntryRecorder(String entryId, KalturaMediaServerIndex index) {
+		public EntryRecorder(String entryId, String assetId, KalturaMediaServerIndex index) {
 			super();
 
 			this.entryId = entryId;
+			this.assetId = assetId;
 			this.index = index;
 			
 			this.addListener(this);
@@ -62,6 +64,11 @@ public class RecordingManager {
 
 		@Override
 		public void onSegmentEnd(ILiveStreamRecord liveStreamRecord) {
+			if(liveStreamRecord.getCurrentDuration() == 0){
+				logger.info("Stream [" + stream.getName() + "] duration [" + liveStreamRecord.getCurrentDuration() + "]");
+				return;
+			}
+			
 			logger.info("Stream [" + stream.getName() + "] file [" + file.getAbsolutePath() + "] folder [" + file.getParent() + "]");
 			float duration = (float) stream.getElapsedTime().getTimeSeconds();
 			float currentChunkDuration = duration - appendedDuration;
@@ -79,7 +86,7 @@ public class RecordingManager {
 			}
 
 			// TODO appendRecordedSyncPoints
-			liveManager.appendRecording(entryId, index, file.getAbsolutePath(), currentChunkDuration);
+			liveManager.appendRecording(entryId, assetId, index, file.getAbsolutePath(), currentChunkDuration);
 		}
 	}
 
@@ -112,9 +119,12 @@ public class RecordingManager {
 		{
 			for(String entryId : recorders.keySet()){
 				if(liveManager.isEntryRegistered(entryId)){
-					ILiveStreamRecord streamRecorder = recorders.get(entryId);
-					if(streamRecorder != null)
-						streamRecorder.splitRecordingNow();
+					Map<String, EntryRecorder> entryRecorders = recorders.get(entryId);
+					if (entryRecorders != null){
+						for(ILiveStreamRecord streamRecorder : entryRecorders.values()){
+							streamRecorder.splitRecordingNow();
+						}
+					}
 				}
 			}
 		}
@@ -125,9 +135,11 @@ public class RecordingManager {
 
 		synchronized (recorders)
 		{
-			ILiveStreamRecord streamRecorder = recorders.get(entryId);
-			if (streamRecorder != null){
-				streamRecorder.splitRecordingNow();
+			Map<String, EntryRecorder> entryRecorders = recorders.get(entryId);
+			if (entryRecorders != null){
+				for(ILiveStreamRecord streamRecorder : entryRecorders.values()){
+					streamRecorder.splitRecordingNow();
+				}
 				return true;
 			}
 		}
@@ -140,9 +152,11 @@ public class RecordingManager {
 
 		synchronized (recorders)
 		{
-			ILiveStreamRecord streamRecorder = recorders.remove(entryId);
-			if (streamRecorder != null){
-				streamRecorder.stopRecording();
+			Map<String, EntryRecorder> entryRecorders = recorders.get(entryId);
+			if (entryRecorders != null){
+				for(ILiveStreamRecord streamRecorder : entryRecorders.values()){
+					streamRecorder.stopRecording();
+				}
 			}
 		}
 	}
@@ -151,14 +165,18 @@ public class RecordingManager {
 		logger.debug("Stream name [" + stream.getName() + "] entry [" + entryId + "]");
 
 		// create a stream recorder and save it in a map of recorders
-		EntryRecorder recorder = new EntryRecorder(entryId, index);
+		EntryRecorder recorder = new EntryRecorder(entryId, assetId, index);
 
 		// remove existing recorder from the recorders list
 		synchronized (recorders){
-			ILiveStreamRecord prevRecorder = recorders.get(entryId);
-			if (prevRecorder != null)
-				prevRecorder.stopRecording();
-			recorders.remove(entryId);
+			Map<String, EntryRecorder> entryRecorders = recorders.get(entryId);
+			if(entryRecorders != null){
+				ILiveStreamRecord prevRecorder = entryRecorders.get(assetId);
+				if (prevRecorder != null){
+					prevRecorder.stopRecording();
+					entryRecorders.remove(assetId);
+				}
+			}
 		}
 
 //		File writeFile = stream.getStreamFileForWrite(entryId, index.getHashCode() + ".flv", "");
@@ -181,7 +199,15 @@ public class RecordingManager {
 
 		// add it to the recorders list
 		synchronized (recorders){
-			recorders.put(entryId, recorder);
+			Map<String, EntryRecorder> entryRecorders;
+			if(recorders.containsKey(entryId)){
+				entryRecorders = recorders.get(entryId);
+			}
+			else{				
+				entryRecorders = new ConcurrentHashMap<String, EntryRecorder>();
+				recorders.put(entryId, entryRecorders);
+			}
+			entryRecorders.put(assetId, recorder);
 		}
 		
 		return filePath;

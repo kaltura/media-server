@@ -14,7 +14,6 @@ import org.apache.log4j.Logger;
 import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.api.IWebService;
 import com.kaltura.media.server.managers.ICuePointsManager;
-import com.kaltura.media.server.managers.KalturaCuePointsManager;
 
 @WebService(name = "cuePoints")
 public class KalturaCuePointsService implements IWebService{
