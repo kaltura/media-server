@@ -20,10 +20,10 @@ public class KalturaEventsManager{
 	static Map<IKalturaEventType, Set<IKalturaEventConsumer>> map = new HashMap<IKalturaEventType, Set<IKalturaEventConsumer>>();
 	
 	public static void registerEventConsumer(IKalturaEventConsumer eventConsumer, IKalturaEventType ... eventTypes){
-		logger.info("Attempting to register event consumer [" + eventConsumer.toString() + "] for event types: [" + eventTypes.toString() + "]");
 		Set<IKalturaEventConsumer> consumersMap = null;
 		
 		for(IKalturaEventType eventType : eventTypes){
+			logger.info("Attempting to register event consumer [" + eventConsumer.toString() + "] for event types: [" + eventType.toString() + "]");
 			if(map.containsKey(eventType)){
 				consumersMap = map.get(eventType);
 			}

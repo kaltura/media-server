@@ -1,6 +1,7 @@
 package com.kaltura.media.server.managers;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
@@ -160,7 +161,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				@Override
 				public void run() {
 					logger.debug("LiveEntryCache::register: initial timer task running");
-					setEntryMediaServer(liveEntry, index, applicationName);
+					setEntryMediaServer(liveEntry, index);
 				}
 			};
 			
@@ -238,6 +239,8 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	abstract public void restartRecordings();
 	
 	abstract public KalturaServiceBase getLiveServiceInstance (KalturaClient impersonateClient);
+	
+	abstract protected void disconnectStream (String entryId); 
 
 	public KalturaLiveEntry get(String entryId) {
 
@@ -443,7 +446,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 							logger.debug("handling entry " + entryId);
 							if (liveEntryCache.isRegistered()) {
 								logger.debug("re-registering media server");
-								setEntryMediaServer(liveEntryCache.getLiveEntry(), liveEntryCache.index, liveEntryCache.applicationName);
+								setEntryMediaServer(liveEntryCache.getLiveEntry(), liveEntryCache.index);
 							}
 						}
 					}
@@ -576,16 +579,22 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		
 		return null;
 	}
-	
-	protected void setEntryMediaServer(KalturaLiveEntry liveChannel, KalturaMediaServerIndex serverIndex, String applicationName) {
-		KalturaClient impersonateClient = impersonate(liveChannel.partnerId);
+
+	protected void setEntryMediaServer(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
+		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		KalturaServiceBase liveServiceInstance = getLiveServiceInstance(impersonateClient);
 		try {
 			Method method = liveServiceInstance.getClass().getMethod("registerMediaServer", String.class, String.class, KalturaMediaServerIndex.class);
-//			method.invoke(liveServiceInstance, liveChannel.id, hostname, serverIndex, applicationName);
-			method.invoke(liveServiceInstance, liveChannel.id, hostname, serverIndex);
+			method.invoke(liveServiceInstance, liveEntry.id, hostname, serverIndex);
 		} catch (Exception e) {
-			logger.error("KalturaLiveManager::setEntryMediaServer unable to register media server: " + e.getMessage());
+			if (e instanceof InvocationTargetException) {
+				Throwable target = ((InvocationTargetException) e).getTargetException();
+				logger.error("KalturaLiveManager::setEntryMediaServer unable to register media server: " + target.getMessage());
+				if (target instanceof KalturaApiException && ((KalturaApiException) target).code.equals("SERVICE_FORBIDDEN_CONTENT_BLOCKED")) {
+					logger.info("About to disconnect stream " + liveEntry.id);
+					this.disconnectStream(liveEntry.id);
+				}
+			}
 		}
 		impersonateClient = null;
 	}

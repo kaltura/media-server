@@ -1,5 +1,7 @@
 package com.kaltura.media.server.wowza;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.kaltura.client.enums.KalturaAssetParamsOrigin;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.enums.KalturaRecordStatus;
@@ -9,6 +11,8 @@ import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.infra.StringUtils;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.events.IKalturaEvent;
+import com.kaltura.media.server.events.KalturaEventType;
+import com.kaltura.media.server.events.KalturaStreamEvent;
 import com.kaltura.media.server.managers.KalturaLiveStreamManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
@@ -20,13 +24,14 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 	protected final static String KALTURA_ASSET_TAG_SOURCE = "source";
 	
 	private RecordingManager recordingManager;
+	protected ConcurrentHashMap<String, IMediaStream> streams = new ConcurrentHashMap<String, IMediaStream>();
 
 	@Override
 	public void init() throws KalturaManagerException {
 		super.init();
 
 		recordingManager = new RecordingManager(this);
-		KalturaEventsManager.registerEventConsumer(this, KalturaMediaEventType.MEDIA_STREAM_PUBLISHED);
+		KalturaEventsManager.registerEventConsumer(this, KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, KalturaEventType.STREAM_PUBLISHED);
 	}
 
 	@Override
@@ -57,16 +62,37 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 	@Override
 	public void onEvent(IKalturaEvent event){
 		
+		KalturaMediaStreamEvent mediaStreamEvent;
+		logger.info("Handling event of type " + event.getType().toString() );
 		if(event.getType() instanceof KalturaMediaEventType){
-			KalturaMediaStreamEvent streamEvent;
 			
 			switch((KalturaMediaEventType) event.getType())
 			{
 				case MEDIA_STREAM_PUBLISHED:
-					streamEvent = (KalturaMediaStreamEvent) event;
-					onPublish(streamEvent.getMediaStream(), streamEvent.getEntryId(), streamEvent.getServerIndex(), streamEvent.getAssetParamsId());
+					mediaStreamEvent = (KalturaMediaStreamEvent) event;
+					onPublish(mediaStreamEvent.getMediaStream(), mediaStreamEvent.getEntryId(), mediaStreamEvent.getServerIndex(), mediaStreamEvent.getAssetParamsId());
 					break;
+				default:
+					break;
+			}
+		}
+		
+		if (event.getType() instanceof KalturaEventType) {
+			switch((KalturaEventType) event.getType())
+			{
+				case STREAM_PUBLISHED:
+					mediaStreamEvent = (KalturaMediaStreamEvent) event;
+					IMediaStream stream = mediaStreamEvent.getMediaStream();
+					if(stream.getClientId() < 0){
+						logger.debug("Stream [" + stream.getName() + "] entry [" + mediaStreamEvent.getEntryId() + "] is a transcoded rendition");
+						break;
+					}
 					
+					logger.debug("Stream [" + stream.getName() + "] entry [" + mediaStreamEvent.getEntryId() + "] saved for case of diconnect");
+					synchronized (streams) {
+						streams.put(mediaStreamEvent.getEntryId(), mediaStreamEvent.getMediaStream());
+					}
+					break;
 				default:
 					break;
 			}
@@ -104,5 +130,19 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 	protected void onUnPublish(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
 		recordingManager.stop(liveEntry.id);
 		super.onUnPublish(liveEntry, serverIndex);
+	}
+
+	@Override
+	protected void disconnectStream(String entryId) {
+		synchronized (streams) {
+			if (streams.containsKey(entryId)) {
+				logger.info("Disconnecting stream for " + entryId);
+				IMediaStream streamToDisconnect = streams.get(entryId);
+				streamToDisconnect.getClient().rejectConnection("Connection rejected- planned event");
+				streamToDisconnect.getClient().shutdownClient();
+				streams.remove(entryId);
+			}
+		}
+		
 	}
 }
