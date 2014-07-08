@@ -47,6 +47,7 @@ import com.wowza.wms.dvr.IDvrConstants;
 import com.wowza.wms.medialist.MediaList;
 import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
+import com.wowza.wms.rtp.model.RTPSession;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import com.wowza.wms.stream.livedvr.ILiveStreamDvrRecorderControl;
@@ -99,14 +100,13 @@ public class LiveStreamEntry extends ModuleBase {
 			DvrApplicationContext ctx = appInstance.getDvrApplicationContext();
 
 			String entryId = null;
-			IClient client = stream.getClient();
-			if (client != null) {
-				WMSProperties clientProperties = client.getProperties();
-				if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
+			WMSProperties properties = getConnectionProperties(stream);
+			if (properties != null) {
+				if (!properties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
 					logger.info("Stream [" + streamName + "] is not associated with entry");
 					return false;
 				}
-				entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
+				entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
 			} else {
 				Pattern pattern = Pattern.compile("(\\d_[\\d\\w]{8})_");
 				Matcher matcher = pattern.matcher(streamName);
@@ -225,30 +225,21 @@ public class LiveStreamEntry extends ModuleBase {
 
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
-			IClient client = stream.getClient();
+			WMSProperties properties = getConnectionProperties(stream);
 			int assetParamsId = Integer.MIN_VALUE;
-			if (client != null){ // streamed from the client
-				WMSProperties clientProperties = client.getProperties();
-				logger.debug("Client IP: " + client.getIp().toString());
-				if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
-					onClientConnect(client);
-					if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
-						logger.error("Unauthenticated client tried to publish stream [" + streamName + "]");
-						client.rejectConnection("Client did not authenticated", "Client did not authenticated");
-						return;
-					}
-				}
+			if (properties != null){ // streamed from the client
+				
+				logger.debug("Client IP: " + getStreamIp(stream));
 	
-				String entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
-				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+				String entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
+				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 				KalturaLiveEntry entry = liveStreamManager.get(entryId);
 				if(entry == null){
 					logger.debug("Unplanned disconnect occured earlier. Attempting reconnect.");
-					entry = onClientConnect(client);
+					entry = onClientConnect(stream);
 					if(entry == null){
 						logger.error("Following reconnection attempt, client still not authenticated for stream [" + streamName + "]");
-						client.rejectConnection("Client is not authenticated", "Client not authenticated");
 						return;						
 					}
 				}
@@ -305,19 +296,14 @@ public class LiveStreamEntry extends ModuleBase {
 				logger.debug("Stream [" + streamName + "] entry [" + entryId + "] asset params id [" + assetParamsId + "]");
 				
 				for(IMediaStream mediaStream : stream.getStreams().getStreams()){
-					if(mediaStream.getClient() != null && mediaStream.getName().startsWith(entryId)){
-						client = mediaStream.getClient();
+					properties = getConnectionProperties(mediaStream);
+					if(properties != null && mediaStream.getName().startsWith(entryId)){
 						logger.debug("Source stream [" + mediaStream.getName() + "] found for stream [" + streamName + "]");
+						break;
 					}
 				}
 				
-				if(client == null){
-					logger.error("Source stream not found for stream [" + streamName + "]");
-					return;
-				}
-				
-				WMSProperties clientProperties = client.getProperties();
-				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, liveStreamManager.get(entryId), serverIndex, applicationName, stream, assetParamsId);
 				KalturaEventsManager.raiseEvent(event);
@@ -325,11 +311,10 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 
 		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
-			IClient client = stream.getClient();
-			if (client == null)
+			if (stream.isTranscodeResult() || stream.isPublisherStream())
 				return;
 
-			WMSProperties clientProperties = client.getProperties();
+			WMSProperties clientProperties = getConnectionProperties(stream);
 			if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID))
 				return;
 
@@ -349,18 +334,17 @@ public class LiveStreamEntry extends ModuleBase {
 				return;
 			}
 
-			IClient client = stream.getClient();
-			if (client == null){
+			if (stream.isTranscodeResult() || stream.isPublisherStream()){
 				return;
 			}
 			
-			WMSProperties clientProperties = client.getProperties();
-			if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
+			WMSProperties properties = getConnectionProperties(stream);
+			if (!properties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
 				return;
 			}
 
-			String entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
-			KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+			String entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
+			KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 			KalturaLiveEntry entry = liveStreamManager.get(entryId);
 			if(entry == null){
@@ -537,19 +521,18 @@ public class LiveStreamEntry extends ModuleBase {
 				logger.error("Group [" + appName + "/" + destGroupName + "] source stream not found");
 				return;
 			}
-			
-			IClient client = stream.getClient();
-			if(client == null){
-				logger.error("Group [" + appName + "/" + destGroupName + "] client not found");
+
+			WMSProperties properties = getConnectionProperties(stream);
+			if(properties == null){
+				logger.error("Group [" + appName + "/" + destGroupName + "] properties not found");
 				return;
 			}
 
-			WMSProperties clientProperties = client.getProperties();
-			if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
+			if (!properties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
 				logger.error("Group [" + appName + "/" + destGroupName + "] entry id not defined");
 				return;
 			}
-			if(!entryId.equals(clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID))) {
+			if(!entryId.equals(properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID))) {
 				logger.error("Group [" + appName + "/" + destGroupName + "] entry id does not match group name");
 				return;
 			}
@@ -630,6 +613,42 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
+	private WMSProperties getConnectionProperties(IMediaStream stream){
+		WMSProperties properties = null;
+		
+		if(stream.getClient() != null){
+			properties = stream.getClient().getProperties();
+		}
+		else if(stream.getRTPStream() != null && stream.getRTPStream().getSession() != null){
+			properties = stream.getRTPStream().getSession().getProperties();
+		}
+		else {
+			return null;
+		}
+
+		if (properties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
+			return properties;
+		}
+		
+		if(onClientConnect(stream) != null){
+			return properties;
+		}
+		
+		return null;
+	}
+
+	private String getStreamIp(IMediaStream stream){
+		if(stream.getClient() != null){
+			return stream.getClient().getIp().toString();
+		}
+		else if(stream.getRTPStream() != null && stream.getRTPStream().getSession() != null){
+			return stream.getRTPStream().getRTSPOriginIpAddress();
+		}
+		
+		return "unknown";
+	}
+	
+	
 	public void onStreamCreate(IMediaStream stream) {
 		logger.debug("LiveStreamEntry::onStreamCreate");
 		stream.addClientListener(liveStreamListener);
@@ -647,55 +666,109 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
+
+	public void onRTPSessionCreate(RTPSession rtpSession){
+		if(!setLiveStreamManager()){
+			logger.error("Live Stream Manager is not loaded yet");
+			rtpSession.rejectSession();
+			rtpSession.shutdown();
+			return;
+		}
+		
+		onClientConnect(rtpSession);
+	}
+
+	public void onRTPSessionDestroy(RTPSession rtpSession){
+		WMSProperties properties = rtpSession.getProperties();
+		if (properties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
+			String entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
+			logger.info("Entry removed [" + entryId + "]");
+
+			KalturaStreamEvent event = new KalturaStreamEvent(KalturaEventType.STREAM_DISCONNECTED, liveStreamManager.get(entryId));
+			KalturaEventsManager.raiseEvent(event);
+		}
+	}
+	
 	public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
 		if(!setLiveStreamManager()){
 			logger.error("Live Stream Manager is not loaded yet");
 			client.rejectConnection("Live Stream Manager is not loaded yet", "Live Stream Manager is not loaded yet");
+			client.shutdownClient();
 			return;
 		}
-			
+
 		onClientConnect(client);
 	}
 
-	public KalturaLiveEntry onClientConnect(IClient client) {
-		 WMSProperties clientProperties = client.getProperties();
-         String entryPoint = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_CONNECT_APP);
+	private KalturaLiveEntry onClientConnect(IMediaStream stream) {
+		if(stream.getClient() != null){
+			return onClientConnect(stream.getClient());
+		}
+		else if(stream.getRTPStream() != null && stream.getRTPStream().getSession() != null){
+			return onClientConnect(stream.getRTPStream().getSession());
+		}
+		
+		return null;
+	}
+	
+	private KalturaLiveEntry onClientConnect(RTPSession rtpSession) {
+		String queryString = rtpSession.getQueryStr();
+		
+        try {
+        	 return onClientConnect(rtpSession.getProperties(), queryString);
+		} catch (KalturaApiException e) {
+			logger.error("Entry authentication failed [" + queryString + "]: " + e.getMessage());
+			rtpSession.rejectSession();
+			rtpSession.shutdown();
+		}
+         
+        return null;
+	}
+
+	private KalturaLiveEntry onClientConnect(IClient client) {
+		 WMSProperties properties = client.getProperties();
+         String entryPoint = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_CONNECT_APP);
          logger.debug("Connect: " + entryPoint);
 
          String[] requestParts = entryPoint.split("\\?", 2);
          if(requestParts.length < 2)
-        	 return null;
+        	return null;
                  
-         String[] queryParams = requestParts[1].split("&");
-         HashMap<String, String> requestParams = new HashMap<String, String>();
-         String[] queryParamsParts;
-         for (int i = 0; i < queryParams.length; ++i) {
-                 queryParamsParts = queryParams[i].split("=", 2);
-                 if(queryParamsParts.length == 2)
-                         requestParams.put(queryParamsParts[0], queryParamsParts[1]);
-         }
-         
-         if(!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID))
-        	 return null;
-
-         int partnerId = Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
-         String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
-         String token = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_TOKEN);
-
-		try {
-			KalturaLiveEntry entry = liveStreamManager.authenticate(entryId, partnerId, token);
-			clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
-			clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
-			clientProperties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
-			logger.info("Entry added [" + entryId + "]");
-
-			return entry;
+         try {
+			return onClientConnect(properties, requestParts[1]);
 		} catch (KalturaApiException e) {
-			logger.error("Entry authentication failed [" + entryId + "]: " + e.getMessage());
-			client.rejectConnection("Unable to authenticate entry [" + entryId + "]", "Unable to authenticate entry [" + entryId + "]");
+			logger.error("Entry authentication failed [" + entryPoint + "]: " + e.getMessage());
+			client.rejectConnection("Unable to authenticate entry [" + entryPoint + "]", "Unable to authenticate entry [" + entryPoint + "]");
+			client.shutdownClient();
 		}
+         
+        return null;
+	}
 
-         return null;
+	private KalturaLiveEntry onClientConnect(WMSProperties properties, String queryString) throws KalturaApiException {
+        String[] queryParams = queryString.split("&");
+        HashMap<String, String> requestParams = new HashMap<String, String>();
+        String[] queryParamsParts;
+        for (int i = 0; i < queryParams.length; ++i) {
+                queryParamsParts = queryParams[i].split("=", 2);
+                if(queryParamsParts.length == 2)
+                        requestParams.put(queryParamsParts[0], queryParamsParts[1]);
+        }
+        
+        if(!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID))
+       	 return null;
+
+        int partnerId = Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
+        String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
+        String token = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_TOKEN);
+
+		KalturaLiveEntry entry = liveStreamManager.authenticate(entryId, partnerId, token);
+		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
+		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
+		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
+		logger.info("Entry added [" + entryId + "]");
+
+		return entry;
 	}
 
 	public boolean setLiveStreamManager() {
