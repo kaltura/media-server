@@ -138,8 +138,14 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 			if (streams.containsKey(entryId)) {
 				logger.info("Disconnecting stream for " + entryId);
 				IMediaStream streamToDisconnect = streams.get(entryId);
-				streamToDisconnect.getClient().rejectConnection("Connection rejected- planned event");
-				streamToDisconnect.getClient().shutdownClient();
+				if(streamToDisconnect.getClient() != null){
+					streamToDisconnect.getClient().rejectConnection("Connection rejected- planned event");
+					streamToDisconnect.getClient().shutdownClient();
+				}
+				else if(streamToDisconnect.getRTPStream() != null && streamToDisconnect.getRTPStream().getSession() != null){
+					streamToDisconnect.getRTPStream().getSession().rejectSession();
+					streamToDisconnect.getRTPStream().getSession().shutdown();
+				}
 				streams.remove(entryId);
 			}
 		}
