@@ -356,7 +356,50 @@ media_servers.ini is optional and needed only for custom configurations.
 - Uncomment /Root/VHost/HostPortList/HostPort with port 443 for SSL.
 - /Root/VHost/HostPortList/HostPort/SSLConfig/KeyStorePassword - set the password for your certificate file.
 
+## Add Multicast (for on-prem installations) ##  
 
+ - Add the following to Server.xml under /Root/Server/Properties:  
+ ```
+<Property>
+	<Name>MulticastIP</Name>
+	<Value>{multicast IP}</Value>
+</Property>
+<Property>
+	<Name>MulticastPortRange</Name>
+	<Value>{multicast port range}</Value>
+</Property>
+<Property>
+	<Name>MulticastTag</Name>
+	<!-- change the value of this property if a different tag is required-->
+	<Value>multicast_silverlight</Value>
+</Property>
+<Property>
+	<Name>silverlightMulticastAuthorizerList</Name>
+	<Value>{multicast IP}</Value>
+</Property>
+<Property>
+<Name>multicastStreamTimeout</Name>
+<Value>11000</Value>
+<Type>Integer</Type>
+</Property>
+```
+
+- In the same file, edit the value of the KalturaServerManagers property:  
+```
+<Property>
+	<Name>KalturaServerManagers</Name>
+	<Value>{previous value}, com.kaltura.media.server.wowza.PushPublishManager</Value>
+</Property>
+```
+
+- Add the following under /Root/Server/ServerListeners:  
+
+```
+<ServerListener>
+<BaseClass>com.wowza.wms.httpstreamer.smoothstreaming.multicast.ServerListenerSilverlightMulticastAuthorizer</BaseClass>
+</ServerListener>
+
+```
 
 ## For webcam recording servers: ##
 
