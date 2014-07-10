@@ -55,7 +55,7 @@ Media Server Installation
 --
 
 Instructions to install a Wowza SaaS server can be found here:
-https://github.com/kaltura/server/blob/IX-9.15.0/doc/media-server-config.md
+https://github.com/kaltura/media-server/blob/3.0.8/Installation.md
 
 Instructions to install an eCDN machine can be found here:
 
