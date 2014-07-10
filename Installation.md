@@ -354,12 +354,14 @@ media_servers.ini is optional and needed only for custom configurations.
 **Edit @WOWZA_DIR@/conf/VHost.xml:**
 
 - Uncomment /Root/VHost/HostPortList/HostPort with port 443 for SSL.
-- /Root/VHost/HostPortList/HostPort/SSLConfig/KeyStorePassword - set the password for your certificate file.
+- /Root/VHost/HostPortList/HostPort/SSLConfig/KeyStorePassword - set the password for your certificate file.  
 
-## Add Multicast (for on-prem installations) ##  
+
+## Add Multicast (for on-prem installations) 
 
  - Add the following to Server.xml under /Root/Server/Properties:  
- ```
+ 
+ ```xml
 <Property>
 	<Name>MulticastIP</Name>
 	<Value>{multicast IP}</Value>
@@ -385,7 +387,7 @@ media_servers.ini is optional and needed only for custom configurations.
 ```
 
 - In the same file, edit the value of the KalturaServerManagers property:  
-```
+```xml
 <Property>
 	<Name>KalturaServerManagers</Name>
 	<Value>{previous value}, com.kaltura.media.server.wowza.PushPublishManager</Value>
@@ -394,11 +396,10 @@ media_servers.ini is optional and needed only for custom configurations.
 
 - Add the following under /Root/Server/ServerListeners:  
 
-```
+```xml
 <ServerListener>
 <BaseClass>com.wowza.wms.httpstreamer.smoothstreaming.multicast.ServerListenerSilverlightMulticastAuthorizer</BaseClass>
 </ServerListener>
-
 ```
 
 ## For webcam recording servers: ##
