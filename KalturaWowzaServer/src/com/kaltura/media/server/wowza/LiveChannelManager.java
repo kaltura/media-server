@@ -1,8 +1,5 @@
 package com.kaltura.media.server.wowza;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -28,6 +25,7 @@ import com.kaltura.client.types.KalturaFlavorAssetListResponse;
 import com.kaltura.client.types.KalturaFlavorParams;
 import com.kaltura.client.types.KalturaFlavorParamsListResponse;
 import com.kaltura.client.types.KalturaLiveChannel;
+import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveParams;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.infra.StringUtils;
@@ -112,6 +110,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 				KalturaFlavorParamsListResponse assetsParams = impersonateClient.getFlavorParamsService().list(null, pager);
 				String systemName;
 				long bitrate;
+				String rendition;
 				
 				for (KalturaFlavorParams assetsParamsItem : assetsParams.objects) {
 
@@ -127,9 +126,10 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 					}
 
 					bitrate = assetsParamsItem.videoBitrate * 1000;
-					if(bitrates.containsKey(systemName))
-						bitrate = Math.max(bitrates.get(systemName), bitrate);
-					bitrates.put(systemName, bitrate);
+					rendition = liveChannel.id + "_" + systemName;
+					if(bitrates.containsKey(rendition))
+						bitrate = Math.max(bitrates.get(rendition), bitrate);
+					bitrates.put(rendition, bitrate);
 
 					assetParamsIds.remove(assetsParamsItem.id);
 				}
@@ -301,40 +301,9 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			
 			logger.info("LiveChannelContainer::start started channel [" + liveChannel.id + "] renditions [" + StringUtils.join(renditions) + "] start time [" + time + "]");
 			
-			generateSmilFiles();
+			SmilManager.generate(appInstance, liveChannel.id, liveChannel.id + "_all", bitrates);
 			
 			onPublish(liveChannel.id, KalturaMediaServerIndex.PRIMARY, appInstance.getApplication().getName()); // TODO support fallback
-		}
-
-		private void generateSmilFiles() {
-
-			String streamGroupName = liveChannel.id + "_all"; // TODO implement for all tags
-			
-			String smil = "<smil>\n";
-			smil += "	<head></head>\n";
-			smil += "	<body>\n";
-			smil += "		<switch>\n";
-			
-			long bitrate;
-			for(String rendition : bitrates.keySet()){
-				bitrate = bitrates.get(rendition);
-				smil += "			<video src=\"" + liveChannel.id + "_" + rendition + "\" system-bitrate=\"" + bitrate + "\" />\n";				
-			}
-			
-			smil += "		</switch>\n";
-			smil += "	</body>\n";
-			smil += "</smil>";
- 
-			String filePath = appInstance.getStreamStoragePath() + File.separator + streamGroupName + ".smil";
-			try {
-				PrintWriter out = new PrintWriter(filePath);
-				out.print(smil);
-				out.close();
-
-				logger.info("Generated smil file [" + filePath + "]");
-			} catch (FileNotFoundException e) {
-				logger.error("Failed writing to file [" + filePath + "]: " + e.getMessage());
-			}
 		}
 	}
 
@@ -406,7 +375,12 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 
 	@Override
 	protected void disconnectStream(String entryId) {
-		// TODO Auto-generated method stub
+		// TODO
+	}
+	
+	protected void entryStillAlive(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex){
+		super.entryStillAlive(liveEntry, serverIndex);
 		
+		SmilManager.updateSmils(liveEntry.id);
 	}
 }

@@ -2,17 +2,13 @@ package com.kaltura.media.server.wowza;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.kaltura.client.enums.KalturaAssetParamsOrigin;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.enums.KalturaRecordStatus;
-import com.kaltura.client.types.KalturaConversionProfileAssetParams;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
-import com.kaltura.infra.StringUtils;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
-import com.kaltura.media.server.events.KalturaStreamEvent;
 import com.kaltura.media.server.managers.KalturaLiveStreamManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
@@ -150,5 +146,11 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 			}
 		}
 		
+	}
+	
+	protected void entryStillAlive(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex){
+		super.entryStillAlive(liveEntry, serverIndex);
+		
+		SmilManager.updateSmils(liveEntry.id);
 	}
 }
