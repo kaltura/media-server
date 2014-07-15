@@ -331,7 +331,7 @@ media_servers.ini is optional and needed only for custom configurations.
 
 
 **Edit @WOWZA_DIR@/conf/log4j.properties:**
-
+ - Set `log4j.rootCategory` = `INFO`
  - Add `log4j.logger.com.kaltura` = `DEBUG`
  - Comment out `log4j.appender.serverAccess.layout` and its sub values `log4j.appender.serverAccess.layout.*` 
  - Add `log4j.appender.serverAccess.layout` = `org.apache.log4j.PatternLayout`
