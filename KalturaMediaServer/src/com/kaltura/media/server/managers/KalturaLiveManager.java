@@ -26,19 +26,13 @@ import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.KalturaClient;
 import com.kaltura.client.KalturaFile;
 import com.kaltura.client.KalturaMultiResponse;
-import com.kaltura.client.KalturaParamsValueDefaults;
 import com.kaltura.client.KalturaServiceBase;
 import com.kaltura.client.enums.KalturaDVRStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
-import com.kaltura.client.enums.KalturaMediaType;
-import com.kaltura.client.enums.KalturaRecordStatus;
-import com.kaltura.client.enums.KalturaSourceType;
-import com.kaltura.client.types.KalturaAssetResource;
 import com.kaltura.client.types.KalturaConversionProfileAssetParams;
 import com.kaltura.client.types.KalturaConversionProfileAssetParamsFilter;
 import com.kaltura.client.types.KalturaConversionProfileAssetParamsListResponse;
 import com.kaltura.client.types.KalturaDataCenterContentResource;
-import com.kaltura.client.types.KalturaEntryResource;
 import com.kaltura.client.types.KalturaFlavorAsset;
 import com.kaltura.client.types.KalturaFlavorAssetListResponse;
 import com.kaltura.client.types.KalturaFlavorParams;
@@ -47,7 +41,6 @@ import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveAssetFilter;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveParams;
-import com.kaltura.client.types.KalturaMediaEntry;
 import com.kaltura.client.types.KalturaServerFileResource;
 import com.kaltura.client.types.KalturaUploadToken;
 import com.kaltura.client.types.KalturaUploadedFileTokenResource;
@@ -87,7 +80,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		private KalturaLiveEntry liveEntry;
 		private boolean registered = false;
 		private KalturaMediaServerIndex index = null;
-		private String applicationName = null;
 		private Date registerTime = null;
 		private ArrayList<KalturaConversionProfileAssetParams> conversionProfileAssetParams;
 		private Map<Integer, KalturaLiveAsset> liveAssets = new HashMap<Integer, KalturaLiveAsset>();
@@ -154,7 +146,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				return;
 
 			index = serverIndex;
-			applicationName = appName;
 
 			TimerTask setMediaServerTask = new TimerTask() {
 
@@ -446,7 +437,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 							logger.debug("handling entry " + entryId);
 							if (liveEntryCache.isRegistered()) {
 								logger.debug("re-registering media server");
-								setEntryMediaServer(liveEntryCache.getLiveEntry(), liveEntryCache.index);
+								entryStillAlive(liveEntryCache.getLiveEntry(), liveEntryCache.index);
 							}
 						}
 					}
@@ -578,6 +569,10 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		}
 		
 		return null;
+	}
+
+	protected void entryStillAlive(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
+		setEntryMediaServer(liveEntry, serverIndex);
 	}
 
 	protected void setEntryMediaServer(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
