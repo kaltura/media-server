@@ -9,6 +9,7 @@
 - Add the IP range containing the Wowza machine IP to the local.ini:  
 	internal_ip_range = {required range}  
   Note that this is not necessary for a Hybrid eCDN installation.
+- Edit the broadcast.ini file according to the broadcast.template.ini file.
 
 
 ## Admin Console: ##
@@ -16,11 +17,6 @@
  - FEATURE_LIVE_STREAM_RECORD
  - FEATURE_KALTURA_LIVE_STREAM
  - FEATURE_KALTURA_LIVE_STREAM_TRANSCODE
-
-
-
-## Origin Servers: ##
--  broadcast.ini according to broadcast.template.ini
 
 
 
