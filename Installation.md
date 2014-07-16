@@ -6,10 +6,10 @@
 - Add Wowza to plugins.ini.
 
 ## Configuration ##
-- Add the IP range containing the Wowza machine IP to the local.ini:  
+- Add the IP range containing the Wowza machine IP to the @APP_DIR@/configurations/local.ini:  
 	internal_ip_range = {required range}  
   Note that this is not necessary for a Hybrid eCDN installation.
-- Edit the broadcast.ini file according to the broadcast.template.ini file.
+- Edit the @APP_DIR@/configurations/broadcast.ini file according to the broadcast.template.ini file.
 
 
 ## Admin Console: ##
