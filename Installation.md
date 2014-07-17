@@ -397,8 +397,22 @@ media_servers.ini is optional and needed only for custom configurations.
 <BaseClass>com.wowza.wms.httpstreamer.smoothstreaming.multicast.ServerListenerSilverlightMulticastAuthorizer</BaseClass>
 </ServerListener>
 ```
+# On-Prem specific configuration #
 
-## For webcam recording servers: ##
+**Important: both of the following configurations require that the Wowza Streaming Engine have access to the @WEB_DIR@ directory used by the Kaltura installation (the same location used by the API, the batch workers, etc)**.
+
+## Using the Wowza as the environment FMS ##
+- Create a new VOD application, preferably using the Wowza Streaming Engine Manager application:  
+http://{Wowza machine IP}:8088
+- Give your application some name, for instance kVOD.
+- Use your API to define a new RTMP Delivery Profile for partner 0, according to the documentation, with the following specifications:
+    - Type - LOCAL PATH RTMP
+    - Streamer Type - RTMP
+    - url - http://{Wowza IP}/{VOD application name}/{random string}
+    - status - ACTIVE
+    - isDefault - TRUE VALUE
+    
+## For webcam recording servers ##
 
 **Create oflaDemo application**
 
@@ -407,6 +421,8 @@ media_servers.ini is optional and needed only for custom configurations.
   - Create @WOWZA_DIR@/conf/oflaDemo directory
   - Copy @WOWZA_DIR@/conf/Application.xml to @WOWZA_DIR@/conf/oflaDemo/Application.xml.
  - Configure @WOWZA_DIR@/conf/oflaDemo/Application.xml
+    - /Root/Application/Name - oflaDemo
+ - /Root/Application/AppType - Live
   - /Root/Streams/StreamType - live-record
   - /Root/Streams/StorageDir - @WEB_DIR@/content/webcam
   - /Root/Transcoder/LiveStreamTranscoder - transcoder
