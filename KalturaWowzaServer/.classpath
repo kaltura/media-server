@@ -40,7 +40,6 @@
 	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.0.1/lib/wms-mediareader-smil.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.0.1/lib/wms-mediawriter-flv.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.0.1/lib/wms-mediawriter-h264.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.0.1/lib/wms-plugin-multicastpublish.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.0.1/lib/wms-pushpublish.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.0.1/lib/wms-release-tools.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.0.1/lib/wms-rest.jar"/>

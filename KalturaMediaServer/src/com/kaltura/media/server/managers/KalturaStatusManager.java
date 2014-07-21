@@ -44,6 +44,8 @@ public abstract class KalturaStatusManager implements IStatusManager {
 		
 		timer = new Timer(true);
 		timer.schedule(timerTask, 0, interval);
+		
+		KalturaServer.setManagerInitialized(getClass().getName());
 	}
 
 	@Override
