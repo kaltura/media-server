@@ -208,6 +208,11 @@ public class KalturaServer {
 	protected void initManagers(String[] managersNames) throws KalturaServerException {
 		Object obj; 
 		IManager manager;
+		
+		for (String managerName : managersNames) {
+			initManagers.add(managerName);			
+		}
+		
 		for (String managerName : managersNames) {
 			try {
 				obj = Class.forName(managerName).newInstance();
@@ -221,7 +226,6 @@ public class KalturaServer {
 			if(!(obj instanceof IManager))
 				throw new KalturaServerException("Server manager class [" + managerName + "] is not instance of IManager");
 			
-			initManagers.add(managerName);
 			manager = (IManager) obj;
 			managers.add(manager);
 			manager.init();
