@@ -27,6 +27,8 @@ import com.kaltura.media.server.managers.IManager;
 public class KalturaServer {
 	public static int MEDIA_SERVER_PARTNER_ID = -5;
 
+	public final static String KALTURA_SERVER_SECRET_KEY = "KalturaServerSecretKey";
+	
 	protected final static String KALTURA_SERVER_URL = "KalturaServerURL";
 	protected final static String KALTURA_SERVER_ADMIN_SECRET = "KalturaServerAdminSecret";
 	protected final static String KALTURA_SERVER_PARTNER_ID = "KalturaPartnerId";
@@ -45,7 +47,8 @@ public class KalturaServer {
 
 	private static String OS;
 
-	protected List<IManager> managers;
+	private static List<String> initManagers = new ArrayList<String>();
+	protected static List<IManager> managers;
 
 	protected KalturaServer() throws KalturaServerException {
 		InputStream versionInputStream = getClass().getResourceAsStream("VERSION.txt");
@@ -189,7 +192,17 @@ public class KalturaServer {
 			webServicesServer.addService(service);
 			logger.info("Initialized Kaltura web service " + obj.getClass().getName());
 		}
+
+	}
+	
+	public static synchronized void setManagerInitialized(String managerName) {
+		logger.debug("Initialized Kaltura manager " + managerName);
+		initManagers.remove(managerName);
 		
+		if(initManagers.isEmpty()){
+			initManagers = null;
+			logger.debug("All managers initialized");
+		}
 	}
 	
 	protected void initManagers(String[] managersNames) throws KalturaServerException {
@@ -198,7 +211,7 @@ public class KalturaServer {
 		for (String managerName : managersNames) {
 			try {
 				obj = Class.forName(managerName).newInstance();
-				logger.debug("KalturaServer::initManagers Initializing Kaltura manager " + obj.getClass().getName());
+				logger.debug("Initializing Kaltura manager " + obj.getClass().getName());
 			} catch (ClassNotFoundException e) {
 				throw new KalturaServerException("Server manager class [" + managerName + "] not found");
 			} catch (Exception e) {
@@ -208,15 +221,16 @@ public class KalturaServer {
 			if(!(obj instanceof IManager))
 				throw new KalturaServerException("Server manager class [" + managerName + "] is not instance of IManager");
 			
+			initManagers.add(managerName);
 			manager = (IManager) obj;
 			managers.add(manager);
 			manager.init();
-			logger.info("KalturaServer::initManagers Initialized Kaltura manager " + obj.getClass().getName());
+			logger.info("Initialized Kaltura manager " + obj.getClass().getName());
 		}
 	}
 
 	public static <T extends IManager> IManager getManager(Class<T> managerInterface){
-		if(instance == null || instance.managers == null){
+		if(instance == null || managers == null){
 			logger.error("Managers are not initialized");
 			return null;
 		}
@@ -224,7 +238,7 @@ public class KalturaServer {
 		if(!managerInterface.isInterface() || !IManager.class.isAssignableFrom(managerInterface))
 			return null;
 		
-		for(IManager manager : instance.managers){
+		for(IManager manager : managers){
 			if(managerInterface.isInstance(manager))
 				return manager;
 		}
@@ -245,13 +259,17 @@ public class KalturaServer {
 	public void stop() {
 		webServicesServer.shutdown();
 		
-		for(IManager manager : instance.managers){
+		for(IManager manager : managers){
 			manager.stop();
 		}
 	}
 
 	public static boolean isInitialized() {
-		return (instance != null);
+		if (instance == null || initManagers != null){
+			return false;
+		}
+		
+		return true;
 	}
 
 	public static KalturaServer getInstance() throws KalturaServerException {
@@ -263,6 +281,14 @@ public class KalturaServer {
 
 	public static Map<String, Object> getConfiguration() {
 		return config;
+	}
+
+	public static Object getConfiguration(String key) {
+		if(config.containsKey(key)){
+			return config.get(key);
+		}
+		
+		return null;
 	}
 
 	public static KalturaClient getClient() {

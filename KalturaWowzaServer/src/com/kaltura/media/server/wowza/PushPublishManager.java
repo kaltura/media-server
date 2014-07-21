@@ -57,6 +57,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	    maxPort = Integer.parseInt(portRange[1]);
 	    minFreePort = Integer.parseInt(portRange[0]);
 	    maxFreePort = Integer.parseInt(portRange[0]);
+	    setInitialized();
 	}
 	
 	@Override
