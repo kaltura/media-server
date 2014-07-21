@@ -31,6 +31,8 @@ abstract public class KalturaManager implements IManager {
 		client = KalturaServer.getClient();
 		config = client.getKalturaConfiguration();
 		serverConfiguration = KalturaServer.getConfiguration();
+		
+		KalturaServer.setManagerInitialized(getClass().getName());
 	}
 
 	protected void setInitialized() throws KalturaManagerException {
