@@ -10,7 +10,7 @@
 	internal_ip_range = {required range}  
   Note that this is not necessary for a Hybrid eCDN installation.
 - Edit the @APP_DIR@/configurations/broadcast.ini file according to the broadcast.template.ini file.
-- If there is a need for non-default configuration of the WSE (for instance, different port), you will need to create a custom configuration file on your API machine under @APP_DIR@/configurations/media_servers.ini, according to the template found here: .
+- If there is a need for non-default configuration of the WSE (for instance, different port), you will need to create a custom configuration file on your API machine under @APP_DIR@/configurations/media_servers.ini, according to the template found here: https://github.com/kaltura/media-server/blob/3.0.8/media_servers.template.ini.
 
 ## Admin Console: ##
 - Add admin.ini new permissions, see admin.template.ini:
