@@ -726,8 +726,13 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	public boolean setLiveStreamManager() {
-		if (liveStreamManager != null)
+		if(!KalturaServer.isInitialized()){
+			return false;
+		}
+		
+		if (liveStreamManager != null){
 			return true;
+		}
 
 		ILiveStreamManager serverLiveStreamManager = (ILiveStreamManager) KalturaServer.getManager(ILiveStreamManager.class);
 

@@ -321,6 +321,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 
 		loadApplicationInstance(vhostName, appName);
 		recordingManager = new RecordingManager(this);
+		setInitialized();
 	}
 
 	private void loadApplicationInstance(String vhostName, String appName) {

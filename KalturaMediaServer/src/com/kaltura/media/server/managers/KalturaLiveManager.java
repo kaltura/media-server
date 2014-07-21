@@ -576,6 +576,8 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	}
 
 	protected void setEntryMediaServer(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
+		logger.error("Register media server [" + hostname + "] entry [" + liveEntry.id + "] index [" + serverIndex.hashCode + "]");
+		
 		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		KalturaServiceBase liveServiceInstance = getLiveServiceInstance(impersonateClient);
 		try {
@@ -584,7 +586,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		} catch (Exception e) {
 			if (e instanceof InvocationTargetException) {
 				Throwable target = ((InvocationTargetException) e).getTargetException();
-				logger.error("KalturaLiveManager::setEntryMediaServer unable to register media server: " + target.getMessage());
+				logger.error("Unable to register media server: " + target.getMessage());
 				if (target instanceof KalturaApiException && ((KalturaApiException) target).code.equals("SERVICE_FORBIDDEN_CONTENT_BLOCKED")) {
 					logger.info("About to disconnect stream " + liveEntry.id);
 					this.disconnectStream(liveEntry.id);
@@ -594,14 +596,16 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		impersonateClient = null;
 	}
 
-	protected void unsetEntryMediaServer(KalturaLiveEntry liveChannel, KalturaMediaServerIndex serverIndex) {
-		KalturaClient impersonateClient = impersonate(liveChannel.partnerId);
+	protected void unsetEntryMediaServer(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
+		logger.error("Unregister media server [" + hostname + "] entry [" + liveEntry.id + "] index [" + serverIndex.hashCode + "]");
+		
+		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		KalturaServiceBase liveServiceInstance = getLiveServiceInstance(impersonateClient);
 		try {
 			Method method = liveServiceInstance.getClass().getMethod("unregisterMediaServer", String.class, String.class, KalturaMediaServerIndex.class);
-			method.invoke(liveServiceInstance, liveChannel.id, hostname, serverIndex);
+			method.invoke(liveServiceInstance, liveEntry.id, hostname, serverIndex);
 		} catch (Exception e) {
-			logger.error("KalturaLiveManager::unsetEntryMediaServer unable to unregister media server: " + e.getMessage());
+			logger.error("Unable to unregister media server: " + e.getMessage());
 		}
 		impersonateClient = null;
 	}

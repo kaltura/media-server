@@ -35,6 +35,8 @@ public class KalturaMemoryDebugManager implements IManager {
 
 		timer = new Timer(true);
 		timer.schedule(timerTask, 0, interval);
+		
+		KalturaServer.setManagerInitialized(getClass().getName());
 	}
 
 	@Override
