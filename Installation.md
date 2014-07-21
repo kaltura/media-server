@@ -10,7 +10,7 @@
 	internal_ip_range = {required range}  
   Note that this is not necessary for a Hybrid eCDN installation.
 - Edit the @APP_DIR@/configurations/broadcast.ini file according to the broadcast.template.ini file.
-
+- If there is a need for non-default configuration of the WSE (for instance, different port), you will need to create a custom configuration file on your API machine under @APP_DIR@/configurations/media_servers.ini, according to the template found here: .
 
 ## Admin Console: ##
 - Add admin.ini new permissions, see admin.template.ini:
@@ -421,12 +421,16 @@ http://{Wowza machine IP}:8088
   - Create @WOWZA_DIR@/conf/oflaDemo directory
   - Copy @WOWZA_DIR@/conf/Application.xml to @WOWZA_DIR@/conf/oflaDemo/Application.xml.
  - Configure @WOWZA_DIR@/conf/oflaDemo/Application.xml
-    - /Root/Application/Name - oflaDemo
+ - /Root/Application/Name - oflaDemo
  - /Root/Application/AppType - Live
-  - /Root/Streams/StreamType - live-record
-  - /Root/Streams/StorageDir - @WEB_DIR@/content/webcam
-  - /Root/Transcoder/LiveStreamTranscoder - transcoder
-  - /Root/Transcoder/Templates - hdfvr.xml
+ - /Root/Streams/StreamType - live-record
+ - /Root/Streams/StorageDir - @WEB_DIR@/content/webcam
+ - /Root/Transcoder/LiveStreamTranscoder - transcoder
+ - /Root/Transcoder/Templates - hdfvr.xml
+
+ - **Note:** if you are interested in using the webcam recording with the KCW, you will have to reset the Wowza to save the recording files as FLV files. In order to do this:  
+     - Edit the Server.xml
+     - Change the value of the tag /Root/Server/Streams/DefaultStreamPrefix to 'flv'.
 
 
 **Create transcoding template**
@@ -474,3 +478,6 @@ http://{Wowza machine IP}:8088
  - Define permissions stickiness on the group:
   - chmod +t @WEB_DIR@/content/webcam
   - chmod g+s @WEB_DIR@/content/webcam
+
+**Configure UI-Conf**
+- Edit the ui-conf of the KCW/KRecorder you are using to record from webcam- replace the {HOST_NAME} token in the uiconf with the hostname:port of the Wowza machine.
