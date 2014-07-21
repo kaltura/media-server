@@ -197,6 +197,12 @@ public class KalturaServer {
 	
 	public static synchronized void setManagerInitialized(String managerName) {
 		logger.debug("Initialized Kaltura manager " + managerName);
+
+		if(initManagers == null || !initManagers.contains(managerName)){
+			logger.error("Manager [" + managerName + "] already initialized");
+			return;
+		}
+		
 		initManagers.remove(managerName);
 		
 		if(initManagers.isEmpty()){
@@ -208,6 +214,11 @@ public class KalturaServer {
 	protected void initManagers(String[] managersNames) throws KalturaServerException {
 		Object obj; 
 		IManager manager;
+		
+		for (String managerName : managersNames) {
+			initManagers.add(managerName);			
+		}
+		
 		for (String managerName : managersNames) {
 			try {
 				obj = Class.forName(managerName).newInstance();
@@ -221,7 +232,6 @@ public class KalturaServer {
 			if(!(obj instanceof IManager))
 				throw new KalturaServerException("Server manager class [" + managerName + "] is not instance of IManager");
 			
-			initManagers.add(managerName);
 			manager = (IManager) obj;
 			managers.add(manager);
 			manager.init();
