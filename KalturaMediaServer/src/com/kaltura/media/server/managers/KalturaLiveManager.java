@@ -576,7 +576,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	}
 
 	protected void setEntryMediaServer(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
-		logger.error("Register media server [" + hostname + "] entry [" + liveEntry.id + "] index [" + serverIndex.hashCode + "]");
+		logger.debug("Register media server [" + hostname + "] entry [" + liveEntry.id + "] index [" + serverIndex.hashCode + "]");
 		
 		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		KalturaServiceBase liveServiceInstance = getLiveServiceInstance(impersonateClient);
@@ -597,7 +597,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	}
 
 	protected void unsetEntryMediaServer(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
-		logger.error("Unregister media server [" + hostname + "] entry [" + liveEntry.id + "] index [" + serverIndex.hashCode + "]");
+		logger.debug("Unregister media server [" + hostname + "] entry [" + liveEntry.id + "] index [" + serverIndex.hashCode + "]");
 		
 		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		KalturaServiceBase liveServiceInstance = getLiveServiceInstance(impersonateClient);
