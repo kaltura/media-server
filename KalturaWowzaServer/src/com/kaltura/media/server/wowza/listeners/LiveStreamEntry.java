@@ -54,6 +54,7 @@ import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerControl;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoder;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoderControl;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoderNotify;
+import com.wowza.wms.stream.livetranscoder.LiveStreamTranscoderNotifyBase;
 import com.wowza.wms.stream.publish.Publisher;
 import com.wowza.wms.stream.publish.Stream;
 import com.wowza.wms.transcoder.model.LiveStreamTranscoder;
@@ -99,17 +100,12 @@ public class LiveStreamEntry extends ModuleBase {
 			IApplicationInstance appInstance = stream.getStreams().getAppInstance();
 			DvrApplicationContext ctx = appInstance.getDvrApplicationContext();
 
-			String entryId = null;
-			WMSProperties properties = getConnectionProperties(stream);
-			if (properties != null) {
-				if (!properties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
-					logger.info("Stream [" + streamName + "] is not associated with entry");
-					return false;
-				}
-				entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
-			} else {
-				entryId = getEntryIdFromStreamName(streamName);
+			if (!stream.isTranscodeResult()) {
+				logger.info("Stream [" + streamName + "] is input stream");
+				return false;
 			}
+
+			String entryId = getEntryIdFromStreamName(streamName);
 			
 			if(entryId == null){
 				logger.info("Stream [" + streamName + "] does not match entry id");
@@ -140,6 +136,11 @@ public class LiveStreamEntry extends ModuleBase {
 		public boolean isLiveStreamPacketize(String packetizer, IMediaStream stream) {
 			logger.debug("Packetizer [" + packetizer + ", " + stream.getName() + "]");
 
+			if(!stream.isTranscodeResult()){
+				logger.debug("Stream [" + stream.getName() + "] is input stream");
+				return false;
+			}
+			
 			if (packetizer.compareTo("dvrstreamingpacketizer") == 0) {
 				logger.debug("Packetizer check shouldDvrRecord");
 				return this.isThatStreamNeeded(stream);
@@ -526,19 +527,11 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
-	class LiveStreamTranscoderListener implements ILiveStreamTranscoderNotify {
+	class LiveStreamTranscoderListener extends LiveStreamTranscoderNotifyBase {
 
 		@Override
 		public void onLiveStreamTranscoderCreate(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream mediaStream) {
 			((LiveStreamTranscoder) liveStreamTranscoder).addActionListener(liveStreamTranscoderActionListener);
-		}
-
-		@Override
-		public void onLiveStreamTranscoderDestroy(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream mediaStream) {
-		}
-
-		@Override
-		public void onLiveStreamTranscoderInit(ILiveStreamTranscoder iLiveStreamTranscoder, IMediaStream mediaStream) {
 		}
 	}
 
