@@ -1,7 +1,6 @@
 package com.kaltura.media.server.wowza.listeners;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -42,7 +41,6 @@ import com.wowza.wms.application.WMSProperties;
 import com.wowza.wms.client.IClient;
 import com.wowza.wms.dvr.DvrApplicationContext;
 import com.wowza.wms.dvr.IDvrConstants;
-import com.wowza.wms.medialist.MediaList;
 import com.wowza.wms.medialist.MediaListRendition;
 import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
@@ -53,7 +51,6 @@ import com.wowza.wms.stream.livedvr.ILiveStreamDvrRecorderControl;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerControl;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoder;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoderControl;
-import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoderNotify;
 import com.wowza.wms.stream.livetranscoder.LiveStreamTranscoderNotifyBase;
 import com.wowza.wms.stream.publish.Publisher;
 import com.wowza.wms.stream.publish.Stream;
@@ -444,7 +441,7 @@ public class LiveStreamEntry extends ModuleBase {
 				}
 			};
 
-			Timer timer = new Timer();
+			Timer timer = new Timer("generateSmil-" + sourceGroupName, true);
 			timer.schedule(asyncTask, 1);
 		}
 		

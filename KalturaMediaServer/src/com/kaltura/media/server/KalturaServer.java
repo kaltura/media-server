@@ -147,7 +147,7 @@ public class KalturaServer {
 
 		long sessionGenerationInterval = 86000000;
 		
-		Timer timer = new Timer();
+		Timer timer = new Timer("clientSessionGeneration", true);
 		timer.schedule(generateSession, sessionGenerationInterval, sessionGenerationInterval);
 	}
 

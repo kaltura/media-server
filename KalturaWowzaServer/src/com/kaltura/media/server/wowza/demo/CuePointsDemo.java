@@ -47,7 +47,7 @@ public class CuePointsDemo extends CuePointsManager {
 				}
 			};
 			
-			timer = new Timer();
+			timer = new Timer(true);
 			timer.schedule(timerTask, 3000, 3000);
 			
 			logger.info("Started");

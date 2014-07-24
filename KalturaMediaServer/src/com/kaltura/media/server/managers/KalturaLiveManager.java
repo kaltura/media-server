@@ -141,7 +141,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		}
 
 		public synchronized void register(KalturaMediaServerIndex serverIndex, String appName) {
-			logger.debug("LiveEntryCache::register");
+			logger.debug("Register [" + liveEntry.id + "]");
 			if(registered)
 				return;
 
@@ -151,14 +151,14 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 				@Override
 				public void run() {
-					logger.debug("LiveEntryCache::register: initial timer task running");
+					logger.debug("Initial timer task running [" + liveEntry.id + "]");
 					setEntryMediaServer(liveEntry, index);
 				}
 			};
 			
-			timer = new Timer();
+			timer = new Timer("register-" + liveEntry.id, true);
 			timer.schedule(setMediaServerTask, isLiveRegistrationMinBufferTime);
-			logger.debug("LiveEntryCache::register: scheduled initial timer");
+			logger.debug("Scheduled initial timer [" + liveEntry.id + "]");
 
 			registerTime = new Date();
 			registerTime.setTime(registerTime.getTime() + isLiveRegistrationMinBufferTime);
@@ -395,7 +395,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			}
 		};
 		
-		Timer delayedRemoveTimer = new Timer();
+		Timer delayedRemoveTimer = new Timer("delayedRemoveTimer-" + entryId, true);
 		logger.info("Disconnect timer saved for entry["  + entryId + "]");
 		synchronized (disconnectingTimers) {
 			this.disconnectingTimers.put(entryId, delayedRemoveTimer);
@@ -430,21 +430,26 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 				@Override
 				public void run() {
-					logger.debug("running scheduled task");
-					synchronized (entries) {
-						for (String entryId : entries.keySet()) {
-							LiveEntryCache liveEntryCache = entries.get(entryId);
-							logger.debug("handling entry " + entryId);
-							if (liveEntryCache.isRegistered()) {
-								logger.debug("re-registering media server");
-								entryStillAlive(liveEntryCache.getLiveEntry(), liveEntryCache.index);
+					logger.debug("Running scheduled task");
+					try {
+						synchronized (entries) {
+							for (String entryId : entries.keySet()) {
+								LiveEntryCache liveEntryCache = entries.get(entryId);
+								logger.debug("handling entry " + entryId);
+								if (liveEntryCache.isRegistered()) {
+									logger.debug("re-registering media server");
+									entryStillAlive(liveEntryCache.getLiveEntry(), liveEntryCache.index);
+								}
 							}
 						}
+					}
+					catch (Exception e){
+						logger.error(e);
 					}
 				}
 			};
 
-			setMediaServerTimer = new Timer();
+			setMediaServerTimer = new Timer("setMediaServerTimer", true);
 			setMediaServerTimer.schedule(setMediaServerTask, keepAliveInterval, keepAliveInterval);
 			logger.debug("scheduled setMediaServerTask");
 		}
@@ -492,9 +497,13 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	
 	public void appendRecording(String entryId, String assetId, KalturaMediaServerIndex index, String filePath, float duration) {
 
-		logger.info("KalturaLiveManager::appendRecording: entry [" + entryId + "] asset [" + assetId + "] index [" + index + "] filePath [" + filePath + "] duration [" + duration + "]");
+		logger.info("Entry [" + entryId + "] asset [" + assetId + "] index [" + index + "] filePath [" + filePath + "] duration [" + duration + "]");
 		
 		KalturaLiveEntry liveEntry = get(entryId);
+		if(liveEntry == null){
+			logger.info("Entry [" + entryId + "] not found");	
+		}
+		
 		if (serverConfiguration.containsKey(KalturaLiveManager.UPLOAD_XML_SAVE_PATH))
 		{
 			boolean result = saveUploadAsXml (entryId, assetId, index, filePath, duration, liveEntry.partnerId);
@@ -526,7 +535,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			if(e instanceof KalturaApiException && ((KalturaApiException) e).code == KalturaLiveManager.LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION){
 				logger.info("Entry [" + entryId + "] exceeded max recording duration: " + e.getMessage());
 			}
-			logger.error("Unexpected error occurred: " + e.getMessage());
+			logger.error("Unexpected error occurred [" + entryId + "]", e);
 		}
 		
 		impersonateClient = null;
@@ -586,7 +595,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		} catch (Exception e) {
 			if (e instanceof InvocationTargetException) {
 				Throwable target = ((InvocationTargetException) e).getTargetException();
-				logger.error("Unable to register media server: " + target.getMessage());
+				logger.error("Unable to register media server [" + liveEntry.id + "]: " + target.getMessage());
 				if (target instanceof KalturaApiException && ((KalturaApiException) target).code.equals("SERVICE_FORBIDDEN_CONTENT_BLOCKED")) {
 					logger.info("About to disconnect stream " + liveEntry.id);
 					this.disconnectStream(liveEntry.id);
@@ -605,7 +614,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			Method method = liveServiceInstance.getClass().getMethod("unregisterMediaServer", String.class, String.class, KalturaMediaServerIndex.class);
 			method.invoke(liveServiceInstance, liveEntry.id, hostname, serverIndex);
 		} catch (Exception e) {
-			logger.error("Unable to unregister media server: " + e.getMessage());
+			logger.error("Unable to unregister media server [" + liveEntry.id + "]: ", e);
 		}
 		impersonateClient = null;
 	}

@@ -370,7 +370,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 			}
 		};
 		
-		Timer timer = new Timer();
+		Timer timer = new Timer("sendSyncPoint-" + entryId, true);
 		timer.schedule(task, 1000);
 	}
 }
