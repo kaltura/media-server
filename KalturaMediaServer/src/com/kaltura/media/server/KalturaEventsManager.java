@@ -53,7 +53,7 @@ public class KalturaEventsManager{
 				}
 			};
 			
-			Timer timer = new Timer();
+			Timer timer = new Timer(true);
 			timer.schedule(timerTask, 0);
 		}
 	}

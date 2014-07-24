@@ -45,7 +45,7 @@ public class LiveCaptionsDemo extends ModuleBase
 			
 			if (!stream.isTranscodeResult())
 			{
-				Timer timer = new Timer();
+				Timer timer = new Timer("sendTextDataMessage-" + streamName, true);
 
 				TimerTask timerTask = new TimerTask() {
 					

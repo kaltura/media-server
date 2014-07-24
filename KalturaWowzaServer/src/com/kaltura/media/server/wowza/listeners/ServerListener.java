@@ -6,10 +6,8 @@ import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.KalturaServerException;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.application.WMSProperties;
-import com.wowza.wms.logging.WMSLoggerFactory;
 import com.wowza.wms.server.*;
 import com.wowza.wms.vhost.IVHost;
-import com.wowza.wms.vhost.VHost;
 import com.wowza.wms.vhost.VHostSingleton;
 
 public class ServerListener implements IServerNotify2 {

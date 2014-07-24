@@ -39,7 +39,7 @@ public class KalturaCuePointsService implements IWebService{
 			}
 		};
 		
-		Timer timer = new Timer();
+		Timer timer = new Timer("createPeriodicSyncPoints-" + liveEntryId, true);
 		timer.schedule(timerTask, 0);
 		
 		logger.debug("done");
