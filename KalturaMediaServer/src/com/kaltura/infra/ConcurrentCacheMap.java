@@ -19,6 +19,15 @@ public class ConcurrentCacheMap<K,V> implements ConcurrentMap<K, V>{
 	private class MappedValue<V>{
 		public long usedTime;
 		public V value;
+		
+		MappedValue (V v) {
+			value = v;
+			updateUseTime ();
+		}
+		
+		public void updateUseTime () {
+			usedTime = (new Date()).getTime();
+		}
 	}
 	
 	private class ConcurrentCacheMapEntry<K,V> implements Entry<K, V>
@@ -50,11 +59,21 @@ public class ConcurrentCacheMap<K,V> implements ConcurrentMap<K, V>{
 	private Timer clearTimer = new Timer();
 	private boolean timerStarted = false;
 	
-	public int timerInterval = 10000;
-	public int timerDelay = 4000;
+	protected int timerInterval;
+	protected int timerDelay;
 	
 	public ConcurrentHashMap<K, MappedValue<V>> map;
 
+	ConcurrentCacheMap (int interval, int delay) {
+		timerDelay = delay;
+		timerInterval = interval;
+	}
+	
+	ConcurrentCacheMap () {
+		timerDelay = 10000;
+		timerInterval = 4000;
+	}
+	
 	@Override
 	public void clear() {
 		map.clear();
@@ -77,14 +96,14 @@ public class ConcurrentCacheMap<K,V> implements ConcurrentMap<K, V>{
 
 	@Override
 	public V get(Object arg0) {
-		MappedValue<V> val = map.get(arg0);
-		val.usedTime = (new Date()).getTime();
-		
 		synchronized (map) {
+			MappedValue<V> val = map.get(arg0);
+			val.updateUseTime();
+		
 			map.put((K) arg0, val);
+			return val.value;
 		}
 		
-		return val.value;
 		
 	}
 
@@ -100,14 +119,10 @@ public class ConcurrentCacheMap<K,V> implements ConcurrentMap<K, V>{
 
 	@Override
 	public V put(K arg0, V arg1) {
-		MappedValue<V> v = new MappedValue<V>();
-		v.value = arg1;
-		v.usedTime = (new Date()).getTime();
-		
+		MappedValue<V> v = new MappedValue<V>(arg1);
 		synchronized (map) {
 			map.put(arg0, v);
 		}
-		
 		this.initTimer ();
 		
 		return v.value;
@@ -144,9 +159,7 @@ public class ConcurrentCacheMap<K,V> implements ConcurrentMap<K, V>{
 	@Override
 	public V putIfAbsent(K arg0, V arg1) {
 		synchronized (map) {
-			MappedValue<V> v = new MappedValue<V>();
-			v.value = arg1;
-			v.usedTime = (new Date()).getTime();
+			MappedValue<V> v = new MappedValue<V>(arg1);
 			return map.putIfAbsent(arg0, v).value;
 		}
 	}
@@ -168,7 +181,7 @@ public class ConcurrentCacheMap<K,V> implements ConcurrentMap<K, V>{
 		synchronized (map) {
 			MappedValue<V> v = map.get(arg0);
 			v.value = arg1;
-			v.usedTime = (new Date()).getTime();
+			v.updateUseTime();
 			return map.replace(arg0, v).value;
 		}
 	}
@@ -179,7 +192,7 @@ public class ConcurrentCacheMap<K,V> implements ConcurrentMap<K, V>{
 			if (map.containsKey(arg0) && map.get(arg0).value.equals(arg1)) {
 				MappedValue<V> val = map.get(arg0);
 				val.value = arg2;
-				val.usedTime = (new Date()).getTime();
+				val.updateUseTime();
 				map.put(arg0, val);
 				
 				return true;
@@ -197,7 +210,7 @@ public class ConcurrentCacheMap<K,V> implements ConcurrentMap<K, V>{
 				synchronized (map) {
 					for (K key : map.keySet()) {
 						long lastUsed = map.get(key).usedTime;
-						if (lastUsed + 4000 > (new Date()).getTime()) {
+						if (lastUsed + timerInterval > (new Date()).getTime()) {
 							map.remove(key);
 						}
 					}
