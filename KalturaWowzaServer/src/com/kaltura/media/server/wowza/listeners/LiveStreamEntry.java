@@ -14,11 +14,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
+import org.hamcrest.core.IsNull;
 
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.KalturaObjectBase;
 import com.kaltura.client.enums.KalturaDVRStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.types.KalturaKeyValue;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveParams;
@@ -638,25 +640,60 @@ public class LiveStreamEntry extends ModuleBase {
 	
 	class CallbackListener implements IMediaStreamCallback {
 
+		protected final static String DEFAULT_LANGUAGE = "eng";
+		protected final static int DEFAULT_TRACKID = 99;
+		
+		
+		
 		@Override
 		public void onCallback(IMediaStream arg0, RequestFunction arg1,
 				AMFDataList arg2) {
 			logger.debug("LiveStreamEntry::onCallback: stream name ["+ arg0.getName() + "] request func: [" + arg1.toString() + "] AMFDataList [" + arg2.toString() + "]");
 			
-			String eventType = arg2.getString(0);
+			IClient client = arg0.getClient();
 			
-			if (eventType.equals("onCaption") ) {
+			if (client != null) {
+				WMSProperties clientProperties = client.getProperties();
+				if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
+					logger.error("Client does not contain entryId information. Captions will not be read");
+					return;
+				}
+				String entryId = clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
+				KalturaLiveEntry entry = liveStreamManager.get(entryId);
+				String eventType = arg2.getString(0);
 				
-				logger.debug("onTextData event received.");
-				AMFDataObj orig = (AMFDataObj) arg2.get(1);
-				AMFDataObj obj = new AMFDataObj();
-				obj.put("text", new AMFDataItem(orig.getString("text")));
-				obj.put("language", new AMFDataItem(orig.getString("language")));
-				obj.put("trackid", new AMFDataItem(orig.getInt("trackid")));
+				if (!eventType.equals(entry.rtmpClosedCaptionsEventName)) {
+					HashMap<String,String> map = liveStreamManager.entryCaptionsMapping.get(entryId);
+					if (!map.containsKey("text")) {
+						logger.error("No text field found. Captions will not be displayed");
+					}
+					
+					logger.debug("onTextData event received: " + entry.rtmpClosedCaptionsEventName);
+					AMFDataObj orig = (AMFDataObj) arg2.get(1);
+					AMFDataObj obj = new AMFDataObj();
+					obj.put("text", new AMFDataItem(orig.getString(map.get("text"))));
+					if (map.containsKey("language")) {
+						obj.put("language", new AMFDataItem(orig.getString(map.get("language"))));
+					}
+					else {
+						obj.put("language", new AMFDataItem(DEFAULT_LANGUAGE));
+					}
+					
+					if (map.containsKey("trackid")) {
+						obj.put("trackid", new AMFDataItem(orig.getInt("trackid")));
+					}
+					else {
+						obj.put("trackid", new AMFDataItem(DEFAULT_TRACKID));
+					}
+
+					arg0.sendDirect("onTextData", obj);
+					((MediaStream)arg0).processSendDirectMessages();
+				}
 				
-				arg0.sendDirect("onTextData", obj);
-				((MediaStream)arg0).processSendDirectMessages();
 			}
+			
+			
+			
 			
 		}
 		

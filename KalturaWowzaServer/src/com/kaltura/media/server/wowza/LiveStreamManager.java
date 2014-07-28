@@ -1,13 +1,17 @@
 package com.kaltura.media.server.wowza;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.kaltura.client.enums.KalturaAssetParamsOrigin;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.KalturaConversionProfileAssetParams;
+import com.kaltura.client.types.KalturaKeyValue;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
+import com.kaltura.infra.ConcurrentCacheMap;
 import com.kaltura.infra.StringUtils;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.events.IKalturaEvent;
@@ -25,7 +29,8 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 	
 	private RecordingManager recordingManager;
 	protected ConcurrentHashMap<String, IMediaStream> streams = new ConcurrentHashMap<String, IMediaStream>();
-
+	public ConcurrentCacheMap<String, HashMap<String,String>> entryCaptionsMapping = new ConcurrentCacheMap<String,HashMap<String,String>>();
+	
 	@Override
 	public void init() throws KalturaManagerException {
 		super.init();
@@ -124,6 +129,8 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 		
 		String fileName = startRecord(liveEntry.id, liveAsset.id, stream, serverIndex, true, true, true);
 		logger.debug("Entry [" + entryId + "] asset params id [" + assetParamsId + "] recording to file [" + fileName + "]");
+		
+		parseCaptionsMapping (liveEntry);
 	}
 
 	@Override
@@ -144,5 +151,14 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 			}
 		}
 		
+	}
+	
+	protected void parseCaptionsMapping (KalturaLiveEntry liveEntry) {
+		HashMap<String,String> entryCaptionsHash = new HashMap<String,String>();
+		for (KalturaKeyValue keyVal : liveEntry.closedCaptionObjectMapping) {
+			entryCaptionsHash.put(keyVal.key, keyVal.value);
+		}
+		
+		entryCaptionsMapping.put(liveEntry.id, entryCaptionsHash);
 	}
 }
