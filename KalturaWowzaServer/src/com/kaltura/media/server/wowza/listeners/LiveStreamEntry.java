@@ -240,14 +240,9 @@ public class LiveStreamEntry extends ModuleBase {
 
 				synchronized (restreams) {
 					if(restreams.containsKey(entryId)){
-						Map<String, Stream> entryStreams = restreams.remove(entryId);
+						Map<String, Stream> entryStreams = restreams.get(entryId);
 						if(entryStreams.containsKey(streamName)){
-							Stream publishedStream = entryStreams.get(streamName);
-							Publisher publisher = publishedStream.getPublisher();
-							byte bytes[] = new byte[] {};
-							Date date = new Date();
-							publisher.addVideoData(bytes, 0, date.getTime());
-							publishedStream.play(streamName, -2, -1, false);
+							restream(entryStreams.get(streamName), streamName);
 						}
 					}
 				}
@@ -507,6 +502,7 @@ public class LiveStreamEntry extends ModuleBase {
 				Stream stream;
 				String streamName;
 				String reStreamName;
+				IMediaStream originalStream;
 				MediaListRendition rendition;
 				
 				for(TranscoderStreamNameGroupMember groupMember : groupMembers){
@@ -520,6 +516,11 @@ public class LiveStreamEntry extends ModuleBase {
 					reStreamName = streamName + "_publish";
 					stream = Stream.createInstance(appInstance, reStreamName);
 					entryStreams.put(streamName, stream);
+					
+					originalStream = appInstance.getStreams().getStream(streamName);
+					if(originalStream.isPlaying()){
+						restream(stream, streamName);
+					}
 					
 					bitrate = groupMember.getMediaListRendition().getBitrateTotal();
 					logger.info("Rendition [" + reStreamName + "] bitrate [" + bitrate + "]");
@@ -537,6 +538,14 @@ public class LiveStreamEntry extends ModuleBase {
 		public void onLiveStreamTranscoderCreate(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream mediaStream) {
 			((LiveStreamTranscoder) liveStreamTranscoder).addActionListener(liveStreamTranscoderActionListener);
 		}
+	}
+
+	private void restream(Stream stream, String inputStreamName) {
+		Publisher publisher = stream.getPublisher();
+		byte bytes[] = new byte[] {};
+		Date date = new Date();
+		publisher.addVideoData(bytes, 0, date.getTime());
+		stream.play(inputStreamName, -2, -1, false);
 	}
 
 	private Matcher getMatches(String streamName, String regex) {
