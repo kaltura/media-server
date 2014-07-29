@@ -501,7 +501,8 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		
 		KalturaLiveEntry liveEntry = get(entryId);
 		if(liveEntry == null){
-			logger.info("Entry [" + entryId + "] not found");	
+			logger.info("Entry [" + entryId + "] not found");
+			return;
 		}
 		
 		if (serverConfiguration.containsKey(KalturaLiveManager.UPLOAD_XML_SAVE_PATH))
