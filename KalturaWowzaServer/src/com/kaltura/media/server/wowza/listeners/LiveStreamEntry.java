@@ -141,13 +141,12 @@ public class LiveStreamEntry extends ModuleBase {
 		public boolean isLiveStreamPacketize(String packetizer, IMediaStream stream) {
 			logger.debug("Packetizer [" + packetizer + ", " + stream.getName() + "]");
 
-			if(!stream.isTranscodeResult()){
+			if(!stream.isTranscodeResult() && !stream.isPublisherStream()){
 				logger.debug("Stream [" + stream.getName() + "] is input stream");
 				return false;
 			}
 			
 			if (packetizer.compareTo("dvrstreamingpacketizer") == 0) {
-				logger.debug("Packetizer check shouldDvrRecord");
 				return this.isThatStreamNeeded(stream);
 			}
 
