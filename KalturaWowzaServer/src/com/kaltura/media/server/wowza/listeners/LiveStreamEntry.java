@@ -85,6 +85,14 @@ public class LiveStreamEntry extends ModuleBase {
 	private IApplicationInstance appInstance;
 	private Map<String, Map<String, Stream>> restreams = new HashMap<String, Map<String, Stream>>();
 
+	@SuppressWarnings("serial")
+	private class ClientConnectException extends Exception{
+
+		public ClientConnectException(String message) {
+			super(message);
+		}
+	}
+	
 	private class DvrRecorderControl implements ILiveStreamDvrRecorderControl, ILiveStreamPacketizerControl {
 
 		@Override
@@ -97,7 +105,7 @@ public class LiveStreamEntry extends ModuleBase {
 			IApplicationInstance appInstance = stream.getStreams().getAppInstance();
 			DvrApplicationContext ctx = appInstance.getDvrApplicationContext();
 
-			if (!stream.isTranscodeResult()) {
+			if (!stream.isTranscodeResult() && !stream.isPublisherStream()) {
 				logger.info("Stream [" + streamName + "] is input stream");
 				return false;
 			}
@@ -612,6 +620,7 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	public void onRTPSessionCreate(RTPSession rtpSession) {
+		logger.debug("Query string [" + rtpSession.getQueryStr() + "]");
 		if (!setLiveStreamManager()) {
 			logger.error("Live Stream Manager is not loaded yet");
 			rtpSession.rejectSession();
@@ -634,6 +643,9 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
+		WMSProperties properties = client.getProperties();
+		logger.debug("End point [" + properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_CONNECT_APP) + "]");
+		
 		if (!setLiveStreamManager()) {
 			logger.error("Live Stream Manager is not loaded yet");
 			client.rejectConnection("Live Stream Manager is not loaded yet", "Live Stream Manager is not loaded yet");
@@ -660,7 +672,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 		try {
 			return onClientConnect(rtpSession.getProperties(), queryString);
-		} catch (KalturaApiException e) {
+		} catch (KalturaApiException | ClientConnectException e) {
 			logger.error("Entry authentication failed [" + queryString + "]: " + e.getMessage());
 			rtpSession.rejectSession();
 			rtpSession.shutdown();
@@ -678,9 +690,14 @@ public class LiveStreamEntry extends ModuleBase {
 		if (requestParts.length < 2)
 			return null;
 
+		String queryString = requestParts[1];
+		if(queryString.indexOf("/") > 0){
+			queryString = queryString.substring(0, queryString.indexOf("/"));
+		}
+		
 		try {
-			return onClientConnect(properties, requestParts[1]);
-		} catch (KalturaApiException e) {
+			return onClientConnect(properties, queryString);
+		} catch (KalturaApiException | ClientConnectException e) {
 			logger.error("Entry authentication failed [" + entryPoint + "]: " + e.getMessage());
 			client.rejectConnection("Unable to authenticate entry [" + entryPoint + "]", "Unable to authenticate entry [" + entryPoint + "]");
 			client.shutdownClient();
@@ -689,7 +706,9 @@ public class LiveStreamEntry extends ModuleBase {
 		return null;
 	}
 
-	private KalturaLiveEntry onClientConnect(WMSProperties properties, String queryString) throws KalturaApiException {
+	private KalturaLiveEntry onClientConnect(WMSProperties properties, String queryString) throws KalturaApiException, ClientConnectException {
+		logger.info("Query-String [" + queryString + "]");
+		
 		String[] queryParams = queryString.split("&");
 		HashMap<String, String> requestParams = new HashMap<String, String>();
 		String[] queryParamsParts;
@@ -699,8 +718,9 @@ public class LiveStreamEntry extends ModuleBase {
 				requestParams.put(queryParamsParts[0], queryParamsParts[1]);
 		}
 
-		if (!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID))
-			return null;
+		if (!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID) || !requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID) || !requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)){
+			throw new ClientConnectException("Missing arguments [" + queryString + "]");
+		}
 
 		int partnerId = Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
 		String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
