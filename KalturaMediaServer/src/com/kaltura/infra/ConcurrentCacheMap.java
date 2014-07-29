@@ -70,7 +70,7 @@ public class ConcurrentCacheMap<K,V> implements ConcurrentMap<K, V>{
 	}
 	
 	ConcurrentCacheMap () {
-		timerDelay = 10000;
+		timerDelay = 60000;
 		timerInterval = 4000;
 	}
 	
