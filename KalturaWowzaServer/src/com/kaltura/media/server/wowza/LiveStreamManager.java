@@ -29,7 +29,7 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 	
 	private RecordingManager recordingManager;
 	protected ConcurrentHashMap<String, IMediaStream> streams = new ConcurrentHashMap<String, IMediaStream>();
-	public ConcurrentCacheMap<String, HashMap<String,String>> entryCaptionsMapping = new ConcurrentCacheMap<String,HashMap<String,String>>();
+	public ConcurrentCacheMap<String, HashMap<String,String>> entryCaptionsMapping = new ConcurrentCacheMap<String,HashMap<String,String>>(1800000, 1800000);
 	
 	@Override
 	public void init() throws KalturaManagerException {

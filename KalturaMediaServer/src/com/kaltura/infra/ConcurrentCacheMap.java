@@ -64,12 +64,12 @@ public class ConcurrentCacheMap<K,V> implements ConcurrentMap<K, V>{
 	
 	public ConcurrentHashMap<K, MappedValue<V>> map;
 
-	ConcurrentCacheMap (int interval, int delay) {
+	public ConcurrentCacheMap (int interval, int delay) {
 		timerDelay = delay;
 		timerInterval = interval;
 	}
 	
-	ConcurrentCacheMap () {
+	public ConcurrentCacheMap () {
 		timerDelay = 60000;
 		timerInterval = 4000;
 	}
@@ -219,7 +219,7 @@ public class ConcurrentCacheMap<K,V> implements ConcurrentMap<K, V>{
 			}
 		};
 		
-		if (!timerStarted) {
+		if (!timerStarted && timerDelay > 0 && timerInterval > 0) {
 			clearTimer.schedule(clearUnused, timerDelay, timerInterval);
 			timerStarted = true;
 		}
