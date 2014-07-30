@@ -527,9 +527,16 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			Method method = liveServiceInstance.getClass().getMethod("appendRecording", String.class, String.class, KalturaMediaServerIndex.class, KalturaDataCenterContentResource.class, float.class);
 			KalturaLiveEntry updatedEntry = (KalturaLiveEntry)method.invoke(liveServiceInstance, entryId, assetId, index, resource, duration);
 			
-			synchronized (entries) {
-				LiveEntryCache liveEntryCache = entries.get(entryId);
-				liveEntryCache.setLiveEntry(updatedEntry);
+			if(updatedEntry != null){
+				synchronized (entries) {
+					LiveEntryCache liveEntryCache = entries.get(entryId);
+					if(liveEntryCache != null){
+						liveEntryCache.setLiveEntry(updatedEntry);
+					}
+					else{
+						entries.put(entryId, new LiveEntryCache(updatedEntry));
+					}
+				}
 			}
 		}
 		catch (Exception e) {

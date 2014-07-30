@@ -518,7 +518,7 @@ public class LiveStreamEntry extends ModuleBase {
 					entryStreams.put(streamName, stream);
 					
 					originalStream = appInstance.getStreams().getStream(streamName);
-					if(originalStream.isPlaying()){
+					if(originalStream != null && originalStream.isPlaying()){
 						restream(stream, streamName);
 					}
 					
