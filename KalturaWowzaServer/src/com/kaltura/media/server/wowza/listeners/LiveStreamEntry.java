@@ -175,6 +175,8 @@ public class LiveStreamEntry extends ModuleBase {
 
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
+			logger.debug("Stream [" + streamName + "]");
+			
 			WMSProperties properties = getConnectionProperties(stream);
 			int assetParamsId = Integer.MIN_VALUE;
 			if (properties != null) { // streamed from the client
@@ -471,6 +473,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 		private void unRestreamGroup(String entryId) {
 			
+			logger.debug("Unpublish restreamed entry [" + entryId + "]");
 			synchronized (restreams) {
 				if(restreams.containsKey(entryId)){
 					Map<String, Stream> entryStreams = restreams.remove(entryId);
@@ -512,7 +515,7 @@ public class LiveStreamEntry extends ModuleBase {
 						continue;
 					}
 					
-					streamName = rendition.getName();
+					streamName = rendition.getName().replace("mp4:", "");
 					reStreamName = streamName + "_publish";
 					stream = Stream.createInstance(appInstance, reStreamName);
 					entryStreams.put(streamName, stream);
@@ -520,6 +523,9 @@ public class LiveStreamEntry extends ModuleBase {
 					originalStream = appInstance.getStreams().getStream(streamName);
 					if(originalStream != null && originalStream.isPlaying()){
 						restream(stream, streamName);
+					}
+					else{
+						logger.debug("Restreamed stream [" + streamName + "] is not published yet");
 					}
 					
 					bitrate = groupMember.getMediaListRendition().getBitrateTotal();
@@ -541,11 +547,12 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	private void restream(Stream stream, String inputStreamName) {
+		logger.debug("Restream [" + stream.getName() + "] from [" + inputStreamName + "]");
 		Publisher publisher = stream.getPublisher();
 		byte bytes[] = new byte[] {};
 		Date date = new Date();
 		publisher.addVideoData(bytes, 0, date.getTime());
-		stream.play(inputStreamName, -2, -1, false);
+		stream.play("mp4:" + inputStreamName, -2, -1, false);
 	}
 
 	private Matcher getMatches(String streamName, String regex) {
