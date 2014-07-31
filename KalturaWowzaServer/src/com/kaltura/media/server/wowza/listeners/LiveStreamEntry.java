@@ -552,7 +552,7 @@ public class LiveStreamEntry extends ModuleBase {
 		byte bytes[] = new byte[] {};
 		Date date = new Date();
 		publisher.addVideoData(bytes, 0, date.getTime());
-		stream.play("mp4:" + inputStreamName, -2, -1, false);
+		stream.play(inputStreamName, -2, -1, false);
 	}
 
 	private Matcher getMatches(String streamName, String regex) {
