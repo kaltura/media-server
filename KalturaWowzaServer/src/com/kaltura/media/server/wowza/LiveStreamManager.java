@@ -2,17 +2,13 @@ package com.kaltura.media.server.wowza;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.kaltura.client.enums.KalturaAssetParamsOrigin;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.enums.KalturaRecordStatus;
-import com.kaltura.client.types.KalturaConversionProfileAssetParams;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
-import com.kaltura.infra.StringUtils;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
-import com.kaltura.media.server.events.KalturaStreamEvent;
 import com.kaltura.media.server.managers.KalturaLiveStreamManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
@@ -32,6 +28,7 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 
 		recordingManager = new RecordingManager(this);
 		KalturaEventsManager.registerEventConsumer(this, KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, KalturaEventType.STREAM_PUBLISHED);
+		setInitialized();
 	}
 
 	@Override
@@ -138,11 +135,23 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 			if (streams.containsKey(entryId)) {
 				logger.info("Disconnecting stream for " + entryId);
 				IMediaStream streamToDisconnect = streams.get(entryId);
-				streamToDisconnect.getClient().rejectConnection("Connection rejected- planned event");
-				streamToDisconnect.getClient().shutdownClient();
+				if(streamToDisconnect.getClient() != null){
+					streamToDisconnect.getClient().rejectConnection("Connection rejected- planned event");
+					streamToDisconnect.getClient().shutdownClient();
+				}
+				else if(streamToDisconnect.getRTPStream() != null && streamToDisconnect.getRTPStream().getSession() != null){
+					streamToDisconnect.getRTPStream().getSession().rejectSession();
+					streamToDisconnect.getRTPStream().getSession().shutdown();
+				}
 				streams.remove(entryId);
 			}
 		}
 		
+	}
+	
+	protected void entryStillAlive(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex){
+		super.entryStillAlive(liveEntry, serverIndex);
+		
+		SmilManager.updateSmils(liveEntry.id);
 	}
 }

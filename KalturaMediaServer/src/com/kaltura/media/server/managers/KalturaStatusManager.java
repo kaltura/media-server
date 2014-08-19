@@ -44,6 +44,8 @@ public abstract class KalturaStatusManager implements IStatusManager {
 		
 		timer = new Timer(true);
 		timer.schedule(timerTask, 0, interval);
+		
+		KalturaServer.setManagerInitialized(getClass().getName());
 	}
 
 	@Override
@@ -54,11 +56,14 @@ public abstract class KalturaStatusManager implements IStatusManager {
 
 	public void reportStatus() {
 		try {
-			logger.debug("KalturaStatusManager::reportStatus Reporting server status [" + hostname + "]");
+			logger.debug("Reporting server status [" + hostname + "]");
 			client.getMediaServerService().reportStatus(hostname, getServerStatus());
 		} catch (KalturaApiException e) {
 			IExceptionManager exceptionManager = (IExceptionManager) KalturaServer.getManager(IExceptionManager.class);
-			exceptionManager.handleException(e);
+			logger.error(e);
+			if(exceptionManager != null){
+				exceptionManager.handleException(e);
+			}
 		}
 	}
 }

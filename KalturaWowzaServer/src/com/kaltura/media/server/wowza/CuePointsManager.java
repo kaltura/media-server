@@ -264,6 +264,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 		super.init();
 
 		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_PUBLISHED, KalturaMediaEventType.APPLICATION_INSTANCE_STARTED);
+		setInitialized();
 	}
 
 	@Override
@@ -384,7 +385,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 			}
 		};
 		
-		Timer timer = new Timer();
+		Timer timer = new Timer("sendSyncPoint-" + entryId, true);
 		timer.schedule(task, 1000);
 	}
 }

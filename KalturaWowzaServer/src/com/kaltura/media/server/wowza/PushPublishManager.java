@@ -23,7 +23,6 @@ import com.kaltura.media.server.managers.KalturaManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
-import com.wowza.wms.client.IClient;
 import com.wowza.wms.pushpublish.protocol.rtp.PushPublishRTP;
 import com.wowza.wms.stream.IMediaStream;
 
@@ -58,6 +57,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	    maxPort = Integer.parseInt(portRange[1]);
 	    minFreePort = Integer.parseInt(portRange[0]);
 	    maxFreePort = Integer.parseInt(portRange[0]);
+	    setInitialized();
 	}
 	
 	@Override
@@ -106,9 +106,8 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 			return;
 		}
 		
-		IClient streamClient = stream.getClient();
 		String streamName = stream.getName();
-		if (!streamName.startsWith("push-") && streamClient == null) {
+		if (!streamName.startsWith("push-") && stream.isTranscodeResult()) {
 			logger.debug("Attempting to publish stream [" + streamName + "] entry [" + entry.id + "] asset params id [" + assetParamsId + "]");
 			
 			KalturaLiveAsset liveAsset = liveManager.getLiveAsset(entry.id, assetParamsId);

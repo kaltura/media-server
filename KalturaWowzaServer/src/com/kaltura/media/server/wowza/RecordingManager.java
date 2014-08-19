@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.UserPrincipalLookupService;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -70,7 +71,8 @@ public class RecordingManager {
 			}
 			
 			logger.info("Stream [" + stream.getName() + "] file [" + file.getAbsolutePath() + "] folder [" + file.getParent() + "]");
-			float duration = (float) stream.getElapsedTime().getTimeSeconds();
+			Date date = new Date();
+			float duration = ((float)(date.getTime() - liveStreamRecord.getStartTime().getMillis())) / 1000;
 			float currentChunkDuration = duration - appendedDuration;
 			appendedDuration = duration;
 
