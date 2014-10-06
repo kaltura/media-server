@@ -347,15 +347,42 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	protected void onPublish(String entryId, final KalturaMediaServerIndex serverIndex, String applicationName) {
 		logger.debug("Entry [" + entryId + "]");
 
+		LiveEntryCache liveEntryCache = null;
+
 		synchronized (entries) {
 
 			if (entries.containsKey(entryId)){
-				LiveEntryCache liveEntryCache = entries.get(entryId);
+				liveEntryCache = entries.get(entryId);
 				liveEntryCache.register(serverIndex, applicationName);
 			}
 			else{
 				logger.error("entry [" + entryId + "] not found in entries array");
 			}
+		}
+
+	}
+
+	protected void onEntryPublished(LiveEntryCache liveEntryCache, final KalturaMediaServerIndex serverIndex, String applicationName) {
+		if ( liveEntryCache != null && liveEntryCache.getLiveEntry() != null ) {
+			KalturaLiveEntry liveEntry = liveEntryCache.getLiveEntry();
+			KalturaLiveEntry updatedLiveEntry;
+
+			try {
+				updatedLiveEntry = liveEntry.getClass().newInstance();
+			} catch (Exception e) {
+				logger.error("failed to instantiate [" + liveEntry.getClass().getName() + "]: " + e.getMessage());
+				return;
+			}
+
+			updatedLiveEntry.currentBroadcastStartTime = (int) (new Date().getTime() / 1000);
+
+			KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
+			try {
+				impersonateClient.getBaseEntryService().update(liveEntry.id, updatedLiveEntry);
+			} catch (KalturaApiException e) {
+				logger.error("failed to update entry [" + liveEntry.id + "]: " + e.getMessage());
+			}
+			impersonateClient = null;
 		}
 	}
 
