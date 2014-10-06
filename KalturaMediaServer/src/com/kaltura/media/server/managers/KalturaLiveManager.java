@@ -360,6 +360,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			}
 		}
 
+		onEntryPublished( liveEntryCache, serverIndex, applicationName );
 	}
 
 	protected void onEntryPublished(LiveEntryCache liveEntryCache, final KalturaMediaServerIndex serverIndex, String applicationName) {
