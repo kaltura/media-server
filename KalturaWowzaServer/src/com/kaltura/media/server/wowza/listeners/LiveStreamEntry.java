@@ -480,6 +480,7 @@ public class LiveStreamEntry extends ModuleBase {
 					for(Stream stream : entryStreams.values()){
 						stream.close();
 					}
+					SmilManager.removeGroupSmils(entryId, "publish");
 				}
 			}
 		}
