@@ -32,6 +32,24 @@ public class SmilManager {
 			}
 		}
 	}
+	
+	public static void removeGroupSmils(String entryId, String groupName) {
+		synchronized(smils){
+			if(smils.containsKey(entryId)){
+				for (String filePath : smils.get(entryId)) {
+					if (filePath.endsWith(entryId + "_" + groupName + ".smil")) {
+						File file = new File(filePath);
+						if(file.exists()){
+							file.delete();
+						}
+						synchronized (smils) {
+							smils.get(entryId).remove(filePath);
+						}
+					}
+				}
+			}
+		}
+	}
 
 	public static void updateSmils(String entryId) {
 		Date date = new Date();
