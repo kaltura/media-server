@@ -187,6 +187,8 @@ public class RecordingManager {
 		
 		logger.debug("Entry [" + entryId + "]  file path [" + filePath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");
 		
+		logger.debug("Entry recorder segment duration: " + recorder.getSegmentDuration());
+		
 		// if you want to record data packets as well as video/audio
 		recorder.setRecordData(recordData);
 		
@@ -197,7 +199,7 @@ public class RecordingManager {
 		recorder.setStartOnKeyFrame(startOnKeyFrame);
 		
 		// start recording
-		recorder.startRecording(stream, filePath, false);
+		recorder.startRecordingSegmentByDuration(stream, filePath, null, 60000);
 
 		// add it to the recorders list
 		synchronized (recorders){

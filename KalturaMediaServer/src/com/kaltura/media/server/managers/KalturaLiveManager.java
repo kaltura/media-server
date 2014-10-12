@@ -454,22 +454,22 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			logger.debug("scheduled setMediaServerTask");
 		}
 
-		long splitRecordingInterval = KalturaLiveManager.DEFAULT_RECORDED_CHUNCK_MAX_DURATION * 60 * 1000;
-		if (serverConfiguration.containsKey(KalturaLiveManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION))
-			splitRecordingInterval = Long.parseLong((String) serverConfiguration.get(KalturaLiveManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION)) * 60 * 1000;
-
-		if (splitRecordingInterval > 0) {
-			TimerTask splitRecordingTask = new TimerTask() {
-
-				@Override
-				public void run() {
-					restartRecordings();
-				}
-			};
-
-			splitRecordingTimer = new Timer(true);
-			splitRecordingTimer.schedule(splitRecordingTask, splitRecordingInterval, splitRecordingInterval);
-		}
+//		long splitRecordingInterval = KalturaLiveManager.DEFAULT_RECORDED_CHUNCK_MAX_DURATION * 60 * 1000;
+//		if (serverConfiguration.containsKey(KalturaLiveManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION))
+//			splitRecordingInterval = Long.parseLong((String) serverConfiguration.get(KalturaLiveManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION)) * 60 * 1000;
+//
+//		if (splitRecordingInterval > 0) {
+//			TimerTask splitRecordingTask = new TimerTask() {
+//
+//				@Override
+//				public void run() {
+//					restartRecordings();
+//				}
+//			};
+//
+//			splitRecordingTimer = new Timer(true);
+//			splitRecordingTimer.schedule(splitRecordingTask, splitRecordingInterval, splitRecordingInterval);
+//		}
 		
 		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_PUBLISHED, KalturaEventType.STREAM_UNPUBLISHED, KalturaEventType.STREAM_DISCONNECTED);
 	}
