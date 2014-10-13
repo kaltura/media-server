@@ -32,6 +32,7 @@ import com.kaltura.media.server.events.KalturaStreamEvent;
 public abstract class KalturaCuePointsManager extends KalturaManager implements ICuePointsManager, IKalturaEventConsumer {
 
 	protected final static int CUE_POINTS_LIST_MAX_ENTRIES = 30;
+	protected final static int SEND_SYNC_POINT_WITHOUT_STOP_TIME = -1;
 	
 	protected static Logger logger = Logger.getLogger(KalturaCuePointsManager.class);
 
@@ -151,7 +152,7 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 					Date now = new Date();
 					for(String entryId : keySet()){
 						Date stopTime = get(entryId);
-						if(now.after(stopTime)){
+						if(stopTime != null && now.after(stopTime)){
 							remove(entryId);
 						}
 						else{
@@ -286,6 +287,9 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 		}
 	}
 
+	/**
+	 * To enable sync points without specific end time -1 needs to be passed as the value of duration 
+	 */
 	public void createPeriodicSyncPoints(String liveEntryId, int interval, int duration){
 		createSyncPoint(liveEntryId);
 		
@@ -301,7 +305,13 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 				cuePointsCreator = new CuePointsCreator(interval);
 				cuePointsCreators.put(interval, cuePointsCreator);
 			}
-			cuePointsCreator.put(liveEntryId, stopTime);
+			
+			if(duration == KalturaCuePointsManager.SEND_SYNC_POINT_WITHOUT_STOP_TIME){
+				cuePointsCreator.put(liveEntryId, null);
+			}
+			else{
+				cuePointsCreator.put(liveEntryId, stopTime);
+			}
 		}
 	}
 
