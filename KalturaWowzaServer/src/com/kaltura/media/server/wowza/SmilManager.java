@@ -42,9 +42,7 @@ public class SmilManager {
 						if(file.exists()){
 							file.delete();
 						}
-						synchronized (smils) {
-							smils.get(entryId).remove(filePath);
-						}
+						smils.get(entryId).remove(filePath);
 					}
 				}
 			}
