@@ -473,9 +473,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	public void stop() {
 		setMediaServerTimer.cancel();
 		setMediaServerTimer.purge();
-
-		splitRecordingTimer.cancel();
-		splitRecordingTimer.purge();
 	}
 	
 	public void appendRecording(String entryId, String assetId, KalturaMediaServerIndex index, String filePath, float duration) {

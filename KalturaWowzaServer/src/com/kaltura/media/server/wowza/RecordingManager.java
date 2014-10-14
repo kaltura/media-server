@@ -28,6 +28,8 @@ public class RecordingManager {
 
 	protected final static String KALTURA_RECORDED_FILE_GROUP = "KalturaRecordedFileGroup";
 	protected final static String DEFAULT_RECORDED_FILE_GROUP = "kaltura";
+	
+	//The default live segment duration is 15 minutes long
 	protected final static int DEFAULT_RECORDED_SEGMENT_DURATION = 900000;
 	protected final static String DEFAULT_RECORDED_SEGMENT_DURATION_FIELD_NAME = "DefaultRecordedSegmentDuration";
 	protected static Logger logger = Logger.getLogger(RecordingManager.class);
