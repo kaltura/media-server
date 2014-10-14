@@ -32,7 +32,7 @@ import com.kaltura.media.server.events.KalturaStreamEvent;
 public abstract class KalturaCuePointsManager extends KalturaManager implements ICuePointsManager, IKalturaEventConsumer {
 
 	protected final static int CUE_POINTS_LIST_MAX_ENTRIES = 30;
-	protected final static int SEND_SYNC_POINT_WITHOUT_STOP_TIME = -1;
+	protected final static int INFINITE_SYNC_POINT_DURATION = -1;
 	
 	protected static Logger logger = Logger.getLogger(KalturaCuePointsManager.class);
 
@@ -306,7 +306,7 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 				cuePointsCreators.put(interval, cuePointsCreator);
 			}
 			
-			if(duration == KalturaCuePointsManager.SEND_SYNC_POINT_WITHOUT_STOP_TIME){
+			if(duration == KalturaCuePointsManager.INFINITE_SYNC_POINT_DURATION){
 				cuePointsCreator.put(liveEntryId, null);
 			}
 			else{
