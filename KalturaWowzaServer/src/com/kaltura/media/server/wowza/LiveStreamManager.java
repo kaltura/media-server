@@ -124,12 +124,6 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 	}
 
 	@Override
-	protected void onUnPublish(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
-		recordingManager.stop(liveEntry.id);
-		super.onUnPublish(liveEntry, serverIndex);
-	}
-
-	@Override
 	protected void disconnectStream(String entryId) {
 		synchronized (streams) {
 			if (streams.containsKey(entryId)) {
