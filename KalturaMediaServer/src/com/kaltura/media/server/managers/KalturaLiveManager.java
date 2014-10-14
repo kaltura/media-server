@@ -59,7 +59,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	protected final static String KALTURA_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME = "KalturaIsLiveRegistrationMinBufferTime";
 	protected final static String KALTURA_WOWZA_SERVER_WORK_MODE = "KalturaWorkMode";
 	
-	protected final static long DEFAULT_RECORDED_CHUNCK_MAX_DURATION = 60;
 	protected final static long DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME = 5;
 	protected final static String KALTURA_WOWZA_SERVER_WORK_MODE_REMOTE = "remote";
 	protected final static String KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA = "kaltura";
@@ -74,7 +73,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	protected long isLiveRegistrationMinBufferTime = KalturaLiveManager.DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME;
 
 	private Timer setMediaServerTimer;
-	private Timer splitRecordingTimer;
 
 	protected class LiveEntryCache {
 		private KalturaLiveEntry liveEntry;
