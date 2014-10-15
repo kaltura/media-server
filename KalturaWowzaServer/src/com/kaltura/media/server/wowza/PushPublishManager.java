@@ -253,7 +253,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 					
 					synchronized (publishers) {
 						ArrayList<PushPublishBase> entryPublishers;
-				    	if (!publishers.contains(entry.id)) {
+				    	if (!publishers.containsKey(entry.id)) {
 				    		publishers.put(entry.id, new ArrayList<PushPublishBase>());
 				    	}
 				    	entryPublishers = publishers.get(entry.id);
@@ -274,8 +274,10 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 		logger.info("unpublishing entry [" + entry.id + "]");
 		synchronized (publishers) {
 			ArrayList<PushPublishBase> currentPublishers = publishers.remove(entry.id);
-			for (PushPublishBase publisher : currentPublishers)
+			for (PushPublishBase publisher : currentPublishers) {
+				logger.info("Unpublishing stream " + publisher.getDstStreamName());
 				publisher.disconnect();
+			}
 		}
 		
 		synchronized (multicastPortsInUse) {
