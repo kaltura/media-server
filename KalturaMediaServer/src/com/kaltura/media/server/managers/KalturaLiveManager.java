@@ -242,6 +242,17 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 		return null;
 	}
+	
+	public KalturaMediaServerIndex getMediaServerIndexForEntry (String entryId) {
+		synchronized (entries) {
+			if (entries.containsKey(entryId)) {
+				LiveEntryCache liveEntryCache = entries.get(entryId);
+				return liveEntryCache.getIndex();
+			}
+		}
+
+		return null;
+	}
 
 	public KalturaLiveParams getLiveAssetParams(int assetParamsId){
 
