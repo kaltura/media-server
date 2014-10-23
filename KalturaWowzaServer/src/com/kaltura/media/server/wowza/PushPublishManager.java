@@ -13,8 +13,8 @@ import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.enums.KalturaPlaybackProtocol;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
-import com.kaltura.client.types.KalturaLiveStreamConfiguration;
-import com.kaltura.client.types.KalturaLiveStreamRTMPConfiguration;
+import com.kaltura.client.types.KalturaLiveStreamPushPublishConfiguration;
+import com.kaltura.client.types.KalturaLiveStreamPushPublishRTMPConfiguration;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.events.IKalturaEvent;
@@ -40,7 +40,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	protected final static String MULTICAST_PORT_RANGE_FIELD_NAME = "MulticastPortRange";
 	protected final static String MULTICAST_STREAM_TIMEOUT = "multicastStreamTimeout";
 	protected final static int MULTICAST_DEFAULT_STREAM_TIMEOUT = 10000;
-	protected final static String AKAMAI_ASSET_TAG_VALUE = "akamaiRtmpPublish";
+	protected final static int AKAMAI_ASSET_PARAMS_ID=32;
 	
 	protected static Logger logger = Logger.getLogger(KalturaLiveManager.class);
 	protected ILiveManager liveManager;
@@ -56,7 +56,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	public void init() throws KalturaManagerException {
 		super.init();
 		logger.info("Initialize PushPublisherManager");
-		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_UNPUBLISHED, KalturaMediaEventType.MEDIA_STREAM_PUBLISHED);
+		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_UNPUBLISHED, KalturaEventType.STREAM_PUBLISHED, KalturaMediaEventType.MEDIA_STREAM_PUBLISHED);
 		liveManager = (ILiveManager) KalturaServer.getManager(ILiveManager.class);
 		
 		if (serverConfiguration.containsKey(PushPublishManager.MULTICAST_PORT_RANGE_FIELD_NAME)) {
@@ -96,11 +96,14 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 		}
 		
 		if(event.getType() instanceof KalturaEventType){
-			KalturaStreamEvent streamEvent;
 			switch((KalturaEventType) event.getType())
 			{
+				case STREAM_PUBLISHED:
+					KalturaMediaStreamEvent publishStreamEvent = (KalturaMediaStreamEvent) event;
+					onSourcePublish(publishStreamEvent.getMediaStream(), publishStreamEvent.getEntry(), publishStreamEvent.getAssetParamsId());
+				break;
 				case STREAM_UNPUBLISHED:
-					streamEvent = (KalturaStreamEvent) event;
+					KalturaStreamEvent streamEvent = (KalturaStreamEvent) event;
 					onUnPublish(streamEvent.getEntry());
 					break;
 				default:
@@ -131,11 +134,22 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 				logger.info("Attempting to multicast entry [" + entry.id + "], asset id [" + liveAsset.id  + "]");
 				multicastPublish (stream, entry, liveAsset);
 			}
-			
 
-			logger.info("Attempting to publish to Akamai entry [" + entry.id + "], asset id [" + liveAsset.id  + "]");
-			rtmpPublish (stream, entry, liveAsset);
-
+		}
+	}
+	
+	protected void onSourcePublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId)
+	{
+		if (entry.pushPublishEnabled == KalturaLivePublishStatus.DISABLED)
+		{
+			return;
+		}
+		
+		String streamName = stream.getName();
+		
+		if (!streamName.contains("@") && !streamName.startsWith("push-") && assetParamsId == PushPublishManager.AKAMAI_ASSET_PARAMS_ID) {
+			logger.info("Attempting to publish to Akamai entry [" + entry.id + "], asset id [" + assetParamsId  + "]");
+			rtmpPublish (stream, entry, assetParamsId);
 		}
 	}
 	
@@ -216,17 +230,17 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	    }
 	}
 	
-	protected void rtmpPublish (IMediaStream stream, KalturaLiveEntry entry, KalturaLiveAsset liveAsset) {
+	protected void rtmpPublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId) {
 		try {
-			ArrayList<KalturaLiveStreamConfiguration> configurations = entry.liveStreamConfigurations;
-			for (KalturaLiveStreamConfiguration configuration : configurations) {
-				if (configuration.protocol.equals(KalturaPlaybackProtocol.RTMP) && configuration instanceof KalturaLiveStreamRTMPConfiguration) {
+			ArrayList<KalturaLiveStreamPushPublishConfiguration> configurations = entry.publishConfigurations;
+			for (KalturaLiveStreamPushPublishConfiguration configuration : configurations) { 
+				if (configuration instanceof KalturaLiveStreamPushPublishRTMPConfiguration) {
 					// Found correct publishing configuration for Akamai.
 					PushPublishRTMP publisher = new PushPublishRTMP();
-					logger.info("Publishing entry [" + entry.id + "] asset params id [" + liveAsset.flavorParamsId + "] to RTMP destination");
+					logger.info("Publishing entry [" + entry.id + "] asset params id [" + assetParamsId + "] to RTMP destination");
 					publisher.setAppInstance(stream.getStreams().getAppInstance());
 					publisher.setSrcStreamName(stream.getName());
-					KalturaLiveStreamRTMPConfiguration rtmpConfiguration = (KalturaLiveStreamRTMPConfiguration)configuration;
+					KalturaLiveStreamPushPublishRTMPConfiguration rtmpConfiguration = (KalturaLiveStreamPushPublishRTMPConfiguration)configuration;
 					publisher.setAkamaiUserName(rtmpConfiguration.userId);
 					publisher.setAkamaiPassword(rtmpConfiguration.password);
 					
@@ -235,12 +249,16 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 						publisher.setHost(rtmpConfiguration.publishUrl);
 					}
 					else if (serverIndex.equals(KalturaMediaServerIndex.SECONDARY)) {
-						publisher.setHost(rtmpConfiguration.backupUrl);
+						publisher.setHost(rtmpConfiguration.backupPublishUrl);
 					}
 					
-					publisher.setPort(1935);
+					String port = "1935";
+					if (rtmpConfiguration.port != null)
+						port = rtmpConfiguration.port;
+					publisher.setPort(port);
+					
 					publisher.setDstApplicationName(rtmpConfiguration.applicationName);
-					publisher.setDstStreamName(rtmpConfiguration.streamName.replaceAll("%i", Integer.toString(liveAsset.flavorParamsId)));
+					publisher.setDstStreamName(rtmpConfiguration.streamName);
 					publisher.setConnectionFlashVersion(PushPublishRTMP.CURRENTFLASHVERSION);
 					
 					publisher.setSendFCPublish(true);
