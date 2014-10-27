@@ -149,15 +149,23 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 
 				@Override
 				public void run() {
-					Date now = new Date();
-					for(String entryId : keySet()){
-						Date stopTime = get(entryId);
-						if(stopTime != null && now.after(stopTime)){
-							remove(entryId);
+					try {
+						logger.info("Running sync point creator timer");
+						Date now = new Date();
+						for(String entryId : keySet()){
+							Date stopTime = get(entryId);
+							if(stopTime != null && now.after(stopTime)){
+								logger.info("Stop time reached or exceeded");
+								remove(entryId);
+							}
+							else{
+								createSyncPoint(entryId);
+							
+							}
 						}
-						else{
-							createSyncPoint(entryId);
-						}
+					}
+					catch (Exception e) {
+						logger.error("An error occured while running the sync-point creator timer: [" + e.getMessage() + "]");
 					}
 				}
 			};
