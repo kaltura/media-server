@@ -8,8 +8,8 @@ public interface ICuePointsManager extends IManager {
 	
 	void createSyncPoint(String liveEntryId);
 	
-	float getEntryCurrentTime(KalturaLiveEntry liveEntry) throws KalturaManagerException;
+	double getEntryCurrentTime(KalturaLiveEntry liveEntry) throws KalturaManagerException;
 
-	void sendSyncPoint(String entryId, String id, float offset) throws KalturaManagerException;
+	void sendSyncPoint(String entryId, String id, double offset) throws KalturaManagerException;
 
 }

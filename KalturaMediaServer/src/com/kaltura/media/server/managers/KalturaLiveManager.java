@@ -523,7 +523,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		splitRecordingTimer.purge();
 	}
 	
-	public void appendRecording(String entryId, String assetId, KalturaMediaServerIndex index, String filePath, float duration) {
+	public void appendRecording(String entryId, String assetId, KalturaMediaServerIndex index, String filePath, double duration) {
 
 		logger.info("Entry [" + entryId + "] asset [" + assetId + "] index [" + index + "] filePath [" + filePath + "] duration [" + duration + "]");
 		
@@ -552,7 +552,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		
 		try {
 			
-			Method method = liveServiceInstance.getClass().getMethod("appendRecording", String.class, String.class, KalturaMediaServerIndex.class, KalturaDataCenterContentResource.class, float.class);
+			Method method = liveServiceInstance.getClass().getMethod("appendRecording", String.class, String.class, KalturaMediaServerIndex.class, KalturaDataCenterContentResource.class, double.class);
 			KalturaLiveEntry updatedEntry = (KalturaLiveEntry)method.invoke(liveServiceInstance, entryId, assetId, index, resource, duration);
 			
 			if(updatedEntry != null){
@@ -677,7 +677,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		return liveEntry;
 	}
 	
-	protected boolean saveUploadAsXml (String entryId, String assetId, KalturaMediaServerIndex index, String filePath, float duration, int partnerId)
+	protected boolean saveUploadAsXml (String entryId, String assetId, KalturaMediaServerIndex index, String filePath, double duration, int partnerId)
 	{
 		try {
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
@@ -708,7 +708,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			
 			// duration element
 			Element durationElem = doc.createElement("duration");
-			durationElem.appendChild(doc.createTextNode(Float.toString(duration)));
+			durationElem.appendChild(doc.createTextNode(Double.toString(duration)));
 			rootElement.appendChild(durationElem);
 			
 			// filepath element
