@@ -32,7 +32,7 @@ public class CuePointsDemo extends CuePointsManager {
 					logger.info("Running");
 					
 					Date now = new Date();
-					float offset = now.getTime() - start.getTime();
+					double offset = now.getTime() - start.getTime();
 					String id = StringUtils.getUniqueId();
 						
 					synchronized (streams) {
