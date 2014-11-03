@@ -375,7 +375,8 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				return;
 			}
 
-			updatedLiveEntry.currentBroadcastStartTime = (int) (new Date().getTime() / 1000);
+			// Set the time to be unix time stamp with milliseconds as the decimal fraction
+			updatedLiveEntry.currentBroadcastStartTime = new Date().getTime() / 1000.0;
 
 			KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 			try {
