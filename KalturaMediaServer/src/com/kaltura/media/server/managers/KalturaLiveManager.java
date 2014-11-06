@@ -59,7 +59,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	protected final static String KALTURA_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME = "KalturaIsLiveRegistrationMinBufferTime";
 	protected final static String KALTURA_WOWZA_SERVER_WORK_MODE = "KalturaWorkMode";
 	
-	protected final static long DEFAULT_RECORDED_CHUNCK_MAX_DURATION = 60;
 	protected final static long DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME = 5;
 	protected final static String KALTURA_WOWZA_SERVER_WORK_MODE_REMOTE = "remote";
 	protected final static String KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA = "kaltura";
@@ -74,7 +73,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	protected long isLiveRegistrationMinBufferTime = KalturaLiveManager.DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME;
 
 	private Timer setMediaServerTimer;
-	private Timer splitRecordingTimer;
 
 	protected class LiveEntryCache {
 		private KalturaLiveEntry liveEntry;
@@ -239,6 +237,17 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			if (entries.containsKey(entryId)) {
 				LiveEntryCache liveEntryCache = entries.get(entryId);
 				return liveEntryCache.getLiveEntry();
+			}
+		}
+
+		return null;
+	}
+	
+	public KalturaMediaServerIndex getMediaServerIndexForEntry (String entryId) {
+		synchronized (entries) {
+			if (entries.containsKey(entryId)) {
+				LiveEntryCache liveEntryCache = entries.get(entryId);
+				return liveEntryCache.getIndex();
 			}
 		}
 
@@ -482,23 +491,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			setMediaServerTimer.schedule(setMediaServerTask, keepAliveInterval, keepAliveInterval);
 			logger.debug("scheduled setMediaServerTask");
 		}
-
-		long splitRecordingInterval = KalturaLiveManager.DEFAULT_RECORDED_CHUNCK_MAX_DURATION * 60 * 1000;
-		if (serverConfiguration.containsKey(KalturaLiveManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION))
-			splitRecordingInterval = Long.parseLong((String) serverConfiguration.get(KalturaLiveManager.KALTURA_RECORDED_CHUNCK_MAX_DURATION)) * 60 * 1000;
-
-		if (splitRecordingInterval > 0) {
-			TimerTask splitRecordingTask = new TimerTask() {
-
-				@Override
-				public void run() {
-					restartRecordings();
-				}
-			};
-
-			splitRecordingTimer = new Timer(true);
-			splitRecordingTimer.schedule(splitRecordingTask, splitRecordingInterval, splitRecordingInterval);
-		}
 		
 		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_PUBLISHED, KalturaEventType.STREAM_UNPUBLISHED, KalturaEventType.STREAM_DISCONNECTED);
 	}
@@ -519,9 +511,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	public void stop() {
 		setMediaServerTimer.cancel();
 		setMediaServerTimer.purge();
-
-		splitRecordingTimer.cancel();
-		splitRecordingTimer.purge();
 	}
 	
 	public void appendRecording(String entryId, String assetId, KalturaMediaServerIndex index, String filePath, double duration) {

@@ -230,7 +230,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 			logger.info("Stream [" + streamName + "] JSON:\n" + json);
 
 			String hashedString = new String(Base64.encodeBase64(json.getBytes()));
-			logger.info("Stream [" + streamName + "] Hasged: " + hashedString);
+			logger.info("Stream [" + streamName + "] Hashed: " + hashedString);
 
 			ID3V2FrameBase frame;
 			
