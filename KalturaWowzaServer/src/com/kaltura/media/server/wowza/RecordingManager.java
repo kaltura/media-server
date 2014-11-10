@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 
 import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.managers.KalturaLiveManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
@@ -57,6 +58,15 @@ public class RecordingManager {
 			
 			this.addListener(this);
 		}
+		
+		public String getEntryId () {
+			return entryId;
+		}
+		
+		public String getAssetId () {
+			return assetId;
+		}
+		
 
 		public KalturaMediaServerIndex getIndex() {
 			return index;
@@ -97,6 +107,13 @@ public class RecordingManager {
 		@Override
 		public void onUnPublish () {
 			logger.info("Stop recording: entry Id [" + entryId + "], asset Id [" + assetId + "]");
+			
+			//If the current live asset being unpublished is the recording anchor - send cancelReplace call
+			KalturaLiveAsset liveAsset = liveManager.getLiveAssetById(entryId, assetId);
+			if (liveAsset.tags.contains("recording_anchor")) {
+				liveManager.cancelReplace(entryId);
+			}
+			
 			this.stopRecording();
 		}
 	}
@@ -148,7 +165,12 @@ public class RecordingManager {
 		{
 			Map<String, EntryRecorder> entryRecorders = recorders.get(entryId);
 			if (entryRecorders != null){
-				for(ILiveStreamRecord streamRecorder : entryRecorders.values()){
+				for(EntryRecorder streamRecorder : entryRecorders.values()){
+					KalturaLiveAsset liveAsset = liveManager.getLiveAssetById(entryId, streamRecorder.getAssetId());
+					if (liveAsset.tags.contains("recording_anchor")) {
+						liveManager.cancelReplace(entryId);
+					}
+					
 					streamRecorder.splitRecordingNow();
 				}
 				return true;

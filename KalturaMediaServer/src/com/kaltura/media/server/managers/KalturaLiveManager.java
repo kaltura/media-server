@@ -219,6 +219,17 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			logger.error("Asset with stream suffix [" + streamSuffix + "] not found");
 			return null;
 		}
+		
+		public KalturaLiveAsset getLiveAssetById(String assetId) {
+			for(KalturaLiveAsset liveAsset : liveAssets.values()){
+				if(liveAsset.id == assetId){
+					return liveAsset;
+				}
+			}
+			
+			logger.error("Asset with id [" + assetId + "] not found");
+			return null;
+		}
 
 		public KalturaMediaServerIndex getIndex() {
 			return index;
@@ -289,6 +300,19 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			
 			LiveEntryCache liveEntryCache = entries.get(entryId);
 			return liveEntryCache.getLiveAsset(streamSuffix);
+		}
+	}
+	
+	public KalturaLiveAsset getLiveAssetById(String entryId, String assetId) {
+
+		synchronized (entries) {
+			if (!entries.containsKey(entryId)) {
+				logger.error("Entry id [" + entryId + "] not found");
+				return null;
+			}
+			
+			LiveEntryCache liveEntryCache = entries.get(entryId);
+			return liveEntryCache.getLiveAssetById(assetId);
 		}
 	}
 	
@@ -731,6 +755,21 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		catch (Exception e) {
 			logger.error("Error occurred creating upload XML: " + e.getMessage());
 			return false;
+		}
+	}
+	
+	
+	public void cancelReplace (String entryId) {
+		logger.info("Cancel replacement is required");
+		KalturaLiveEntry liveEntry = get(entryId);
+		
+		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
+		try {
+			impersonateClient.getMediaService().cancelReplace(liveEntry.recordedEntryId);
+		}
+		catch (Exception e)
+		{
+			logger.error("Error occured: " + e.getMessage());
 		}
 	}
 	
