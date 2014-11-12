@@ -110,7 +110,7 @@ public class RecordingManager {
 			
 			//If the current live asset being unpublished is the recording anchor - send cancelReplace call
 			KalturaLiveAsset liveAsset = liveManager.getLiveAssetById(entryId, assetId);
-			if (liveAsset.tags.contains("recording_anchor")) {
+			if (liveAsset != null && liveAsset.tags.contains("recording_anchor")) {
 				liveManager.cancelReplace(entryId);
 			}
 			
@@ -204,8 +204,6 @@ public class RecordingManager {
 		String filePath = writeFile.getAbsolutePath();
 		
 		logger.debug("Entry [" + entryId + "]  file path [" + filePath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");
-		
-		logger.debug("Entry recorder segment duration: " + recorder.getSegmentDuration());
 		
 		// if you want to record data packets as well as video/audio
 		recorder.setRecordData(recordData);

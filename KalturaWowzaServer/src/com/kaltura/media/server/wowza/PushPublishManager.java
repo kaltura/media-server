@@ -283,7 +283,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 			
 		} catch (LicensingException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Unexpected error occurred: " + e.getMessage());
 		}
 		
 	}
@@ -292,6 +292,11 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 		logger.info("unpublishing entry [" + entry.id + "]");
 		synchronized (publishers) {
 			ArrayList<PushPublishBase> currentPublishers = publishers.remove(entry.id);
+			if (currentPublishers == null) {
+				logger.info("No publishers were found for entry ID " + entry.id + ".");
+				return;
+			}
+			
 			for (PushPublishBase publisher : currentPublishers) {
 				logger.info("Unpublishing stream " + publisher.getDstStreamName());
 				publisher.disconnect();
