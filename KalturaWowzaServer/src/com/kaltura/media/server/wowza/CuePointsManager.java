@@ -53,7 +53,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 		}
 
 		public int getBodySize() {
-			return 1 + serializeStringLen(text);
+			return 1 + serializeStringLen(text, TEXTENCODING_DEFAULT, true);
 		}
 		
 		public int serializeBody(byte bytes[], int pos){
@@ -63,7 +63,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 			length += 1;
 
 			if(text != null)
-				length += serializeString(text, bytes, pos + length);
+				length += serializeString(text, bytes, pos + length, TEXTENCODING_DEFAULT, true);
 			
 			return length;
 		}
