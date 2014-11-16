@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 
 import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.managers.KalturaLiveManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
@@ -28,7 +29,10 @@ public class RecordingManager {
 
 	protected final static String KALTURA_RECORDED_FILE_GROUP = "KalturaRecordedFileGroup";
 	protected final static String DEFAULT_RECORDED_FILE_GROUP = "kaltura";
-
+	
+	//The default live segment duration is 15 minutes long
+	protected final static int DEFAULT_RECORDED_SEGMENT_DURATION = 900000;
+	protected final static String DEFAULT_RECORDED_SEGMENT_DURATION_FIELD_NAME = "DefaultRecordedSegmentDuration";
 	protected static Logger logger = Logger.getLogger(RecordingManager.class);
 	
 	static private Map<String, Map<String, EntryRecorder>> recorders = new ConcurrentHashMap<String, Map<String, EntryRecorder>>();
@@ -54,6 +58,15 @@ public class RecordingManager {
 			
 			this.addListener(this);
 		}
+		
+		public String getEntryId () {
+			return entryId;
+		}
+		
+		public String getAssetId () {
+			return assetId;
+		}
+		
 
 		public KalturaMediaServerIndex getIndex() {
 			return index;
@@ -89,6 +102,19 @@ public class RecordingManager {
 
 			// TODO appendRecordedSyncPoints
 			liveManager.appendRecording(entryId, assetId, index, file.getAbsolutePath(), currentChunkDuration);
+		}
+		
+		@Override
+		public void onUnPublish () {
+			logger.info("Stop recording: entry Id [" + entryId + "], asset Id [" + assetId + "]");
+			
+			//If the current live asset being unpublished is the recording anchor - send cancelReplace call
+			KalturaLiveAsset liveAsset = liveManager.getLiveAssetById(entryId, assetId);
+			if (liveAsset.tags.contains("recording_anchor")) {
+				liveManager.cancelReplace(entryId);
+			}
+			
+			this.stopRecording();
 		}
 	}
 
@@ -139,7 +165,12 @@ public class RecordingManager {
 		{
 			Map<String, EntryRecorder> entryRecorders = recorders.get(entryId);
 			if (entryRecorders != null){
-				for(ILiveStreamRecord streamRecorder : entryRecorders.values()){
+				for(EntryRecorder streamRecorder : entryRecorders.values()){
+					KalturaLiveAsset liveAsset = liveManager.getLiveAssetById(entryId, streamRecorder.getAssetId());
+					if (liveAsset.tags.contains("recording_anchor")) {
+						liveManager.cancelReplace(entryId);
+					}
+					
 					streamRecorder.splitRecordingNow();
 				}
 				return true;
@@ -149,19 +180,6 @@ public class RecordingManager {
 		return false;
 	}
 	
-	public void stop(String entryId){
-		logger.debug("Stop: " + entryId);
-
-		synchronized (recorders)
-		{
-			Map<String, EntryRecorder> entryRecorders = recorders.get(entryId);
-			if (entryRecorders != null){
-				for(ILiveStreamRecord streamRecorder : entryRecorders.values()){
-					streamRecorder.stopRecording();
-				}
-			}
-		}
-	}
 	
 	public String start(String entryId, String assetId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
 		logger.debug("Stream name [" + stream.getName() + "] entry [" + entryId + "]");
@@ -187,6 +205,8 @@ public class RecordingManager {
 		
 		logger.debug("Entry [" + entryId + "]  file path [" + filePath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");
 		
+		logger.debug("Entry recorder segment duration: " + recorder.getSegmentDuration());
+		
 		// if you want to record data packets as well as video/audio
 		recorder.setRecordData(recordData);
 		
@@ -196,8 +216,13 @@ public class RecordingManager {
 		// If recording only audio set this to false so the recording starts immediately
 		recorder.setStartOnKeyFrame(startOnKeyFrame);
 		
+		int segmentDuration = RecordingManager.DEFAULT_RECORDED_SEGMENT_DURATION;
+		Map<String, Object> serverConfiguration = KalturaServer.getConfiguration();
+		if (serverConfiguration.containsKey(RecordingManager.DEFAULT_RECORDED_SEGMENT_DURATION_FIELD_NAME))
+			segmentDuration = (int) serverConfiguration.get(RecordingManager.DEFAULT_RECORDED_SEGMENT_DURATION_FIELD_NAME);
+		
 		// start recording
-		recorder.startRecording(stream, filePath, false);
+		recorder.startRecordingSegmentByDuration(stream, filePath, null, segmentDuration);
 
 		// add it to the recorders list
 		synchronized (recorders){
