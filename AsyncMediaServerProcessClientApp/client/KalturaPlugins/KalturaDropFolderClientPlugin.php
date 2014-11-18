@@ -55,6 +55,7 @@ class KalturaDropFolderFileDeletePolicy
 {
 	const MANUAL_DELETE = 1;
 	const AUTO_DELETE = 2;
+	const AUTO_DELETE_WHEN_ENTRY_IS_READY = 3;
 }
 
 /**

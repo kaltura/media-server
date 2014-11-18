@@ -250,6 +250,18 @@ class KalturaDVRStatus
  * @package Kaltura
  * @subpackage Client
  */
+class KalturaDeliveryStatus
+{
+	const ACTIVE = 0;
+	const DELETED = 1;
+	const STAGING_IN = 2;
+	const STAGING_OUT = 3;
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
 class KalturaDirectoryRestrictionType
 {
 	const DONT_DISPLAY = 0;
@@ -650,6 +662,7 @@ class KalturaReportType
 	const PLATFORMS = 21;
 	const OPERATION_SYSTEM = 22;
 	const BROWSERS = 23;
+	const LIVE = 24;
 	const PARTNER_USAGE = 201;
 }
 
@@ -1225,6 +1238,7 @@ class KalturaAssetType
 	const IMAGE = "document.Image";
 	const PDF = "document.PDF";
 	const SWF = "document.SWF";
+	const TIMED_THUMB_ASSET = "thumbCuePoint.timedThumb";
 	const WIDEVINE_FLAVOR = "widevine.WidevineFlavor";
 	const FLAVOR = "1";
 	const THUMBNAIL = "2";
@@ -1548,6 +1562,7 @@ class KalturaConditionType
 	const FIELD_COMPARE = "7";
 	const ASSET_PROPERTIES_COMPARE = "8";
 	const USER_ROLE = "9";
+	const GEO_DISTANCE = "10";
 }
 
 /**
@@ -1681,6 +1696,162 @@ class KalturaDataEntryOrderBy
  * @package Kaltura
  * @subpackage Client
  */
+class KalturaDeliveryProfileAkamaiHttpOrderBy
+{
+	const CREATED_AT_ASC = "+createdAt";
+	const UPDATED_AT_ASC = "+updatedAt";
+	const CREATED_AT_DESC = "-createdAt";
+	const UPDATED_AT_DESC = "-updatedAt";
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaDeliveryProfileGenericAppleHttpOrderBy
+{
+	const CREATED_AT_ASC = "+createdAt";
+	const UPDATED_AT_ASC = "+updatedAt";
+	const CREATED_AT_DESC = "-createdAt";
+	const UPDATED_AT_DESC = "-updatedAt";
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaDeliveryProfileGenericHdsOrderBy
+{
+	const CREATED_AT_ASC = "+createdAt";
+	const UPDATED_AT_ASC = "+updatedAt";
+	const CREATED_AT_DESC = "-createdAt";
+	const UPDATED_AT_DESC = "-updatedAt";
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaDeliveryProfileGenericHttpOrderBy
+{
+	const CREATED_AT_ASC = "+createdAt";
+	const UPDATED_AT_ASC = "+updatedAt";
+	const CREATED_AT_DESC = "-createdAt";
+	const UPDATED_AT_DESC = "-updatedAt";
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaDeliveryProfileGenericRtmpOrderBy
+{
+	const CREATED_AT_ASC = "+createdAt";
+	const UPDATED_AT_ASC = "+updatedAt";
+	const CREATED_AT_DESC = "-createdAt";
+	const UPDATED_AT_DESC = "-updatedAt";
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaDeliveryProfileGenericSilverLightOrderBy
+{
+	const CREATED_AT_ASC = "+createdAt";
+	const UPDATED_AT_ASC = "+updatedAt";
+	const CREATED_AT_DESC = "-createdAt";
+	const UPDATED_AT_DESC = "-updatedAt";
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaDeliveryProfileLiveAppleHttpOrderBy
+{
+	const CREATED_AT_ASC = "+createdAt";
+	const UPDATED_AT_ASC = "+updatedAt";
+	const CREATED_AT_DESC = "-createdAt";
+	const UPDATED_AT_DESC = "-updatedAt";
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaDeliveryProfileOrderBy
+{
+	const CREATED_AT_ASC = "+createdAt";
+	const UPDATED_AT_ASC = "+updatedAt";
+	const CREATED_AT_DESC = "-createdAt";
+	const UPDATED_AT_DESC = "-updatedAt";
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaDeliveryProfileRtmpOrderBy
+{
+	const CREATED_AT_ASC = "+createdAt";
+	const UPDATED_AT_ASC = "+updatedAt";
+	const CREATED_AT_DESC = "-createdAt";
+	const UPDATED_AT_DESC = "-updatedAt";
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaDeliveryProfileType
+{
+	const EDGE_CAST_HTTP = "edgeCast.EDGE_CAST_HTTP";
+	const EDGE_CAST_RTMP = "edgeCast.EDGE_CAST_RTMP";
+	const KONTIKI_HTTP = "kontiki.KONTIKI_HTTP";
+	const UPLYNK_HTTP = "uplynk.UPLYNK_HTTP";
+	const UPLYNK_RTMP = "uplynk.UPLYNK_RTMP";
+	const VELOCIX_HDS = "velocix.VELOCIX_HDS";
+	const VELOCIX_HLS = "velocix.VELOCIX_HLS";
+	const APPLE_HTTP = "1";
+	const HDS = "3";
+	const HTTP = "4";
+	const RTMP = "5";
+	const RTSP = "6";
+	const SILVER_LIGHT = "7";
+	const AKAMAI_HLS_DIRECT = "10";
+	const AKAMAI_HLS_MANIFEST = "11";
+	const AKAMAI_HD = "12";
+	const AKAMAI_HDS = "13";
+	const AKAMAI_HTTP = "14";
+	const AKAMAI_RTMP = "15";
+	const AKAMAI_RTSP = "16";
+	const AKAMAI_SS = "17";
+	const GENERIC_HLS = "21";
+	const GENERIC_HDS = "23";
+	const GENERIC_HTTP = "24";
+	const GENERIC_HLS_MANIFEST = "25";
+	const GENERIC_HDS_MANIFEST = "26";
+	const GENERIC_SS = "27";
+	const GENERIC_RTMP = "28";
+	const LEVEL3_HLS = "31";
+	const LEVEL3_HTTP = "34";
+	const LEVEL3_RTMP = "35";
+	const LIMELIGHT_HTTP = "44";
+	const LIMELIGHT_RTMP = "45";
+	const LOCAL_PATH_APPLE_HTTP = "51";
+	const LOCAL_PATH_HTTP = "54";
+	const LOCAL_PATH_RTMP = "55";
+	const LIVE_HLS = "1001";
+	const LIVE_HDS = "1002";
+	const LIVE_RTMP = "1005";
+	const LIVE_AKAMAI_HDS = "1013";
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
 class KalturaDurationType
 {
 	const LONG = "long";
@@ -1717,6 +1888,7 @@ class KalturaEntryReplacementStatus
 	const APPROVED_BUT_NOT_READY = "1";
 	const READY_BUT_NOT_APPROVED = "2";
 	const NOT_READY_AND_NOT_APPROVED = "3";
+	const FAILED = "4";
 }
 
 /**
@@ -2337,6 +2509,7 @@ class KalturaLiveChannelOrderBy
 	const CREATED_AT_ASC = "+createdAt";
 	const DURATION_ASC = "+duration";
 	const END_DATE_ASC = "+endDate";
+	const FIRST_BROADCAST_ASC = "+firstBroadcast";
 	const LAST_PLAYED_AT_ASC = "+lastPlayedAt";
 	const MEDIA_TYPE_ASC = "+mediaType";
 	const MODERATION_COUNT_ASC = "+moderationCount";
@@ -2353,6 +2526,7 @@ class KalturaLiveChannelOrderBy
 	const CREATED_AT_DESC = "-createdAt";
 	const DURATION_DESC = "-duration";
 	const END_DATE_DESC = "-endDate";
+	const FIRST_BROADCAST_DESC = "-firstBroadcast";
 	const LAST_PLAYED_AT_DESC = "-lastPlayedAt";
 	const MEDIA_TYPE_DESC = "-mediaType";
 	const MODERATION_COUNT_DESC = "-moderationCount";
@@ -2422,6 +2596,7 @@ class KalturaLiveEntryOrderBy
 	const CREATED_AT_ASC = "+createdAt";
 	const DURATION_ASC = "+duration";
 	const END_DATE_ASC = "+endDate";
+	const FIRST_BROADCAST_ASC = "+firstBroadcast";
 	const LAST_PLAYED_AT_ASC = "+lastPlayedAt";
 	const MEDIA_TYPE_ASC = "+mediaType";
 	const MODERATION_COUNT_ASC = "+moderationCount";
@@ -2438,6 +2613,7 @@ class KalturaLiveEntryOrderBy
 	const CREATED_AT_DESC = "-createdAt";
 	const DURATION_DESC = "-duration";
 	const END_DATE_DESC = "-endDate";
+	const FIRST_BROADCAST_DESC = "-firstBroadcast";
 	const LAST_PLAYED_AT_DESC = "-lastPlayedAt";
 	const MEDIA_TYPE_DESC = "-mediaType";
 	const MODERATION_COUNT_DESC = "-moderationCount";
@@ -2465,11 +2641,25 @@ class KalturaLiveParamsOrderBy
  * @package Kaltura
  * @subpackage Client
  */
+class KalturaLiveReportType
+{
+	const ENTRY_GEO_TIME_LINE = "ENTRY_GEO_TIME_LINE";
+	const ENTRY_SYNDICATION_TOTAL = "ENTRY_SYNDICATION_TOTAL";
+	const ENTRY_TIME_LINE = "ENTRY_TIME_LINE";
+	const ENTRY_TOTAL = "ENTRY_TOTAL";
+	const PARTNER_TOTAL = "PARTNER_TOTAL";
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
 class KalturaLiveStreamAdminEntryOrderBy
 {
 	const CREATED_AT_ASC = "+createdAt";
 	const DURATION_ASC = "+duration";
 	const END_DATE_ASC = "+endDate";
+	const FIRST_BROADCAST_ASC = "+firstBroadcast";
 	const LAST_PLAYED_AT_ASC = "+lastPlayedAt";
 	const MEDIA_TYPE_ASC = "+mediaType";
 	const MODERATION_COUNT_ASC = "+moderationCount";
@@ -2486,6 +2676,7 @@ class KalturaLiveStreamAdminEntryOrderBy
 	const CREATED_AT_DESC = "-createdAt";
 	const DURATION_DESC = "-duration";
 	const END_DATE_DESC = "-endDate";
+	const FIRST_BROADCAST_DESC = "-firstBroadcast";
 	const LAST_PLAYED_AT_DESC = "-lastPlayedAt";
 	const MEDIA_TYPE_DESC = "-mediaType";
 	const MODERATION_COUNT_DESC = "-moderationCount";
@@ -2510,6 +2701,7 @@ class KalturaLiveStreamEntryOrderBy
 	const CREATED_AT_ASC = "+createdAt";
 	const DURATION_ASC = "+duration";
 	const END_DATE_ASC = "+endDate";
+	const FIRST_BROADCAST_ASC = "+firstBroadcast";
 	const LAST_PLAYED_AT_ASC = "+lastPlayedAt";
 	const MEDIA_TYPE_ASC = "+mediaType";
 	const MODERATION_COUNT_ASC = "+moderationCount";
@@ -2526,6 +2718,7 @@ class KalturaLiveStreamEntryOrderBy
 	const CREATED_AT_DESC = "-createdAt";
 	const DURATION_DESC = "-duration";
 	const END_DATE_DESC = "-endDate";
+	const FIRST_BROADCAST_DESC = "-firstBroadcast";
 	const LAST_PLAYED_AT_DESC = "-lastPlayedAt";
 	const MEDIA_TYPE_DESC = "-mediaType";
 	const MODERATION_COUNT_DESC = "-moderationCount";
@@ -2909,6 +3102,7 @@ class KalturaReportOrderBy
  */
 class KalturaRuleActionType
 {
+	const DRM_POLICY = "playReady.DRM_POLICY";
 	const BLOCK = "1";
 	const PREVIEW = "2";
 	const LIMIT_FLAVORS = "3";
@@ -2961,6 +3155,7 @@ class KalturaSourceType
 	const LIVE_CHANNEL = "33";
 	const RECORDED_LIVE = "34";
 	const CLIP = "35";
+	const LIVE_STREAM_ONTEXTDATA_CAPTIONS = "42";
 }
 
 /**

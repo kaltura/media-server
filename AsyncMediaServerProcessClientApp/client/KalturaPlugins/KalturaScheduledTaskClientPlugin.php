@@ -88,6 +88,7 @@ class KalturaObjectTaskType
 	const MODIFY_CATEGORIES = "2";
 	const DELETE_ENTRY_FLAVORS = "3";
 	const CONVERT_ENTRY_FLAVORS = "4";
+	const DELETE_LOCAL_CONTENT = "5";
 }
 
 /**
@@ -303,6 +304,15 @@ class KalturaDeleteEntryFlavorsObjectTask extends KalturaObjectTask
  * @subpackage Client
  */
 class KalturaDeleteEntryObjectTask extends KalturaObjectTask
+{
+
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaDeleteLocalContentObjectTask extends KalturaObjectTask
 {
 
 }
