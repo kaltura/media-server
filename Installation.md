@@ -142,6 +142,11 @@ media_servers.ini is optional and needed only for custom configurations.
 	<Type>Integer</Type>
 </Property>
 <Property>
+	<Name>cupertinoMaxChunkCount</Name>
+	<Value>20</Value>
+	<Type>Integer</Type>
+</Property>
+<Property>
 	<Name>cupertinoRepeaterChunkCount</Name>
 	<Value>10</Value>
 	<Type>Integer</Type>
