@@ -33,7 +33,9 @@ import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
 import com.wowza.wms.amf.AMFData;
+import com.wowza.wms.amf.AMFDataItem;
 import com.wowza.wms.amf.AMFDataList;
+import com.wowza.wms.amf.AMFDataMixedArray;
 import com.wowza.wms.amf.AMFDataObj;
 import com.wowza.wms.amf.AMFPacket;
 import com.wowza.wms.application.IApplicationInstance;
@@ -47,6 +49,7 @@ import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.rtp.model.RTPSession;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.IMediaStreamCallback;
+import com.wowza.wms.stream.MediaStream;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import com.wowza.wms.stream.livedvr.ILiveStreamDvrRecorderControl;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerControl;
@@ -561,6 +564,7 @@ public class LiveStreamEntry extends ModuleBase {
 			
 			
 			if (client != null) {
+				logger.debug("Encoder info: " + client.getFlashVer());
 				WMSProperties clientProperties = client.getProperties();
 				if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
 					logger.error("Client does not contain entryId information. Captions will not be read");
@@ -821,5 +825,26 @@ public class LiveStreamEntry extends ModuleBase {
 
 		KalturaApplicationInstanceEvent event = new KalturaApplicationInstanceEvent(KalturaMediaEventType.APPLICATION_INSTANCE_STARTED, appInstance);
 		KalturaEventsManager.raiseEvent(event);
+	}
+	
+	public void setCaption (IClient client, RequestFunction function, AMFDataList params) {
+		logger.debug("Caption sent from stream: " + params.getObject(3).getString("streamName"));
+		
+		AMFDataObj captionsParams = params.getObject(3);
+		//If the stream is a Kaltura entry stream, send the captions
+		if (client != null && client.getProperties().containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
+			IMediaStream stream = client.getAppInstance().getStreams().getStream (captionsParams.getString("streamName"));
+			if (stream != null) {
+				  AMFDataMixedArray data = new AMFDataMixedArray();
+				  data.put("text", new AMFDataItem(captionsParams.getString("text")));
+				  data.put("language", new AMFDataItem(captionsParams.getString("language")));
+				  data.put("trackid", new AMFDataItem(captionsParams.getString("trackid")));
+				  stream.sendDirect("onTextData", data);
+				  ((MediaStream)stream).processSendDirectMessages();
+				  getLogger().info("Caption: " + captionsParams.getString("text"));
+			}
+		}
+		
+		
 	}
 }
