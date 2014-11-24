@@ -379,8 +379,8 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 		// TODO
 	}
 	
-	protected void entryStillAlive(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex){
-		super.entryStillAlive(liveEntry, serverIndex);
+	protected void entryStillAlive(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex, String appName){
+		super.entryStillAlive(liveEntry, serverIndex, appName);
 		
 		SmilManager.updateSmils(liveEntry.id);
 	}

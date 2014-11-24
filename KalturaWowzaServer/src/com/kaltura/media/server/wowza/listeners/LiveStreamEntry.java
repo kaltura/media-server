@@ -46,6 +46,7 @@ import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.rtp.model.RTPSession;
 import com.wowza.wms.stream.IMediaStream;
+import com.wowza.wms.stream.IMediaStreamCallback;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import com.wowza.wms.stream.livedvr.ILiveStreamDvrRecorderControl;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerControl;
@@ -83,6 +84,7 @@ public class LiveStreamEntry extends ModuleBase {
 	private LiveStreamListener liveStreamListener = new LiveStreamListener();
 	private LiveStreamTranscoderListener liveStreamTranscoderListener = new LiveStreamTranscoderListener();
 	private LiveStreamTranscoderActionListener liveStreamTranscoderActionListener = new LiveStreamTranscoderActionListener();
+	private LiveStreamCallbackListener liveStreamCallbackListener = new LiveStreamCallbackListener (); 
 	private IApplicationInstance appInstance;
 	private Map<String, Map<String, Stream>> restreams = new HashMap<String, Map<String, Stream>>();
 
@@ -548,6 +550,26 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
+	class LiveStreamCallbackListener implements IMediaStreamCallback
+	{
+
+		@Override
+		public void onCallback(IMediaStream arg0, RequestFunction arg1,
+				AMFDataList arg2) {
+			logger.debug("LiveStreamEntry::onCallback: stream name ["+ arg0.getName() + "] request func: [" + arg1.toString() + "] AMFDataList [" + arg2.toString() + "]");
+			IClient client = arg0.getClient();
+			
+			
+			if (client != null) {
+				WMSProperties clientProperties = client.getProperties();
+				if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)){
+					logger.error("Client does not contain entryId information. Captions will not be read");
+					return;
+				}
+			}
+		}
+	}
+	
 	private void restream(Stream stream, String inputStreamName) {
 		logger.debug("Restream [" + stream.getName() + "] from [" + inputStreamName + "]");
 		Publisher publisher = stream.getPublisher();
@@ -623,6 +645,7 @@ public class LiveStreamEntry extends ModuleBase {
 	public void onStreamCreate(IMediaStream stream) {
 		logger.debug("LiveStreamEntry::onStreamCreate");
 		stream.addClientListener(liveStreamListener);
+		stream.addCalbackListener(liveStreamCallbackListener);
 	}
 
 	public void onDisconnect(IClient client) {
