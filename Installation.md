@@ -38,7 +38,7 @@ media_servers.ini is optional and needed only for custom configurations.
 
 
 ## Prerequisites: ##
-- Wowza media server 4.0.1 or above.
+- Wowza media server 4.1.0 or above.
 - Java jre 1.7.
 - kaltura group (gid = 613) or any other group that apache user is associated with.
 - Write access to @WEB_DIR@/content/recorded directory.
