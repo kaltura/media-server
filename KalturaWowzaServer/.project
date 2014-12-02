@@ -34,7 +34,7 @@
 		<link>
 			<name>KalturaMediaServer</name>
 			<type>2</type>
-			<location>@BASE_DIR@/media-server/KalturaMediaServer/src</location>
+			<locationURI>PARENT-2-PROJECT_LOC/media-server/KalturaMediaServer/src</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
