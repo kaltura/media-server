@@ -108,8 +108,8 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 			return;
 		}
 
-		if(liveEntry.recordStatus != KalturaRecordStatus.ENABLED){
-			logger.info("Entry [" + entryId + "] recording is not enabled");
+		if(liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
+			logger.info("Entry [" + entryId + "] recording disabled");
 			return;
 		}
 		
