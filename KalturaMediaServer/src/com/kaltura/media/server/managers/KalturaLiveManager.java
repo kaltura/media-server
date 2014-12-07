@@ -49,7 +49,6 @@ import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.IKalturaEventConsumer;
 import com.kaltura.media.server.events.KalturaEventType;
 import com.kaltura.media.server.events.KalturaStreamEvent;
-import com.sun.xml.internal.bind.v2.schemagen.xmlschema.Appinfo;
 
 abstract public class KalturaLiveManager extends KalturaManager implements ILiveManager, IKalturaEventConsumer {
 
