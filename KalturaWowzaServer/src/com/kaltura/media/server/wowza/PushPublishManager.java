@@ -292,16 +292,20 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 		logger.info("unpublishing entry [" + entry.id + "]");
 		synchronized (publishers) {
 			ArrayList<PushPublishBase> currentPublishers = publishers.remove(entry.id);
-			for (PushPublishBase publisher : currentPublishers) {
-				logger.info("Unpublishing stream " + publisher.getDstStreamName());
-				publisher.disconnect();
+			if (currentPublishers != null) {
+				for (PushPublishBase publisher : currentPublishers) {
+					logger.info("Unpublishing stream " + publisher.getDstStreamName());
+					publisher.disconnect();
+				}
 			}
 		}
 		
 		synchronized (multicastPortsInUse) {
-			int freePort = multicastPortsInUse.remove(entry.id);
-			if (freePort < minFreePort)
-				minFreePort = freePort;
+			if (multicastPortsInUse.containsKey(entry.id)) {
+				int freePort = multicastPortsInUse.remove(entry.id);
+				if (freePort < minFreePort)
+					minFreePort = freePort;
+			}
 		}
 		
 		try {
