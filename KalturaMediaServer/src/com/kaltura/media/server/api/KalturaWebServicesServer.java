@@ -42,11 +42,17 @@ public class KalturaWebServicesServer {
 	}
 
 	public void shutdown() {
-		Set<String> keys = services.keySet();
-		for(String key : keys)
-		{
-			Endpoint endpoint = services.remove(key);
-			endpoint.stop();
+		try {
+			Set<String> keys = services.keySet();
+			for(String key : keys)
+			{
+				Endpoint endpoint = services.remove(key);
+				endpoint.stop();
+			}
+		} catch (Exception e) {
+			logger.error("Error has occurred: " + e.getMessage());
+			
 		}
+		
 	}
 }

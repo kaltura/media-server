@@ -275,23 +275,27 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 
 	@Override
 	public void stop() {
-		synchronized (cuePointsCreators) {
-			for(CuePointsCreator cuePointsCreator: cuePointsCreators.values()){
-				synchronized (cuePointsCreator) {
-					cuePointsCreator.timer.cancel();
-					cuePointsCreator.timer.purge();
-					cuePointsCreators.remove(cuePointsCreator.interval);
+		try {
+			synchronized (cuePointsCreators) {
+				for(CuePointsCreator cuePointsCreator: cuePointsCreators.values()){
+					synchronized (cuePointsCreator) {
+						cuePointsCreator.timer.cancel();
+						cuePointsCreator.timer.purge();
+						cuePointsCreators.remove(cuePointsCreator.interval);
+					}
 				}
 			}
-		}
-		synchronized (cuePointsLoaders) {
-			for(CuePointsLoader cuePointsLoader: cuePointsLoaders){
-				synchronized (cuePointsLoader) {
-					cuePointsLoader.timer.cancel();
-					cuePointsLoader.timer.purge();
-					cuePointsLoaders.remove(cuePointsLoader);
+			synchronized (cuePointsLoaders) {
+				for(CuePointsLoader cuePointsLoader: cuePointsLoaders){
+					synchronized (cuePointsLoader) {
+						cuePointsLoader.timer.cancel();
+						cuePointsLoader.timer.purge();
+						cuePointsLoaders.remove(cuePointsLoader);
+					}
 				}
 			}
+		} catch (Exception e ) {
+			logger.error("Error occurred: " + e.getMessage());
 		}
 	}
 
