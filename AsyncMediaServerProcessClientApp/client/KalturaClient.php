@@ -3512,10 +3512,10 @@ class KalturaLiveChannelService extends KalturaServiceBase
 	 * @param int $mediaServerIndex 
 	 * @param KalturaDataCenterContentResource $resource 
 	 * @param float $duration In seconds
-	 * @param bool $cancelPreviousReplacement - optional parameter, defines whether the previous concatenation should be canceled in favor of the new one.
+	 * @param bool $isLastChunk Is this the last recorded chunk in the current session (i.e. following a stream stop event)
 	 * @return KalturaLiveEntry
 	 */
-	function appendRecording($entryId, $assetId, $mediaServerIndex, KalturaDataCenterContentResource $resource, $duration, $cancelPreviousReplacement = false)
+	function appendRecording($entryId, $assetId, $mediaServerIndex, KalturaDataCenterContentResource $resource, $duration, $isLastChunk)
 	{
 		$kparams = array();
 		$this->client->addParam($kparams, "entryId", $entryId);
@@ -3523,7 +3523,7 @@ class KalturaLiveChannelService extends KalturaServiceBase
 		$this->client->addParam($kparams, "mediaServerIndex", $mediaServerIndex);
 		$this->client->addParam($kparams, "resource", $resource->toParams());
 		$this->client->addParam($kparams, "duration", $duration);
-		$this->client->addParam($kparams, "cancelPreviousReplacement", $cancelPreviousReplacement);
+		$this->client->addParam($kparams, "isLastChunk", $isLastChunk);
 		$this->client->queueServiceActionCall("livechannel", "appendRecording", $kparams);
 		if ($this->client->isMultiRequest())
 			return $this->client->getMultiRequestResult();
@@ -4030,10 +4030,10 @@ class KalturaLiveStreamService extends KalturaServiceBase
 	 * @param int $mediaServerIndex 
 	 * @param KalturaDataCenterContentResource $resource 
 	 * @param float $duration In seconds
-	 * @param bool $cancelPreviousReplacement - optional parameter, defines whether the previous concatenation should be canceled in favor of the new one.
+	 * @param bool $isLastChunk Is this the last recorded chunk in the current session (i.e. following a stream stop event)
 	 * @return KalturaLiveEntry
 	 */
-	function appendRecording($entryId, $assetId, $mediaServerIndex, KalturaDataCenterContentResource $resource, $duration, $cancelPreviousReplacement = false)
+	function appendRecording($entryId, $assetId, $mediaServerIndex, KalturaDataCenterContentResource $resource, $duration, $isLastChunk)
 	{
 		$kparams = array();
 		$this->client->addParam($kparams, "entryId", $entryId);
@@ -4041,7 +4041,7 @@ class KalturaLiveStreamService extends KalturaServiceBase
 		$this->client->addParam($kparams, "mediaServerIndex", $mediaServerIndex);
 		$this->client->addParam($kparams, "resource", $resource->toParams());
 		$this->client->addParam($kparams, "duration", $duration);
-		$this->client->addParam($kparams, "cancelPreviousReplacement", $cancelPreviousReplacement);
+		$this->client->addParam($kparams, "isLastChunk", $isLastChunk);
 		$this->client->queueServiceActionCall("livestream", "appendRecording", $kparams);
 		if ($this->client->isMultiRequest())
 			return $this->client->getMultiRequestResult();
