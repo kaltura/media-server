@@ -96,19 +96,6 @@ media_servers.ini is optional and needed only for custom configurations.
 
  - /Root/Application/Transcoder/LiveStreamTranscoder - transcoder
  - /Root/Application/Transcoder/Templates - `http://@WWW_HOST@/api_v3/index.php/service/wowza_liveConversionProfile/action/serve/streamName/${SourceStreamName}/f/transcode.xml`
- - /Root/Application/Transcoder/Properties:
-```xml
-<Property>
-	<Name>sortPackets</Name>
-	<Value>true</Value>
-	<Type>Boolean</Type>
-</Property>
-<Property>
-	<Name>sortBufferSize</Name>
-	<Value>4000</Value>
-	<Type>Integer</Type>
-</Property>
-```
 
  - /Root/Application/DVR/Recorders - dvrrecorder
  - /Root/Application/DVR/Store - dvrfilestorage
@@ -126,12 +113,12 @@ media_servers.ini is optional and needed only for custom configurations.
 </Property>
 <Property>
 	<Name>dvrChunkDurationMinimum</Name>
-	<Value>1000</Value>
+	<Value>3000</Value>
 	<Type>Integer</Type>
 </Property>
 <Property>
 	<Name>dvrMinimumAvailableChunks</Name>
-	<Value>5</Value>
+	<Value>3</Value>
 	<Type>Integer</Type>
 </Property>
 ```
@@ -152,6 +139,11 @@ media_servers.ini is optional and needed only for custom configurations.
 <Property>
 	<Name>cupertinoPlaylistChunkCount</Name>
 	<Value>10</Value>
+	<Type>Integer</Type>
+</Property>
+<Property>
+	<Name>cupertinoMaxChunkCount</Name>
+	<Value>20</Value>
 	<Type>Integer</Type>
 </Property>
 <Property>
@@ -275,12 +267,12 @@ media_servers.ini is optional and needed only for custom configurations.
 <Property>
 	<!-- Kaltura server managers to be loaded -->
 	<Name>KalturaServerManagers</Name>
-	<Value>com.kaltura.media.server.wowza.StatusManager, com.kaltura.media.server.wowza.LiveStreamManager</Value>
+	<Value>com.kaltura.media.server.wowza.StatusManager, com.kaltura.media.server.wowza.LiveStreamManager, com.kaltura.media.server.wowza.CuePointsManager, com.kaltura.media.server.wowza.PushPublishManager</Value>
 </Property>
 <Property>
 	<!-- Kaltura web services to be loaded -->
 	<Name>KalturaServerWebServices</Name>
-	<Value>com.kaltura.media.server.api.services.KalturaLiveService</Value>
+	<Value>com.kaltura.media.server.api.services.KalturaLiveService, com.kaltura.media.server.api.services.KalturaCuePointsService</Value>
 </Property>
 <Property>
 	<!-- Kaltura server status reporting interval, in seconds -->

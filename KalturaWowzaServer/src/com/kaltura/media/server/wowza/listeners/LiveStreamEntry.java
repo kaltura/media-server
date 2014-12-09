@@ -71,6 +71,7 @@ public class LiveStreamEntry extends ModuleBase {
 	protected final static String CLIENT_PROPERTY_SERVER_INDEX = "serverIndex";
 	protected final static String CLIENT_PROPERTY_ENTRY_ID = "entryId";
 	protected final static String STREAM_PROPERTY_SUFFIX = "suffix";
+	protected final static String APPLICATION_MANAGERS_PROPERTY_NAME = "ApplicationManagers";
 
 	protected final static int INVALID_SERVER_INDEX = -1;
 
@@ -775,6 +776,18 @@ public class LiveStreamEntry extends ModuleBase {
 		applicationName = appInstance.getApplication().getName();
 		this.appInstance = appInstance;
 
+		WMSProperties properties = this.appInstance.getProperties();
+		//Init Application Managers
+		if (properties.containsKey(LiveStreamEntry.APPLICATION_MANAGERS_PROPERTY_NAME)) {
+			String managers = properties.getPropertyStr(LiveStreamEntry.APPLICATION_MANAGERS_PROPERTY_NAME);
+			logger.debug("managers: " + managers);
+			try {
+				KalturaServer.getInstance().initApplicationManagers(managers.replaceAll(" ", "").split(","));
+			} catch (Exception e) {
+				logger.error("An error occurred: " + e.getMessage());
+			}
+		}
+		
 		appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
 		appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
 		appInstance.setLiveStreamTranscoderControl(new TranscoderControl());

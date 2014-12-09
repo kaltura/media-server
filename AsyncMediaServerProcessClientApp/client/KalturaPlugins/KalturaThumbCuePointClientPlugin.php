@@ -40,73 +40,21 @@ require_once(dirname(__FILE__) . "/KalturaCuePointClientPlugin.php");
  * @package Kaltura
  * @subpackage Client
  */
-class KalturaAdCuePointOrderBy
-{
-	const CREATED_AT_ASC = "+createdAt";
-	const DURATION_ASC = "+duration";
-	const END_TIME_ASC = "+endTime";
-	const PARTNER_SORT_VALUE_ASC = "+partnerSortValue";
-	const START_TIME_ASC = "+startTime";
-	const TRIGGERED_AT_ASC = "+triggeredAt";
-	const UPDATED_AT_ASC = "+updatedAt";
-	const CREATED_AT_DESC = "-createdAt";
-	const DURATION_DESC = "-duration";
-	const END_TIME_DESC = "-endTime";
-	const PARTNER_SORT_VALUE_DESC = "-partnerSortValue";
-	const START_TIME_DESC = "-startTime";
-	const TRIGGERED_AT_DESC = "-triggeredAt";
-	const UPDATED_AT_DESC = "-updatedAt";
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
-class KalturaAdProtocolType
-{
-	const CUSTOM = "0";
-	const VAST = "1";
-	const VAST_2_0 = "2";
-	const VPAID = "3";
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
-class KalturaAdType
-{
-	const VIDEO = "1";
-	const OVERLAY = "2";
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
-class KalturaAdCuePoint extends KalturaCuePoint
+class KalturaThumbCuePoint extends KalturaCuePoint
 {
 	/**
 	 * 
 	 *
-	 * @var KalturaAdProtocolType
-	 * @insertonly
+	 * @var string
 	 */
-	public $protocolType = null;
+	public $assetId = null;
 
 	/**
 	 * 
 	 *
 	 * @var string
 	 */
-	public $sourceUrl = null;
-
-	/**
-	 * 
-	 *
-	 * @var KalturaAdType
-	 */
-	public $adType = null;
+	public $description = null;
 
 	/**
 	 * 
@@ -115,20 +63,23 @@ class KalturaAdCuePoint extends KalturaCuePoint
 	 */
 	public $title = null;
 
-	/**
-	 * 
-	 *
-	 * @var int
-	 */
-	public $endTime = null;
 
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaTimedThumbAsset extends KalturaThumbAsset
+{
 	/**
-	 * Duration in milliseconds
+	 * Associated thumb cue point ID
 	 * 	 
 	 *
-	 * @var int
+	 * @var string
+	 * @insertonly
 	 */
-	public $duration = null;
+	public $cuePointId = null;
 
 
 }
@@ -137,88 +88,7 @@ class KalturaAdCuePoint extends KalturaCuePoint
  * @package Kaltura
  * @subpackage Client
  */
-abstract class KalturaAdCuePointBaseFilter extends KalturaCuePointFilter
-{
-	/**
-	 * 
-	 *
-	 * @var KalturaAdProtocolType
-	 */
-	public $protocolTypeEqual = null;
-
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $protocolTypeIn = null;
-
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $titleLike = null;
-
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $titleMultiLikeOr = null;
-
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $titleMultiLikeAnd = null;
-
-	/**
-	 * 
-	 *
-	 * @var int
-	 */
-	public $endTimeGreaterThanOrEqual = null;
-
-	/**
-	 * 
-	 *
-	 * @var int
-	 */
-	public $endTimeLessThanOrEqual = null;
-
-	/**
-	 * 
-	 *
-	 * @var int
-	 */
-	public $durationGreaterThanOrEqual = null;
-
-	/**
-	 * 
-	 *
-	 * @var int
-	 */
-	public $durationLessThanOrEqual = null;
-
-
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
-class KalturaAdCuePointFilter extends KalturaAdCuePointBaseFilter
-{
-
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
-class KalturaAdCuePointClientPlugin extends KalturaClientPlugin
+class KalturaThumbCuePointClientPlugin extends KalturaClientPlugin
 {
 	protected function __construct(KalturaClient $client)
 	{
@@ -226,11 +96,11 @@ class KalturaAdCuePointClientPlugin extends KalturaClientPlugin
 	}
 
 	/**
-	 * @return KalturaAdCuePointClientPlugin
+	 * @return KalturaThumbCuePointClientPlugin
 	 */
 	public static function get(KalturaClient $client)
 	{
-		return new KalturaAdCuePointClientPlugin($client);
+		return new KalturaThumbCuePointClientPlugin($client);
 	}
 
 	/**
@@ -248,7 +118,7 @@ class KalturaAdCuePointClientPlugin extends KalturaClientPlugin
 	 */
 	public function getName()
 	{
-		return 'adCuePoint';
+		return 'thumbCuePoint';
 	}
 }
 

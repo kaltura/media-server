@@ -80,7 +80,7 @@ public class KalturaServer {
 		else{
 			String managersNames = (String) config.get(KalturaServer.KALTURA_SERVER_MANAGERS);
 			logger.debug("Initializing server managers: " + managersNames);
-			initManagers(managersNames.replaceAll(" ", "").split(","));
+			initServerManagers(managersNames.replaceAll(" ", "").split(","));
 		}
 
 		if (config.containsKey(KalturaServer.KALTURA_SERVER_WEB_SERVICES)) {
@@ -211,13 +211,22 @@ public class KalturaServer {
 		}
 	}
 	
-	protected void initManagers(String[] managersNames) throws KalturaServerException {
-		Object obj; 
-		IManager manager;
+	public void initApplicationManagers (String[] managersNames) throws KalturaServerException {
+		this.initManagers(managersNames);
+	}
+	
+	protected void initServerManagers(String[] managersNames) throws KalturaServerException {
 		
 		for (String managerName : managersNames) {
 			initManagers.add(managerName);			
 		}
+		
+		this.initManagers(managersNames);
+	}
+	
+	protected void initManagers(String[] managersNames) throws KalturaServerException {
+		Object obj; 
+		IManager manager;
 		
 		for (String managerName : managersNames) {
 			try {

@@ -765,7 +765,9 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		
 		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		try {
-			impersonateClient.getMediaService().cancelReplace(liveEntry.recordedEntryId);
+			if (liveEntry.recordedEntryId != null && liveEntry.recordedEntryId.length() > 0) {
+				impersonateClient.getMediaService().cancelReplace(liveEntry.recordedEntryId);
+			}
 		}
 		catch (Exception e)
 		{
