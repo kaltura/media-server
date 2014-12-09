@@ -48,6 +48,7 @@ public class RecordingManager {
 		private String assetId;
 		private KalturaMediaServerIndex index;
 		private double appendedDuration = 0;
+		private boolean isLastChunk = false;
 		
 		public EntryRecorder(String entryId, String assetId, KalturaMediaServerIndex index) {
 			super();
@@ -55,6 +56,7 @@ public class RecordingManager {
 			this.entryId = entryId;
 			this.assetId = assetId;
 			this.index = index;
+			this.isLastChunk = false;
 			
 			this.addListener(this);
 		}
@@ -101,7 +103,9 @@ public class RecordingManager {
 			}
 
 			// TODO appendRecordedSyncPoints
-			liveManager.appendRecording(entryId, assetId, index, file.getAbsolutePath(), currentChunkDuration);
+			liveManager.appendRecording(entryId, assetId, index, file.getAbsolutePath(), currentChunkDuration, this.isLastChunk);
+
+			this.isLastChunk = false;
 		}
 		
 		@Override
@@ -113,7 +117,9 @@ public class RecordingManager {
 			if (liveAsset != null && liveAsset.tags.contains("recording_anchor")) {
 				liveManager.cancelReplace(entryId);
 			}
-			
+
+			this.isLastChunk = true;
+
 			this.stopRecording();
 		}
 	}
