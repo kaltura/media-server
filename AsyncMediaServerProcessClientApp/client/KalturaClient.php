@@ -3515,7 +3515,7 @@ class KalturaLiveChannelService extends KalturaServiceBase
 	 * @param bool $isLastChunk Is this the last recorded chunk in the current session (i.e. following a stream stop event)
 	 * @return KalturaLiveEntry
 	 */
-	function appendRecording($entryId, $assetId, $mediaServerIndex, KalturaDataCenterContentResource $resource, $duration, $isLastChunk)
+	function appendRecording($entryId, $assetId, $mediaServerIndex, KalturaDataCenterContentResource $resource, $duration, $isLastChunk = false)
 	{
 		$kparams = array();
 		$this->client->addParam($kparams, "entryId", $entryId);
@@ -4033,7 +4033,7 @@ class KalturaLiveStreamService extends KalturaServiceBase
 	 * @param bool $isLastChunk Is this the last recorded chunk in the current session (i.e. following a stream stop event)
 	 * @return KalturaLiveEntry
 	 */
-	function appendRecording($entryId, $assetId, $mediaServerIndex, KalturaDataCenterContentResource $resource, $duration, $isLastChunk)
+	function appendRecording($entryId, $assetId, $mediaServerIndex, KalturaDataCenterContentResource $resource, $duration, $isLastChunk = false)
 	{
 		$kparams = array();
 		$this->client->addParam($kparams, "entryId", $entryId);
