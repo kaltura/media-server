@@ -73,11 +73,12 @@ function handleUploadXMLResource (SimpleXMLElement $uploadXML, KalturaClient $cl
 	$partnerId = strval ($uploadXML->partnerId);
 	$partnerAdminSecret = strval ($uploadXML->adminSecret);
 	$duration = intval ($uploadXML->duration);
+	$isLastChunk = intval ($uploadXML->isLastChunk);
 	$index = intval($uploadXML->index);
 	$filepath = strval($uploadXML->filepath);
 	$workmode = strval($uploadXML->workMode);
 	
-	var_dump("append recording: entry [$entryId] asset [$assetId] index [$index] filePath [$filepath] duration [$duration]");
+	var_dump("append recording: entry [$entryId] asset [$assetId] index [$index] filePath [$filepath] duration [$duration] isLastChunk [$isLastChunk]");
 		
 	$clientConfig = $client->getConfig();
 	$clientConfig->partnerId = $partnerId;
@@ -98,7 +99,7 @@ function handleUploadXMLResource (SimpleXMLElement $uploadXML, KalturaClient $cl
 		return false;
 	
 	try {
-		$updatedEntry = $client->liveStream->appendRecording($entryId, $assetId, $index, $resource, $duration);
+		$updatedEntry = $client->liveStream->appendRecording($entryId, $assetId, $index, $resource, $duration, $isLastChunk);
 	}
 	catch (Exception $e)
 	{

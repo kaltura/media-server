@@ -537,9 +537,9 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		setMediaServerTimer.purge();
 	}
 	
-	public void appendRecording(String entryId, String assetId, KalturaMediaServerIndex index, String filePath, double duration) {
+	public void appendRecording(String entryId, String assetId, KalturaMediaServerIndex index, String filePath, double duration, boolean isLastChunk) {
 
-		logger.info("Entry [" + entryId + "] asset [" + assetId + "] index [" + index + "] filePath [" + filePath + "] duration [" + duration + "]");
+		logger.info("Entry [" + entryId + "] asset [" + assetId + "] index [" + index + "] filePath [" + filePath + "] duration [" + duration + "] isLastChunk [" + isLastChunk + "]");
 		
 		KalturaLiveEntry liveEntry = get(entryId);
 		if(liveEntry == null){
@@ -549,7 +549,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		
 		if (serverConfiguration.containsKey(KalturaLiveManager.UPLOAD_XML_SAVE_PATH))
 		{
-			boolean result = saveUploadAsXml (entryId, assetId, index, filePath, duration, liveEntry.partnerId);
+			boolean result = saveUploadAsXml (entryId, assetId, index, filePath, duration, isLastChunk, liveEntry.partnerId);
 			if (result) {
 				liveEntry.msDuration += duration;
 				LiveEntryCache liveEntryCache = entries.get(entryId);
@@ -566,8 +566,8 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		
 		try {
 			
-			Method method = liveServiceInstance.getClass().getMethod("appendRecording", String.class, String.class, KalturaMediaServerIndex.class, KalturaDataCenterContentResource.class, double.class);
-			KalturaLiveEntry updatedEntry = (KalturaLiveEntry)method.invoke(liveServiceInstance, entryId, assetId, index, resource, duration);
+			Method method = liveServiceInstance.getClass().getMethod("appendRecording", String.class, String.class, KalturaMediaServerIndex.class, KalturaDataCenterContentResource.class, double.class, boolean.class);
+			KalturaLiveEntry updatedEntry = (KalturaLiveEntry)method.invoke(liveServiceInstance, entryId, assetId, index, resource, duration, isLastChunk);
 			
 			if(updatedEntry != null){
 				synchronized (entries) {
@@ -691,7 +691,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		return liveEntry;
 	}
 	
-	protected boolean saveUploadAsXml (String entryId, String assetId, KalturaMediaServerIndex index, String filePath, double duration, int partnerId)
+	protected boolean saveUploadAsXml (String entryId, String assetId, KalturaMediaServerIndex index, String filePath, double duration, boolean isLastChunk, int partnerId)
 	{
 		try {
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
@@ -725,6 +725,11 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			durationElem.appendChild(doc.createTextNode(Double.toString(duration)));
 			rootElement.appendChild(durationElem);
 			
+			// isLastChunk element
+			Element isLastChunkElem = doc.createElement("isLastChunk");
+			isLastChunkElem.appendChild(doc.createTextNode(Boolean.toString(isLastChunk)));
+			rootElement.appendChild(isLastChunkElem);
+
 			// filepath element
 			Element filepathElem = doc.createElement("filepath");
 			filepathElem.appendChild(doc.createTextNode(filePath));
