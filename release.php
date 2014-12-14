@@ -25,8 +25,13 @@ echo "Release created with id $releaseId\n";
 $name = "KalturaWowzaServer-$version.jar";
 $filePath = __DIR__ . "/bin/$name";
 $contentType = 'application/java-archive';
-
 $client->repos->releases->assets->upload($owner, $repo, $releaseId, $name, $contentType, $filePath);
-echo "JAR file uploaded: $filePath\n";
+echo "Jar file uploaded: $filePath\n";
+
+$name = "KalturaWowzaServer-install-$version.jar";
+$filePath = __DIR__ . "/bin/$name";
+$contentType = 'application/zip';
+$client->repos->releases->assets->upload($owner, $repo, $releaseId, $name, $contentType, $filePath);
+echo "Installation zip file uploaded: $filePath\n";
 
 exit(0);
