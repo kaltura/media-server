@@ -38,7 +38,7 @@ public class LiveStreamPacketizerKaltura extends LiveStreamPacketizerCupertino {
 				firstChunkId = (new Long(now.getTime() / 10000)).intValue();
 			}
 		}
-		logger.info("Stream [" + streamName + "] didn't match entry regext");
+		logger.info("Stream [" + streamName + "] didn't match entry regex");
 		
 		return firstChunkId;
 	}

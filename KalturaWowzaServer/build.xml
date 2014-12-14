@@ -2,19 +2,22 @@
 <project name="KalturaWowzaServer" default="jar" basedir="..">
 
 	<property environment="env" />
-	<property name="wowza.lib.dir" value="${env.WMSINSTALL_HOME}" />
-	<property name="jar.filename" value="KalturaWowzaServer" />
+	<property name="wowza.lib.dir" value="${env.WMSINSTALL_HOME}/lib" />
 	<property name="core.build.dir" value="${basedir}/KalturaWowzaServer/bin" />
 	<property name="core.build.release" value="${basedir}/bin" />
+	<property name="release.dir" value="${basedir}/KalturaWowzaServer/release" />
+	<property name="jar.filename" value="KalturaWowzaServer" />
+	<property name="jar.filepath" value="${core.build.release}/${jar.filename}-${jar.version}.jar" />
+	<property name="zip.filepath" value="${core.build.release}/${jar.filename}-install-${jar.version}.zip" />
 
 	<target name="jar" depends="set-version">
-
-		<jar jarfile="${wowza.lib.dir}/lib/${jar.filename}.jar">
+		<jar jarfile="${jar.filepath}">
 			<fileset dir="${core.build.dir}" />
 		</jar>
-		<jar jarfile="${core.build.release}/${jar.filename}-${jar.version}.jar">
-			<fileset dir="${core.build.dir}" />
-		</jar>
+		<delete>
+			<fileset dir="${wowza.lib.dir}" includes="${jar.filename}*.jar"/>
+		</delete>
+		<copy file="${jar.filepath}" todir="${wowza.lib.dir}"/>
 	</target>
 
 	<target name="set-version">
@@ -22,6 +25,12 @@
 	</target>
 
 	<target name="release" depends="jar, github-client-check, download-github-client, set-version">
+		<delete>
+			<fileset dir="${release.dir}/lib" includes="${jar.filename}*.jar"/>
+		</delete>
+		<copy file="${jar.filepath}" todir="${release.dir}/lib"/>
+		<zip destfile="${zip.filepath}" basedir="${release.dir}" />
+				
 		<input message="Please enter git username:" addproperty="git.username" />
 		<input message="Please enter git password:" addproperty="git.password" />
 		<exec dir="./" executable="php">
