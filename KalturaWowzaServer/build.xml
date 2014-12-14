@@ -7,8 +7,6 @@
 	<property name="core.build.release" value="${basedir}/bin" />
 	<property name="release.dir" value="${basedir}/KalturaWowzaServer/release" />
 	<property name="jar.filename" value="KalturaWowzaServer" />
-	<property name="jar.filepath" value="${core.build.release}/${jar.filename}-${jar.version}.jar" />
-	<property name="zip.filepath" value="${core.build.release}/${jar.filename}-install-${jar.version}.zip" />
 
 	<target name="jar" depends="set-version">
 		<jar jarfile="${jar.filepath}">
@@ -22,6 +20,9 @@
 
 	<target name="set-version">
 		<loadfile property="jar.version" srcFile="${basedir}/KalturaMediaServer/src/com/kaltura/media/server/VERSION.txt" />
+
+		<property name="jar.filepath" value="${core.build.release}/${jar.filename}-${jar.version}.jar" />
+		<property name="zip.filepath" value="${core.build.release}/${jar.filename}-install-${jar.version}.zip" />
 	</target>
 
 	<target name="release" depends="jar, github-client-check, download-github-client, set-version">
