@@ -28,7 +28,7 @@ $contentType = 'application/java-archive';
 $client->repos->releases->assets->upload($owner, $repo, $releaseId, $name, $contentType, $filePath);
 echo "Jar file uploaded: $filePath\n";
 
-$name = "KalturaWowzaServer-install-$version.jar";
+$name = "KalturaWowzaServer-install-$version.zip";
 $filePath = __DIR__ . "/bin/$name";
 $contentType = 'application/zip';
 $client->repos->releases->assets->upload($owner, $repo, $releaseId, $name, $contentType, $filePath);
