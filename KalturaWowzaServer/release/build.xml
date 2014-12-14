@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<project name="Kaltura Media-Server Install" default="install">
+
+	<target name="set-properties">
+		<property environment="env" />
+		<property name="wowza.install.dir" value="${env.WMSINSTALL_HOME}" />
+		<loadproperties srcfile="/etc/kaltura.d/system.ini" prefix="kaltura" />
+		<loadproperties srcfile="${kaltura.APP_DIR}/configurations/local.ini" prefix="kaltura" />
+	</target>
+	
+	<target name="configure">
+		<mkdir dir="${basedir}/xml" />
+		<xslt reloadstylesheet="true" destdir="${basedir}/xml" extension=".xml" style="${basedir}/configure.xsl" basedir="${wowza.install.dir}/conf" includes="Server.xml, Application.xml">
+			<param name="BASE_DIR" expression="${kaltura.BASE_DIR}" />
+			<param name="APP_URL" expression="${kaltura.apphome_url}" />
+		</xslt>
+		
+		<mkdir dir="${wowza.install.dir}/conf/kLive"/>
+		<mkdir dir="${wowza.install.dir}/applications/kLive"/>
+		
+		<move file="${basedir}/xml/Server.xml" tofile="${wowza.install.dir}/conf/Server.xml" overwrite="true"/>
+		<move file="${basedir}/xml/Application.xml" tofile="${wowza.install.dir}/conf/kLive/Application.xml" overwrite="true"/>
+	</target>
+
+	<target name="copy-files">
+		<copy todir="${wowza.install.dir}/lib" overwrite="false">
+			<fileset dir="${basedir}/lib" includes="*" />
+		</copy>
+	</target>
+
+	<target name="install" depends="set-properties, copy-files, configure">
+	</target>
+
+</project>
