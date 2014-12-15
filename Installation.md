@@ -126,7 +126,7 @@ media_servers.ini is optional and needed only for custom configurations.
 </Property>
 <Property>
 	<Name>dvrChunkDurationMinimum</Name>
-	<Value>1000</Value>
+	<Value>10000</Value>
 	<Type>Integer</Type>
 </Property>
 <Property>
@@ -189,7 +189,7 @@ media_servers.ini is optional and needed only for custom configurations.
 </Property>
 <Property>
 	<Name>cupertinoCacheControlPlaylist</Name>
-	<Value>max-age=3</Value>
+	<Value>max-age=5</Value>
 </Property>
 <Property>
 	<Name>cupertinoCacheControlMediaChunk</Name>
@@ -321,7 +321,7 @@ media_servers.ini is optional and needed only for custom configurations.
 <Property>
 	<!-- Minimum buffering time before registering entry as is-live (in seconds) -->
 	<Name>KalturaIsLiveRegistrationMinBufferTime</Name>
-	<Value>60</Value>
+	<Value>5</Value>
 </Property>
 ```
 
