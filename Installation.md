@@ -353,7 +353,7 @@ media_servers.ini is optional and needed only for custom configurations.
 - /Root/VHost/HostPortList/HostPort/SSLConfig/KeyStorePassword - set the password for your certificate file.  
 
 
-## Add Multicast (for on-prem installations) 
+## Add Multicast support (for on-prem installations) 
 
  - Add the following to Server.xml under /Root/Server/Properties:  
  
@@ -481,3 +481,26 @@ http://{Wowza machine IP}:8088
 
 **Configure UI-Conf**
 - Edit the ui-conf of the KCW/KRecorder you are using to record from webcam- replace the {HOST_NAME} token in the uiconf with the hostname:port of the Wowza machine.
+
+## Add Ad-Stitching support ##
+**Edit @WOWZA_DIR@/conf/kLive/Application.xml:**
+
+- /Root/Application/Properties, add new Property:
+```
+            <Property>
+					<Name>ApplicationManagers</Name>
+					<Value>com.kaltura.media.server.wowza.CuePointsManager</Value>
+					<Type>String</Type>
+			 </Property>
+```
+**Edit @WOWZA_DIR@/conf/Server.xml:**
+
+- Under /Root/Server/Properties, edit the following property:
+```
+            <Property>
+				<Name>KalturaServerWebServices</Name>
+				<Value>com.kaltura.media.server.api.services.KalturaLiveService,com.kaltura.media.server.api.services.KalturaCuePointsService</Value>
+			</Property>
+```
+
+
