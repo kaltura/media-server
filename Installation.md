@@ -80,19 +80,6 @@ media_servers.ini is optional and needed only for custom configurations.
 	 - sanjosestreamingpacketizer
 	 - smoothstreamingpacketizer
 	 - dvrstreamingpacketizer
- - /Root/Application/Streams/Properties:
-```xml
-<Property>
-	<Name>sortPackets</Name>
-	<Value>true</Value>
-	<Type>Boolean</Type>
-</Property>
-<Property>
-	<Name>sortBufferSize</Name>
-	<Value>6000</Value>
-	<Type>Integer</Type>
-</Property>
-```
 
  - /Root/Application/Transcoder/LiveStreamTranscoder - transcoder
  - /Root/Application/Transcoder/Templates - `http://@WWW_HOST@/api_v3/index.php/service/wowza_liveConversionProfile/action/serve/streamName/${SourceStreamName}/f/transcode.xml`
