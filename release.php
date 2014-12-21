@@ -8,7 +8,15 @@ $password = $argv[2];
 $version = $argv[3];
 
 $tag_name = "rel-$version";
-$target_commitish = null;
+
+// Get the tag of the latest *local* commit
+$target_commitish = exec("git rev-parse HEAD 2>&1", $output, $retVal);
+if ( $retVal !== 0 )
+{
+	echo implode("\n", $output);
+	exit( $retVal );
+}
+
 $name = "v$version";
 $body = "Release version $version";
 $draft = false;
