@@ -47,12 +47,14 @@ class KalturaAdCuePointOrderBy
 	const END_TIME_ASC = "+endTime";
 	const PARTNER_SORT_VALUE_ASC = "+partnerSortValue";
 	const START_TIME_ASC = "+startTime";
+	const TRIGGERED_AT_ASC = "+triggeredAt";
 	const UPDATED_AT_ASC = "+updatedAt";
 	const CREATED_AT_DESC = "-createdAt";
 	const DURATION_DESC = "-duration";
 	const END_TIME_DESC = "-endTime";
 	const PARTNER_SORT_VALUE_DESC = "-partnerSortValue";
 	const START_TIME_DESC = "-startTime";
+	const TRIGGERED_AT_DESC = "-triggeredAt";
 	const UPDATED_AT_DESC = "-updatedAt";
 }
 
@@ -125,7 +127,6 @@ class KalturaAdCuePoint extends KalturaCuePoint
 	 * 	 
 	 *
 	 * @var int
-	 * @readonly
 	 */
 	public $duration = null;
 

@@ -82,6 +82,10 @@ class KalturaDrmDeviceOrderBy
  */
 class KalturaDrmLicenseScenario
 {
+	const PROTECTION = "playReady.PROTECTION";
+	const PURCHASE = "playReady.PURCHASE";
+	const RENTAL = "playReady.RENTAL";
+	const SUBSCRIPTION = "playReady.SUBSCRIPTION";
 }
 
 /**
@@ -90,6 +94,8 @@ class KalturaDrmLicenseScenario
  */
 class KalturaDrmLicenseType
 {
+	const NON_PERSISTENT = "playReady.NON_PERSISTENT";
+	const PERSISTENT = "playReady.PERSISTENT";
 }
 
 /**
@@ -118,6 +124,7 @@ class KalturaDrmProfileOrderBy
  */
 class KalturaDrmProviderType
 {
+	const PLAY_READY = "playReady.PLAY_READY";
 	const WIDEVINE = "widevine.WIDEVINE";
 }
 

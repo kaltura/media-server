@@ -65,6 +65,8 @@ class KalturaScheduledTaskProfileStatus
 	const DISABLED = 1;
 	const ACTIVE = 2;
 	const DELETED = 3;
+	const SUSPENDED = 4;
+	const DRY_RUN_ONLY = 5;
 }
 
 /**
@@ -88,6 +90,7 @@ class KalturaObjectTaskType
 	const MODIFY_CATEGORIES = "2";
 	const DELETE_ENTRY_FLAVORS = "3";
 	const CONVERT_ENTRY_FLAVORS = "4";
+	const DELETE_LOCAL_CONTENT = "5";
 }
 
 /**
@@ -220,6 +223,14 @@ class KalturaScheduledTaskProfile extends KalturaObjectBase
 	 */
 	public $lastExecutionStartedAt = null;
 
+	/**
+	 * The maximum number of result count allowed to be processed by this profile per execution
+	 * 	 
+	 *
+	 * @var int
+	 */
+	public $maxTotalCountAllowed = null;
+
 
 }
 
@@ -303,6 +314,15 @@ class KalturaDeleteEntryFlavorsObjectTask extends KalturaObjectTask
  * @subpackage Client
  */
 class KalturaDeleteEntryObjectTask extends KalturaObjectTask
+{
+
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaDeleteLocalContentObjectTask extends KalturaObjectTask
 {
 
 }
