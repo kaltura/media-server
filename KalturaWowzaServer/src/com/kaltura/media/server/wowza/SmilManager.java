@@ -15,10 +15,14 @@ import org.apache.log4j.Logger;
 
 import com.kaltura.infra.XmlUtils;
 import com.wowza.wms.application.IApplicationInstance;
+import com.wowza.wms.application.WMSProperties;
 import com.wowza.wms.medialist.MediaList;
 import com.wowza.wms.medialist.MediaListRendition;
 import com.wowza.wms.medialist.MediaListSegment;
+import com.wowza.wms.stream.IMediaStream;
+import com.wowza.wms.timedtext.model.ITimedTextConstants;
 import com.wowza.wms.util.MediaListUtils;
+import com.wowza.wms.vhost.IVHost;
 
 public class SmilManager {
 
@@ -164,7 +168,37 @@ public class SmilManager {
 			logger.error("MediaList not found: " + appName + "/" + sourceName);
 			return;
 		}
-
+		
+		WMSProperties ccProps = appInstance.getTimedTextProperties();
+		if (ccProps.getPropertyBoolean("cupertinoLiveCaptionsUseWebVTT", false)) {
+			//Assume that the source of the captions is the source stream. Now we need to find it
+			MediaListSegment segment = mediaList.getFirstSegment();
+			String src = segment.getFirstRendition().getName(); 
+			for (MediaListRendition rendition : segment.getRenditions()) {
+				String streamName = rendition.getName().replace("mp4:", "");
+				IMediaStream stream = appInstance.getStreams().getStream(streamName);
+				if (stream.getClient() != null) {
+					logger.info("Stream name ["+stream.getName() + "] is a source stream, grab captions from it.");
+					src = rendition.getName();
+					break;
+				}
+			}
+			// CC stream
+			MediaListRendition ccRendition = new MediaListRendition();
+			
+			ccRendition.setName(src);  // Stream must exist
+			ccRendition.setType(IVHost.CONTENTTYPE_DATA);
+			 
+			String languages = ccProps.getPropertyStr("captionLiveIngestLanguages", "eng");
+			ccRendition.setLanguage(languages); // May be comma-separated list
+			WMSProperties rend3Props = ccRendition.getProperties(true);
+			rend3Props.put(ITimedTextConstants.SMIL_PARAM_IS_WOWZA_CAPTION_STREAM, "true");
+			rend3Props.put(ITimedTextConstants.SMIL_PARAM_WOWZA_CAPTION_INGEST_TYPE, "onTextData");
+			
+			logger.info("Adding TimedText rendition: " + ccRendition.toSMILString());
+			segment.addRendition(ccRendition);
+		}
+		
 		String smil = mediaList.toSMILString();
 		save(appInstance, entryId, destGroupName, smil);
 	}
