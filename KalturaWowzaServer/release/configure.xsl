@@ -5,7 +5,6 @@
 <xsl:output omit-xml-declaration="no" method="xml" encoding="UTF-8" indent="no" />
 <xsl:param name="BASE_DIR" />
 <xsl:param name="APP_URL" />
-<xsl:param name="WWW_HOST" />
 <xsl:param name="ADMIN_SECRET" />
 <xsl:template name="apply-copy">
 	<xsl:param name="copy-element" select="." />
@@ -587,7 +586,7 @@
 									<xsl:with-param name="set-properties">
 										<Property>
 											<Name>KalturaServerURL</Name>
-											<Value><xsl:value-of select="$WWW_HOST" /></Value>
+											<Value><xsl:value-of select="$APP_URL" /></Value>
 										</Property>
 										<Property>
 											<Name>KalturaServerAdminSecret</Name>

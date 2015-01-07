@@ -27,7 +27,6 @@
 		<xslt reloadstylesheet="true" destdir="${basedir}/tmp" extension=".xml" style="${basedir}/configure.xsl" basedir="${wowza.install.dir}/conf" includes="Server.xml, Application.xml">
 			<param name="BASE_DIR" expression="${kaltura.BASE_DIR}" />
 			<param name="APP_URL" expression="${kaltura.apphome_url}" />
-			<param name="WWW_HOST" expression="${kaltura.www_host}" />
 			<param name="ADMIN_SECRET" expression="${kaltura.ADMIN_SECRET}" />
 		</xslt>
 		
