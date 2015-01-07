@@ -5,6 +5,8 @@
 <xsl:output omit-xml-declaration="no" method="xml" encoding="UTF-8" indent="no" />
 <xsl:param name="BASE_DIR" />
 <xsl:param name="APP_URL" />
+<xsl:param name="WWW_HOST" />
+<xsl:param name="ADMIN_SECRET" />
 <xsl:template name="apply-copy">
 	<xsl:param name="copy-element" select="." />
 	<xsl:param name="indent"><xsl:text>
@@ -585,11 +587,11 @@
 									<xsl:with-param name="set-properties">
 										<Property>
 											<Name>KalturaServerURL</Name>
-											<Value>http://ny-www.kaltura.com</Value>
+											<Value><xsl:value-of select="$WWW_HOST" /></Value>
 										</Property>
 										<Property>
 											<Name>KalturaServerAdminSecret</Name>
-											<Value>a9685a1598fab3f348f95ba23a36096c</Value>
+											<Value><xsl:value-of select="$ADMIN_SECRET" /></Value>
 										</Property>
 										<Property>
 											<Name>KalturaServerTimeout</Name>
@@ -640,15 +642,11 @@
 										</Property>
 										<Property>
 											<Name>KalturaRecordedFileGroup</Name>
-											<Value>apache</Value>
+											<Value>kaltura</Value>
 										</Property>
 										<Property>
 											<Name>KalturaIsLiveRegistrationMinBufferTime</Name>
-											<Value>60</Value>
-										</Property>
-										<Property>
-											<Name>KalturaSyncEntryids</Name>
-											<Value>1_oorxcge2, 1_q9xfqyof</Value>
+											<Value>30</Value>
 										</Property>
 									</xsl:with-param>
 								</xsl:call-template>
