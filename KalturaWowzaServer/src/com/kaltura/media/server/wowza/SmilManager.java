@@ -3,6 +3,10 @@ package com.kaltura.media.server.wowza;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -159,7 +163,7 @@ public class SmilManager {
 		}
 	}
 	
-	public static synchronized void generate(IApplicationInstance appInstance, String entryId, String destGroupName, String sourceName) {
+	public static synchronized void generate(IApplicationInstance appInstance, String entryId, String destGroupName, String sourceName, int transcodingProfileId) {
 		String appName = appInstance.getContextStr();
 		logger.debug("Generate [" + appName + "/" + destGroupName + "] from source [" + sourceName + "]");
 
@@ -174,15 +178,7 @@ public class SmilManager {
 			//Assume that the source of the captions is the source stream. Now we need to find it
 			MediaListSegment segment = mediaList.getFirstSegment();
 			String src = segment.getFirstRendition().getName(); 
-			for (MediaListRendition rendition : segment.getRenditions()) {
-				String streamName = rendition.getName().replace("mp4:", "");
-				IMediaStream stream = appInstance.getStreams().getStream(streamName);
-				if (stream.getClient() != null) {
-					logger.info("Stream name ["+stream.getName() + "] is a source stream, grab captions from it.");
-					src = rendition.getName();
-					break;
-				}
-			}
+			
 			// CC stream
 			MediaListRendition ccRendition = new MediaListRendition();
 			
@@ -200,18 +196,18 @@ public class SmilManager {
 		}
 		
 		String smil = mediaList.toSMILString();
-		save(appInstance, entryId, destGroupName, smil);
+		save(appInstance, entryId, destGroupName, smil, transcodingProfileId);
 	}
 	
-	protected static synchronized void save(IApplicationInstance appInstance, String entryId, String destGroupName, String smil) {
+	protected static synchronized void save(IApplicationInstance appInstance, String entryId, String destGroupName, String smil, Integer transcodingProfileId) {
 		String appName = appInstance.getContextStr();
 		
-		String filePath = appInstance.getStreamStoragePath() + File.separator + destGroupName + ".smil";
+		String filePath = appInstance.getStreamStoragePath() + File.separator + entryId + "_" + transcodingProfileId + ".smil";
 		File file = new File(filePath);
 		if(file.exists()){
 			File tmpFile;
 			try {
-				tmpFile = File.createTempFile(destGroupName, ".smil");
+				tmpFile = File.createTempFile(entryId + "_" + transcodingProfileId.toString(), ".smil");
 				PrintWriter out = new PrintWriter(tmpFile);
 				out.print(smil);
 				out.close();
@@ -241,7 +237,19 @@ public class SmilManager {
 		}
 		
 		addSmil(entryId, filePath);
-
 		logger.info("Created smil file [" + filePath + "] for stream " + appName + "/" + destGroupName + ":\n" + smil + "\n\n");
+		
+		//String symLinkPath = appInstance.getStreamStoragePath() + File.separator + destGroupName + ".smil";
+		Path symLinkPath = Paths.get(appInstance.getStreamStoragePath() + File.separator + destGroupName + ".smil");
+		Path smilPath = Paths.get(filePath);
+		
+		try {
+			if (Files.exists(symLinkPath) && (!Files.isSymbolicLink(symLinkPath) || !Files.readSymbolicLink(symLinkPath).equals(smilPath))) {
+				Files.deleteIfExists(symLinkPath);
+				Files.createSymbolicLink(symLinkPath, smilPath);
+			}
+		} catch (Exception e) {
+			logger.error("There was an error creating the symlink: " + e.getMessage());
+		}
 	}
 }

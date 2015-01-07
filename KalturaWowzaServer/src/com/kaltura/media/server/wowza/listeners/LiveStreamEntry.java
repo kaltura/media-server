@@ -415,7 +415,7 @@ public class LiveStreamEntry extends ModuleBase {
 			
 			final String destGroupName = entryId + "_" + tag;
 			final String appName = appInstance.getContextStr();
-
+			
 			logger.debug("Group [" + appName + "/" + destGroupName + "] for group name [" + streamNameGroup.getStreamName() + "]");
 
 			IMediaStream stream = liveStreamTranscoder.getStream();
@@ -449,8 +449,10 @@ public class LiveStreamEntry extends ModuleBase {
 						logger.debug("Group [" + appName + "/" + destGroupName + "] for group name [" + streamNameGroup.getStreamName() + "] restreaming");
 						restreamGroup(entryId, streamNameGroup.getMembers());
 					}
-
-					SmilManager.generate(appInstance, entryId, destGroupName, sourceGroupName);
+					//Entry required to get the value of the transcoding profile id
+					KalturaLiveEntry entry = liveStreamManager.get(entryId);
+					
+					SmilManager.generate(appInstance, entryId, destGroupName, sourceGroupName, entry.conversionProfileId);
 				}
 			};
 
@@ -573,6 +575,7 @@ public class LiveStreamEntry extends ModuleBase {
 					logger.error("Client does not contain entryId information. Captions will not be read");
 					return;
 				}
+				
 			}
 		}
 	}
