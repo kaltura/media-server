@@ -72,8 +72,8 @@ function handleUploadXMLResource (SimpleXMLElement $uploadXML, KalturaClient $cl
 	$assetId = strval($uploadXML->assetId);
 	$partnerId = strval ($uploadXML->partnerId);
 	$partnerAdminSecret = strval ($uploadXML->adminSecret);
-	$duration = intval ($uploadXML->duration);
-	$isLastChunk = intval ($uploadXML->isLastChunk);
+	$duration = floatval($uploadXML->duration);
+	$isLastChunk = (strval($uploadXML->isLastChunk) == 'true') ? 1 : 0;
 	$index = intval($uploadXML->index);
 	$filepath = strval($uploadXML->filepath);
 	$workmode = strval($uploadXML->workMode);
