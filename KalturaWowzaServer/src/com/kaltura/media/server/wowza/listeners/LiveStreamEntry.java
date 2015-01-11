@@ -546,7 +546,8 @@ public class LiveStreamEntry extends ModuleBase {
 				}
 			}
 
-			SmilManager.generate(appInstance, entryId, entryId + "_publish", bitrates);
+			KalturaLiveEntry entry = liveStreamManager.get(entryId);
+			SmilManager.generate(appInstance, entryId, entryId + "_publish", bitrates, entry.conversionProfileId);
 		}
 	}
 

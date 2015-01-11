@@ -132,7 +132,7 @@ public class SmilManager {
 		}
 	}
 
-	public static synchronized void generate(IApplicationInstance appInstance, String entryId, String destGroupName, Map<String, Long> bitrates) {
+	public static synchronized void generate(IApplicationInstance appInstance, String entryId, String destGroupName, Map<String, Long> bitrates, int transcodingProfileId) {
 
 		String smil = "<smil>\n";
 		smil += "	<head></head>\n";
@@ -149,18 +149,7 @@ public class SmilManager {
 		smil += "	</body>\n";
 		smil += "</smil>";
 
-		String filePath = appInstance.getStreamStoragePath() + File.separator + destGroupName + ".smil";
-		try {
-			PrintWriter out = new PrintWriter(filePath);
-			out.print(smil);
-			out.close();
-			
-			addSmil(entryId, filePath);
-
-			logger.info("Generated smil file [" + filePath + "]");
-		} catch (FileNotFoundException e) {
-			logger.error("Failed writing to file [" + filePath + "]: " + e.getMessage());
-		}
+		save(appInstance, entryId, destGroupName, smil, transcodingProfileId); 
 	}
 	
 	public static synchronized void generate(IApplicationInstance appInstance, String entryId, String destGroupName, String sourceName, int transcodingProfileId) {
