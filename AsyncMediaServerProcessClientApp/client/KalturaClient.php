@@ -505,14 +505,17 @@ class KalturaBaseEntryService extends KalturaServiceBase
 	 * @param string $entryId Entry id to update
 	 * @param KalturaResource $resource Resource to be used to replace entry content
 	 * @param int $conversionProfileId The conversion profile id to be used on the entry
+	 * @param KalturaEntryReplacementOptions $advancedOptions Additional update content options
 	 * @return KalturaBaseEntry
 	 */
-	function updateContent($entryId, KalturaResource $resource, $conversionProfileId = null)
+	function updateContent($entryId, KalturaResource $resource, $conversionProfileId = null, KalturaEntryReplacementOptions $advancedOptions = null)
 	{
 		$kparams = array();
 		$this->client->addParam($kparams, "entryId", $entryId);
 		$this->client->addParam($kparams, "resource", $resource->toParams());
 		$this->client->addParam($kparams, "conversionProfileId", $conversionProfileId);
+		if ($advancedOptions !== null)
+			$this->client->addParam($kparams, "advancedOptions", $advancedOptions->toParams());
 		$this->client->queueServiceActionCall("baseentry", "updateContent", $kparams);
 		if ($this->client->isMultiRequest())
 			return $this->client->getMultiRequestResult();
@@ -1988,6 +1991,120 @@ class KalturaDataService extends KalturaServiceBase
  * @package Kaltura
  * @subpackage Client
  */
+class KalturaDeliveryProfileService extends KalturaServiceBase
+{
+	function __construct(KalturaClient $client = null)
+	{
+		parent::__construct($client);
+	}
+
+	/**
+	 * Add new delivery.
+	 * 
+	 * @param KalturaDeliveryProfile $delivery 
+	 * @return KalturaDeliveryProfile
+	 */
+	function add(KalturaDeliveryProfile $delivery)
+	{
+		$kparams = array();
+		$this->client->addParam($kparams, "delivery", $delivery->toParams());
+		$this->client->queueServiceActionCall("deliveryprofile", "add", $kparams);
+		if ($this->client->isMultiRequest())
+			return $this->client->getMultiRequestResult();
+		$resultObject = $this->client->doQueue();
+		$this->client->throwExceptionIfError($resultObject);
+		$this->client->validateObjectType($resultObject, "KalturaDeliveryProfile");
+		return $resultObject;
+	}
+
+	/**
+	 * Update exisiting delivery
+	 * 
+	 * @param string $id 
+	 * @param KalturaDeliveryProfile $delivery 
+	 * @return KalturaDeliveryProfile
+	 */
+	function update($id, KalturaDeliveryProfile $delivery)
+	{
+		$kparams = array();
+		$this->client->addParam($kparams, "id", $id);
+		$this->client->addParam($kparams, "delivery", $delivery->toParams());
+		$this->client->queueServiceActionCall("deliveryprofile", "update", $kparams);
+		if ($this->client->isMultiRequest())
+			return $this->client->getMultiRequestResult();
+		$resultObject = $this->client->doQueue();
+		$this->client->throwExceptionIfError($resultObject);
+		$this->client->validateObjectType($resultObject, "KalturaDeliveryProfile");
+		return $resultObject;
+	}
+
+	/**
+	 * Get delivery by id
+	 * 
+	 * @param string $id 
+	 * @return KalturaDeliveryProfile
+	 */
+	function get($id)
+	{
+		$kparams = array();
+		$this->client->addParam($kparams, "id", $id);
+		$this->client->queueServiceActionCall("deliveryprofile", "get", $kparams);
+		if ($this->client->isMultiRequest())
+			return $this->client->getMultiRequestResult();
+		$resultObject = $this->client->doQueue();
+		$this->client->throwExceptionIfError($resultObject);
+		$this->client->validateObjectType($resultObject, "KalturaDeliveryProfile");
+		return $resultObject;
+	}
+
+	/**
+	 * Add delivery based on existing delivery.
+	Must provide valid sourceDeliveryId
+	 * 
+	 * @param int $deliveryId 
+	 * @return KalturaDeliveryProfile
+	 */
+	function cloneAction($deliveryId)
+	{
+		$kparams = array();
+		$this->client->addParam($kparams, "deliveryId", $deliveryId);
+		$this->client->queueServiceActionCall("deliveryprofile", "clone", $kparams);
+		if ($this->client->isMultiRequest())
+			return $this->client->getMultiRequestResult();
+		$resultObject = $this->client->doQueue();
+		$this->client->throwExceptionIfError($resultObject);
+		$this->client->validateObjectType($resultObject, "KalturaDeliveryProfile");
+		return $resultObject;
+	}
+
+	/**
+	 * Retrieve a list of available delivery depends on the filter given
+	 * 
+	 * @param KalturaDeliveryProfileFilter $filter 
+	 * @param KalturaFilterPager $pager 
+	 * @return KalturaDeliveryProfileListResponse
+	 */
+	function listAction(KalturaDeliveryProfileFilter $filter = null, KalturaFilterPager $pager = null)
+	{
+		$kparams = array();
+		if ($filter !== null)
+			$this->client->addParam($kparams, "filter", $filter->toParams());
+		if ($pager !== null)
+			$this->client->addParam($kparams, "pager", $pager->toParams());
+		$this->client->queueServiceActionCall("deliveryprofile", "list", $kparams);
+		if ($this->client->isMultiRequest())
+			return $this->client->getMultiRequestResult();
+		$resultObject = $this->client->doQueue();
+		$this->client->throwExceptionIfError($resultObject);
+		$this->client->validateObjectType($resultObject, "KalturaDeliveryProfileListResponse");
+		return $resultObject;
+	}
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
 class KalturaDocumentService extends KalturaServiceBase
 {
 	function __construct(KalturaClient $client = null)
@@ -2936,6 +3053,25 @@ class KalturaFlavorAssetService extends KalturaServiceBase
 		$this->client->validateObjectType($resultObject, "null");
 		return $resultObject;
 	}
+
+	/**
+	 * Delete all local file syncs for this asset
+	 * 
+	 * @param string $assetId 
+	 * @return 
+	 */
+	function deleteLocalContent($assetId)
+	{
+		$kparams = array();
+		$this->client->addParam($kparams, "assetId", $assetId);
+		$this->client->queueServiceActionCall("flavorasset", "deleteLocalContent", $kparams);
+		if ($this->client->isMultiRequest())
+			return $this->client->getMultiRequestResult();
+		$resultObject = $this->client->doQueue();
+		$this->client->throwExceptionIfError($resultObject);
+		$this->client->validateObjectType($resultObject, "null");
+		return $resultObject;
+	}
 }
 
 /**
@@ -3372,18 +3508,22 @@ class KalturaLiveChannelService extends KalturaServiceBase
 	 * Append recorded video to live entry
 	 * 
 	 * @param string $entryId Live entry id
+	 * @param string $assetId Live asset id
 	 * @param int $mediaServerIndex 
 	 * @param KalturaDataCenterContentResource $resource 
-	 * @param float $duration 
+	 * @param float $duration In seconds
+	 * @param bool $isLastChunk Is this the last recorded chunk in the current session (i.e. following a stream stop event)
 	 * @return KalturaLiveEntry
 	 */
-	function appendRecording($entryId, $mediaServerIndex, KalturaDataCenterContentResource $resource, $duration)
+	function appendRecording($entryId, $assetId, $mediaServerIndex, KalturaDataCenterContentResource $resource, $duration, $isLastChunk = false)
 	{
 		$kparams = array();
 		$this->client->addParam($kparams, "entryId", $entryId);
+		$this->client->addParam($kparams, "assetId", $assetId);
 		$this->client->addParam($kparams, "mediaServerIndex", $mediaServerIndex);
 		$this->client->addParam($kparams, "resource", $resource->toParams());
 		$this->client->addParam($kparams, "duration", $duration);
+		$this->client->addParam($kparams, "isLastChunk", $isLastChunk);
 		$this->client->queueServiceActionCall("livechannel", "appendRecording", $kparams);
 		if ($this->client->isMultiRequest())
 			return $this->client->getMultiRequestResult();
@@ -3450,6 +3590,180 @@ class KalturaLiveChannelService extends KalturaServiceBase
 		$kparams = array();
 		$this->client->addParam($kparams, "entryId", $entryId);
 		$this->client->queueServiceActionCall("livechannel", "validateRegisteredMediaServers", $kparams);
+		if ($this->client->isMultiRequest())
+			return $this->client->getMultiRequestResult();
+		$resultObject = $this->client->doQueue();
+		$this->client->throwExceptionIfError($resultObject);
+		$this->client->validateObjectType($resultObject, "null");
+		return $resultObject;
+	}
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaLiveReportsService extends KalturaServiceBase
+{
+	function __construct(KalturaClient $client = null)
+	{
+		parent::__construct($client);
+	}
+
+	/**
+	 * 
+	 * 
+	 * @param string $reportType 
+	 * @param KalturaLiveReportInputFilter $filter 
+	 * @param KalturaFilterPager $pager 
+	 * @return KalturaLiveStatsListResponse
+	 */
+	function getEvents($reportType, KalturaLiveReportInputFilter $filter = null, KalturaFilterPager $pager = null)
+	{
+		$kparams = array();
+		$this->client->addParam($kparams, "reportType", $reportType);
+		if ($filter !== null)
+			$this->client->addParam($kparams, "filter", $filter->toParams());
+		if ($pager !== null)
+			$this->client->addParam($kparams, "pager", $pager->toParams());
+		$this->client->queueServiceActionCall("livereports", "getEvents", $kparams);
+		if ($this->client->isMultiRequest())
+			return $this->client->getMultiRequestResult();
+		$resultObject = $this->client->doQueue();
+		$this->client->throwExceptionIfError($resultObject);
+		$this->client->validateObjectType($resultObject, "KalturaLiveStatsListResponse");
+		return $resultObject;
+	}
+
+	/**
+	 * 
+	 * 
+	 * @param string $reportType 
+	 * @param KalturaLiveReportInputFilter $filter 
+	 * @param KalturaFilterPager $pager 
+	 * @return KalturaLiveStatsListResponse
+	 */
+	function getReport($reportType, KalturaLiveReportInputFilter $filter = null, KalturaFilterPager $pager = null)
+	{
+		$kparams = array();
+		$this->client->addParam($kparams, "reportType", $reportType);
+		if ($filter !== null)
+			$this->client->addParam($kparams, "filter", $filter->toParams());
+		if ($pager !== null)
+			$this->client->addParam($kparams, "pager", $pager->toParams());
+		$this->client->queueServiceActionCall("livereports", "getReport", $kparams);
+		if ($this->client->isMultiRequest())
+			return $this->client->getMultiRequestResult();
+		$resultObject = $this->client->doQueue();
+		$this->client->throwExceptionIfError($resultObject);
+		$this->client->validateObjectType($resultObject, "KalturaLiveStatsListResponse");
+		return $resultObject;
+	}
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaStatsService extends KalturaServiceBase
+{
+	function __construct(KalturaClient $client = null)
+	{
+		parent::__construct($client);
+	}
+
+	/**
+	 * Will write to the event log a single line representing the event
+	 client version - will help interprete the line structure. different client versions might have slightly different data/data formats in the line
+event_id - number is the row number in yuval's excel
+datetime - same format as MySql's datetime - can change and should reflect the time zone
+session id - can be some big random number or guid
+partner id
+entry id
+unique viewer
+widget id
+ui_conf id
+uid - the puser id as set by the ppartner
+current point - in milliseconds
+duration - milliseconds
+user ip
+process duration - in milliseconds
+control id
+seek
+new point
+referrer
+	
+	
+	 KalturaStatsEvent $event
+	 * 
+	 * @param KalturaStatsEvent $event 
+	 * @return bool
+	 */
+	function collect(KalturaStatsEvent $event)
+	{
+		$kparams = array();
+		$this->client->addParam($kparams, "event", $event->toParams());
+		$this->client->queueServiceActionCall("stats", "collect", $kparams);
+		if ($this->client->isMultiRequest())
+			return $this->client->getMultiRequestResult();
+		$resultObject = $this->client->doQueue();
+		$this->client->throwExceptionIfError($resultObject);
+		$resultObject = (bool) $resultObject;
+		return $resultObject;
+	}
+
+	/**
+	 * Will collect the kmcEvent sent form the KMC client
+	 // this will actually be an empty function because all events will be sent using GET and will anyway be logged in the apache log
+	 * 
+	 * @param KalturaStatsKmcEvent $kmcEvent 
+	 * @return 
+	 */
+	function kmcCollect(KalturaStatsKmcEvent $kmcEvent)
+	{
+		$kparams = array();
+		$this->client->addParam($kparams, "kmcEvent", $kmcEvent->toParams());
+		$this->client->queueServiceActionCall("stats", "kmcCollect", $kparams);
+		if ($this->client->isMultiRequest())
+			return $this->client->getMultiRequestResult();
+		$resultObject = $this->client->doQueue();
+		$this->client->throwExceptionIfError($resultObject);
+		$this->client->validateObjectType($resultObject, "null");
+		return $resultObject;
+	}
+
+	/**
+	 * 
+	 * 
+	 * @param KalturaCEError $kalturaCEError 
+	 * @return KalturaCEError
+	 */
+	function reportKceError(KalturaCEError $kalturaCEError)
+	{
+		$kparams = array();
+		$this->client->addParam($kparams, "kalturaCEError", $kalturaCEError->toParams());
+		$this->client->queueServiceActionCall("stats", "reportKceError", $kparams);
+		if ($this->client->isMultiRequest())
+			return $this->client->getMultiRequestResult();
+		$resultObject = $this->client->doQueue();
+		$this->client->throwExceptionIfError($resultObject);
+		$this->client->validateObjectType($resultObject, "KalturaCEError");
+		return $resultObject;
+	}
+
+	/**
+	 * Use this action to report errors to the kaltura server.
+	 * 
+	 * @param string $errorCode 
+	 * @param string $errorMessage 
+	 * @return 
+	 */
+	function reportError($errorCode, $errorMessage)
+	{
+		$kparams = array();
+		$this->client->addParam($kparams, "errorCode", $errorCode);
+		$this->client->addParam($kparams, "errorMessage", $errorMessage);
+		$this->client->queueServiceActionCall("stats", "reportError", $kparams);
 		if ($this->client->isMultiRequest())
 			return $this->client->getMultiRequestResult();
 		$resultObject = $this->client->doQueue();
@@ -3667,14 +3981,17 @@ class KalturaLiveStreamService extends KalturaServiceBase
 	 * @param string $entryId 
 	 * @param string $protocol 
 	 * @param string $url 
+	 * @param KalturaLiveStreamConfiguration $liveStreamConfiguration 
 	 * @return KalturaLiveStreamEntry
 	 */
-	function addLiveStreamPushPublishConfiguration($entryId, $protocol, $url)
+	function addLiveStreamPushPublishConfiguration($entryId, $protocol, $url = null, KalturaLiveStreamConfiguration $liveStreamConfiguration = null)
 	{
 		$kparams = array();
 		$this->client->addParam($kparams, "entryId", $entryId);
 		$this->client->addParam($kparams, "protocol", $protocol);
 		$this->client->addParam($kparams, "url", $url);
+		if ($liveStreamConfiguration !== null)
+			$this->client->addParam($kparams, "liveStreamConfiguration", $liveStreamConfiguration->toParams());
 		$this->client->queueServiceActionCall("livestream", "addLiveStreamPushPublishConfiguration", $kparams);
 		if ($this->client->isMultiRequest())
 			return $this->client->getMultiRequestResult();
@@ -3709,18 +4026,22 @@ class KalturaLiveStreamService extends KalturaServiceBase
 	 * Append recorded video to live entry
 	 * 
 	 * @param string $entryId Live entry id
+	 * @param string $assetId Live asset id
 	 * @param int $mediaServerIndex 
 	 * @param KalturaDataCenterContentResource $resource 
-	 * @param float $duration 
+	 * @param float $duration In seconds
+	 * @param bool $isLastChunk Is this the last recorded chunk in the current session (i.e. following a stream stop event)
 	 * @return KalturaLiveEntry
 	 */
-	function appendRecording($entryId, $mediaServerIndex, KalturaDataCenterContentResource $resource, $duration)
+	function appendRecording($entryId, $assetId, $mediaServerIndex, KalturaDataCenterContentResource $resource, $duration, $isLastChunk = false)
 	{
 		$kparams = array();
 		$this->client->addParam($kparams, "entryId", $entryId);
+		$this->client->addParam($kparams, "assetId", $assetId);
 		$this->client->addParam($kparams, "mediaServerIndex", $mediaServerIndex);
 		$this->client->addParam($kparams, "resource", $resource->toParams());
 		$this->client->addParam($kparams, "duration", $duration);
+		$this->client->addParam($kparams, "isLastChunk", $isLastChunk);
 		$this->client->queueServiceActionCall("livestream", "appendRecording", $kparams);
 		if ($this->client->isMultiRequest())
 			return $this->client->getMultiRequestResult();
@@ -4194,14 +4515,17 @@ class KalturaMediaService extends KalturaServiceBase
 	 * @param string $entryId Media entry id to update
 	 * @param KalturaResource $resource Resource to be used to replace entry media content
 	 * @param int $conversionProfileId The conversion profile id to be used on the entry
+	 * @param KalturaEntryReplacementOptions $advancedOptions Additional update content options
 	 * @return KalturaMediaEntry
 	 */
-	function updateContent($entryId, KalturaResource $resource, $conversionProfileId = null)
+	function updateContent($entryId, KalturaResource $resource, $conversionProfileId = null, KalturaEntryReplacementOptions $advancedOptions = null)
 	{
 		$kparams = array();
 		$this->client->addParam($kparams, "entryId", $entryId);
 		$this->client->addParam($kparams, "resource", $resource->toParams());
 		$this->client->addParam($kparams, "conversionProfileId", $conversionProfileId);
+		if ($advancedOptions !== null)
+			$this->client->addParam($kparams, "advancedOptions", $advancedOptions->toParams());
 		$this->client->queueServiceActionCall("media", "updateContent", $kparams);
 		if ($this->client->isMultiRequest())
 			return $this->client->getMultiRequestResult();
@@ -5726,6 +6050,25 @@ class KalturaReportService extends KalturaServiceBase
 	}
 
 	/**
+	 * Will serve a requested report
+	 * 
+	 * @param string $id - the requested id
+	 * @return string
+	 */
+	function serve($id)
+	{
+		$kparams = array();
+		$this->client->addParam($kparams, "id", $id);
+		$this->client->queueServiceActionCall("report", "serve", $kparams);
+		if ($this->client->isMultiRequest())
+			return $this->client->getMultiRequestResult();
+		$resultObject = $this->client->doQueue();
+		$this->client->throwExceptionIfError($resultObject);
+		$this->client->validateObjectType($resultObject, "string");
+		return $resultObject;
+	}
+
+	/**
 	 * 
 	 * 
 	 * @param int $id 
@@ -6081,118 +6424,6 @@ class KalturaSessionService extends KalturaServiceBase
  * @package Kaltura
  * @subpackage Client
  */
-class KalturaStatsService extends KalturaServiceBase
-{
-	function __construct(KalturaClient $client = null)
-	{
-		parent::__construct($client);
-	}
-
-	/**
-	 * Will write to the event log a single line representing the event
-	 client version - will help interprete the line structure. different client versions might have slightly different data/data formats in the line
-event_id - number is the row number in yuval's excel
-datetime - same format as MySql's datetime - can change and should reflect the time zone
-session id - can be some big random number or guid
-partner id
-entry id
-unique viewer
-widget id
-ui_conf id
-uid - the puser id as set by the ppartner
-current point - in milliseconds
-duration - milliseconds
-user ip
-process duration - in milliseconds
-control id
-seek
-new point
-referrer
-	
-	
-	 KalturaStatsEvent $event
-	 * 
-	 * @param KalturaStatsEvent $event 
-	 * @return bool
-	 */
-	function collect(KalturaStatsEvent $event)
-	{
-		$kparams = array();
-		$this->client->addParam($kparams, "event", $event->toParams());
-		$this->client->queueServiceActionCall("stats", "collect", $kparams);
-		if ($this->client->isMultiRequest())
-			return $this->client->getMultiRequestResult();
-		$resultObject = $this->client->doQueue();
-		$this->client->throwExceptionIfError($resultObject);
-		$resultObject = (bool) $resultObject;
-		return $resultObject;
-	}
-
-	/**
-	 * Will collect the kmcEvent sent form the KMC client
-	 // this will actually be an empty function because all events will be sent using GET and will anyway be logged in the apache log
-	 * 
-	 * @param KalturaStatsKmcEvent $kmcEvent 
-	 * @return 
-	 */
-	function kmcCollect(KalturaStatsKmcEvent $kmcEvent)
-	{
-		$kparams = array();
-		$this->client->addParam($kparams, "kmcEvent", $kmcEvent->toParams());
-		$this->client->queueServiceActionCall("stats", "kmcCollect", $kparams);
-		if ($this->client->isMultiRequest())
-			return $this->client->getMultiRequestResult();
-		$resultObject = $this->client->doQueue();
-		$this->client->throwExceptionIfError($resultObject);
-		$this->client->validateObjectType($resultObject, "null");
-		return $resultObject;
-	}
-
-	/**
-	 * 
-	 * 
-	 * @param KalturaCEError $kalturaCEError 
-	 * @return KalturaCEError
-	 */
-	function reportKceError(KalturaCEError $kalturaCEError)
-	{
-		$kparams = array();
-		$this->client->addParam($kparams, "kalturaCEError", $kalturaCEError->toParams());
-		$this->client->queueServiceActionCall("stats", "reportKceError", $kparams);
-		if ($this->client->isMultiRequest())
-			return $this->client->getMultiRequestResult();
-		$resultObject = $this->client->doQueue();
-		$this->client->throwExceptionIfError($resultObject);
-		$this->client->validateObjectType($resultObject, "KalturaCEError");
-		return $resultObject;
-	}
-
-	/**
-	 * Use this action to report errors to the kaltura server.
-	 * 
-	 * @param string $errorCode 
-	 * @param string $errorMessage 
-	 * @return 
-	 */
-	function reportError($errorCode, $errorMessage)
-	{
-		$kparams = array();
-		$this->client->addParam($kparams, "errorCode", $errorCode);
-		$this->client->addParam($kparams, "errorMessage", $errorMessage);
-		$this->client->queueServiceActionCall("stats", "reportError", $kparams);
-		if ($this->client->isMultiRequest())
-			return $this->client->getMultiRequestResult();
-		$resultObject = $this->client->doQueue();
-		$this->client->throwExceptionIfError($resultObject);
-		$this->client->validateObjectType($resultObject, "null");
-		return $resultObject;
-	}
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
 class KalturaStorageProfileService extends KalturaServiceBase
 {
 	function __construct(KalturaClient $client = null)
@@ -6515,6 +6746,23 @@ class KalturaSystemService extends KalturaServiceBase
 		$resultObject = $this->client->doQueue();
 		$this->client->throwExceptionIfError($resultObject);
 		$this->client->validateObjectType($resultObject, "integer");
+		return $resultObject;
+	}
+
+	/**
+	 * 
+	 * 
+	 * @return string
+	 */
+	function getVersion()
+	{
+		$kparams = array();
+		$this->client->queueServiceActionCall("system", "getVersion", $kparams);
+		if ($this->client->isMultiRequest())
+			return $this->client->getMultiRequestResult();
+		$resultObject = $this->client->doQueue();
+		$this->client->throwExceptionIfError($resultObject);
+		$this->client->validateObjectType($resultObject, "string");
 		return $resultObject;
 	}
 }
@@ -8175,6 +8423,12 @@ class KalturaClient extends KalturaClientBase
 	public $data = null;
 
 	/**
+	 * Delivery service is used to control delivery objects
+	 * @var KalturaDeliveryProfileService
+	 */
+	public $deliveryProfile = null;
+
+	/**
 	 * Document service
 	 * @var KalturaDocumentService
 	 */
@@ -8221,6 +8475,18 @@ class KalturaClient extends KalturaClientBase
 	 * @var KalturaLiveChannelService
 	 */
 	public $liveChannel = null;
+
+	/**
+	 * 
+	 * @var KalturaLiveReportsService
+	 */
+	public $liveReports = null;
+
+	/**
+	 * Stats Service
+	 * @var KalturaStatsService
+	 */
+	public $stats = null;
 
 	/**
 	 * Live Stream service lets you manage live stream entries
@@ -8308,12 +8574,6 @@ class KalturaClient extends KalturaClientBase
 	 * @var KalturaSessionService
 	 */
 	public $session = null;
-
-	/**
-	 * Stats Service
-	 * @var KalturaStatsService
-	 */
-	public $stats = null;
 
 	/**
 	 * Storage Profiles service
@@ -8415,6 +8675,7 @@ class KalturaClient extends KalturaClientBase
 		$this->conversionProfileAssetParams = new KalturaConversionProfileAssetParamsService($this);
 		$this->conversionProfile = new KalturaConversionProfileService($this);
 		$this->data = new KalturaDataService($this);
+		$this->deliveryProfile = new KalturaDeliveryProfileService($this);
 		$this->document = new KalturaDocumentService($this);
 		$this->EmailIngestionProfile = new KalturaEmailIngestionProfileService($this);
 		$this->fileAsset = new KalturaFileAssetService($this);
@@ -8423,6 +8684,8 @@ class KalturaClient extends KalturaClientBase
 		$this->flavorParams = new KalturaFlavorParamsService($this);
 		$this->liveChannelSegment = new KalturaLiveChannelSegmentService($this);
 		$this->liveChannel = new KalturaLiveChannelService($this);
+		$this->liveReports = new KalturaLiveReportsService($this);
+		$this->stats = new KalturaStatsService($this);
 		$this->liveStream = new KalturaLiveStreamService($this);
 		$this->mediaInfo = new KalturaMediaInfoService($this);
 		$this->mediaServer = new KalturaMediaServerService($this);
@@ -8437,7 +8700,6 @@ class KalturaClient extends KalturaClientBase
 		$this->schema = new KalturaSchemaService($this);
 		$this->search = new KalturaSearchService($this);
 		$this->session = new KalturaSessionService($this);
-		$this->stats = new KalturaStatsService($this);
 		$this->storageProfile = new KalturaStorageProfileService($this);
 		$this->syndicationFeed = new KalturaSyndicationFeedService($this);
 		$this->system = new KalturaSystemService($this);
