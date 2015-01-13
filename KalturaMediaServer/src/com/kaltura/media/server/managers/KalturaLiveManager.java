@@ -382,15 +382,44 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	protected void onPublish(String entryId, final KalturaMediaServerIndex serverIndex, String applicationName) {
 		logger.debug("Entry [" + entryId + "]");
 
+		LiveEntryCache liveEntryCache = null;
+
 		synchronized (entries) {
 
 			if (entries.containsKey(entryId)){
-				LiveEntryCache liveEntryCache = entries.get(entryId);
+				liveEntryCache = entries.get(entryId);
 				liveEntryCache.register(serverIndex, applicationName);
 			}
 			else{
 				logger.error("entry [" + entryId + "] not found in entries array");
 			}
+		}
+
+		onEntryPublished( liveEntryCache, serverIndex, applicationName );
+	}
+
+	protected void onEntryPublished(LiveEntryCache liveEntryCache, final KalturaMediaServerIndex serverIndex, String applicationName) {
+		if ( liveEntryCache != null && liveEntryCache.getLiveEntry() != null ) {
+			KalturaLiveEntry liveEntry = liveEntryCache.getLiveEntry();
+			KalturaLiveEntry updatedLiveEntry;
+
+			try {
+				updatedLiveEntry = liveEntry.getClass().newInstance();
+			} catch (Exception e) {
+				logger.error("failed to instantiate [" + liveEntry.getClass().getName() + "]: " + e.getMessage());
+				return;
+			}
+
+			// Set the time to be unix time stamp with milliseconds as the decimal fraction
+			updatedLiveEntry.currentBroadcastStartTime = new Date().getTime() / 1000.0;
+
+			KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
+			try {
+				impersonateClient.getBaseEntryService().update(liveEntry.id, updatedLiveEntry);
+			} catch (KalturaApiException e) {
+				logger.error("failed to update entry [" + liveEntry.id + "]: " + e.getMessage());
+			}
+			impersonateClient = null;
 		}
 	}
 
@@ -510,9 +539,9 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		setMediaServerTimer.purge();
 	}
 	
-	public void appendRecording(String entryId, String assetId, KalturaMediaServerIndex index, String filePath, float duration) {
+	public void appendRecording(String entryId, String assetId, KalturaMediaServerIndex index, String filePath, double duration, boolean isLastChunk) {
 
-		logger.info("Entry [" + entryId + "] asset [" + assetId + "] index [" + index + "] filePath [" + filePath + "] duration [" + duration + "]");
+		logger.info("Entry [" + entryId + "] asset [" + assetId + "] index [" + index + "] filePath [" + filePath + "] duration [" + duration + "] isLastChunk [" + isLastChunk + "]");
 		
 		KalturaLiveEntry liveEntry = get(entryId);
 		if(liveEntry == null){
@@ -522,7 +551,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		
 		if (serverConfiguration.containsKey(KalturaLiveManager.UPLOAD_XML_SAVE_PATH))
 		{
-			boolean result = saveUploadAsXml (entryId, assetId, index, filePath, duration, liveEntry.partnerId);
+			boolean result = saveUploadAsXml (entryId, assetId, index, filePath, duration, isLastChunk, liveEntry.partnerId);
 			if (result) {
 				liveEntry.msDuration += duration;
 				LiveEntryCache liveEntryCache = entries.get(entryId);
@@ -539,8 +568,8 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		
 		try {
 			
-			Method method = liveServiceInstance.getClass().getMethod("appendRecording", String.class, String.class, KalturaMediaServerIndex.class, KalturaDataCenterContentResource.class, float.class);
-			KalturaLiveEntry updatedEntry = (KalturaLiveEntry)method.invoke(liveServiceInstance, entryId, assetId, index, resource, duration);
+			Method method = liveServiceInstance.getClass().getMethod("appendRecording", String.class, String.class, KalturaMediaServerIndex.class, KalturaDataCenterContentResource.class, double.class, boolean.class);
+			KalturaLiveEntry updatedEntry = (KalturaLiveEntry)method.invoke(liveServiceInstance, entryId, assetId, index, resource, duration, isLastChunk);
 			
 			if(updatedEntry != null){
 				synchronized (entries) {
@@ -664,7 +693,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		return liveEntry;
 	}
 	
-	protected boolean saveUploadAsXml (String entryId, String assetId, KalturaMediaServerIndex index, String filePath, float duration, int partnerId)
+	protected boolean saveUploadAsXml (String entryId, String assetId, KalturaMediaServerIndex index, String filePath, double duration, boolean isLastChunk, int partnerId)
 	{
 		try {
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
@@ -695,9 +724,14 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			
 			// duration element
 			Element durationElem = doc.createElement("duration");
-			durationElem.appendChild(doc.createTextNode(Float.toString(duration)));
+			durationElem.appendChild(doc.createTextNode(Double.toString(duration)));
 			rootElement.appendChild(durationElem);
 			
+			// isLastChunk element
+			Element isLastChunkElem = doc.createElement("isLastChunk");
+			isLastChunkElem.appendChild(doc.createTextNode(Boolean.toString(isLastChunk)));
+			rootElement.appendChild(isLastChunkElem);
+
 			// filepath element
 			Element filepathElem = doc.createElement("filepath");
 			filepathElem.appendChild(doc.createTextNode(filePath));
@@ -738,7 +772,9 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		
 		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		try {
-			impersonateClient.getMediaService().cancelReplace(liveEntry.recordedEntryId);
+			if (liveEntry.recordedEntryId != null && liveEntry.recordedEntryId.length() > 0) {
+				impersonateClient.getMediaService().cancelReplace(liveEntry.recordedEntryId);
+			}
 		}
 		catch (Exception e)
 		{

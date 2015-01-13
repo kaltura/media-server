@@ -334,7 +334,7 @@ public class CuePointsManager extends KalturaCuePointsManager {
 	}
 
 	@Override
-	public float getEntryCurrentTime(KalturaLiveEntry liveEntry) throws KalturaManagerException {
+	public double getEntryCurrentTime(KalturaLiveEntry liveEntry) throws KalturaManagerException {
 		IMediaStream stream;
 		synchronized (streams) {
 			if(!streams.containsKey(liveEntry.id))
@@ -344,11 +344,11 @@ public class CuePointsManager extends KalturaCuePointsManager {
 		}
 
 		logger.debug("Live entry duration [" + liveEntry.duration + "] stream elapsed time [" + stream.getElapsedTime().getTimeSeconds() + "]");
-		return (float) (liveEntry.duration + stream.getElapsedTime().getTimeSeconds());
+		return (double) (liveEntry.duration + stream.getElapsedTime().getTimeSeconds());
 	}
 
 	@Override
-	public void sendSyncPoint(String entryId, String id, float offset) throws KalturaManagerException {
+	public void sendSyncPoint(String entryId, String id, double offset) throws KalturaManagerException {
 		final ArrayList<IMediaStream> entryStreams;
 		synchronized (streams) {
 			if(!streams.containsKey(entryId))
