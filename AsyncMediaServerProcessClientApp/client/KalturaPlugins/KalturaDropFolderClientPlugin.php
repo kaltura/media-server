@@ -55,6 +55,7 @@ class KalturaDropFolderFileDeletePolicy
 {
 	const MANUAL_DELETE = 1;
 	const AUTO_DELETE = 2;
+	const AUTO_DELETE_WHEN_ENTRY_IS_READY = 3;
 }
 
 /**
@@ -494,6 +495,13 @@ class KalturaDropFolder extends KalturaObjectBase
 	 * @var bool
 	 */
 	public $enforceEntitlement = null;
+
+	/**
+	 * 
+	 *
+	 * @var bool
+	 */
+	public $shouldValidateKS = null;
 
 
 }
