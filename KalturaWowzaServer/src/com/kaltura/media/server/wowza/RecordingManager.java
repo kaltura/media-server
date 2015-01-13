@@ -11,6 +11,8 @@ import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.Date;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
@@ -49,6 +51,24 @@ public class RecordingManager {
 		private KalturaMediaServerIndex index;
 		private double appendedDuration = 0;
 		private boolean isLastChunk = false;
+
+		class AppendRecordingTimerTask extends TimerTask {
+			
+			protected String filePath;
+			protected boolean lastChunkFlag;
+			
+			public AppendRecordingTimerTask (String path, boolean lastChunk) {
+				filePath = path;
+				lastChunkFlag = lastChunk;
+			}
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		}
 		
 		public EntryRecorder(String entryId, String assetId, KalturaMediaServerIndex index) {
 			super();
@@ -76,6 +96,7 @@ public class RecordingManager {
 
 		@Override
 		public void onSegmentStart(ILiveStreamRecord ilivestreamrecord) {
+			logger.info("New segment start: entry ID [" + entryId  + "], asset ID [" + assetId + "], segment number [" + this.segmentNumber + "]");
 		}
 
 		@Override
@@ -86,10 +107,6 @@ public class RecordingManager {
 			}
 			
 			logger.info("Stream [" + stream.getName() + "] file [" + file.getAbsolutePath() + "] folder [" + file.getParent() + "]");
-			Date date = new Date();
-			double duration = ((double)(date.getTime() - liveStreamRecord.getStartTime().getMillis())) / 1000;
-			double currentChunkDuration = duration - appendedDuration;
-			appendedDuration = duration;
 
 			if(group != null){
 				Path path = Paths.get(file.getAbsolutePath());
@@ -101,10 +118,26 @@ public class RecordingManager {
 					logger.error(e.getMessage());
 				}
 			}
+			
+			
+			AppendRecordingTimerTask appendRecording = new AppendRecordingTimerTask(file.getAbsolutePath(), isLastChunk) {
+				
+				@Override
+				public void run() {
+					logger.debug("Running appendRecording task");
+					Date date = new Date();
+					double duration = ((double)(date.getTime() - getStartTime().getMillis())) / 1000;
+					double currentChunkDuration = duration - appendedDuration;
+					liveManager.appendRecording(entryId, assetId, index, filePath, currentChunkDuration, lastChunkFlag);
+					appendedDuration = duration;
+					
+				}
+			};
 
+			
 			// TODO appendRecordedSyncPoints
-			liveManager.appendRecording(entryId, assetId, index, file.getAbsolutePath(), currentChunkDuration, this.isLastChunk);
-
+			Timer appendRecordingTimer = new Timer("appendRecording",true);
+			appendRecordingTimer.schedule(appendRecording, 1);
 			this.isLastChunk = false;
 		}
 		
@@ -119,8 +152,7 @@ public class RecordingManager {
 			}
 
 			this.isLastChunk = true;
-
-			this.stopRecording();
+			super.onUnPublish();
 		}
 	}
 
