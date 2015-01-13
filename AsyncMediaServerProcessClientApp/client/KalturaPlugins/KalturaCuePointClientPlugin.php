@@ -43,6 +43,18 @@ class KalturaCuePointStatus
 {
 	const READY = 1;
 	const DELETED = 2;
+	const HANDLED = 3;
+	const PENDING = 4;
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaThumbCuePointSubType
+{
+	const SLIDE = 1;
+	const CHAPTER = 2;
 }
 
 /**
@@ -54,10 +66,12 @@ class KalturaCuePointOrderBy
 	const CREATED_AT_ASC = "+createdAt";
 	const PARTNER_SORT_VALUE_ASC = "+partnerSortValue";
 	const START_TIME_ASC = "+startTime";
+	const TRIGGERED_AT_ASC = "+triggeredAt";
 	const UPDATED_AT_ASC = "+updatedAt";
 	const CREATED_AT_DESC = "-createdAt";
 	const PARTNER_SORT_VALUE_DESC = "-partnerSortValue";
 	const START_TIME_DESC = "-startTime";
+	const TRIGGERED_AT_DESC = "-triggeredAt";
 	const UPDATED_AT_DESC = "-updatedAt";
 }
 
@@ -70,6 +84,8 @@ class KalturaCuePointType
 	const AD = "adCuePoint.Ad";
 	const ANNOTATION = "annotation.Annotation";
 	const CODE = "codeCuePoint.Code";
+	const EVENT = "eventCuePoint.Event";
+	const THUMB = "thumbCuePoint.Thumb";
 }
 
 /**
@@ -133,6 +149,13 @@ abstract class KalturaCuePoint extends KalturaObjectBase
 	 * @readonly
 	 */
 	public $updatedAt = null;
+
+	/**
+	 * 
+	 *
+	 * @var int
+	 */
+	public $triggeredAt = null;
 
 	/**
 	 * 
@@ -313,6 +336,20 @@ abstract class KalturaCuePointBaseFilter extends KalturaFilter
 	/**
 	 * 
 	 *
+	 * @var int
+	 */
+	public $triggeredAtGreaterThanOrEqual = null;
+
+	/**
+	 * 
+	 *
+	 * @var int
+	 */
+	public $triggeredAtLessThanOrEqual = null;
+
+	/**
+	 * 
+	 *
 	 * @var string
 	 */
 	public $tagsLike = null;
@@ -417,6 +454,13 @@ abstract class KalturaCuePointBaseFilter extends KalturaFilter
  */
 class KalturaCuePointFilter extends KalturaCuePointBaseFilter
 {
+	/**
+	 * 
+	 *
+	 * @var string
+	 */
+	public $freeText = null;
+
 
 }
 
