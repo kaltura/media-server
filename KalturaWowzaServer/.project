@@ -29,7 +29,7 @@
 		<link>
 			<name>KalturaClientLib</name>
 			<type>2</type>
-			<location>@WEB_DIR@/content/clientlibs/mediaServerClient/src</location>
+			<location>C:/opt/kaltura/web/content/clientlibs/mediaServerClient/src</location>
 		</link>
 		<link>
 			<name>KalturaMediaServer</name>
