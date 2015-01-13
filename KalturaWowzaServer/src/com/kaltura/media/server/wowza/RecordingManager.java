@@ -47,7 +47,8 @@ public class RecordingManager {
 		private String entryId;
 		private String assetId;
 		private KalturaMediaServerIndex index;
-		private float appendedDuration = 0;
+		private double appendedDuration = 0;
+		private boolean isLastChunk = false;
 		
 		public EntryRecorder(String entryId, String assetId, KalturaMediaServerIndex index) {
 			super();
@@ -55,6 +56,7 @@ public class RecordingManager {
 			this.entryId = entryId;
 			this.assetId = assetId;
 			this.index = index;
+			this.isLastChunk = false;
 			
 			this.addListener(this);
 		}
@@ -85,8 +87,8 @@ public class RecordingManager {
 			
 			logger.info("Stream [" + stream.getName() + "] file [" + file.getAbsolutePath() + "] folder [" + file.getParent() + "]");
 			Date date = new Date();
-			float duration = ((float)(date.getTime() - liveStreamRecord.getStartTime().getMillis())) / 1000;
-			float currentChunkDuration = duration - appendedDuration;
+			double duration = ((double)(date.getTime() - liveStreamRecord.getStartTime().getMillis())) / 1000;
+			double currentChunkDuration = duration - appendedDuration;
 			appendedDuration = duration;
 
 			if(group != null){
@@ -101,7 +103,9 @@ public class RecordingManager {
 			}
 
 			// TODO appendRecordedSyncPoints
-			liveManager.appendRecording(entryId, assetId, index, file.getAbsolutePath(), currentChunkDuration);
+			liveManager.appendRecording(entryId, assetId, index, file.getAbsolutePath(), currentChunkDuration, this.isLastChunk);
+
+			this.isLastChunk = false;
 		}
 		
 		@Override
@@ -110,10 +114,12 @@ public class RecordingManager {
 			
 			//If the current live asset being unpublished is the recording anchor - send cancelReplace call
 			KalturaLiveAsset liveAsset = liveManager.getLiveAssetById(entryId, assetId);
-			if (liveAsset.tags.contains("recording_anchor")) {
+			if (liveAsset != null && liveAsset.tags.contains("recording_anchor")) {
 				liveManager.cancelReplace(entryId);
 			}
-			
+
+			this.isLastChunk = true;
+
 			this.stopRecording();
 		}
 	}
@@ -204,8 +210,6 @@ public class RecordingManager {
 		String filePath = writeFile.getAbsolutePath();
 		
 		logger.debug("Entry [" + entryId + "]  file path [" + filePath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");
-		
-		logger.debug("Entry recorder segment duration: " + recorder.getSegmentDuration());
 		
 		// if you want to record data packets as well as video/audio
 		recorder.setRecordData(recordData);
