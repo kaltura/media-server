@@ -132,6 +132,14 @@ class KalturaDrmProviderType
  * @package Kaltura
  * @subpackage Client
  */
+class KalturaPlayReadyPolicyOrderBy
+{
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
 class KalturaDrmPolicy extends KalturaObjectBase
 {
 	/**
