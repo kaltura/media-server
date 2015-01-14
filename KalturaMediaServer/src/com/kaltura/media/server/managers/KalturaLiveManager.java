@@ -238,8 +238,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		}
 	}
 
-	abstract public void restartRecordings();
-	
 	abstract public KalturaServiceBase getLiveServiceInstance (KalturaClient impersonateClient);
 	
 	abstract protected void disconnectStream (String entryId); 
