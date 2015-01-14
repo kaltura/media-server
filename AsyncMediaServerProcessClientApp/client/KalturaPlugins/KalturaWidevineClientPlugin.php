@@ -40,15 +40,6 @@ require_once(dirname(__FILE__) . "/KalturaDrmClientPlugin.php");
  * @package Kaltura
  * @subpackage Client
  */
-class KalturaWidevineRepositorySyncMode
-{
-	const MODIFY = 0;
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
 class KalturaWidevineFlavorAssetOrderBy
 {
 	const CREATED_AT_ASC = "+createdAt";
@@ -87,161 +78,6 @@ class KalturaWidevineProfileOrderBy
 	const NAME_ASC = "+name";
 	const ID_DESC = "-id";
 	const NAME_DESC = "-name";
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
-class KalturaWidevineProfile extends KalturaDrmProfile
-{
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $key = null;
-
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $iv = null;
-
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $owner = null;
-
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $portal = null;
-
-	/**
-	 * 
-	 *
-	 * @var int
-	 */
-	public $maxGop = null;
-
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $regServerHost = null;
-
-
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
-class KalturaWidevineRepositorySyncJobData extends KalturaJobData
-{
-	/**
-	 * 
-	 *
-	 * @var KalturaWidevineRepositorySyncMode
-	 */
-	public $syncMode = null;
-
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $wvAssetIds = null;
-
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $modifiedAttributes = null;
-
-	/**
-	 * 
-	 *
-	 * @var int
-	 */
-	public $monitorSyncCompletion = null;
-
-
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
-class KalturaWidevineFlavorAsset extends KalturaFlavorAsset
-{
-	/**
-	 * License distribution window start date 
-	 * 	 
-	 *
-	 * @var int
-	 */
-	public $widevineDistributionStartDate = null;
-
-	/**
-	 * License distribution window end date
-	 * 	 
-	 *
-	 * @var int
-	 */
-	public $widevineDistributionEndDate = null;
-
-	/**
-	 * Widevine unique asset id
-	 * 	 
-	 *
-	 * @var int
-	 */
-	public $widevineAssetId = null;
-
-
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
-class KalturaWidevineFlavorParams extends KalturaFlavorParams
-{
-
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
-class KalturaWidevineFlavorParamsOutput extends KalturaFlavorParamsOutput
-{
-	/**
-	 * License distribution window start date 
-	 * 	 
-	 *
-	 * @var int
-	 */
-	public $widevineDistributionStartDate = null;
-
-	/**
-	 * License distribution window end date
-	 * 	 
-	 *
-	 * @var int
-	 */
-	public $widevineDistributionEndDate = null;
-
-
 }
 
 /**
@@ -316,54 +152,15 @@ class KalturaWidevineFlavorParamsOutputFilter extends KalturaWidevineFlavorParam
 
 }
 
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
-class KalturaWidevineDrmService extends KalturaServiceBase
-{
-	function __construct(KalturaClient $client = null)
-	{
-		parent::__construct($client);
-	}
-
-	/**
-	 * Get license for encrypted content playback
-	 * 
-	 * @param string $flavorAssetId 
-	 * @param string $referrer 64base encoded
-	 * @return string
-	 */
-	function getLicense($flavorAssetId, $referrer = null)
-	{
-		$kparams = array();
-		$this->client->addParam($kparams, "flavorAssetId", $flavorAssetId);
-		$this->client->addParam($kparams, "referrer", $referrer);
-		$this->client->queueServiceActionCall("widevine_widevinedrm", "getLicense", $kparams);
-		if ($this->client->isMultiRequest())
-			return $this->client->getMultiRequestResult();
-		$resultObject = $this->client->doQueue();
-		$this->client->throwExceptionIfError($resultObject);
-		$this->client->validateObjectType($resultObject, "string");
-		return $resultObject;
-	}
-}
 /**
  * @package Kaltura
  * @subpackage Client
  */
 class KalturaWidevineClientPlugin extends KalturaClientPlugin
 {
-	/**
-	 * @var KalturaWidevineDrmService
-	 */
-	public $widevineDrm = null;
-
 	protected function __construct(KalturaClient $client)
 	{
 		parent::__construct($client);
-		$this->widevineDrm = new KalturaWidevineDrmService($client);
 	}
 
 	/**
@@ -380,7 +177,6 @@ class KalturaWidevineClientPlugin extends KalturaClientPlugin
 	public function getServices()
 	{
 		$services = array(
-			'widevineDrm' => $this->widevineDrm,
 		);
 		return $services;
 	}

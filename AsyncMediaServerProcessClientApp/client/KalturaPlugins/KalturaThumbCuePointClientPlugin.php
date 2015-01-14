@@ -40,28 +40,81 @@ require_once(dirname(__FILE__) . "/KalturaCuePointClientPlugin.php");
  * @package Kaltura
  * @subpackage Client
  */
-class KalturaThumbCuePoint extends KalturaCuePoint
+class KalturaThumbCuePointOrderBy
+{
+	const CREATED_AT_ASC = "+createdAt";
+	const PARTNER_SORT_VALUE_ASC = "+partnerSortValue";
+	const START_TIME_ASC = "+startTime";
+	const TRIGGERED_AT_ASC = "+triggeredAt";
+	const UPDATED_AT_ASC = "+updatedAt";
+	const CREATED_AT_DESC = "-createdAt";
+	const PARTNER_SORT_VALUE_DESC = "-partnerSortValue";
+	const START_TIME_DESC = "-startTime";
+	const TRIGGERED_AT_DESC = "-triggeredAt";
+	const UPDATED_AT_DESC = "-updatedAt";
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+abstract class KalturaThumbCuePointBaseFilter extends KalturaCuePointFilter
 {
 	/**
 	 * 
 	 *
 	 * @var string
 	 */
-	public $assetId = null;
+	public $descriptionLike = null;
 
 	/**
 	 * 
 	 *
 	 * @var string
 	 */
-	public $description = null;
+	public $descriptionMultiLikeOr = null;
 
 	/**
 	 * 
 	 *
 	 * @var string
 	 */
-	public $title = null;
+	public $descriptionMultiLikeAnd = null;
+
+	/**
+	 * 
+	 *
+	 * @var string
+	 */
+	public $titleLike = null;
+
+	/**
+	 * 
+	 *
+	 * @var string
+	 */
+	public $titleMultiLikeOr = null;
+
+	/**
+	 * 
+	 *
+	 * @var string
+	 */
+	public $titleMultiLikeAnd = null;
+
+	/**
+	 * 
+	 *
+	 * @var KalturaThumbCuePointSubType
+	 */
+	public $subTypeEqual = null;
+
+	/**
+	 * 
+	 *
+	 * @var string
+	 */
+	public $subTypeIn = null;
 
 
 }
@@ -70,17 +123,8 @@ class KalturaThumbCuePoint extends KalturaCuePoint
  * @package Kaltura
  * @subpackage Client
  */
-class KalturaTimedThumbAsset extends KalturaThumbAsset
+class KalturaThumbCuePointFilter extends KalturaThumbCuePointBaseFilter
 {
-	/**
-	 * Associated thumb cue point ID
-	 * 	 
-	 *
-	 * @var string
-	 * @insertonly
-	 */
-	public $cuePointId = null;
-
 
 }
 
