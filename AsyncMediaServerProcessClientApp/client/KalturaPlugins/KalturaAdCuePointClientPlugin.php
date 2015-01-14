@@ -74,69 +74,6 @@ class KalturaAdProtocolType
  * @package Kaltura
  * @subpackage Client
  */
-class KalturaAdType
-{
-	const VIDEO = "1";
-	const OVERLAY = "2";
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
-class KalturaAdCuePoint extends KalturaCuePoint
-{
-	/**
-	 * 
-	 *
-	 * @var KalturaAdProtocolType
-	 * @insertonly
-	 */
-	public $protocolType = null;
-
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $sourceUrl = null;
-
-	/**
-	 * 
-	 *
-	 * @var KalturaAdType
-	 */
-	public $adType = null;
-
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $title = null;
-
-	/**
-	 * 
-	 *
-	 * @var int
-	 */
-	public $endTime = null;
-
-	/**
-	 * Duration in milliseconds
-	 * 	 
-	 *
-	 * @var int
-	 */
-	public $duration = null;
-
-
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
 abstract class KalturaAdCuePointBaseFilter extends KalturaCuePointFilter
 {
 	/**

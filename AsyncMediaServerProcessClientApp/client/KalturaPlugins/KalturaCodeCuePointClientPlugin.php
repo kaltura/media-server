@@ -62,45 +62,6 @@ class KalturaCodeCuePointOrderBy
  * @package Kaltura
  * @subpackage Client
  */
-class KalturaCodeCuePoint extends KalturaCuePoint
-{
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $code = null;
-
-	/**
-	 * 
-	 *
-	 * @var string
-	 */
-	public $description = null;
-
-	/**
-	 * 
-	 *
-	 * @var int
-	 */
-	public $endTime = null;
-
-	/**
-	 * Duration in milliseconds
-	 * 	 
-	 *
-	 * @var int
-	 * @readonly
-	 */
-	public $duration = null;
-
-
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
 abstract class KalturaCodeCuePointBaseFilter extends KalturaCuePointFilter
 {
 	/**

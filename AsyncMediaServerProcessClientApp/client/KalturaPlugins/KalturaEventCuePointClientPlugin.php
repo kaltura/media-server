@@ -68,22 +68,6 @@ class KalturaEventType
  * @package Kaltura
  * @subpackage Client
  */
-class KalturaEventCuePoint extends KalturaCuePoint
-{
-	/**
-	 * 
-	 *
-	 * @var KalturaEventType
-	 */
-	public $eventType = null;
-
-
-}
-
-/**
- * @package Kaltura
- * @subpackage Client
- */
 abstract class KalturaEventCuePointBaseFilter extends KalturaCuePointFilter
 {
 	/**
