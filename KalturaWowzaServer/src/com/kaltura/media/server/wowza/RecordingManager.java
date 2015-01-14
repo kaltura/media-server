@@ -52,7 +52,7 @@ public class RecordingManager {
 		private double appendedDuration = 0;
 		private boolean isLastChunk = false;
 
-		class AppendRecordingTimerTask extends TimerTask {
+		abstract class AppendRecordingTimerTask extends TimerTask {
 			
 			protected String filePath;
 			protected boolean lastChunkFlag;
@@ -61,13 +61,6 @@ public class RecordingManager {
 				filePath = path;
 				lastChunkFlag = lastChunk;
 			}
-
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				
-			}
-			
 		}
 		
 		public EntryRecorder(String entryId, String assetId, KalturaMediaServerIndex index) {
