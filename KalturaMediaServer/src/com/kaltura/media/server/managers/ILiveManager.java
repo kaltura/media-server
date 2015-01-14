@@ -14,8 +14,6 @@ public interface ILiveManager extends IManager {
 
 	public Integer getDvrWindow(KalturaLiveEntry liveStreamEntry);
 	
-	public void restartRecordings();
-	
 	public KalturaConversionProfileAssetParams getConversionProfileAssetParams(String entryId, int assetParamsId);
 	
 	public KalturaLiveAsset getLiveAsset(String entryId, int assetParamsId);
