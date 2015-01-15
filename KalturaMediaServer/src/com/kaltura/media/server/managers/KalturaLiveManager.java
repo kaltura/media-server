@@ -744,7 +744,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			Transformer transformer = transformerFactory.newTransformer();
 			DOMSource source = new DOMSource(doc);
 			
-			String xmlFilePath = (String)serverConfiguration.get(KalturaLiveManager.UPLOAD_XML_SAVE_PATH) + "/" + entryId + "_" + System.currentTimeMillis() + ".xml";
+			String xmlFilePath = buildXmlFilePath(entryId, assetId);
 			StreamResult result = new StreamResult(new File(xmlFilePath));
 	 
 			// Output to console for testing
@@ -759,6 +759,19 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			logger.error("Error occurred creating upload XML: " + e.getMessage());
 			return false;
 		}
+	}
+
+	private String buildXmlFilePath(String entryId, String assetId) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(serverConfiguration.get(KalturaLiveManager.UPLOAD_XML_SAVE_PATH));
+		sb.append("/");
+		sb.append(entryId);
+		sb.append("_"); 
+		sb.append(assetId);
+		sb.append("_");
+		sb.append(System.currentTimeMillis());
+		sb.append(".xml");
+		return sb.toString();
 	}
 	
 	

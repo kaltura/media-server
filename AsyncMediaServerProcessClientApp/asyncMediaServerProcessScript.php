@@ -7,10 +7,10 @@ $config = parse_ini_file($configFilePath);
 $files = glob($config['dirName'] . '/*.xml');
 if (!count($files))
 {
-	die ('No files at this time.');
+	die ("No files at this time. \n");
 }
 
-var_dump(count ($files) . ' files found.');
+var_dump(count ($files) . " files found. \n");
 
 $inProgress = array();
 if (file_exists('in_progress'))
@@ -78,7 +78,7 @@ function handleUploadXMLResource (SimpleXMLElement $uploadXML, KalturaClient $cl
 	$filepath = strval($uploadXML->filepath);
 	$workmode = strval($uploadXML->workMode);
 	
-	var_dump("append recording: entry [$entryId] asset [$assetId] index [$index] filePath [$filepath] duration [$duration] isLastChunk [$isLastChunk]");
+	var_dump("append recording: entry [$entryId] asset [$assetId] index [$index] filePath [$filepath] duration [$duration] isLastChunk [$isLastChunk] \n");
 		
 	$clientConfig = $client->getConfig();
 	$clientConfig->partnerId = $partnerId;
@@ -90,7 +90,7 @@ function handleUploadXMLResource (SimpleXMLElement $uploadXML, KalturaClient $cl
 	}
 	catch (Exception $e)
 	{
-		var_dump ("An error occured retrieving entry with id [$entryId]. Error message [" . $e->getMessage() . "]");
+		var_dump ("An error occured retrieving entry with id [$entryId]. Error message [" . $e->getMessage() . "]\n");
 		return false;
 	}
 	
@@ -103,7 +103,7 @@ function handleUploadXMLResource (SimpleXMLElement $uploadXML, KalturaClient $cl
 	}
 	catch (Exception $e)
 	{
-		var_dump('Append live recording error: ' . $e->getMessage());
+		var_dump('Append live recording error: ' . $e->getMessage() . "\n");
 		return false;
 	}
 	
@@ -140,14 +140,14 @@ function getContentResource ($filepath, KalturaLiveStreamEntry $liveEntry, $work
 			else {
 				if ($tokenResponse instanceof Exception) {
 			}
-				var_dump("Content resource creation error: " . $tokenResponse->getMessage());
+				var_dump("Content resource creation error: " . $tokenResponse->getMessage() . "\n");
 				return null;
 			}
 				
 			return $resource;
 			
 		} catch (Exception $e) {
-			var_dump("Content resource creation error: " . $e->getMessage());
+			var_dump("Content resource creation error: " . $e->getMessage() . "\n");
 		}
 	}
 	
