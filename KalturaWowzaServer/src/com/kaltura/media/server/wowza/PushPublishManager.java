@@ -33,7 +33,7 @@ import com.wowza.wms.pushpublish.protocol.rtp.PushPublishRTP;
 import com.wowza.wms.server.LicensingException;
 import com.wowza.wms.stream.IMediaStream;
 
-public class PushPublishManager extends KalturaManager implements IKalturaEventConsumer {
+public class PushPublishManager extends KalturaManager implements IKalturaEventConsumer, KalturaLiveManager.ILiveEntryReferrer {
 
 	protected final static String MULTICAST_IP_CONFIG_FIELD_NAME = "MulticastIP";
 	protected final static String MULTICAST_TAG_FIELD_NAME = "MulticastTag";
@@ -87,7 +87,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 			{
 				case MEDIA_STREAM_PUBLISHED:
 					mediaStreamEvent = (KalturaMediaStreamEvent) event;
-					onPublish(mediaStreamEvent.getMediaStream(), mediaStreamEvent.getEntry(), mediaStreamEvent.getAssetParamsId());
+					onMediaStreamPublish(mediaStreamEvent.getMediaStream(), mediaStreamEvent.getEntry(), mediaStreamEvent.getAssetParamsId());
 					break;
 				default:
 					break;
@@ -113,7 +113,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	
 	}
 	
-	protected void onPublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId)
+	protected void onMediaStreamPublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId)
 	{
 		if (entry.pushPublishEnabled == KalturaLivePublishStatus.DISABLED)
 		{
@@ -144,6 +144,9 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 		{
 			return;
 		}
+		
+		KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+		liveManager.addReferrer(entry.id, this);
 		
 		String streamName = stream.getName();
 		
@@ -315,6 +318,9 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	    catch (KalturaApiException e) {
 	    	logger.error("Operation failed. Exception message:  [" + e.getMessage() + "]");
 	    }
+		
+		KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+		liveManager.removeReferrer(entry.id, this);
 	}
 	
 }

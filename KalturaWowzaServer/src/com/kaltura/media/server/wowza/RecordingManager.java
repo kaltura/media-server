@@ -42,7 +42,7 @@ public class RecordingManager {
 
 	private KalturaLiveManager liveManager;
 	
-	class EntryRecorder extends LiveStreamRecorderMP4 implements ILiveStreamRecordNotify
+	class EntryRecorder extends LiveStreamRecorderMP4 implements ILiveStreamRecordNotify, KalturaLiveManager.ILiveEntryReferrer
 	{
 		private String entryId;
 		private String assetId;
@@ -105,6 +105,14 @@ public class RecordingManager {
 		}
 		
 		@Override
+		public void onPublish() {
+			KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+			liveManager.addReferrer(entryId, this);
+			
+			super.onPublish();
+		}
+		
+		@Override
 		public void onUnPublish () {
 			logger.info("Stop recording: entry Id [" + entryId + "], asset Id [" + assetId + "]");
 			
@@ -115,6 +123,9 @@ public class RecordingManager {
 			}
 			
 			this.stopRecording();
+			
+			KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+			liveManager.removeReferrer(entryId, this);
 		}
 	}
 

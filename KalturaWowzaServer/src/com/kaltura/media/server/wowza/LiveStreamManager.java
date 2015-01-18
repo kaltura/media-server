@@ -9,13 +9,15 @@ import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
+import com.kaltura.media.server.events.KalturaStreamEvent;
+import com.kaltura.media.server.managers.KalturaLiveManager;
 import com.kaltura.media.server.managers.KalturaLiveStreamManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
 import com.wowza.wms.stream.IMediaStream;
 
-public class LiveStreamManager extends KalturaLiveStreamManager {
+public class LiveStreamManager extends KalturaLiveStreamManager implements KalturaLiveManager.ILiveEntryReferrer {
 
 	protected final static String KALTURA_ASSET_TAG_SOURCE = "source";
 	
@@ -27,7 +29,8 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 		super.init();
 
 		recordingManager = new RecordingManager(this);
-		KalturaEventsManager.registerEventConsumer(this, KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, KalturaEventType.STREAM_PUBLISHED);
+		KalturaEventsManager.registerEventConsumer(this, 
+				KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, KalturaEventType.STREAM_PUBLISHED, KalturaEventType.STREAM_UNPUBLISHED);
 		setInitialized();
 	}
 
@@ -67,8 +70,9 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 			{
 				case MEDIA_STREAM_PUBLISHED:
 					mediaStreamEvent = (KalturaMediaStreamEvent) event;
-					onPublish(mediaStreamEvent.getMediaStream(), mediaStreamEvent.getEntryId(), mediaStreamEvent.getServerIndex(), mediaStreamEvent.getAssetParamsId());
+					onMediaStreamPublish(mediaStreamEvent.getMediaStream(), mediaStreamEvent.getEntryId(), mediaStreamEvent.getServerIndex(), mediaStreamEvent.getAssetParamsId());
 					break;
+					
 				default:
 					break;
 			}
@@ -78,7 +82,10 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 			switch((KalturaEventType) event.getType())
 			{
 				case STREAM_PUBLISHED:
+					// TODO Ask T whether its the right event type.
 					mediaStreamEvent = (KalturaMediaStreamEvent) event;
+					addReferrer(mediaStreamEvent.getEntryId(), this);
+					
 					IMediaStream stream = mediaStreamEvent.getMediaStream();
 					if(stream.getClientId() < 0){
 						logger.debug("Stream [" + stream.getName() + "] entry [" + mediaStreamEvent.getEntryId() + "] is a transcoded rendition");
@@ -90,6 +97,12 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 						streams.put(mediaStreamEvent.getEntryId(), mediaStreamEvent.getMediaStream());
 					}
 					break;
+					
+				case STREAM_UNPUBLISHED:
+					KalturaStreamEvent streamUnpublishedEvent = (KalturaStreamEvent) event;
+					removeReferrer(streamUnpublishedEvent.getEntryId(), this);
+					break;
+					
 				default:
 					break;
 			}
@@ -98,7 +111,7 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 		super.onEvent(event);
 	}
 	
-	protected void onPublish(IMediaStream stream, String entryId, KalturaMediaServerIndex serverIndex, int assetParamsId) {
+	protected void onMediaStreamPublish(IMediaStream stream, String entryId, KalturaMediaServerIndex serverIndex, int assetParamsId) {
 
 		logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "] index [" + serverIndex.hashCode + "] asset params id [" + assetParamsId + "]");
 		

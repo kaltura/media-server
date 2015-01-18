@@ -6,7 +6,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -68,12 +70,20 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	protected static Logger logger = Logger.getLogger(KalturaLiveManager.class);
 	
 	protected ConcurrentHashMap<String, LiveEntryCache> entries = new ConcurrentHashMap<String, LiveEntryCache>();
+	
 	protected ConcurrentHashMap<Integer, KalturaLiveParams> liveAssetParams = new ConcurrentHashMap<Integer, KalturaLiveParams>();
 	public ConcurrentHashMap<String, Timer> disconnectingTimers = new ConcurrentHashMap<String, Timer>();
 	protected long isLiveRegistrationMinBufferTime = KalturaLiveManager.DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME;
 
 	private Timer setMediaServerTimer;
-
+	
+	/**
+	 *	Interface to mark classes as entry-cache dependent 
+	 */
+	public interface ILiveEntryReferrer {
+		
+	}
+	
 	protected class LiveEntryCache {
 		private KalturaLiveEntry liveEntry;
 		private boolean registered = false;
@@ -83,6 +93,31 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		private ArrayList<KalturaConversionProfileAssetParams> conversionProfileAssetParams;
 		private Map<Integer, KalturaLiveAsset> liveAssets = new HashMap<Integer, KalturaLiveAsset>();
 		private Timer timer;
+		Set<ILiveEntryReferrer> referrers = new HashSet<KalturaLiveManager.ILiveEntryReferrer>();
+		
+		public void addReferrer(ILiveEntryReferrer obj) {
+			synchronized(referrers) {
+				referrers.add(obj);
+			}
+		}
+		
+		/**
+		 * This code is added to prevent a case in which an entry is removed from cache while there are still references to it.
+		 */
+		public boolean removeReferrer(ILiveEntryReferrer obj) {
+			synchronized(referrers) {
+				boolean removed = referrers.remove(obj);
+				if(referrers.isEmpty()) {
+					
+					synchronized(entries) {
+						logger.info("Remove object [" + liveEntry.id + "] from entry cache");
+						entries.remove(liveEntry.id);
+					}
+				}
+				return removed;
+			}
+		}
+		
 
 		public LiveEntryCache(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex, String applicationName) {
 			this(liveEntry);
@@ -368,11 +403,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 					onUnPublish(streamEvent.getEntry(), streamEvent.getServerIndex());
 					break;
 		
-				case STREAM_DISCONNECTED:
-					streamEvent = (KalturaStreamEvent) event;
-					onDisconnect(streamEvent.getEntryId());
-					break;
-					
 				default:
 					break;
 			}
@@ -405,37 +435,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				}
 			}
 		}
-	}
-
-	protected void onDisconnect(final String entryId) {
-		logger.debug("entry [" + entryId + "]");
-
-		TimerTask task = new TimerTask() {
-			
-			@Override
-			public void run() {
-				synchronized (disconnectingTimers) {
-					synchronized (entries) {
-						if (entries.containsKey(entryId)) {
-							LiveEntryCache liveEntryCache = entries.remove(entryId);
-							if (liveEntryCache.index != null) {
-								liveEntryCache.unregister();
-							}
-						}
-					}
-					
-					logger.info("Removing disconnect timer for entry [" + entryId + "]: disconnect process is complete");
-						disconnectingTimers.remove(entryId);
-				}
-			}
-		};
-		
-		Timer delayedRemoveTimer = new Timer("delayedRemoveTimer-" + entryId, true);
-		logger.info("Disconnect timer saved for entry["  + entryId + "]");
-		synchronized (disconnectingTimers) {
-			this.disconnectingTimers.put(entryId, delayedRemoveTimer);
-		}
-		delayedRemoveTimer.schedule(task, 5000);
 	}
 
 	public boolean isEntryRegistered(String entryId) {
@@ -489,7 +488,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			logger.debug("scheduled setMediaServerTask");
 		}
 		
-		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_PUBLISHED, KalturaEventType.STREAM_UNPUBLISHED, KalturaEventType.STREAM_DISCONNECTED);
+		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_PUBLISHED, KalturaEventType.STREAM_UNPUBLISHED);
 	}
 
 	private void loadLiveParams() {
@@ -746,4 +745,33 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		}
 	}
 	
+	public void addReferrer(String entryId, ILiveEntryReferrer obj) {
+		logger.info("Add [" + obj.getClass().getName() + "] as referrer of [" + entryId +"]");
+		synchronized(entries) {
+			LiveEntryCache liveEntryCache = entries.get(entryId);
+			if(liveEntryCache == null) {
+				logger.error("Couldn't add referrer becuase entry doesn't exist in cache");
+			} else {
+				liveEntryCache.addReferrer(obj);
+				logger.info("Referrer added");
+			}
+		}
+	}
+	
+	public void removeReferrer(String entryid, ILiveEntryReferrer obj) {
+		logger.info("Remove [" + obj.getClass().getName() + "] from being referrer of [" + entryid +"]");
+		boolean removed = false;
+		synchronized(entries) {
+			LiveEntryCache liveEntryCache = entries.get(entryid);
+			if(liveEntryCache != null) {
+				removed = liveEntryCache.removeReferrer(obj);
+			}
+		}
+		
+		if(removed) {
+			logger.info("Referrer removed successfully");
+		} else {
+			logger.error("Failed to remove referrer");
+		}
+	}
 }

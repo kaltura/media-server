@@ -11,10 +11,12 @@ import org.apache.commons.codec.binary.Base64;
 
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media.server.KalturaEventsManager;
+import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
 import com.kaltura.media.server.managers.KalturaCuePointsManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
+import com.kaltura.media.server.managers.KalturaLiveManager;
 import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
@@ -36,7 +38,7 @@ import com.wowza.wms.stream.MediaStream;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizer;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
 
-public class CuePointsManager extends KalturaCuePointsManager {
+public class CuePointsManager extends KalturaCuePointsManager implements KalturaLiveManager.ILiveEntryReferrer {
 
 	public static final String PUBLIC_METADATA = "onMetaData";
 	
@@ -313,6 +315,9 @@ public class CuePointsManager extends KalturaCuePointsManager {
 		}
 		
 		logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "]");
+		KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+		liveManager.addReferrer(entryId, this);
+		
 		synchronized (streams) {
 			ArrayList<IMediaStream> entryStreams;
 			if (streams.containsKey(entryId))
@@ -327,10 +332,14 @@ public class CuePointsManager extends KalturaCuePointsManager {
 
 	@Override
 	protected void onUnPublish(String entryId) {
+		
 		synchronized (streams) {
 			streams.remove(entryId);
 		}
 		super.onUnPublish(entryId);
+		
+		KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+		liveManager.removeReferrer(entryId, this);
 	}
 
 	@Override
