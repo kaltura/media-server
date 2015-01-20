@@ -1,5 +1,6 @@
 package com.kaltura.media.server.wowza.listeners;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.HashMap;
@@ -41,6 +42,7 @@ import com.wowza.wms.application.WMSProperties;
 import com.wowza.wms.client.IClient;
 import com.wowza.wms.dvr.DvrApplicationContext;
 import com.wowza.wms.dvr.IDvrConstants;
+import com.wowza.wms.httpstreamer.model.IHTTPStreamerSession;
 import com.wowza.wms.medialist.MediaListRendition;
 import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
@@ -65,6 +67,7 @@ public class LiveStreamEntry extends ModuleBase {
 	protected final static String REQUEST_PROPERTY_ENTRY_ID = "e";
 	protected final static String REQUEST_PROPERTY_SERVER_INDEX = "i";
 	protected final static String REQUEST_PROPERTY_TOKEN = "t";
+	protected final static String REQUEST_PROPERTY_FLAVOR_IDS = "flavorIds";
 
 	protected final static String CLIENT_PROPERTY_CONNECT_APP = "connectapp";
 	protected final static String CLIENT_PROPERTY_PARTNER_ID = "partnerId";
@@ -798,5 +801,29 @@ public class LiveStreamEntry extends ModuleBase {
 
 		KalturaApplicationInstanceEvent event = new KalturaApplicationInstanceEvent(KalturaMediaEventType.APPLICATION_INSTANCE_STARTED, appInstance);
 		KalturaEventsManager.raiseEvent(event);
+	}
+
+	public void onHTTPSessionCreate(IHTTPStreamerSession httpStreamerSession){
+		String queryString = httpStreamerSession.getQueryStr();
+		if(queryString == null || !httpStreamerSession.getStreamExt().equalsIgnoreCase("smil")){
+			return;
+		}
+		
+		String filePath = appInstance.getStreamStoragePath() + File.separator + httpStreamerSession.getStreamName();
+		File file = new File(filePath);
+		if(file.exists()){
+			return;
+		}
+		
+		String[] queryParamsParts;
+		String[] queryParams = queryString.split("&");
+		for (int i = 0; i < queryParams.length; ++i) {
+			queryParamsParts = queryParams[i].split("=", 2);
+			if (queryParamsParts.length == 2 && queryParamsParts[0].equals(REQUEST_PROPERTY_FLAVOR_IDS)){
+				String entryId = getEntryIdFromStreamName(httpStreamerSession.getStreamName());
+				SmilManager.merge(httpStreamerSession.getAppInstance(), entryId, file.getPath(), queryParamsParts[1].split(","));
+			}
+		}
+		
 	}
 }

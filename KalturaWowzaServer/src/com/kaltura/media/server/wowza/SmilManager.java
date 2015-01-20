@@ -3,9 +3,11 @@ package com.kaltura.media.server.wowza;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,6 +16,8 @@ import org.apache.log4j.Logger;
 import com.kaltura.infra.XmlUtils;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.medialist.MediaList;
+import com.wowza.wms.medialist.MediaListRendition;
+import com.wowza.wms.medialist.MediaListSegment;
 import com.wowza.wms.util.MediaListUtils;
 
 public class SmilManager {
@@ -80,6 +84,43 @@ public class SmilManager {
 				smils.put(entryId, files);
 			}
 			files.add(filePath);
+		}
+	}
+
+	public static synchronized void merge(IApplicationInstance appInstance, String entryId, String filePath, String[] flavorParamsIds) {
+
+		List<String> renditions = new ArrayList<String>();
+		for(String flavorParamsId : flavorParamsIds){
+			renditions.add("mp4:" + entryId + "_" + flavorParamsId);
+		}
+
+		String smil = "<smil>\n";
+		smil += "	<head></head>\n";
+		smil += "	<body>\n";
+		smil += "		<switch>\n";
+		
+		MediaList mediaList = MediaListUtils.parseMediaList(appInstance, entryId + "_all.smil", "smil", null);
+		MediaListSegment mediaListSegment = mediaList.getFirstSegment();
+		for(MediaListRendition rendition : mediaListSegment.getRenditions()){
+			if(renditions.contains(rendition.getName())){
+				smil += rendition.toSMILString();
+			}
+		}
+		
+		smil += "		</switch>\n";
+		smil += "	</body>\n";
+		smil += "</smil>";
+
+		try {
+			PrintWriter out = new PrintWriter(filePath);
+			out.print(smil);
+			out.close();
+			
+			addSmil(entryId, filePath);
+
+			logger.info("Generated smil file [" + filePath + "]");
+		} catch (FileNotFoundException e) {
+			logger.error("Failed writing to file [" + filePath + "]: " + e.getMessage());
 		}
 	}
 
