@@ -181,7 +181,12 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
-	class LiveStreamListener extends MediaStreamActionNotifyBase implements KalturaLiveManager.ILiveEntryReferrer {
+	class LiveStreamListener extends MediaStreamActionNotifyBase  {
+		
+		private class LiveStreamEntryReferrer implements KalturaLiveManager.ILiveEntryReferrer {
+		}
+		
+		protected Map<String, LiveStreamEntryReferrer> referrers = new HashMap<String, LiveStreamEntryReferrer>();
 
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
@@ -195,10 +200,9 @@ public class LiveStreamEntry extends ModuleBase {
 
 				String entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
 				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
-
-				KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
-				liveManager.addReferrer(entryId, this);
 				
+				registerReferrer(entryId);
+
 				KalturaLiveEntry entry = liveStreamManager.get(entryId);
 				if (entry == null) {
 					logger.debug("Unplanned disconnect occured earlier. Attempting reconnect.");
@@ -206,16 +210,6 @@ public class LiveStreamEntry extends ModuleBase {
 					if (entry == null) {
 						logger.error("Following reconnection attempt, client still not authenticated for stream [" + streamName + "]");
 						return;
-					}
-				}
-
-				synchronized (liveStreamManager.disconnectingTimers) {
-					if (liveStreamManager.disconnectingTimers.containsKey(entryId)) {
-						logger.info("This entry is scheduled for disconnect. Cancelling the diconnect.");
-						Timer disconnectTimer = liveStreamManager.disconnectingTimers.get(entryId);
-						disconnectTimer.cancel();
-						disconnectTimer.purge();
-						liveStreamManager.disconnectingTimers.remove(entryId);
 					}
 				}
 
@@ -272,6 +266,8 @@ public class LiveStreamEntry extends ModuleBase {
 						break;
 					}
 				}
+				
+				registerReferrer(entryId);
 
 				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
@@ -281,6 +277,16 @@ public class LiveStreamEntry extends ModuleBase {
 			}
 		}
 
+		protected void registerReferrer(String entryId) {
+			KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+			LiveStreamEntryReferrer referrer = referrers.get(entryId);
+			if(referrer == null) {
+				referrer = new LiveStreamEntryReferrer();
+				referrers.put(entryId, referrer);
+				liveManager.addReferrer(entryId, referrer);
+			}
+		}
+		
 		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 			if (stream.isTranscodeResult() || stream.isPublisherStream())
 				return;
@@ -298,7 +304,10 @@ public class LiveStreamEntry extends ModuleBase {
 			KalturaEventsManager.raiseEvent(event);
 			
 			KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
-			liveManager.removeReferrer(liveStreamEntry.id, this);
+			LiveStreamEntryReferrer referrer = referrers.remove(liveStreamEntry.id);
+			if(referrer != null) {
+				liveManager.removeReferrer(liveStreamEntry.id, referrer);
+			}
 		}
 
 		@SuppressWarnings("unchecked")

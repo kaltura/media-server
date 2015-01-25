@@ -72,7 +72,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	protected ConcurrentHashMap<String, LiveEntryCache> entries = new ConcurrentHashMap<String, LiveEntryCache>();
 	
 	protected ConcurrentHashMap<Integer, KalturaLiveParams> liveAssetParams = new ConcurrentHashMap<Integer, KalturaLiveParams>();
-	public ConcurrentHashMap<String, Timer> disconnectingTimers = new ConcurrentHashMap<String, Timer>();
 	protected long isLiveRegistrationMinBufferTime = KalturaLiveManager.DEFAULT_IS_LIVE_REGISTRATION_MIN_BUFFER_TIME;
 
 	private Timer setMediaServerTimer;
@@ -113,6 +112,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 						logger.info("Remove object [" + liveEntry.id + "] from entry cache");
 						entries.remove(liveEntry.id);
 					}
+					unregister();
 				}
 				return removed;
 			}
