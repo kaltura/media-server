@@ -352,12 +352,6 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 		}
 	}
 
-	@Override
-	public void restartRecordings() {
-		logger.debug("LiveStreamEntry::restartRecordings");
-		recordingManager.restart();
-	}
-
 	protected boolean restartRecording(String entryId) {
 		logger.debug("LiveStreamEntry::restartRecording: " + entryId);
 		return recordingManager.restart(entryId);

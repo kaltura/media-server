@@ -65,6 +65,8 @@ class KalturaScheduledTaskProfileStatus
 	const DISABLED = 1;
 	const ACTIVE = 2;
 	const DELETED = 3;
+	const SUSPENDED = 4;
+	const DRY_RUN_ONLY = 5;
 }
 
 /**
@@ -82,12 +84,15 @@ class KalturaObjectFilterEngineType
  */
 class KalturaObjectTaskType
 {
+	const DISTRIBUTE = "scheduledTaskContentDistribution.Distribute";
 	const DISPATCH_EVENT_NOTIFICATION = "scheduledTaskEventNotification.DispatchEventNotification";
 	const EXECUTE_METADATA_XSLT = "scheduledTaskMetadata.ExecuteMetadataXslt";
 	const DELETE_ENTRY = "1";
 	const MODIFY_CATEGORIES = "2";
 	const DELETE_ENTRY_FLAVORS = "3";
 	const CONVERT_ENTRY_FLAVORS = "4";
+	const DELETE_LOCAL_CONTENT = "5";
+	const STORAGE_EXPORT = "6";
 }
 
 /**
@@ -119,6 +124,13 @@ abstract class KalturaObjectTask extends KalturaObjectBase
 	 * @readonly
 	 */
 	public $type = null;
+
+	/**
+	 * 
+	 *
+	 * @var bool
+	 */
+	public $stopProcessingOnError = null;
 
 
 }
@@ -220,6 +232,14 @@ class KalturaScheduledTaskProfile extends KalturaObjectBase
 	 */
 	public $lastExecutionStartedAt = null;
 
+	/**
+	 * The maximum number of result count allowed to be processed by this profile per execution
+	 * 	 
+	 *
+	 * @var int
+	 */
+	public $maxTotalCountAllowed = null;
+
 
 }
 
@@ -303,6 +323,15 @@ class KalturaDeleteEntryFlavorsObjectTask extends KalturaObjectTask
  * @subpackage Client
  */
 class KalturaDeleteEntryObjectTask extends KalturaObjectTask
+{
+
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaDeleteLocalContentObjectTask extends KalturaObjectTask
 {
 
 }
@@ -465,6 +494,23 @@ abstract class KalturaScheduledTaskProfileBaseFilter extends KalturaFilter
 	 * @var int
 	 */
 	public $lastExecutionStartedAtLessThanOrEqual = null;
+
+
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaStorageExportObjectTask extends KalturaObjectTask
+{
+	/**
+	 * Storage profile id
+	 * 	 
+	 *
+	 * @var string
+	 */
+	public $storageId = null;
 
 
 }

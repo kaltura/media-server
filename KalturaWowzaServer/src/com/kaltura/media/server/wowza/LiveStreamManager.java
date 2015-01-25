@@ -34,12 +34,6 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements Kaltu
 		setInitialized();
 	}
 
-	@Override
-	public void restartRecordings(){
-		logger.debug("Restart recordings");
-		recordingManager.restart();
-	}
-
 	protected boolean restartRecording(String entryId){
 		logger.debug("Restart recording: " + entryId);
 		return recordingManager.restart(entryId);

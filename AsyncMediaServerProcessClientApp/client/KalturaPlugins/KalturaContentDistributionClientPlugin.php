@@ -59,6 +59,7 @@ class KalturaDistributionErrorType
 	const MISSING_METADATA = 3;
 	const INVALID_DATA = 4;
 	const MISSING_ASSET = 5;
+	const CONDITION_NOT_MET = 6;
 }
 
 /**
@@ -70,6 +71,7 @@ class KalturaDistributionFieldRequiredStatus
 	const NOT_REQUIRED = 0;
 	const REQUIRED_BY_PROVIDER = 1;
 	const REQUIRED_BY_PARTNER = 2;
+	const REQUIRED_FOR_AUTOMATIC_DISTRIBUTION = 3;
 }
 
 /**
@@ -246,6 +248,8 @@ class KalturaDistributionProviderType
 	const SYNACOR_HBO = "synacorHboDistribution.SYNACOR_HBO";
 	const TIME_WARNER = "timeWarnerDistribution.TIME_WARNER";
 	const TVCOM = "tvComDistribution.TVCOM";
+	const TVINCI = "tvinciDistribution.TVINCI";
+	const UNICORN = "unicornDistribution.UNICORN";
 	const UVERSE_CLICK_TO_ORDER = "uverseClickToOrderDistribution.UVERSE_CLICK_TO_ORDER";
 	const UVERSE = "uverseDistribution.UVERSE";
 	const VERIZON_VCAST = "verizonVcastDistribution.VERIZON_VCAST";
@@ -1758,6 +1762,22 @@ abstract class KalturaDistributionProviderBaseFilter extends KalturaFilter
 	 * @var string
 	 */
 	public $typeIn = null;
+
+
+}
+
+/**
+ * @package Kaltura
+ * @subpackage Client
+ */
+class KalturaDistributionValidationErrorConditionNotMet extends KalturaDistributionValidationError
+{
+	/**
+	 * 
+	 *
+	 * @var string
+	 */
+	public $conditionName = null;
 
 
 }

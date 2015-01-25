@@ -191,7 +191,7 @@ public class SmilManager {
 	protected static synchronized void save(IApplicationInstance appInstance, String entryId, String destGroupName, String smil, Integer transcodingProfileId) {
 		String appName = appInstance.getContextStr();
 		
-		String filePath = appInstance.getStreamStoragePath() + File.separator + entryId + "_" + transcodingProfileId + ".smil";
+		String filePath = appInstance.getStreamStoragePath() + File.separator + entryId + "_" + transcodingProfileId + "_" + destGroupName + ".smil";
 		File file = new File(filePath);
 		if(file.exists()){
 			File tmpFile;
@@ -233,8 +233,12 @@ public class SmilManager {
 		Path smilPath = Paths.get(filePath);
 		
 		try {
-			if (Files.exists(symLinkPath) && (!Files.isSymbolicLink(symLinkPath) || !Files.readSymbolicLink(symLinkPath).equals(smilPath))) {
-				Files.deleteIfExists(symLinkPath);
+			if (Files.exists(symLinkPath)) {
+				if (!Files.isSymbolicLink(symLinkPath) || !Files.readSymbolicLink(symLinkPath).equals(smilPath)) {
+					Files.deleteIfExists(symLinkPath);
+					Files.createSymbolicLink(symLinkPath, smilPath);
+				}
+			} else {
 				Files.createSymbolicLink(symLinkPath, smilPath);
 			}
 		} catch (Exception e) {

@@ -7,10 +7,11 @@ $config = parse_ini_file($configFilePath);
 $files = glob($config['dirName'] . '/*.xml');
 if (!count($files))
 {
-	die ('No files at this time.');
+	logMsg("No files at this time.");
+	die();
 }
 
-var_dump(count ($files) . ' files found.');
+logMsg(count ($files) . " files found.");
 
 $inProgress = array();
 if (file_exists('in_progress'))
@@ -40,7 +41,6 @@ $clientConfig->partnerId = $config['partnerId'];
 $client = new KalturaClient($clientConfig);
 $ks = $client->generateSessionV2($config['adminSecret'], '', KalturaSessionType::ADMIN, $clientConfig->partnerId, 86400, null);
 $client->setKs($ks);
-
 
 foreach ($files as $f)
 {
@@ -72,12 +72,13 @@ function handleUploadXMLResource (SimpleXMLElement $uploadXML, KalturaClient $cl
 	$assetId = strval($uploadXML->assetId);
 	$partnerId = strval ($uploadXML->partnerId);
 	$partnerAdminSecret = strval ($uploadXML->adminSecret);
-	$duration = intval ($uploadXML->duration);
+	$duration = floatval($uploadXML->duration);
+	$isLastChunk = (strval($uploadXML->isLastChunk) == 'true') ? 1 : 0;
 	$index = intval($uploadXML->index);
 	$filepath = strval($uploadXML->filepath);
 	$workmode = strval($uploadXML->workMode);
 	
-	var_dump("append recording: entry [$entryId] asset [$assetId] index [$index] filePath [$filepath] duration [$duration]");
+	logMsg("append recording: entry [$entryId] asset [$assetId] index [$index] filePath [$filepath] duration [$duration] isLastChunk [$isLastChunk]");
 		
 	$clientConfig = $client->getConfig();
 	$clientConfig->partnerId = $partnerId;
@@ -89,7 +90,7 @@ function handleUploadXMLResource (SimpleXMLElement $uploadXML, KalturaClient $cl
 	}
 	catch (Exception $e)
 	{
-		var_dump ("An error occured retrieving entry with id [$entryId]. Error message [" . $e->getMessage() . "]");
+		logMsg("An error occured retrieving entry with id [$entryId]. Error message [" . $e->getMessage() . "]");
 		return false;
 	}
 	
@@ -98,11 +99,11 @@ function handleUploadXMLResource (SimpleXMLElement $uploadXML, KalturaClient $cl
 		return false;
 	
 	try {
-		$updatedEntry = $client->liveStream->appendRecording($entryId, $assetId, $index, $resource, $duration);
+		$updatedEntry = $client->liveStream->appendRecording($entryId, $assetId, $index, $resource, $duration, $isLastChunk);
 	}
 	catch (Exception $e)
 	{
-		var_dump('Append live recording error: ' . $e->getMessage());
+		logMsg("Append live recording error: [" . $e->getMessage() . "]");
 		return false;
 	}
 	
@@ -139,16 +140,21 @@ function getContentResource ($filepath, KalturaLiveStreamEntry $liveEntry, $work
 			else {
 				if ($tokenResponse instanceof Exception) {
 			}
-				var_dump("Content resource creation error: " . $tokenResponse->getMessage());
+				logMsg("Content resource creation error: [" . $tokenResponse->getMessage() . "]");
 				return null;
 			}
 				
 			return $resource;
 			
 		} catch (Exception $e) {
-			var_dump("Content resource creation error: " . $e->getMessage());
+			logMsg("Content resource creation error: [" . $e->getMessage() . "]");
 		}
 	}
 	
 	return null;
+}
+
+function logMsg($str)
+{
+	echo($str . PHP_EOL);
 }
