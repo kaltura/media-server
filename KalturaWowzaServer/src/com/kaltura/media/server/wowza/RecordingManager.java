@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.UserPrincipalLookupService;
-import java.util.Date;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -31,10 +30,12 @@ public class RecordingManager {
 
 	protected final static String KALTURA_RECORDED_FILE_GROUP = "KalturaRecordedFileGroup";
 	protected final static String DEFAULT_RECORDED_FILE_GROUP = "kaltura";
+	protected final static String RECORDING_ANCHOR_TAG_VALUE = "recording_anchor";
 	
 	//The default live segment duration is 15 minutes long
 	protected final static int DEFAULT_RECORDED_SEGMENT_DURATION = 900000;
 	protected final static String DEFAULT_RECORDED_SEGMENT_DURATION_FIELD_NAME = "DefaultRecordedSegmentDuration";
+	protected final static String COPY_SEGMENT_TO_LOCATION_FIELD_NAME = "CopySegmentToLocation";
 	protected static Logger logger = Logger.getLogger(RecordingManager.class);
 	
 	static private Map<String, Map<String, EntryRecorder>> recorders = new ConcurrentHashMap<String, Map<String, EntryRecorder>>();
@@ -49,17 +50,18 @@ public class RecordingManager {
 		private String entryId;
 		private String assetId;
 		private KalturaMediaServerIndex index;
-		private double appendedDuration = 0;
 		private boolean isLastChunk = false;
 
 		abstract class AppendRecordingTimerTask extends TimerTask {
 			
 			protected String filePath;
 			protected boolean lastChunkFlag;
+			protected double appendTime;
 			
-			public AppendRecordingTimerTask (String path, boolean lastChunk) {
-				filePath = path;
+			public AppendRecordingTimerTask (String setFilePath, boolean lastChunk, double time) {
+				filePath = setFilePath;
 				lastChunkFlag = lastChunk;
+				appendTime = time;
 			}
 		}
 		
@@ -94,35 +96,45 @@ public class RecordingManager {
 
 		@Override
 		public void onSegmentEnd(ILiveStreamRecord liveStreamRecord) {
-			if(liveStreamRecord.getCurrentDuration() == 0){
-				logger.info("Stream [" + stream.getName() + "] duration [" + liveStreamRecord.getCurrentDuration() + "]");
-				return;
+			if(this.getCurrentDuration() != 0){
+				logger.info("Stream [" + stream.getName() + "] segment number [" + this.getSegmentNumber() + "] duration [" + this.getCurrentDuration() + "]");
 			}
 			
-			logger.info("Stream [" + stream.getName() + "] file [" + file.getAbsolutePath() + "] folder [" + file.getParent() + "]");
-
-			if(group != null){
-				Path path = Paths.get(file.getAbsolutePath());
-				PosixFileAttributeView fileAttributes = Files.getFileAttributeView(path, PosixFileAttributeView.class);
-					
-				try {
-					fileAttributes.setGroup(group);
-				} catch (IOException e) {
-					logger.error(e.getMessage());
-				}
-			}
-			
-			
-			AppendRecordingTimerTask appendRecording = new AppendRecordingTimerTask(file.getAbsolutePath(), isLastChunk) {
+			AppendRecordingTimerTask appendRecording = new AppendRecordingTimerTask(file.getAbsolutePath(), isLastChunk, (double)this.getCurrentDuration()/1000) {
 				
 				@Override
 				public void run() {
 					logger.debug("Running appendRecording task");
-					Date date = new Date();
-					double duration = ((double)(date.getTime() - getStartTime().getMillis())) / 1000;
-					double currentChunkDuration = duration - appendedDuration;
-					liveManager.appendRecording(entryId, assetId, index, filePath, currentChunkDuration, lastChunkFlag);
-					appendedDuration = duration;
+					
+					// copy the file to a diff location
+					String copyTarget = null;
+					Map<String, Object> serverConfiguration = KalturaServer.getConfiguration();
+					if (serverConfiguration.containsKey(RecordingManager.COPY_SEGMENT_TO_LOCATION_FIELD_NAME)) {
+						copyTarget = serverConfiguration.get(RecordingManager.COPY_SEGMENT_TO_LOCATION_FIELD_NAME).toString() + File.separator + (new File(filePath).getName());
+						try {	
+							if (copyTarget != null) {
+								Files.move(Paths.get(filePath), Paths.get(copyTarget));
+								filePath = copyTarget;
+							}
+						} catch (Exception e) {
+							logger.error("An error occurred copying file from [" + filePath + "] to [" + filePath + "] :: " + e.getMessage());
+						}
+					}
+					
+					Path path = Paths.get(filePath);
+					logger.info("Stream [" + stream.getName() + "] file [" + filePath + "] changing group name to [" + group.getName() + "]");
+					
+					if(group != null){
+						PosixFileAttributeView fileAttributes = Files.getFileAttributeView(path, PosixFileAttributeView.class);
+						
+						try {
+							fileAttributes.setGroup(group);
+						} catch (IOException e) {
+							logger.error(e.getMessage());
+						}
+					}
+						
+					liveManager.appendRecording(entryId, assetId, index, filePath, appendTime, lastChunkFlag);
 					
 				}
 			};
@@ -140,7 +152,8 @@ public class RecordingManager {
 			
 			//If the current live asset being unpublished is the recording anchor - send cancelReplace call
 			KalturaLiveAsset liveAsset = liveManager.getLiveAssetById(entryId, assetId);
-			if (liveAsset != null && liveAsset.tags.contains("recording_anchor")) {
+			logger.info("current media server index: " + index);
+			if (liveAsset != null && liveAsset.tags.contains(RecordingManager.RECORDING_ANCHOR_TAG_VALUE) && KalturaMediaServerIndex.PRIMARY.equals(index)) {
 				liveManager.cancelReplace(entryId);
 			}
 
