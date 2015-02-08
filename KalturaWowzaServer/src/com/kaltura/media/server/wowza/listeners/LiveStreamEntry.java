@@ -88,7 +88,6 @@ public class LiveStreamEntry extends ModuleBase {
 	private String applicationName;
 	private LiveStreamManager liveStreamManager;
 	private DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
-	private LiveStreamListener liveStreamListener = new LiveStreamListener();
 	private LiveStreamTranscoderListener liveStreamTranscoderListener = new LiveStreamTranscoderListener();
 	private LiveStreamTranscoderActionListener liveStreamTranscoderActionListener = new LiveStreamTranscoderActionListener();
 	private LiveStreamCallbackListener liveStreamCallbackListener = new LiveStreamCallbackListener (); 
@@ -181,13 +180,8 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
-	class LiveStreamListener extends MediaStreamActionNotifyBase  {
+	class LiveStreamListener extends MediaStreamActionNotifyBase implements KalturaLiveManager.ILiveEntryReferrer {
 		
-		private class LiveStreamEntryReferrer implements KalturaLiveManager.ILiveEntryReferrer {
-		}
-		
-		protected Map<String, LiveStreamEntryReferrer> referrers = new HashMap<String, LiveStreamEntryReferrer>();
-
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
 			logger.debug("Stream [" + streamName + "]");
@@ -201,7 +195,10 @@ public class LiveStreamEntry extends ModuleBase {
 				String entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
 				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 				
-				registerReferrer(entryId);
+				logger.error("@_!! * " + entryId + "\t" + stream.getName());
+				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
+				liveManager.addReferrer(entryId, this);
+
 
 				KalturaLiveEntry entry = liveStreamManager.get(entryId);
 				if (entry == null) {
@@ -267,34 +264,42 @@ public class LiveStreamEntry extends ModuleBase {
 					}
 				}
 				
-				registerReferrer(entryId);
+				logger.error("@_!! * " + entryId + "\t" + stream.getName());
+				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
+				liveManager.addReferrer(entryId, this);
 
 				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, liveStreamManager.get(entryId), serverIndex, applicationName, stream, assetParamsId);
 				KalturaEventsManager.raiseEvent(event);
-				
 			}
 		}
 
-		protected void registerReferrer(String entryId) {
-			KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
-			LiveStreamEntryReferrer referrer = referrers.get(entryId);
-			if(referrer == null) {
-				referrer = new LiveStreamEntryReferrer();
-				referrers.put(entryId, referrer);
-				liveManager.addReferrer(entryId, referrer);
-			}
-		}
-		
 		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
-			if (stream.isTranscodeResult() || stream.isPublisherStream())
-				return;
+			
+			if(stream.isTranscodeResult()) {
+				logger.error("@_!! HERE");
+				Matcher matcher = getStreamNameMatches(streamName);
+				if (matcher == null) {
+					logger.error("Transcoder published stream [" + streamName + "] does not match entry regex");
+					return;
+				}
 
+				String entryId = matcher.group(1);
+				
+				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
+				liveManager.removeReferrer(entryId, this);
+				return;
+			}
+			
+			if (stream.isPublisherStream())
+				return;
+			
 			WMSProperties clientProperties = getConnectionProperties(stream);
-			if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID))
+			if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
 				return;
-
+			}
+			
 			KalturaLiveStreamEntry liveStreamEntry = liveStreamManager.get(clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID));
 			KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
@@ -303,11 +308,8 @@ public class LiveStreamEntry extends ModuleBase {
 			KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_UNPUBLISHED, liveStreamEntry, serverIndex, applicationName, stream);
 			KalturaEventsManager.raiseEvent(event);
 			
-			KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
-			LiveStreamEntryReferrer referrer = referrers.remove(liveStreamEntry.id);
-			if(referrer != null) {
-				liveManager.removeReferrer(liveStreamEntry.id, referrer);
-			}
+			ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
+			liveManager.removeReferrer(liveStreamEntry.id, this);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -672,7 +674,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 	public void onStreamCreate(IMediaStream stream) {
 		logger.debug("LiveStreamEntry::onStreamCreate");
-		stream.addClientListener(liveStreamListener);
+		stream.addClientListener(new LiveStreamListener());
 		stream.addCalbackListener(liveStreamCallbackListener);
 	}
 

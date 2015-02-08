@@ -11,7 +11,7 @@ import com.kaltura.client.types.KalturaBaseEntry;
 import com.kaltura.client.types.KalturaLiveChannel;
 
 
-abstract public class KalturaLiveChannelManager extends KalturaLiveManager implements ILiveChannelManager {
+abstract public class KalturaLiveChannelManager extends KalturaLiveManager implements ILiveChannelManager, KalturaLiveManager.ILiveEntryReferrer {
 
 	protected final static String KALTURA_RELOAD_SCHEDULED_CHANNELS_INTERVAL = "KalturaReloadScheduledChannelsInterval";
 	
@@ -57,6 +57,7 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 
 		synchronized (entries) {
 			entries.put(liveEntry.id, new LiveEntryCache(liveEntry));
+			addReferrer(liveEntry.id, this);
 		}
 		
 		return liveEntry;
@@ -106,10 +107,10 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		reloadScheduledChannelsTimer.purge();
 		
 		super.stop();
-
+		
 		synchronized (entries) {
 			for(LiveEntryCache liveEntryCache : entries.values()){
-				onUnPublish(liveEntryCache.getLiveEntry(), liveEntryCache.getIndex());
+				removeReferrer(liveEntryCache.getLiveEntry().id, this);
 			}
 		}
 	}

@@ -9,7 +9,6 @@ import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
-import com.kaltura.media.server.events.KalturaStreamEvent;
 import com.kaltura.media.server.managers.KalturaLiveManager;
 import com.kaltura.media.server.managers.KalturaLiveStreamManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
@@ -17,7 +16,59 @@ import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
 import com.wowza.wms.stream.IMediaStream;
 
-public class LiveStreamManager extends KalturaLiveStreamManager implements KalturaLiveManager.ILiveEntryReferrer {
+public class LiveStreamManager extends KalturaLiveStreamManager {
+	
+	protected class LiveStreamEntryReferrer implements KalturaLiveManager.ILiveEntryReferrer {
+		protected String entryId;
+		protected String streamId;
+		
+		public LiveStreamEntryReferrer(String entryId, String streamId) {
+			this.entryId = entryId;
+			this.streamId = streamId;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result
+					+ ((entryId == null) ? 0 : entryId.hashCode());
+			result = prime * result
+					+ ((streamId == null) ? 0 : streamId.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			LiveStreamEntryReferrer other = (LiveStreamEntryReferrer) obj;
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (entryId == null) {
+				if (other.entryId != null)
+					return false;
+			} else if (!entryId.equals(other.entryId))
+				return false;
+			if (streamId == null) {
+				if (other.streamId != null)
+					return false;
+			} else if (!streamId.equals(other.streamId))
+				return false;
+			return true;
+		}
+
+		private LiveStreamManager getOuterType() {
+			return LiveStreamManager.this;
+		}
+		
+		
+	}
 
 	protected final static String KALTURA_ASSET_TAG_SOURCE = "source";
 	
@@ -76,11 +127,11 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements Kaltu
 			switch((KalturaEventType) event.getType())
 			{
 				case STREAM_PUBLISHED:
-					// TODO Ask T whether its the right event type.
 					mediaStreamEvent = (KalturaMediaStreamEvent) event;
-					addReferrer(mediaStreamEvent.getEntryId(), this);
-					
 					IMediaStream stream = mediaStreamEvent.getMediaStream();
+					
+					addReferrer(mediaStreamEvent.getEntryId(), new LiveStreamEntryReferrer(mediaStreamEvent.getEntryId(), stream.getName()));
+					
 					if(stream.getClientId() < 0){
 						logger.debug("Stream [" + stream.getName() + "] entry [" + mediaStreamEvent.getEntryId() + "] is a transcoded rendition");
 						break;
@@ -93,8 +144,10 @@ public class LiveStreamManager extends KalturaLiveStreamManager implements Kaltu
 					break;
 					
 				case STREAM_UNPUBLISHED:
-					KalturaStreamEvent streamUnpublishedEvent = (KalturaStreamEvent) event;
-					removeReferrer(streamUnpublishedEvent.getEntryId(), this);
+					KalturaMediaStreamEvent streamUnpublishedEvent = (KalturaMediaStreamEvent) event;
+					IMediaStream streamUnpublished = streamUnpublishedEvent.getMediaStream();
+					removeReferrer(streamUnpublishedEvent.getEntryId(), 
+							new LiveStreamEntryReferrer(streamUnpublishedEvent.getEntryId(), streamUnpublished.getName()));
 					break;
 					
 				default:

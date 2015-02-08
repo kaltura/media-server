@@ -97,6 +97,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		public void addReferrer(ILiveEntryReferrer obj) {
 			synchronized(referrers) {
 				referrers.add(obj);
+				logger.debug(liveEntry.id + " referrer count: " + referrers.size());
 			}
 		}
 		
@@ -106,6 +107,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		public boolean removeReferrer(ILiveEntryReferrer obj) {
 			synchronized(referrers) {
 				boolean removed = referrers.remove(obj);
+				logger.debug(liveEntry.id + " referrer count : " + referrers.size());
 				if(referrers.isEmpty()) {
 					
 					synchronized(entries) {
@@ -396,11 +398,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 					onPublish(streamEvent.getEntryId(), streamEvent.getServerIndex(), streamEvent.getApplicationName());
 					break;
 		
-				case STREAM_UNPUBLISHED:
-					streamEvent = (KalturaStreamEvent) event;
-					onUnPublish(streamEvent.getEntry(), streamEvent.getServerIndex());
-					break;
-		
 				default:
 					break;
 			}
@@ -448,19 +445,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				logger.error("failed to update entry [" + liveEntry.id + "]: " + e.getMessage());
 			}
 			impersonateClient = null;
-		}
-	}
-
-	protected void onUnPublish(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
-		logger.debug("entry [" + liveEntry.id + "]");
-
-		synchronized (entries) {
-			if (entries.containsKey(liveEntry.id)) {
-				LiveEntryCache liveEntryCache = entries.get(liveEntry.id);
-				if (liveEntryCache.index != null) {
-					liveEntryCache.unregister();
-				}
-			}
 		}
 	}
 
@@ -515,7 +499,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			logger.debug("scheduled setMediaServerTask");
 		}
 		
-		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_PUBLISHED, KalturaEventType.STREAM_UNPUBLISHED);
+		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_PUBLISHED);
 	}
 
 	private void loadLiveParams() {
@@ -799,16 +783,16 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				logger.error("Couldn't add referrer becuase entry doesn't exist in cache");
 			} else {
 				liveEntryCache.addReferrer(obj);
-				logger.info("Referrer added");
+				logger.info("Referrer added " + obj.getClass().getName());
 			}
 		}
 	}
 	
-	public void removeReferrer(String entryid, ILiveEntryReferrer obj) {
-		logger.info("Remove [" + obj.getClass().getName() + "] from being referrer of [" + entryid +"]");
+	public void removeReferrer(String entryId, ILiveEntryReferrer obj) {
+		logger.info("Remove [" + obj.getClass().getName() + "] from being referrer of [" + entryId +"]");
 		boolean removed = false;
 		synchronized(entries) {
-			LiveEntryCache liveEntryCache = entries.get(entryid);
+			LiveEntryCache liveEntryCache = entries.get(entryId);
 			if(liveEntryCache != null) {
 				removed = liveEntryCache.removeReferrer(obj);
 			}
