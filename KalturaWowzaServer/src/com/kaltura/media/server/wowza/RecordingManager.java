@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.media.server.KalturaServer;
+import com.kaltura.media.server.managers.ILiveManager;
 import com.kaltura.media.server.managers.KalturaLiveManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
 import com.wowza.wms.livestreamrecord.model.ILiveStreamRecord;
@@ -44,7 +45,7 @@ public class RecordingManager {
 
 	private KalturaLiveManager liveManager;
 	
-	class EntryRecorder extends LiveStreamRecorderMP4 implements ILiveStreamRecordNotify
+	class EntryRecorder extends LiveStreamRecorderMP4 implements ILiveStreamRecordNotify, ILiveManager.ILiveEntryReferrer
 	{
 		private String entryId;
 		private String assetId;
@@ -143,6 +144,14 @@ public class RecordingManager {
 		}
 		
 		@Override
+		public void onPublish() {
+			KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+			liveManager.addReferrer(entryId, this);
+			
+			super.onPublish();
+		}
+		
+		@Override
 		public void onUnPublish () {
 			logger.info("Stop recording: entry Id [" + entryId + "], asset Id [" + assetId + "]");
 			
@@ -153,7 +162,11 @@ public class RecordingManager {
 			}
 
 			this.isLastChunk = true;
+			
 			super.onUnPublish();
+			
+			KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+			liveManager.removeReferrer(entryId, this);
 		}
 	}
 
