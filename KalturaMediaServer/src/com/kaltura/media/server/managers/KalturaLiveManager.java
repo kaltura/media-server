@@ -76,13 +76,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 	private Timer setMediaServerTimer;
 	
-	/**
-	 *	Interface to mark classes as entry-cache dependent 
-	 */
-	public interface ILiveEntryReferrer {
-		
-	}
-	
 	protected class LiveEntryCache {
 		private KalturaLiveEntry liveEntry;
 		private boolean registered = false;
@@ -92,7 +85,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		private ArrayList<KalturaConversionProfileAssetParams> conversionProfileAssetParams;
 		private Map<Integer, KalturaLiveAsset> liveAssets = new HashMap<Integer, KalturaLiveAsset>();
 		private Timer timer;
-		Set<ILiveEntryReferrer> referrers = new HashSet<KalturaLiveManager.ILiveEntryReferrer>();
+		Set<ILiveEntryReferrer> referrers = new HashSet<ILiveManager.ILiveEntryReferrer>();
 		
 		public void addReferrer(ILiveEntryReferrer obj) {
 			synchronized(referrers) {

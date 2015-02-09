@@ -27,8 +27,8 @@ import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
 import com.kaltura.media.server.events.KalturaMetadataEvent;
 import com.kaltura.media.server.events.KalturaStreamEvent;
+import com.kaltura.media.server.managers.ILiveManager;
 import com.kaltura.media.server.managers.ILiveStreamManager;
-import com.kaltura.media.server.managers.KalturaLiveManager;
 import com.kaltura.media.server.wowza.LiveStreamManager;
 import com.kaltura.media.server.wowza.SmilManager;
 import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
@@ -180,7 +180,7 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
-	class LiveStreamListener extends MediaStreamActionNotifyBase implements KalturaLiveManager.ILiveEntryReferrer {
+	class LiveStreamListener extends MediaStreamActionNotifyBase implements ILiveManager.ILiveEntryReferrer {
 		
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
@@ -195,7 +195,6 @@ public class LiveStreamEntry extends ModuleBase {
 				String entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
 				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 				
-				logger.error("@_!! * " + entryId + "\t" + stream.getName());
 				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 				liveManager.addReferrer(entryId, this);
 
@@ -264,7 +263,6 @@ public class LiveStreamEntry extends ModuleBase {
 					}
 				}
 				
-				logger.error("@_!! * " + entryId + "\t" + stream.getName());
 				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 				liveManager.addReferrer(entryId, this);
 
@@ -278,7 +276,6 @@ public class LiveStreamEntry extends ModuleBase {
 		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 			
 			if(stream.isTranscodeResult()) {
-				logger.error("@_!! HERE");
 				Matcher matcher = getStreamNameMatches(streamName);
 				if (matcher == null) {
 					logger.error("Transcoder published stream [" + streamName + "] does not match entry regex");

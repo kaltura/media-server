@@ -9,7 +9,7 @@ import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
-import com.kaltura.media.server.managers.KalturaLiveManager;
+import com.kaltura.media.server.managers.ILiveManager;
 import com.kaltura.media.server.managers.KalturaLiveStreamManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
@@ -18,7 +18,7 @@ import com.wowza.wms.stream.IMediaStream;
 
 public class LiveStreamManager extends KalturaLiveStreamManager {
 	
-	protected class LiveStreamEntryReferrer implements KalturaLiveManager.ILiveEntryReferrer {
+	protected class LiveStreamEntryReferrer implements ILiveManager.ILiveEntryReferrer {
 		protected String entryId;
 		protected String streamId;
 		

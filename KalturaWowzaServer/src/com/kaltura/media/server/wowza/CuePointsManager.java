@@ -14,9 +14,10 @@ import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
+import com.kaltura.media.server.managers.ILiveManager;
 import com.kaltura.media.server.managers.KalturaCuePointsManager;
-import com.kaltura.media.server.managers.KalturaManagerException;
 import com.kaltura.media.server.managers.KalturaLiveManager;
+import com.kaltura.media.server.managers.KalturaManagerException;
 import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
@@ -38,7 +39,7 @@ import com.wowza.wms.stream.MediaStream;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizer;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
 
-public class CuePointsManager extends KalturaCuePointsManager implements KalturaLiveManager.ILiveEntryReferrer {
+public class CuePointsManager extends KalturaCuePointsManager implements ILiveManager.ILiveEntryReferrer {
 
 	public static final String PUBLIC_METADATA = "onMetaData";
 	

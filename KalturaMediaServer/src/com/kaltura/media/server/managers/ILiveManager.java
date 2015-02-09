@@ -5,21 +5,15 @@ import com.kaltura.client.types.KalturaConversionProfileAssetParams;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveParams;
-import com.kaltura.media.server.managers.KalturaLiveManager.ILiveEntryReferrer;
 
 public interface ILiveManager extends IManager {
 	
-	public KalturaLiveEntry get(String entryId);
-	
-	public KalturaMediaServerIndex getMediaServerIndexForEntry(String entryId);
-
-	public Integer getDvrWindow(KalturaLiveEntry liveStreamEntry);
-	
-	public KalturaConversionProfileAssetParams getConversionProfileAssetParams(String entryId, int assetParamsId);
-	
-	public KalturaLiveAsset getLiveAsset(String entryId, int assetParamsId);
-	
-	public KalturaLiveParams getLiveAssetParams(int assetParamsId);
+	/**
+	 *	Marking interface to indicate classes as entry-cache dependent 
+	 */
+	public interface ILiveEntryReferrer {
+		
+	}
 	
 	/**
 	 * Registers an object as referrer to a given entry
@@ -34,4 +28,17 @@ public interface ILiveManager extends IManager {
 	 * @param obj The referrer
 	 */
 	public void removeReferrer(String entryId, ILiveEntryReferrer obj);
+	
+	public KalturaLiveEntry get(String entryId);
+	
+	public KalturaMediaServerIndex getMediaServerIndexForEntry(String entryId);
+
+	public Integer getDvrWindow(KalturaLiveEntry liveStreamEntry);
+	
+	public KalturaConversionProfileAssetParams getConversionProfileAssetParams(String entryId, int assetParamsId);
+	
+	public KalturaLiveAsset getLiveAsset(String entryId, int assetParamsId);
+	
+	public KalturaLiveParams getLiveAssetParams(int assetParamsId);
+	
 }

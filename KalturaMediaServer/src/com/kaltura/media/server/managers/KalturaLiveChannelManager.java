@@ -11,7 +11,7 @@ import com.kaltura.client.types.KalturaBaseEntry;
 import com.kaltura.client.types.KalturaLiveChannel;
 
 
-abstract public class KalturaLiveChannelManager extends KalturaLiveManager implements ILiveChannelManager, KalturaLiveManager.ILiveEntryReferrer {
+abstract public class KalturaLiveChannelManager extends KalturaLiveManager implements ILiveChannelManager, ILiveManager.ILiveEntryReferrer {
 
 	protected final static String KALTURA_RELOAD_SCHEDULED_CHANNELS_INTERVAL = "KalturaReloadScheduledChannelsInterval";
 	

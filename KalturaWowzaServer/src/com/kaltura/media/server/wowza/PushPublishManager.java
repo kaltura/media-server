@@ -33,7 +33,7 @@ import com.wowza.wms.pushpublish.protocol.rtp.PushPublishRTP;
 import com.wowza.wms.server.LicensingException;
 import com.wowza.wms.stream.IMediaStream;
 
-public class PushPublishManager extends KalturaManager implements IKalturaEventConsumer, KalturaLiveManager.ILiveEntryReferrer {
+public class PushPublishManager extends KalturaManager implements IKalturaEventConsumer, ILiveManager.ILiveEntryReferrer {
 
 	protected final static String MULTICAST_IP_CONFIG_FIELD_NAME = "MulticastIP";
 	protected final static String MULTICAST_TAG_FIELD_NAME = "MulticastTag";
