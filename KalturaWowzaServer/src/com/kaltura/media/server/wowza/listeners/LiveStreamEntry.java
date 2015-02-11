@@ -27,6 +27,7 @@ import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
 import com.kaltura.media.server.events.KalturaMetadataEvent;
 import com.kaltura.media.server.events.KalturaStreamEvent;
+import com.kaltura.media.server.managers.ILiveManager;
 import com.kaltura.media.server.managers.ILiveStreamManager;
 import com.kaltura.media.server.wowza.LiveStreamManager;
 import com.kaltura.media.server.wowza.SmilManager;
@@ -83,7 +84,6 @@ public class LiveStreamEntry extends ModuleBase {
 	private String applicationName;
 	private LiveStreamManager liveStreamManager;
 	private DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
-	private LiveStreamListener liveStreamListener = new LiveStreamListener();
 	private LiveStreamTranscoderListener liveStreamTranscoderListener = new LiveStreamTranscoderListener();
 	private LiveStreamTranscoderActionListener liveStreamTranscoderActionListener = new LiveStreamTranscoderActionListener();
 	private IApplicationInstance appInstance;
@@ -175,7 +175,7 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
-	class LiveStreamListener extends MediaStreamActionNotifyBase {
+	class LiveStreamListener extends MediaStreamActionNotifyBase implements ILiveManager.ILiveEntryReferrer {
 
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
@@ -190,6 +190,9 @@ public class LiveStreamEntry extends ModuleBase {
 				String entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
 				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
+				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
+				liveManager.addReferrer(entryId, this);
+				
 				KalturaLiveEntry entry = liveStreamManager.get(entryId);
 				if (entry == null) {
 					logger.debug("Unplanned disconnect occured earlier. Attempting reconnect.");
@@ -197,16 +200,6 @@ public class LiveStreamEntry extends ModuleBase {
 					if (entry == null) {
 						logger.error("Following reconnection attempt, client still not authenticated for stream [" + streamName + "]");
 						return;
-					}
-				}
-
-				synchronized (liveStreamManager.disconnectingTimers) {
-					if (liveStreamManager.disconnectingTimers.containsKey(entryId)) {
-						logger.info("This entry is scheduled for disconnect. Cancelling the diconnect.");
-						Timer disconnectTimer = liveStreamManager.disconnectingTimers.get(entryId);
-						disconnectTimer.cancel();
-						disconnectTimer.purge();
-						liveStreamManager.disconnectingTimers.remove(entryId);
 					}
 				}
 
@@ -263,6 +256,9 @@ public class LiveStreamEntry extends ModuleBase {
 						break;
 					}
 				}
+				
+				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
+				liveManager.addReferrer(entryId, this);
 
 				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
@@ -272,9 +268,24 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 
 		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
-			if (stream.isTranscodeResult() || stream.isPublisherStream())
-				return;
+			if (stream.isTranscodeResult()) {
+				Matcher matcher = getStreamNameMatches(streamName);
+				if (matcher == null) {
+					logger.error("Transcoder published stream [" + streamName + "] does not match entry regex");
+					return;
+				}
 
+				String entryId = matcher.group(1);
+
+				ILiveStreamManager liveManager = KalturaServer
+						.getManager(ILiveStreamManager.class);
+				liveManager.removeReferrer(entryId, this);
+				return;
+			}
+
+			if (stream.isPublisherStream())
+				return;
+				
 			WMSProperties clientProperties = getConnectionProperties(stream);
 			if (!clientProperties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID))
 				return;
@@ -286,6 +297,9 @@ public class LiveStreamEntry extends ModuleBase {
 
 			KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_UNPUBLISHED, liveStreamEntry, serverIndex, applicationName, stream);
 			KalturaEventsManager.raiseEvent(event);
+			
+			ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
+			liveManager.removeReferrer(liveStreamEntry.id, this);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -625,7 +639,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 	public void onStreamCreate(IMediaStream stream) {
 		logger.debug("LiveStreamEntry::onStreamCreate");
-		stream.addClientListener(liveStreamListener);
+		stream.addClientListener(new LiveStreamListener());
 	}
 
 	public void onDisconnect(IClient client) {

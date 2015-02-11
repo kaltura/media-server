@@ -248,8 +248,10 @@ public class KalturaServer {
 		}
 	}
 
-	public static <T extends IManager> IManager getManager(Class<T> managerInterface){
-		if(instance == null || managers == null){
+	// TODO - Remove casting from those who use this function
+	@SuppressWarnings("unchecked")
+	public static <T extends IManager> T getManager(Class<T> managerInterface) {
+		if (instance == null || managers == null) {
 			logger.error("Managers are not initialized");
 			return null;
 		}
@@ -259,7 +261,7 @@ public class KalturaServer {
 		
 		for(IManager manager : managers){
 			if(managerInterface.isInstance(manager))
-				return manager;
+				return (T)manager;
 		}
 
 		logger.error("Manager [" + managerInterface.getName() + "] not found");
