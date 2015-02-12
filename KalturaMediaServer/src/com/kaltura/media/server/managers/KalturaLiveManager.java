@@ -262,6 +262,10 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			logger.error("Asset with id [" + assetId + "] not found");
 			return null;
 		}
+		
+		public Integer[] getLiveAssetParamsIds() {
+			return liveAssets.keySet().toArray(new Integer[0]);
+		}
 
 		public KalturaMediaServerIndex getIndex() {
 			return index;
@@ -343,6 +347,19 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			
 			LiveEntryCache liveEntryCache = entries.get(entryId);
 			return liveEntryCache.getLiveAssetById(assetId);
+		}
+	}
+	
+	public Integer[] getLiveAssetParamsIds(String entryId) {
+
+		synchronized (entries) {
+			if (!entries.containsKey(entryId)) {
+				logger.error("Entry id [" + entryId + "] not found");
+				return null;
+			}
+			
+			LiveEntryCache liveEntryCache = entries.get(entryId);
+			return liveEntryCache.getLiveAssetParamsIds();
 		}
 	}
 	

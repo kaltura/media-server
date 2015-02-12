@@ -11,12 +11,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
+import com.kaltura.infra.StringUtils;
 import com.kaltura.infra.XmlUtils;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.application.WMSProperties;
@@ -243,6 +247,26 @@ public class SmilManager {
 			}
 		} catch (Exception e) {
 			logger.error("There was an error creating the symlink: " + e.getMessage());
+		}
+	}
+
+	public static void generateCombinations(IApplicationInstance appInstance, String entryId, String streamStoragePath, Integer[] assetParamsIds) {
+		SortedSet<Integer> assetParamsIdsSubset;
+		for(int i = 0; i < assetParamsIds.length; i++){
+			assetParamsIdsSubset = new TreeSet<Integer>();
+			for(int j = 0; j < assetParamsIds.length; j++){
+				// Add all assetParamsIds except for i
+				if(j != i){
+					assetParamsIdsSubset.add(assetParamsIds[j]);
+				}
+			}
+			String flavorsStr = StringUtils.join(assetParamsIdsSubset, "_");
+			String filePath = streamStoragePath + File.separator + entryId + "_" + flavorsStr + ".smil";
+			merge(appInstance, entryId, filePath, flavorsStr.split("_"));
+			
+			if(assetParamsIds.length > 3){
+				generateCombinations(appInstance, entryId, streamStoragePath, assetParamsIdsSubset.toArray(new Integer[0]));
+			}
 		}
 	}
 }
