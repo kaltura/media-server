@@ -15,8 +15,8 @@ import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
 import com.kaltura.media.server.managers.ILiveManager;
+import com.kaltura.media.server.managers.ILiveStreamManager;
 import com.kaltura.media.server.managers.KalturaCuePointsManager;
-import com.kaltura.media.server.managers.KalturaLiveManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
 import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
@@ -316,7 +316,7 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 		}
 		
 		logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "]");
-		KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+		ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 		liveManager.addReferrer(entryId, this);
 		
 		synchronized (streams) {
@@ -337,7 +337,7 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 			streams.remove(entryId);
 		}
 		super.onUnPublish(entryId);
-		KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+		ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 		liveManager.removeReferrer(entryId, this);
 	}
 
