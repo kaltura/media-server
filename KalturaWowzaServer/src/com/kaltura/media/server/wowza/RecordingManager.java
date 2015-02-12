@@ -20,6 +20,7 @@ import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.managers.ILiveManager;
+import com.kaltura.media.server.managers.ILiveStreamManager;
 import com.kaltura.media.server.managers.KalturaLiveManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
 import com.wowza.wms.livestreamrecord.model.ILiveStreamRecord;
@@ -149,7 +150,7 @@ public class RecordingManager {
 		
 		@Override
 		public void onPublish() {
-			KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+			ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 			liveManager.addReferrer(entryId, this);
 
 			super.onPublish();
@@ -169,7 +170,7 @@ public class RecordingManager {
 			this.isLastChunk = true;
 			super.onUnPublish();
 			
-			KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+			ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 			liveManager.removeReferrer(entryId, this);
 		}
 	}

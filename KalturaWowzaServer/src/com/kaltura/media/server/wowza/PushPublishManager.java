@@ -22,6 +22,7 @@ import com.kaltura.media.server.events.IKalturaEventConsumer;
 import com.kaltura.media.server.events.KalturaEventType;
 import com.kaltura.media.server.events.KalturaStreamEvent;
 import com.kaltura.media.server.managers.ILiveManager;
+import com.kaltura.media.server.managers.ILiveStreamManager;
 import com.kaltura.media.server.managers.KalturaLiveManager;
 import com.kaltura.media.server.managers.KalturaManager;
 import com.kaltura.media.server.managers.KalturaManagerException;
@@ -145,7 +146,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 			return;
 		}
 		
-		KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+		ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 		liveManager.addReferrer(entry.id, this);
 		
 		String streamName = stream.getName();
@@ -323,7 +324,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	    	logger.error("Operation failed. Exception message:  [" + e.getMessage() + "]");
 	    }
 		
-		KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+		ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 		liveManager.removeReferrer(entry.id, this);
 	}
 	
