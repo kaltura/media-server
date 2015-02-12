@@ -453,12 +453,21 @@ public class LiveStreamEntry extends ModuleBase {
 				@Override
 				public void run() {
 					logger.debug("Group [" + appName + "/" + destGroupName + "] for group name [" + streamNameGroup.getStreamName() + "] tag [" + tag + "] entry id [" + entryId + "]");
-					
-					if(tag.equals("all") && liveStreamManager.shouldSync(entryId)){
-						logger.debug("Group [" + appName + "/" + destGroupName + "] for group name [" + streamNameGroup.getStreamName() + "] restreaming");
-						restreamGroup(entryId, streamNameGroup.getMembers());
-					}
 
+					//Entry required to get the value of the transcoding profile id and DVR status
+					KalturaLiveEntry entry = liveStreamManager.get(entryId);
+					
+					if(tag.equals("all")){
+						if(liveStreamManager.shouldSync(entryId)){
+							logger.debug("Group [" + appName + "/" + destGroupName + "] for group name [" + streamNameGroup.getStreamName() + "] restreaming");
+							restreamGroup(entryId, streamNameGroup.getMembers());
+						}
+
+						if(entry.dvrStatus == KalturaDVRStatus.ENABLED){
+							Integer[] assetParamsIds = liveStreamManager.getLiveAssetParamsIds(entryId);
+							SmilManager.generateCombinations(appInstance, entryId, appInstance.getStreamStoragePath(), assetParamsIds);
+						}
+					}
 					SmilManager.generate(appInstance, entryId, destGroupName, sourceGroupName);
 				}
 			};
