@@ -76,6 +76,9 @@ public class RecordingManager {
 			this.isLastChunk = false;
 			
 			this.addListener(this);
+			
+			ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
+			liveManager.addReferrer(entryId, this);
 		}
 		
 		public String getEntryId () {
@@ -138,6 +141,11 @@ public class RecordingManager {
 						
 					liveManager.appendRecording(entryId, assetId, index, filePath, appendTime, lastChunkFlag);
 					
+					if(lastChunkFlag == true)
+					{
+						ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
+						liveManager.removeReferrer(entryId, EntryRecorder.this);
+					}			
 				}
 			};
 
@@ -146,14 +154,6 @@ public class RecordingManager {
 			Timer appendRecordingTimer = new Timer("appendRecording",true);
 			appendRecordingTimer.schedule(appendRecording, 1);
 			this.isLastChunk = false;
-		}
-		
-		@Override
-		public void onPublish() {
-			ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
-			liveManager.addReferrer(entryId, this);
-
-			super.onPublish();
 		}
 			
 		@Override
@@ -169,9 +169,6 @@ public class RecordingManager {
 
 			this.isLastChunk = true;
 			super.onUnPublish();
-			
-			ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
-			liveManager.removeReferrer(entryId, this);
 		}
 	}
 
