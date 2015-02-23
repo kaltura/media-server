@@ -1,0 +1,38 @@
+dependencies {
+    compile project(":KalturaMediaServer")
+    provided files(
+            "${System.env.WMSINSTALL_HOME}/lib/bcprov-jdk15on-149.jar",
+            "${System.env.WMSINSTALL_HOME}/lib/wms-server.jar",
+            "${System.env.WMSINSTALL_HOME}/lib/wms-httpstreamer-cupertinostreaming.jar",
+            "${System.env.WMSINSTALL_HOME}/lib/wms-stream-publish.jar",
+            "${System.env.WMSINSTALL_HOME}/lib/wms-pushpublish.jar",
+            "${System.env.WMSINSTALL_HOME}/lib/wms-transcoder.jar",
+            "${System.env.WMSINSTALL_HOME}/lib/joda-time-2.3.jar",
+    )
+}
+
+/**
+ * copy all the needed media-server jars to wowza lib dir
+ */
+task copyJarsToWowzaLibDir(type: Copy) {
+    println "copying media-server jars to: ${System.env.WMSINSTALL_HOME}/lib"
+    into "${System.env.WMSINSTALL_HOME}/lib"
+    from configurations.runtime.allArtifacts.files
+    from (configurations.runtime - configurations.provided)
+}
+build.dependsOn(copyJarsToWowzaLibDir)
+
+/**
+ * create a release - zip all needed jars.
+ * the jars should be copied to to wowza_installation_dir/lib
+ */
+task release(type: Zip, dependsOn: jar ) {
+    from "$projectDir/release"
+    from (configurations.runtime.allArtifacts.files) {
+        into ("lib")
+    }
+    from(configurations.runtime - configurations.provided) {
+        into ("lib")
+    }
+    println "release zip file: $release.archiveName"
+}
