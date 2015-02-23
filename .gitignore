@@ -1,5 +1,8 @@
 github-php-client
 bin
+.gradle
+.idea
+*.iml
 *.class
 
 # Package Files #
