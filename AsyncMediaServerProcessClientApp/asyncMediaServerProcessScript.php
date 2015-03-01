@@ -64,7 +64,7 @@ foreach ($files as $f)
 				$fileStatus = handleUploadXMLResource($taskXml, $client);
 			}
 			catch(Exception $e) {
-				$fileStatus = handleException($f, strval($taskXml->filepath), $e, $retryAttempts);
+				$fileStatus = handleException($e, $f, strval($taskXml->filepath), $retryAttempts);
 			}
 		}
 		
@@ -170,7 +170,7 @@ function getContentResource ($filepath, KalturaLiveStreamEntry $liveEntry, $work
 	
 }
 
-function handleException($xmlFilePath, $filePathOnDisc, $e, &$retryAttempts)
+function handleException($e, $xmlFilePath, $mediaFilePath, &$retryAttempts)
 {
 	$retryAttempts++;
 	$baseFileName = basename($xmlFilePath,".xml");
@@ -179,13 +179,16 @@ function handleException($xmlFilePath, $filePathOnDisc, $e, &$retryAttempts)
 	$entryId = $filePathArray[0] . "_" . $filePathArray[1];
 	global $config;
 	
+	logMsg("Handling error of class [{get_class($e)}]: entryId = [$entryId], xml file path = [$xmlFilePath], media file pat = [$mediaFilePath], 
+			retry attempts = [$retryAttempts], base file name = [$baseFileName], file execution attempts = [$fileExecutionAttempts]");
+	
 	switch (get_class($e)) {
 		case 'KalturaClientException':
 			if($retryAttempts == MAX_RETRY_ATTEMPTS)
 			{
 				if($fileExecutionAttempts == MAX_EXECUTION_ATTEMPTS)
 				{
-					moveFileToErrorDir($entryId, $xmlFilePath, $baseFileName . ".xml", $filePathOnDisc, basename($filePathOnDisc));
+					moveFileToErrorDir($entryId, $xmlFilePath, $baseFileName . ".xml", $mediaFilePath, basename($mediaFilePath));
 					return FILE_STATUS_ERROR;
 				}
 				else if($fileExecutionAttempts > MAX_EXECUTION_ATTEMPTS)
@@ -209,7 +212,7 @@ function handleException($xmlFilePath, $filePathOnDisc, $e, &$retryAttempts)
 
 		default:
 			logMsg("Inside Default exception with entry $entryId");
-			moveFileToErrorDir($entryId, $xmlFilePath, $baseFileName . ".xml", $filePathOnDisc, basename($filePathOnDisc));
+			moveFileToErrorDir($entryId, $xmlFilePath, $baseFileName . ".xml", $mediaFilePath, basename($mediaFilePath));
 			return FILE_STATUS_ERROR;
 			break;
 	}
@@ -264,6 +267,7 @@ function createDirIfNotExists($dirName)
 
 function moveFile($currFilePath, $newFilePath)
 {
+	logMsg("Renaming file [$currFilePath] to [$newFilePath]");
 	rename($currFilePath, $newFilePath);
 }
 
