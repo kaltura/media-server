@@ -239,7 +239,10 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 	}
 
 	protected void onUnPublish(String entryId) {
+		
 		synchronized (cuePointsCreators) {
+			CuePointsCreator removeCreator = null;
+			
 			for(CuePointsCreator cuePointsCreator: cuePointsCreators.values()){
 				synchronized (cuePointsCreator) {
 					if(cuePointsCreator.containsKey(entryId)){
@@ -247,13 +250,20 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 						if(cuePointsCreator.size() == 0){
 							cuePointsCreator.timer.cancel();
 							cuePointsCreator.timer.purge();
-							cuePointsCreators.remove(cuePointsCreator.interval);
+							removeCreator = cuePointsCreator;
 						}
 					}
 				}
 			}
+			
+			if(removeCreator != null) {
+				cuePointsCreators.remove(removeCreator.interval);
+			}
 		}
+		
 		synchronized (cuePointsLoaders) {
+			CuePointsLoader removeLoader = null;
+			
 			for(CuePointsLoader cuePointsLoader: cuePointsLoaders){
 				synchronized(cuePointsLoader){
 					if(cuePointsLoader.contains(entryId)){
@@ -261,16 +271,21 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 						if(cuePointsLoader.size() == 0){
 							cuePointsLoader.timer.cancel();
 							cuePointsLoader.timer.purge();
-							cuePointsLoaders.remove(cuePointsLoader);
-							
-							if(cuePointsLoader == currentCuePointsLoader){
-								currentCuePointsLoader = null;
-							}
+							removeLoader = cuePointsLoader;
 						}
 					}
 				}
 			}
+			
+			if(removeLoader != null) {
+				cuePointsLoaders.remove(removeLoader);
+				if(removeLoader == currentCuePointsLoader){
+					currentCuePointsLoader = null;
+				}
+			}
 		}
+		
+		
 	}
 
 	@Override
@@ -280,18 +295,18 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 				synchronized (cuePointsCreator) {
 					cuePointsCreator.timer.cancel();
 					cuePointsCreator.timer.purge();
-					cuePointsCreators.remove(cuePointsCreator.interval);
 				}
 			}
+			cuePointsCreators = new ConcurrentHashMap<Integer, CuePointsCreator>();
 		}
 		synchronized (cuePointsLoaders) {
 			for(CuePointsLoader cuePointsLoader: cuePointsLoaders){
 				synchronized (cuePointsLoader) {
 					cuePointsLoader.timer.cancel();
 					cuePointsLoader.timer.purge();
-					cuePointsLoaders.remove(cuePointsLoader);
 				}
 			}
+			cuePointsLoaders = new ArrayList<CuePointsLoader>(); 
 		}
 	}
 
