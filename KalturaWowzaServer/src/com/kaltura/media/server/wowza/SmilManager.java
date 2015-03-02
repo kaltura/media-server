@@ -248,20 +248,22 @@ public class SmilManager {
 	}
 
 	public static void generateCombinations(IApplicationInstance appInstance, String entryId, String streamStoragePath, Integer[] assetParamsIds) {
-		SortedSet<Integer> assetParamsIdsSubset;
-		for(int i = 0; i < assetParamsIds.length; i++){
-			assetParamsIdsSubset = new TreeSet<Integer>();
-			for(int j = 0; j < assetParamsIds.length; j++){
-				// Add all assetParamsIds except for i
-				if(j != i){
-					assetParamsIdsSubset.add(assetParamsIds[j]);
+
+		String flavorsStr = StringUtils.join(assetParamsIds, "_");
+		String filePath = streamStoragePath + File.separator + entryId + "_" + flavorsStr + ".smil";
+		merge(appInstance, entryId, filePath, flavorsStr.split("_"));
+
+		if(assetParamsIds.length > 2){
+			SortedSet<Integer> assetParamsIdsSubset;
+			for(int i = 0; i < assetParamsIds.length; i++){
+				assetParamsIdsSubset = new TreeSet<Integer>();
+				for(int j = 0; j < assetParamsIds.length; j++){
+					// Add all assetParamsIds except for i
+					if(j != i){
+						assetParamsIdsSubset.add(assetParamsIds[j]);
+					}
 				}
-			}
-			String flavorsStr = StringUtils.join(assetParamsIdsSubset, "_");
-			String filePath = streamStoragePath + File.separator + entryId + "_" + flavorsStr + ".smil";
-			merge(appInstance, entryId, filePath, flavorsStr.split("_"));
-			
-			if(assetParamsIds.length > 3){
+				
 				generateCombinations(appInstance, entryId, streamStoragePath, assetParamsIdsSubset.toArray(new Integer[0]));
 			}
 		}
