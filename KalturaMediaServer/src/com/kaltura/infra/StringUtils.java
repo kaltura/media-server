@@ -48,6 +48,23 @@ public class StringUtils {
 		return str;
 	}
 
+	public static String join(Object[] list, String delimiter) {
+		if(delimiter == null)
+			delimiter = ",";
+		
+		String str = "";
+		boolean isFirst = true;
+		for(Object item : list){
+			if(!isFirst)
+				str += delimiter;
+			
+			str += item;
+			isFirst = false;
+		}
+		
+		return str;
+	}
+
 	public static String getUniqueId() {
 		SecureRandom prng;
 		MessageDigest sha;
