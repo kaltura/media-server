@@ -1,24 +1,28 @@
 dependencies {
     compile project(":KalturaMediaServer")
+//    provided fileTree(dir: "${System.env.WMSINSTALL_HOME}/lib", include: '*.jar', exclude: '*altura*.jar')
+
     provided files(
             "${System.env.WMSINSTALL_HOME}/lib/bcprov-jdk15on-149.jar",
-            "${System.env.WMSINSTALL_HOME}/lib/wms-server.jar",
-            "${System.env.WMSINSTALL_HOME}/lib/wms-httpstreamer-cupertinostreaming.jar",
-            "${System.env.WMSINSTALL_HOME}/lib/wms-stream-publish.jar",
-            "${System.env.WMSINSTALL_HOME}/lib/wms-pushpublish.jar",
-            "${System.env.WMSINSTALL_HOME}/lib/wms-transcoder.jar",
             "${System.env.WMSINSTALL_HOME}/lib/joda-time-2.3.jar",
+            "${System.env.WMSINSTALL_HOME}/lib/commons-lang-2.6.jar",
+            "${System.env.WMSINSTALL_HOME}/lib/jid3lib-0.5.4.jar",
+            "${System.env.WMSINSTALL_HOME}/lib/slf4j-api-1.6.4.jar",
+            "${System.env.WMSINSTALL_HOME}/lib/slf4j-log4j12-1.6.4.jar",
     )
+    provided fileTree(dir: "${System.env.WMSINSTALL_HOME}/lib", include: 'wms*.jar')
 }
 
 /**
  * copy all the needed media-server jars to wowza lib dir
  */
 task copyJarsToWowzaLibDir(type: Copy) {
-    println "copying media-server jars to: ${System.env.WMSINSTALL_HOME}/lib"
-    into "${System.env.WMSINSTALL_HOME}/lib"
-    from configurations.runtime.allArtifacts.files
-    from (configurations.runtime - configurations.provided)
+    doLast {
+        println "copying media-server jars to: ${System.env.WMSINSTALL_HOME}/lib"
+        into "${System.env.WMSINSTALL_HOME}/lib"
+        from configurations.runtime.allArtifacts.files
+        from (configurations.runtime - configurations.provided)
+    }
 }
 build.dependsOn(copyJarsToWowzaLibDir)
 
@@ -27,6 +31,7 @@ build.dependsOn(copyJarsToWowzaLibDir)
  * the jars should be copied to to wowza_installation_dir/lib
  */
 task release(type: Zip, dependsOn: jar ) {
+    archiveName = "$project.name-install-$project.version" + ".zip"
     from "$projectDir/release"
     from (configurations.runtime.allArtifacts.files) {
         into ("lib")
@@ -34,5 +39,34 @@ task release(type: Zip, dependsOn: jar ) {
     from(configurations.runtime - configurations.provided) {
         into ("lib")
     }
-    println "release zip file: $release.archiveName"
+
+    doLast {
+        println "release path: $release.archivePath"
+    }
 }
+
+task uploadRelease(type:Exec, dependsOn: release) {
+
+    //check if client library already exists
+    doFirst {
+        def clientLibs = new File("${buildDir}/tmp/github-php-client")
+
+        // If it doesn't exist, download it from Github
+        if(!clientLibs.exists() ) {
+            println "Downloading PHP github client library..."
+            ant.get(src: "https://github.com/tan-tan-kanarek/github-php-client/archive/master.zip", dest: "${buildDir}/tmp/github-php-client.zip")
+            ant.unzip(src: "${buildDir}/tmp/github-php-client.zip", dest: "${buildDir}/tmp")
+            ant.delete(file: "${buildDir}/tmp/github-php-client.zip")
+            ant.move(file: "${buildDir}/tmp/github-php-client-master/client", tofile: "${buildDir}/tmp/github-php-client")
+            ant.delete(dir: "${buildDir}/tmp/github-php-client-master")
+        }
+        else {
+            println "PHP Client exists. skip download."
+        }
+    }
+
+    //run the php release script
+    workingDir projectDir
+    commandLine "php", "$projectDir/../release.php", username, password, version
+}
+
