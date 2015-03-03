@@ -17,12 +17,13 @@ dependencies {
  * copy all the needed media-server jars to wowza lib dir
  */
 task copyJarsToWowzaLibDir(type: Copy) {
-    doLast {
+    doFirst {
         println "copying media-server jars to: ${System.env.WMSINSTALL_HOME}/lib"
-        into "${System.env.WMSINSTALL_HOME}/lib"
-        from configurations.runtime.allArtifacts.files
-        from (configurations.runtime - configurations.provided)
     }
+
+    into "${System.env.WMSINSTALL_HOME}/lib"
+    from configurations.runtime.allArtifacts.files
+    from (configurations.runtime - configurations.provided)
 }
 build.dependsOn(copyJarsToWowzaLibDir)
 
@@ -30,7 +31,7 @@ build.dependsOn(copyJarsToWowzaLibDir)
  * create a release - zip all needed jars.
  * the jars should be copied to to wowza_installation_dir/lib
  */
-task release(type: Zip, dependsOn: jar ) {
+task release(type: Zip, dependsOn: build ) {
     archiveName = "$project.name-install-$project.version" + ".zip"
     from "$projectDir/release"
     from (configurations.runtime.allArtifacts.files) {
