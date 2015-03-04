@@ -64,7 +64,7 @@ Media Server Build Instructions
 * Set environment variable: WMSINSTALL_HOME = path_to_wowza_dir (for example: /usr/local/WowzaStreamingEngine)
 * Use the following Gradle tasks:
   * **gradle build** compiles the code, builds artifacts and copy them to Wowza lib directory.
-  * **gradle release** builds the distribution (a zip archive with all needed jars)
-  * **gradle uploadRelease -Dusername=your_git_username -Dpassword=your_git_password** uploads a release to github
+  * **gradle prepareRelease** builds the distribution (a zip archive with all needed jars)
+  * **gradle release -Dusername=your_git_username -Dpassword=your_git_password** prepares the release and uploads it to github
 
 

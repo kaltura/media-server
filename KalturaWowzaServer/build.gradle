@@ -1,16 +1,12 @@
 dependencies {
     compile project(":KalturaMediaServer")
-//    provided fileTree(dir: "${System.env.WMSINSTALL_HOME}/lib", include: '*.jar', exclude: '*altura*.jar')
-
     provided files(
             "${System.env.WMSINSTALL_HOME}/lib/bcprov-jdk15on-149.jar",
             "${System.env.WMSINSTALL_HOME}/lib/joda-time-2.3.jar",
             "${System.env.WMSINSTALL_HOME}/lib/commons-lang-2.6.jar",
             "${System.env.WMSINSTALL_HOME}/lib/jid3lib-0.5.4.jar",
-            "${System.env.WMSINSTALL_HOME}/lib/slf4j-api-1.6.4.jar",
-            "${System.env.WMSINSTALL_HOME}/lib/slf4j-log4j12-1.6.4.jar",
     )
-    provided fileTree(dir: "${System.env.WMSINSTALL_HOME}/lib", include: 'wms*.jar')
+    provided fileTree(dir: "${System.env.WMSINSTALL_HOME}/lib", includes: ['wms*.jar', 'jackson*.jar', 'slf4j*.jar'])
 }
 
 /**
@@ -31,7 +27,7 @@ build.dependsOn(copyJarsToWowzaLibDir)
  * create a release - zip all needed jars.
  * the jars should be copied to to wowza_installation_dir/lib
  */
-task release(type: Zip, dependsOn: build ) {
+task prepareRelease(type: Zip, dependsOn: build ) {
     archiveName = "$project.name-install-$project.version" + ".zip"
     from "$projectDir/release"
     from (configurations.runtime.allArtifacts.files) {
@@ -42,11 +38,11 @@ task release(type: Zip, dependsOn: build ) {
     }
 
     doLast {
-        println "release path: $release.archivePath"
+        println "release path: $prepareRelease.archivePath"
     }
 }
 
-task uploadRelease(type:Exec, dependsOn: release) {
+task release(type:Exec, dependsOn: prepareRelease) {
 
     //check if client library already exists
     def user = System.getProperty("username")
