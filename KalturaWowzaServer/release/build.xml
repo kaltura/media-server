@@ -15,7 +15,7 @@
 				password="${kaltura.DB1_PASS}"
 				output="${basedir}/tmp/adminSecret.ini" print="true" showheaders="false" showtrailers="false">
 				<classpath>
-					<pathelement location="${basedir}/lib/mysql-connector-java-5.0.8-bin.jar"/>
+					<pathelement location="${basedir}/lib/mysql-connector-java-5.1.34.jar"/>
 				</classpath>
 				SELECT CONCAT('ADMIN_SECRET=', admin_secret) FROM partner WHERE id = -5;
 		</sql>
