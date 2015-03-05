@@ -25,13 +25,15 @@
 		<property name="zip.filepath" value="${core.build.release}/${jar.filename}-install-${jar.version}.zip" />
 	</target>
 
-	<target name="release" depends="jar, github-client-check, download-github-client, set-version">
+	<target name="prepare-release" depends="jar, github-client-check, download-github-client, set-version">
 		<delete>
 			<fileset dir="${release.dir}/lib" includes="${jar.filename}*.jar"/>
 		</delete>
 		<copy file="${jar.filepath}" todir="${release.dir}/lib"/>
 		<zip destfile="${zip.filepath}" basedir="${release.dir}" />
-				
+	</target>
+
+	<target name="release" depends="prepare-release">
 		<input message="Please enter git username:" addproperty="git.username" />
 		<input message="Please enter git password:" addproperty="git.password" />
 		<exec dir="./" executable="php">
