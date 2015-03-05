@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="bin" path="src"/>
+	<classpathentry kind="src" path="KalturaClientLib"/>
+	<classpathentry kind="src" path="KalturaMediaServer"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/bcprov-jdk15on-149.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/commons-lang-2.6.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/jackson-annotations-2.1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/jackson-core-2.1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/jackson-databind-2.1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/jid3lib-0.5.4.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/joda-time-2.3.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/slf4j-api-1.6.4.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/slf4j-log4j12-1.6.4.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-amazonutil.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-ant.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-bootstrap.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-commons-modeler.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-core.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-drm.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-dvr.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-httpstreamer-cupertinostreaming.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-httpstreamer-directstreaming.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-httpstreamer-mpegdashstreaming.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-httpstreamer-sanjosestreaming.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-httpstreamer-smoothstreaming.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-jax.validation.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-jlayer.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-license-rest.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-mediacache.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-mediareader-flv.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-mediareader-h264.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-mediareader-mp3.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-mediareader-smil.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-mediawriter-flv.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-mediawriter-h264.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-pushpublish.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-release-tools.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-rest.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-restlet-2.1.6.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-restlet-2.1.6.org.restlet.ext.simple.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-server.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-stats.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-stream-file.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-stream-live.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-stream-publish.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-stream-record.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-stream-rtp.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-stream-shoutcast.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-transcoder.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/wms-xstream-1.4.7.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/commons-codec-1.4.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/commons-httpclient-3.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Wowza Media Systems/Wowza Streaming Engine 4.1.0/lib/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

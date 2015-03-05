@@ -1,18 +1,7 @@
 github-php-client
 bin
-.gradle
-.idea
-*.iml
 *.class
 
 # Package Files #
 *.war
 *.ear
-*.jar
-
-KalturaRed5Server/bin
-KalturaRed5Server/WEB-INF/classes/com
-KalturaMediaServer/build
-KalturaWowzaServer/release/xml
-KalturaWowzaServer/release/tmp
-KalturaWowzaServer/build
