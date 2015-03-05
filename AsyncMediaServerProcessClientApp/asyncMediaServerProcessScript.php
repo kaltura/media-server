@@ -1,42 +1,48 @@
 <?php
 
 //Define consts
-define("MAX_RETRY_ATTEMPTS", 3);
-define("MAX_EXECUTION_ATTEMPTS", 5);
-define("RETRY_SLEEP_INTERVAL", 2);
+define("DEFAULT_MAX_RETRY_ATTEMPTS", 5);
 
-define("FILE_STATUS_DONE", "done");
-define("FILE_STATUS_IN_PROGRESS", "in_progress");
-define("FILE_STATUS_ERROR", "error");
-define("FILE_STATUS_RETRY", "retry");
+if(count($argv) < 2){
+	logMsg("Mandatory required parameter not provided. Usage: php asyncMediaServerProcessScript.php [config_file_path] {max_retry_attempts}");
+	die();
+}
 
 //Read config file
 $configFilePath = $argv[1];
 $config = parse_ini_file($configFilePath);
 
-//Create REquired Directory For Script Execution
-if(!createDirIfNotExists($config['dirName'] . "/error/"))
-{
+//Set Max Execution Attempts Value
+$maxRetryAttempts = DEFAULT_MAX_EXECUTION_ATTEMPTS;
+if( isset($argv[2]) && is_numeric($argv[2]) ){
+	$maxRetryAttempts = $argv[2];
+}
+
+//Configure Base Paths
+$baseErrorDir = $config['dirName'] . "/error/";
+$baseCompleteDir = $config['dirName'] . "/complete/";
+
+//Create Required Directories For Script Execution
+if(!createDirIfNotExists($baseErrorDir)) {
+	logMsg("Failed co create error dir");
 	die();
 }
-	
-if(!createDirIfNotExists($config['dirName'] . "/complete/"))
-{
+
+if(!createDirIfNotExists($baseCompleteDir)) {
+	logMsg("Failed to create complete dir");
 	die();
 }
 
 //Load configuration
 $files = glob($config['dirName'] . '/*.xml');
-if (!count($files))
-{
+if (!count($files)) {
 	logMsg("No new files found at this time.");
 	die();
 }
-
 logMsg(count ($files) . " files found.");
 
 //Sort files - ascending creation date
-foreach ($files as $f){
+foreach ($files as $f) {
   $tmp[realpath($f)] = filectime($f);
 }
 
@@ -48,37 +54,45 @@ $clientConfig = new KalturaConfiguration();
 $clientConfig->serviceUrl = $config['serviceUrl'];
 $clientConfig->partnerId = $config['partnerId'];
 $client = new KalturaClient($clientConfig);
-$ks = $client->generateSessionV2($config['adminSecret'], '', KalturaSessionType::ADMIN, $clientConfig->partnerId, 86400, null);
+$ks = $client->generateSessionV2($config['adminSecret'], '', KalturaSessionType::ADMIN, $clientConfig->partnerId, 86400, "disableentitlement");
 $client->setKs($ks);
 
 foreach ($files as $f)
 {	
-	$fileStatus = FILE_STATUS_IN_PROGRESS;
-	$retryAttempts = 0;
-	while ($fileStatus == FILE_STATUS_IN_PROGRESS)
+	$taskXml = new SimpleXMLElement(file_get_contents($f));
+	if ($taskXml->getName() == 'upload')
 	{
-		$taskXml = new SimpleXMLElement(file_get_contents($f));
-		if ($taskXml->getName() == 'upload')
-		{
-			try {
-				$fileStatus = handleUploadXMLResource($taskXml, $client);
-			}
-			catch(Exception $e) {
-				$fileStatus = handleException($e, $f, strval($taskXml->filepath), $retryAttempts);
-			}
+		try {
+			handleUploadXMLResource($client, $taskXml, $baseErrorDir);
+			moveFile($f, $baseCompleteDir . basename($f));
 		}
-		
-	}
+		catch(KalturaClientException $e) {
+			logException($e);
+			$baseFileName = basename($f,".xml");
+			$fileParts = explode(".", $baseFileName);
+			$fileName = $fileParts[0];
+			$fileExecutionAttempts = $fileParts[1];
 	
-	if($filaeStatus == FILE_STATUS_DONE)
-	{
-		moveFile($f, $config['dirName'] . "/complete/" . basename($f));
+			if($fileExecutionAttempts == null)
+				$fileExecutionAttempts = 0;
+			else
+				$fileExecutionAttempts++;
+
+			if($fileExecutionAttempts == $maxRetryAttempts) {
+				moveFileToErrorDir(strval($taskXml->entryId), $baseErrorDir, $f, $baseFileName . ".xml", strval($taskXml->filepath));
+			}
+
+			moveFile($f, $config['dirName'] . $fileName . "." . $fileExecutionAttempts . ".xml");
+		}
+		catch(Exception $e) {
+			logException($e);
+			moveFileToErrorDir(strval($taskXml->entryId), $baseErrorDir, $f, basename($f), strval($taskXml->filepath));
+		}
 	}
 }
 
-function handleUploadXMLResource (SimpleXMLElement $uploadXML, KalturaClient $client)
+function handleUploadXMLResource (KalturaClient $client, SimpleXMLElement $uploadXML, $baseErrorDir)
 {
-	global $config;
 	$entryId = strval($uploadXML->entryId);
 	$assetId = strval($uploadXML->assetId);
 	$partnerId = strval ($uploadXML->partnerId);
@@ -89,157 +103,85 @@ function handleUploadXMLResource (SimpleXMLElement $uploadXML, KalturaClient $cl
 	$filepath = strval($uploadXML->filepath);
 	$workmode = strval($uploadXML->workMode);
 
-	if(file_exists($config['dirName'] . "/error/" . $entryId . "/"))
-	{
-		$e = new Exception("append recording: entry [$entryId] asset [$assetId] index [$index] filePath [$filepath] duration [$duration] isLastChunk [$isLastChunk], append will not run, entry is in error list");
-		logException($e);
+	if(file_exists($baseErrorDir . $entryId . "/")){
+		throw new Exception("append recording: entry [$entryId] asset [$assetId] index [$index] filePath [$filepath] duration [$duration] isLastChunk [$isLastChunk], append will not run, entry is in error list");
 	}
-	
-	logMsg("append recording: entry [$entryId] asset [$assetId] index [$index] filePath [$filepath] duration [$duration] isLastChunk [$isLastChunk]");
-		
-	$clientConfig = $client->getConfig();
-	$clientConfig->partnerId = $partnerId;
-	$client->setConfig($clientConfig);
-	
-	try 
-	{
-		$liveEntry = $client->liveStream->get($entryId);
-	}
-	catch (Exception $e)
-	{
-		logException($e, "error occured while retrieving entry with id [$entryId].");
-	}
-	
-	$resource = getContentResource($filepath, $liveEntry, $workmode, $client);
-	
-	try {
-		$updatedEntry = $client->liveStream->appendRecording($entryId, $assetId, $index, $resource, $duration, $isLastChunk);
-	}
-	catch (Exception $e)
-	{
-		logException($e, "Append live recording error.");
-	}
-	
-	return FILE_STATUS_DONE;
+
+	logMsg("Started append recording: entry [$entryId] asset [$assetId] index [$index] filePath [$filepath] duration [$duration] isLastChunk [$isLastChunk]");
+
+	#Start the Multi-Request
+	$client->startMultiRequest();
+
+	$resource = getContentResource($client, $workmode, $filepath);
+
+	$appendRecording = $client->liveStream->appendRecording($entryId, $assetId, $index, $resource, $duration, $isLastChunk);
+
+	$responses = $client->doMultiRequest();
+
+	validateMultiRequestResponse($responses);
+
+	logMsg("Finished append recording: entry [$entryId] asset [$assetId] index [$index] filePath [$filepath] duration [$duration] isLastChunk [$isLastChunk]");
 }
 
 /**
  *	Function returns contentResource of the appropriate type to the workMode
+ *	@param KalturaClinet $client
  *	@param string $filePath
- *	@param KalturaLiveStreamEntry $liveEntry
  *	@param string $workMode
- * 
- *  @throws Exception if creation of contnet resource failed
  *
  *	@return KalturaDataCenterContentResource
  */
-function getContentResource ($filepath, KalturaLiveStreamEntry $liveEntry, $workMode, KalturaClient $client) 
+function getContentResource (KalturaClient $client, $workMode, $filepath) 
 {
 	if ($workMode == 'kaltura') {
 		$resource = new KalturaServerFileResource();
 		$resource->localFilePath = $filepath;
 		return $resource;
 	}
-	else {
-		try {
-			$client->startMultiRequest();
-			$client->uploadToken->add(new KalturaUploadToken());
+	else 
+	{
+		$uploadToken = $client->uploadToken->add(new KalturaUploadToken());
+		$uploadToken = $client->uploadToken->upload($uploadToken->id, realpath($filepath));
+
+		$resource = new KalturaUploadedFileTokenResource();
+		$resource->token = $uploadToken->id;
 			
-			$client->uploadToken->upload("{1:result:id}", realpath($filepath));
-			$responses = $client->doMultiRequest();
-			
-			$resource = new KalturaUploadedFileTokenResource();
-			$tokenResponse = $responses[1];
-			if ($tokenResponse instanceof KalturaUploadToken)
-				$resource->token = $tokenResponse->id;
-			else {
-				if ($tokenResponse instanceof Exception) {
-					logException($tokenResponse, "Response Token retuned with error, failed to creating content resource.");
-				}
-			}
-				
-			return $resource;
-			
-		} catch (Exception $e) {
-			logException($e, "Content resource creation error.");
+		return $resource;		
+	}
+}
+
+function validateMultiRequestResponse($responses)
+{
+	foreach ($responses as $key => $value) {
+		if(is_array($value) && isset($value['code'])){
+			throw new Exception("Request index [$key] returned error code [{$value['code']}] and messgae [{$value['message']}]");
 		}
 	}
-	
-	$e = new Exception("Error getting content resource");
-	logException($e);
-	
 }
 
-function handleException($e, $xmlFilePath, $mediaFilePath, &$retryAttempts)
+function moveFileToErrorDir($entryId, $baseErrorDir, $xmlOldFilePath, $xmlNewFileName, $mediaFilePath)
 {
-	$retryAttempts++;
-	$baseFileName = basename($xmlFilePath,".xml");
-	$filePathArray = explode("_", $baseFileName);
-	$fileExecutionAttempts = end($filePathArray);
-	$entryId = $filePathArray[0] . "_" . $filePathArray[1];
-	global $config;
-	
-	logMsg("Handling error of class [{get_class($e)}]: entryId = [$entryId], xml file path = [$xmlFilePath], media file pat = [$mediaFilePath], 
-			retry attempts = [$retryAttempts], base file name = [$baseFileName], file execution attempts = [$fileExecutionAttempts]");
-	
-	switch (get_class($e)) {
-		case 'KalturaClientException':
-			if($retryAttempts == MAX_RETRY_ATTEMPTS)
-			{
-				if($fileExecutionAttempts == MAX_EXECUTION_ATTEMPTS)
-				{
-					moveFileToErrorDir($entryId, $xmlFilePath, $baseFileName . ".xml", $mediaFilePath, basename($mediaFilePath));
-					return FILE_STATUS_ERROR;
-				}
-				else if($fileExecutionAttempts > MAX_EXECUTION_ATTEMPTS)
-				{
-					moveFile($xmlFilePath, $config['dirName'] . "/" . $baseFileName . "_0.xml");
-					return FILE_STATUS_RETRY;
-				}
-				else
-				{
-					$filePathArray[count($filePathArray)-1] = $fileExecutionAttempts+1;
-					moveFile($xmlFilePath, $config['dirName'] . implode("_", $filePathArray) . ".xml");
-					return FILE_STATUS_RETRY;
-				}
-			}
-			else
-			{
-				sleep(RETRY_SLEEP_INTERVAL);
-				return FILE_STATUS_IN_PROGRESS;
-			}
-			break;
+	logMsg("Moving File To Error Dir [$entryId] [$xmlOldFilePath] [$mediaFilePath]");
 
-		default:
-			logMsg("Inside Default exception with entry $entryId");
-			moveFileToErrorDir($entryId, $xmlFilePath, $baseFileName . ".xml", $mediaFilePath, basename($mediaFilePath));
-			return FILE_STATUS_ERROR;
-			break;
-	}
-}
+	$entryErrorDir = createErrorDirForEntry($baseErrorDir, $entryId);
 
-function moveFileToErrorDir($entryId, $xmlOldFilePath, $xmlFileName, $mediaOldFilePath = null, $mediaFileName = null)
-{
-	logMsg("Moving File To Error Dir [$entryId] [$xmlOldFilePath] [$xmlFileName] [$mediaOldFilePath] [$mediaFileName]");
-
-	$entryErrorDir = createErrorDirForEntry($entryId);
-	
-	if(!$entryErrorDir)
-	{
-		logMsg("Error dir could not be create, entry [$entryId] files will not be moved to error");
-		return null;
+	if(!$entryErrorDir){
+		throw new Exception("Failed to create entry error dir for entry [$entryId]");
 	}
 	
-	moveFile($xmlOldFilePath, $entryErrorDir . $xmlFileName);
-	if($mediaOldFilePath && $mediaFileName)
-		moveFile($mediaOldFilePath, $entryErrorDir . $mediaFileName);
+	moveFile($xmlOldFilePath, $entryErrorDir . $xmlNewFileName);
+	moveFile($mediaFilePath, $entryErrorDir . basename($mediaFilePath));
 }
 
-function createErrorDirForEntry($entryId)
+function createErrorDirForEntry($baseErrorDir, $entryId)
 {
-	global $config;
+	$entryErrorDir = $baseErrorDir . $entryId . "/";
 
-	$entryErrorDir = $config['dirName'] . "/error/" . $entryId . "/";
+	if(file_exists($entryErrorDir))
+		return $entryErrorDir;
+
+	logMsg("Creating error dir for entry [$entryId]");
+	
 	if(!createDirIfNotExists($entryErrorDir))
 		return null;
 
@@ -248,18 +190,12 @@ function createErrorDirForEntry($entryId)
 
 function createDirIfNotExists($dirName)
 {
-	$res = true;
-
-	if(file_exists($dirName))
-		return $res;
-
-	if (!file_exists($dirName)) 
-		$res = mkdir($dirName, 0644, true);
+	$res = mkdir($dirName, 0644, true);
 
 	if(!$res) 
 	{
     	$error = error_get_last();
-    	logMsg("Failed to create error dir with error " . implode(" __ ", $error));
+    	logMsg("Failed to create error dir with error " . implode(" ", $error));
     }
 
 	return $res;
@@ -267,14 +203,13 @@ function createDirIfNotExists($dirName)
 
 function moveFile($currFilePath, $newFilePath)
 {
-	logMsg("Renaming file [$currFilePath] to [$newFilePath]");
+	logMsg("Moving file from [$currFilePath] to [$newFilePath]");
 	rename($currFilePath, $newFilePath);
 }
 
 function logException($e, $messgae = "")
 {
 	logMsg("Exception of class " . get_class($e) . ": [{$e->getMessage()}]. " . $messgae);
-	throw $e;
 }
 
 function logMsg($str)
