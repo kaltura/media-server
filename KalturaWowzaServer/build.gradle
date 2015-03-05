@@ -1,0 +1,80 @@
+dependencies {
+    compile project(":KalturaMediaServer")
+    provided files(
+            "${System.env.WMSINSTALL_HOME}/lib/bcprov-jdk15on-149.jar",
+            "${System.env.WMSINSTALL_HOME}/lib/joda-time-2.3.jar",
+            "${System.env.WMSINSTALL_HOME}/lib/commons-lang-2.6.jar",
+            "${System.env.WMSINSTALL_HOME}/lib/jid3lib-0.5.4.jar",
+    )
+    provided fileTree(dir: "${System.env.WMSINSTALL_HOME}/lib", includes: ['wms*.jar', 'jackson*.jar', 'slf4j*.jar'])
+    forInstaller "mysql:mysql-connector-java:5.1.34"
+}
+
+/**
+ * copy all the needed media-server jars to wowza lib dir
+ */
+task copyJarsToWowzaLibDir(type: Copy) {
+    doFirst {
+        println "copying media-server jars to: ${System.env.WMSINSTALL_HOME}/lib"
+    }
+
+    into "${System.env.WMSINSTALL_HOME}/lib"
+    from configurations.runtime.allArtifacts.files
+    from (configurations.runtime - configurations.provided)
+}
+build.dependsOn(copyJarsToWowzaLibDir)
+
+/**
+ * create a release - zip all needed jars.
+ * the jars should be copied to to wowza_installation_dir/lib
+ */
+task prepareRelease(type: Zip, dependsOn: build ) {
+    archiveName = "$project.name-install-$project.version" + ".zip"
+    from "$projectDir/release"
+    from (configurations.runtime.allArtifacts.files) {
+        into ("lib")
+    }
+    from(configurations.runtime - configurations.provided) {
+        into ("lib")
+    }
+    from(configurations.forInstaller) {
+        into ("lib")
+    }
+
+    doLast {
+        println "release path: $prepareRelease.archivePath"
+    }
+}
+
+task release(type:Exec, dependsOn: prepareRelease) {
+
+    //check if client library already exists
+    def user = System.getProperty("username")
+    def pass = System.getProperty("password")
+
+    //run the php release script
+    workingDir projectDir
+    commandLine "php", "$projectDir/../release.php", user , pass, version
+
+    doFirst {
+        //validate username and password are set:
+        if (user == null || pass == null) {
+            throw new InvalidUserDataException("username or password arguments are null. use: 'gradle uploadRelease -Dusername=myuser -Dpassword=mypass'")
+        }
+
+        def clientLibs = new File("${buildDir}/tmp/github-php-client")
+
+        // If it doesn't exist, download it from Github
+        if (!clientLibs.exists()) {
+            println "Downloading PHP github client library..."
+            ant.get(src: "https://github.com/tan-tan-kanarek/github-php-client/archive/master.zip", dest: "${buildDir}/tmp/github-php-client.zip")
+            ant.unzip(src: "${buildDir}/tmp/github-php-client.zip", dest: "${buildDir}/tmp")
+            ant.delete(file: "${buildDir}/tmp/github-php-client.zip")
+            ant.move(file: "${buildDir}/tmp/github-php-client-master/client", tofile: "${buildDir}/tmp/github-php-client")
+            ant.delete(dir: "${buildDir}/tmp/github-php-client-master")
+        } else {
+            println "PHP Client exists. skip download."
+        }
+    }
+}
+

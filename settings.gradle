@@ -1,0 +1,4 @@
+rootProject.name = 'media-server'
+include 'KalturaMediaServer'
+include 'KalturaWowzaServer'
+
