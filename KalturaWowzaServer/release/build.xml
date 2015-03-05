@@ -2,10 +2,24 @@
 <project name="Kaltura Media-Server Install" default="install">
 
 	<target name="set-properties">
+		
 		<property environment="env" />
 		<property name="wowza.install.dir" value="${env.WMSINSTALL_HOME}" />
 		<loadproperties srcfile="/etc/kaltura.d/system.ini" prefix="kaltura" />
 		<loadproperties srcfile="${kaltura.APP_DIR}/configurations/local.ini" prefix="kaltura" />
+		
+		<mkdir dir="${basedir}/tmp" />
+		<sql	driver="com.mysql.jdbc.Driver"
+				url="jdbc:mysql://${kaltura.DB1_HOST}:3306/${kaltura.DB1_NAME}"
+				userid="${kaltura.DB1_USER}"
+				password="${kaltura.DB1_PASS}"
+				output="${basedir}/tmp/adminSecret.ini" print="true" showheaders="false" showtrailers="false">
+				<classpath>
+					<pathelement location="${basedir}/lib/mysql-connector-java-5.0.8-bin.jar"/>
+				</classpath>
+				SELECT CONCAT('ADMIN_SECRET=', admin_secret) FROM partner WHERE id = -5;
+		</sql>
+		<loadproperties srcfile="${basedir}/tmp/adminSecret.ini" prefix="kaltura" />
 	</target>
 	
 	<target name="configure">
@@ -13,6 +27,7 @@
 		<xslt reloadstylesheet="true" destdir="${basedir}/tmp" extension=".xml" style="${basedir}/configure.xsl" basedir="${wowza.install.dir}/conf" includes="Server.xml, Application.xml">
 			<param name="BASE_DIR" expression="${kaltura.BASE_DIR}" />
 			<param name="APP_URL" expression="${kaltura.apphome_url}" />
+			<param name="ADMIN_SECRET" expression="${kaltura.ADMIN_SECRET}" />
 		</xslt>
 		
 		<mkdir dir="${wowza.install.dir}/conf/kLive"/>
@@ -25,7 +40,7 @@
 		<loadproperties srcfile="${wowza.install.dir}/conf/log4j.properties"/>
 		<copy file="${wowza.install.dir}/conf/log4j.properties" tofile="${wowza.install.dir}/conf/log4j.properties.backup" overwrite="false"/>
 		<propertyfile file="${wowza.install.dir}/conf/log4j.properties">
-		    <entry key="log4j.rootCategory" value="INFO, stdout, serverAccess, kalturaAccess, serverError" />
+			<entry key="log4j.rootCategory" value="INFO, stdout, serverAccess, kalturaAccess, serverError" />
 			<entry key="log4j.logger.com.kaltura" value="DEBUG" />
 			
 			<!-- Console appender -->
