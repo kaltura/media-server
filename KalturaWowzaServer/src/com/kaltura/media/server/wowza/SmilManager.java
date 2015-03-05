@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -14,16 +13,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
+import com.kaltura.infra.StringUtils;
 import com.kaltura.infra.XmlUtils;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.application.WMSProperties;
 import com.wowza.wms.medialist.MediaList;
 import com.wowza.wms.medialist.MediaListRendition;
 import com.wowza.wms.medialist.MediaListSegment;
-import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.timedtext.model.ITimedTextConstants;
 import com.wowza.wms.util.MediaListUtils;
 import com.wowza.wms.vhost.IVHost;
@@ -132,7 +133,7 @@ public class SmilManager {
 		}
 	}
 
-	public static synchronized void generate(IApplicationInstance appInstance, String entryId, String destGroupName, Map<String, Long> bitrates) {
+	public static synchronized void generate(IApplicationInstance appInstance, String entryId, String destGroupName, Map<String, Long> bitrates, int transcodingProfileId) {
 
 		String smil = "<smil>\n";
 		smil += "	<head></head>\n";
@@ -149,18 +150,7 @@ public class SmilManager {
 		smil += "	</body>\n";
 		smil += "</smil>";
 
-		String filePath = appInstance.getStreamStoragePath() + File.separator + destGroupName + ".smil";
-		try {
-			PrintWriter out = new PrintWriter(filePath);
-			out.print(smil);
-			out.close();
-			
-			addSmil(entryId, filePath);
-
-			logger.info("Generated smil file [" + filePath + "]");
-		} catch (FileNotFoundException e) {
-			logger.error("Failed writing to file [" + filePath + "]: " + e.getMessage());
-		}
+		save(appInstance, entryId, destGroupName, smil, transcodingProfileId); 
 	}
 	
 	public static synchronized void generate(IApplicationInstance appInstance, String entryId, String destGroupName, String sourceName, int transcodingProfileId) {
@@ -202,7 +192,7 @@ public class SmilManager {
 	protected static synchronized void save(IApplicationInstance appInstance, String entryId, String destGroupName, String smil, Integer transcodingProfileId) {
 		String appName = appInstance.getContextStr();
 		
-		String filePath = appInstance.getStreamStoragePath() + File.separator + entryId + "_" + transcodingProfileId + ".smil";
+		String filePath = appInstance.getStreamStoragePath() + File.separator + entryId + "_" + transcodingProfileId + "_" + destGroupName + ".smil";
 		File file = new File(filePath);
 		if(file.exists()){
 			File tmpFile;
@@ -244,12 +234,42 @@ public class SmilManager {
 		Path smilPath = Paths.get(filePath);
 		
 		try {
-			if (Files.exists(symLinkPath) && (!Files.isSymbolicLink(symLinkPath) || !Files.readSymbolicLink(symLinkPath).equals(smilPath))) {
-				Files.deleteIfExists(symLinkPath);
+			if (Files.exists(symLinkPath)) {
+				if (!Files.isSymbolicLink(symLinkPath) || !Files.readSymbolicLink(symLinkPath).equals(smilPath)) {
+					Files.deleteIfExists(symLinkPath);
+					Files.createSymbolicLink(symLinkPath, smilPath);
+				}
+			} else {
 				Files.createSymbolicLink(symLinkPath, smilPath);
 			}
 		} catch (Exception e) {
 			logger.error("There was an error creating the symlink: " + e.getMessage());
+		}
+	}
+
+	public static void generateCombinations(IApplicationInstance appInstance, String entryId, String streamStoragePath, Integer[] assetParamsIds) {
+
+		SortedSet<Integer> assetParamsIdsSubset = new TreeSet<Integer>();
+		for(int i = 0; i < assetParamsIds.length; i++){
+			assetParamsIdsSubset.add(assetParamsIds[i]);
+		}
+		
+		String flavorsStr = StringUtils.join(assetParamsIdsSubset, "_");
+		String filePath = streamStoragePath + File.separator + entryId + "_" + flavorsStr + ".smil";
+		merge(appInstance, entryId, filePath, flavorsStr.split("_"));
+
+		if(assetParamsIds.length > 2){
+			for(int i = 0; i < assetParamsIds.length; i++){
+				assetParamsIdsSubset = new TreeSet<Integer>();
+				for(int j = 0; j < assetParamsIds.length; j++){
+					// Add all assetParamsIds except for i
+					if(j != i){
+						assetParamsIdsSubset.add(assetParamsIds[j]);
+					}
+				}
+				
+				generateCombinations(appInstance, entryId, streamStoragePath, assetParamsIdsSubset.toArray(new Integer[0]));
+			}
 		}
 	}
 }

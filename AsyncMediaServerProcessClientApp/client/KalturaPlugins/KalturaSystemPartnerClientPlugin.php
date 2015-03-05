@@ -167,13 +167,6 @@ class KalturaSystemPartnerConfiguration extends KalturaObjectBase
 	/**
 	 * 
 	 *
-	 * @var string
-	 */
-	public $rtmpUrl = null;
-
-	/**
-	 * 
-	 *
 	 * @var bool
 	 */
 	public $storageDeleteFromKaltura = null;
@@ -368,6 +361,13 @@ class KalturaSystemPartnerConfiguration extends KalturaObjectBase
 	 *
 	 * @var string
 	 */
+	public $referenceId = null;
+
+	/**
+	 * 
+	 *
+	 * @var string
+	 */
 	public $crmLink = null;
 
 	/**
@@ -396,7 +396,14 @@ class KalturaSystemPartnerConfiguration extends KalturaObjectBase
 	 *
 	 * @var string
 	 */
-	public $deliveryRestrictions = null;
+	public $deliveryProfileIds = null;
+
+	/**
+	 * 
+	 *
+	 * @var bool
+	 */
+	public $enforceDelivery = null;
 
 	/**
 	 * 
@@ -478,9 +485,9 @@ class KalturaSystemPartnerConfiguration extends KalturaObjectBase
 	/**
 	 * 
 	 *
-	 * @var array of KalturaString
+	 * @var array of KalturaKeyBooleanValue
 	 */
-	public $disabledDeliveryTypes;
+	public $customDeliveryTypes;
 
 	/**
 	 * 
@@ -495,6 +502,20 @@ class KalturaSystemPartnerConfiguration extends KalturaObjectBase
 	 * @var KalturaLanguageCode
 	 */
 	public $language = null;
+
+	/**
+	 * 
+	 *
+	 * @var string
+	 */
+	public $audioThumbEntryId = null;
+
+	/**
+	 * 
+	 *
+	 * @var string
+	 */
+	public $liveThumbEntryId = null;
 
 
 }

@@ -33,7 +33,7 @@ import com.wowza.wms.pushpublish.protocol.rtp.PushPublishRTP;
 import com.wowza.wms.server.LicensingException;
 import com.wowza.wms.stream.IMediaStream;
 
-public class PushPublishManager extends KalturaManager implements IKalturaEventConsumer {
+public class PushPublishManager extends KalturaManager implements IKalturaEventConsumer, ILiveManager.ILiveEntryReferrer {
 
 	protected final static String MULTICAST_IP_CONFIG_FIELD_NAME = "MulticastIP";
 	protected final static String MULTICAST_TAG_FIELD_NAME = "MulticastTag";
@@ -87,7 +87,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 			{
 				case MEDIA_STREAM_PUBLISHED:
 					mediaStreamEvent = (KalturaMediaStreamEvent) event;
-					onPublish(mediaStreamEvent.getMediaStream(), mediaStreamEvent.getEntry(), mediaStreamEvent.getAssetParamsId());
+					onMediaStreamPublish(mediaStreamEvent.getMediaStream(), mediaStreamEvent.getEntry(), mediaStreamEvent.getAssetParamsId());
 					break;
 				default:
 					break;
@@ -100,7 +100,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 			{
 				case STREAM_PUBLISHED:
 					KalturaMediaStreamEvent publishStreamEvent = (KalturaMediaStreamEvent) event;
-					onSourcePublish(publishStreamEvent.getMediaStream(), publishStreamEvent.getEntry(), publishStreamEvent.getAssetParamsId());
+					onSourcePublish(publishStreamEvent.getMediaStream(), publishStreamEvent.getEntry(), publishStreamEvent.getAssetParamsId(), publishStreamEvent.getServerIndex());
 				break;
 				case STREAM_UNPUBLISHED:
 					KalturaStreamEvent streamEvent = (KalturaStreamEvent) event;
@@ -113,7 +113,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	
 	}
 	
-	protected void onPublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId)
+	protected void onMediaStreamPublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId)
 	{
 		if (entry.pushPublishEnabled == KalturaLivePublishStatus.DISABLED)
 		{
@@ -138,18 +138,21 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 		}
 	}
 	
-	protected void onSourcePublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId)
+	protected void onSourcePublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId, KalturaMediaServerIndex serverIndex)
 	{
 		if (entry.pushPublishEnabled == KalturaLivePublishStatus.DISABLED)
 		{
 			return;
 		}
 		
+		KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+		liveManager.addReferrer(entry.id, this);
+		
 		String streamName = stream.getName();
 		
 		if (!streamName.contains("@") && !streamName.startsWith("push-") && assetParamsId == PushPublishManager.AKAMAI_ASSET_PARAMS_ID) {
 			logger.info("Attempting to publish to Akamai entry [" + entry.id + "], asset id [" + assetParamsId  + "]");
-			rtmpPublish (stream, entry, assetParamsId);
+			rtmpPublish (stream, entry, assetParamsId, serverIndex);
 		}
 	}
 	
@@ -230,7 +233,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	    }
 	}
 	
-	protected void rtmpPublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId) {
+	protected void rtmpPublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId, KalturaMediaServerIndex serverIndex) {
 		try {
 			ArrayList<KalturaLiveStreamPushPublishConfiguration> configurations = entry.publishConfigurations;
 			for (KalturaLiveStreamPushPublishConfiguration configuration : configurations) { 
@@ -244,11 +247,12 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 					publisher.setAkamaiUserName(rtmpConfiguration.userId);
 					publisher.setAkamaiPassword(rtmpConfiguration.password);
 					
-					KalturaMediaServerIndex serverIndex = liveManager.getMediaServerIndexForEntry(entry.id);
-					if (serverIndex.equals(KalturaMediaServerIndex.PRIMARY) ) {
+					logger.info("Server index to publish to: " + serverIndex);
+					
+					if (KalturaMediaServerIndex.PRIMARY.equals(serverIndex) ) {
 						publisher.setHost(rtmpConfiguration.publishUrl);
 					}
-					else if (serverIndex.equals(KalturaMediaServerIndex.SECONDARY)) {
+					else if (KalturaMediaServerIndex.SECONDARY.equals(serverIndex)) {
 						publisher.setHost(rtmpConfiguration.backupPublishUrl);
 					}
 					
@@ -283,7 +287,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 			
 		} catch (LicensingException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Unexpected error occurred: " + e.getMessage());
 		}
 		
 	}
@@ -292,11 +296,14 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 		logger.info("unpublishing entry [" + entry.id + "]");
 		synchronized (publishers) {
 			ArrayList<PushPublishBase> currentPublishers = publishers.remove(entry.id);
-			if (currentPublishers != null) {
-				for (PushPublishBase publisher : currentPublishers) {
-					logger.info("Unpublishing stream " + publisher.getDstStreamName());
-					publisher.disconnect();
-				}
+			if (currentPublishers == null) {
+				logger.info("No publishers were found for entry ID " + entry.id + ".");
+				return;
+			}
+			
+			for (PushPublishBase publisher : currentPublishers) {
+				logger.info("Unpublishing stream " + publisher.getDstStreamName());
+				publisher.disconnect();
 			}
 		}
 		
@@ -315,6 +322,9 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	    catch (KalturaApiException e) {
 	    	logger.error("Operation failed. Exception message:  [" + e.getMessage() + "]");
 	    }
+		
+		KalturaLiveManager liveManager = KalturaServer.getManager(KalturaLiveManager.class);
+		liveManager.removeReferrer(entry.id, this);
 	}
 	
 }
