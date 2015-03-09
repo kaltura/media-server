@@ -14,7 +14,7 @@ $configFilePath = $argv[1];
 $config = parse_ini_file($configFilePath);
 
 //Set max retry attempts
-$maxRetryAttempts = DEFAULT_MAX_EXECUTION_ATTEMPTS;
+$maxRetryAttempts = DEFAULT_MAX_RETRY_ATTEMPTS;
 if( isset($argv[2]) && is_numeric($argv[2]) ){
 	$maxRetryAttempts = $argv[2];
 }
@@ -24,12 +24,12 @@ $baseErrorDir = $config['dirName'] . "/error/";
 $baseCompleteDir = $config['dirName'] . "/complete/";
 
 //Create Required Directories For Script Execution
-if(!createDirIfNotExists($baseErrorDir)) {
+if(!file_exists($baseErrorDir) && !createDirIfNotExists($baseErrorDir)) {
 	logMsg("Failed to create error dir");
 	die();
 }
 
-if(!createDirIfNotExists($baseCompleteDir)) {
+if(!file_exists($baseCompleteDir) && !createDirIfNotExists($baseCompleteDir)) {
 	logMsg("Failed to create complete dir");
 	die();
 }
