@@ -90,7 +90,7 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 			KalturaCuePointFilter filter = new KalturaCuePointFilter();
 			filter.entryIdEqual = StringUtils.join(entryIds);
 			filter.statusEqual = KalturaCuePointStatus.READY;
-			filter.triggeredAtGreaterThanOrEqual = 0;
+			filter.triggeredAtGreaterThanOrEqual = 1;
 			if(periodic){
 				filter.updatedAtGreaterThanOrEqual = lastUpdatedCuePoint;
 			}
