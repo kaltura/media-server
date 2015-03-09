@@ -3,8 +3,9 @@
 //Define consts
 define("DEFAULT_MAX_RETRY_ATTEMPTS", 5);
 
+//Validate input
 if(count($argv) < 2){
-	logMsg("Mandatory required parameter not provided. Usage: php asyncMediaServerProcessScript.php [config_file_path] {max_retry_attempts}");
+	logMsg("Mandatory config_file_path not provided. Usage: php asyncMediaServerProcessScript.php [config_file_path] {max_retry_attempts}");
 	die();
 }
 
@@ -12,23 +13,23 @@ if(count($argv) < 2){
 $configFilePath = $argv[1];
 $config = parse_ini_file($configFilePath);
 
-//Set Max Execution Attempts Value
-$maxRetryAttempts = DEFAULT_MAX_EXECUTION_ATTEMPTS;
+//Set max retry attempts
+$maxRetryAttempts = DEFAULT_MAX_RETRY_ATTEMPTS;
 if( isset($argv[2]) && is_numeric($argv[2]) ){
 	$maxRetryAttempts = $argv[2];
 }
 
-//Configure Base Paths
+//Configure required base dir's
 $baseErrorDir = $config['dirName'] . "/error/";
 $baseCompleteDir = $config['dirName'] . "/complete/";
 
 //Create Required Directories For Script Execution
-if(!createDirIfNotExists($baseErrorDir)) {
-	logMsg("Failed co create error dir");
+if(!file_exists($baseErrorDir) && !createDirIfNotExists($baseErrorDir)) {
+	logMsg("Failed to create error dir");
 	die();
 }
 
-if(!createDirIfNotExists($baseCompleteDir)) {
+if(!file_exists($baseCompleteDir) && !createDirIfNotExists($baseCompleteDir)) {
 	logMsg("Failed to create complete dir");
 	die();
 }
