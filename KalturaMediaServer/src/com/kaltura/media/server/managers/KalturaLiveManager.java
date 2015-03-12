@@ -642,7 +642,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 						liveEntryCache.setLiveEntry(updatedEntry);
 					}
 					else{
-						entries.put(liveEntry.id, new LiveEntryCache(updatedEntry));
+						logger.info("Entry [" + liveEntry.id + "] not found in cache, entry info will not be updated" );
 					}
 				}
 			}
