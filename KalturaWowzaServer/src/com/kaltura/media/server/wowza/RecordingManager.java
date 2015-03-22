@@ -166,18 +166,17 @@ public class RecordingManager {
 			if (liveAsset != null && liveAsset.tags.contains(RecordingManager.RECORDING_ANCHOR_TAG_VALUE) && KalturaMediaServerIndex.PRIMARY.equals(index)) {
 				liveManager.cancelReplace(entryId);
 			}
+			this.isLastChunk = true;
+			super.onUnPublish();
 
-            this.isLastChunk = true;
-            super.onUnPublish();
-
-            this.stopRecording();
-            //remove record from map
-            synchronized (recorders){
-                recorders.remove(entryId);
-            }
-            this.removeListener(this);
-        }
-    }
+			this.stopRecording();
+			//remove record from map
+			synchronized (recorders){
+				recorders.remove(entryId);
+			}
+			this.removeListener(this);
+		}
+	}
 
 	public RecordingManager(KalturaLiveManager liveManager) throws KalturaManagerException {
 		this.liveManager = liveManager;
