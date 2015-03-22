@@ -167,10 +167,17 @@ public class RecordingManager {
 				liveManager.cancelReplace(entryId);
 			}
 
-			this.isLastChunk = true;
-			super.onUnPublish();
-		}
-	}
+            this.isLastChunk = true;
+            super.onUnPublish();
+
+            this.stopRecording();
+            //remove record from map
+            synchronized (recorders){
+                recorders.remove(entryId);
+            }
+            EntryRecorder.this.removeListener(EntryRecorder.this);
+        }
+    }
 
 	public RecordingManager(KalturaLiveManager liveManager) throws KalturaManagerException {
 		this.liveManager = liveManager;
