@@ -175,7 +175,7 @@ public class RecordingManager {
             synchronized (recorders){
                 recorders.remove(entryId);
             }
-            EntryRecorder.this.removeListener(EntryRecorder.this);
+            this.removeListener(this);
         }
     }
 
