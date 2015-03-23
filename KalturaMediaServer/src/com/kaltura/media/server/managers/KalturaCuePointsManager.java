@@ -1,8 +1,10 @@
 package com.kaltura.media.server.managers;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -118,8 +120,16 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 						}
 						
 						// create sync-point 30 seconds before the trigger time
-						date.setTime((cuePoint.triggeredAt / 1000) - 30000);
+						long scheduledTime = (cuePoint.triggeredAt / 1000) - 30000;
+						if (scheduledTime < 0) {
+							logger.error("Cue-point was set with illegal triggered at time " + cuePoint.triggeredAt + ", setting time to zero" );
+							scheduledTime =0 ;
 
+							// should validate on code review if we want to exit the while loop
+							// or maybe set a valid time so that the cue point will be executed 
+							// or perhaps even throw an exception 
+						}
+						date.setTime(scheduledTime);
 						timerTask = new TimerTask(){
 							@Override
 							public void run() {
@@ -133,7 +143,7 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 				}
 			} catch (KalturaApiException e) {
 				logger.error("Failed to list entries cue-points: " + e.getMessage());
-			}
+			} 
 		}
 	}
 	
@@ -152,14 +162,16 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 					try {
 						logger.info("Running sync point creator timer");
 						Date now = new Date();
-						for(String entryId : keySet()){
-							Date stopTime = get(entryId);
+						Iterator<Map.Entry<String ,Date>> iter = entrySet().iterator();
+						while( iter.hasNext() ) {
+							Map.Entry<String, Date> currEntry = iter.next();
+							Date stopTime = currEntry.getValue();
 							if(stopTime != null && now.after(stopTime)){
 								logger.info("Stop time reached or exceeded");
-								remove(entryId);
+								iter.remove();
 							}
 							else{
-								createSyncPoint(entryId);
+								createSyncPoint(currEntry.getKey());
 							
 							}
 						}
@@ -241,46 +253,38 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 	protected void onUnPublish(String entryId) {
 		
 		synchronized (cuePointsCreators) {
-			CuePointsCreator removeCreator = null;
-			
-			for(CuePointsCreator cuePointsCreator: cuePointsCreators.values()){
+			Iterator<Map.Entry<Integer, CuePointsCreator>> cuePointsCreatorIter = cuePointsCreators.entrySet().iterator();
+			while( cuePointsCreatorIter.hasNext() ) {
+				CuePointsCreator cuePointsCreator = cuePointsCreatorIter.next().getValue();
 				synchronized (cuePointsCreator) {
 					if(cuePointsCreator.containsKey(entryId)){
 						cuePointsCreator.remove(entryId);
 						if(cuePointsCreator.size() == 0){
 							cuePointsCreator.timer.cancel();
 							cuePointsCreator.timer.purge();
-							removeCreator = cuePointsCreator;
+							cuePointsCreatorIter.remove();
 						}
 					}
 				}
 			}
-			
-			if(removeCreator != null) {
-				cuePointsCreators.remove(removeCreator.interval);
-			}
 		}
 		
 		synchronized (cuePointsLoaders) {
-			CuePointsLoader removeLoader = null;
-			
-			for(CuePointsLoader cuePointsLoader: cuePointsLoaders){
+			Iterator<CuePointsLoader> cuePointsLoaderIter = cuePointsLoaders.iterator();
+			while( cuePointsLoaderIter.hasNext() ) {
+				CuePointsLoader cuePointsLoader = cuePointsLoaderIter.next();
 				synchronized(cuePointsLoader){
 					if(cuePointsLoader.contains(entryId)){
 						cuePointsLoader.remove(entryId);
 						if(cuePointsLoader.size() == 0){
 							cuePointsLoader.timer.cancel();
 							cuePointsLoader.timer.purge();
-							removeLoader = cuePointsLoader;
+							if(cuePointsLoader == currentCuePointsLoader){
+								currentCuePointsLoader = null;
+							}
+							cuePointsLoaderIter.remove();
 						}
 					}
-				}
-			}
-			
-			if(removeLoader != null) {
-				cuePointsLoaders.remove(removeLoader);
-				if(removeLoader == currentCuePointsLoader){
-					currentCuePointsLoader = null;
 				}
 			}
 		}
@@ -290,23 +294,31 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 
 	@Override
 	public void stop() {
-		synchronized (cuePointsCreators) {
-			for(CuePointsCreator cuePointsCreator: cuePointsCreators.values()){
-				synchronized (cuePointsCreator) {
-					cuePointsCreator.timer.cancel();
-					cuePointsCreator.timer.purge();
+		try {
+			synchronized (cuePointsCreators) {
+				Iterator<Map.Entry<Integer, CuePointsCreator>> cuePointsCreatorIter = cuePointsCreators.entrySet().iterator();
+				while( cuePointsCreatorIter.hasNext() ) {
+					CuePointsCreator cuePointsCreator = cuePointsCreatorIter.next().getValue();
+					synchronized (cuePointsCreator) {
+						cuePointsCreator.timer.cancel();
+						cuePointsCreator.timer.purge();
+						cuePointsCreatorIter.remove();
+					}
 				}
 			}
-			cuePointsCreators = new ConcurrentHashMap<Integer, CuePointsCreator>();
-		}
-		synchronized (cuePointsLoaders) {
-			for(CuePointsLoader cuePointsLoader: cuePointsLoaders){
-				synchronized (cuePointsLoader) {
-					cuePointsLoader.timer.cancel();
-					cuePointsLoader.timer.purge();
+			synchronized (cuePointsLoaders) {
+				Iterator<CuePointsLoader> cuePointsLoaderIter = cuePointsLoaders.iterator();
+				while( cuePointsLoaderIter.hasNext() ) {
+					CuePointsLoader cuePointsLoader = cuePointsLoaderIter.next();
+					synchronized (cuePointsLoader) {
+						cuePointsLoader.timer.cancel();
+						cuePointsLoader.timer.purge();
+						cuePointsLoaderIter.remove();
+					}
 				}
 			}
-			cuePointsLoaders = new ArrayList<CuePointsLoader>(); 
+		} catch (Exception e ) {
+			logger.error("Error occurred: " + e.getMessage());
 		}
 	}
 
