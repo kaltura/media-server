@@ -8,7 +8,6 @@ bin
 # Package Files #
 *.war
 *.ear
-*.jar
 
 KalturaRed5Server/bin
 KalturaRed5Server/WEB-INF/classes/com
