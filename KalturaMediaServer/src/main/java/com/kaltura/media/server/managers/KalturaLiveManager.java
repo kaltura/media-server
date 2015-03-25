@@ -83,7 +83,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		private ArrayList<KalturaConversionProfileAssetParams> conversionProfileAssetParams;
 		private Map<Integer, KalturaLiveAsset> liveAssets = new HashMap<Integer, KalturaLiveAsset>();
 		private Timer timer;
-		Set<ILiveEntryReferrer> referrers = new HashSet<ILiveManager.ILiveEntryReferrer>();
+		Set<ILiveEntryReferrer> referrers = new HashSet<ILiveEntryReferrer>();
 
 		public void addReferrer(ILiveEntryReferrer obj) {
 			synchronized (referrers) {

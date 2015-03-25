@@ -1,0 +1,22 @@
+task generateVersionFile(type: Generate) {
+    text = version
+    outputFile = file("$project.buildDir/resources/main/VERSION.txt")
+}
+class Generate extends DefaultTask {
+
+    @Input
+    String text
+    @OutputFile
+    File outputFile
+    @TaskAction
+    void generate() {
+        def file = getOutputFile()
+        if (!file.isFile()) {
+            file.parentFile.mkdirs()
+            file.createNewFile()
+        }
+        println "writing version to file: " + outputFile.path + " with value: " + text
+        file.write text
+    }
+}
+compileJava.dependsOn generateVersionFile
