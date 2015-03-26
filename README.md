@@ -60,11 +60,24 @@ https://github.com/kaltura/media-server/blob/3.0.8/Installation.md
 Media Server Build Instructions
 --
 
+**Gradle Installation**
+
 * Install Gradle: http://gradle.org/installation
-* Set environment variable: WMSINSTALL_HOME = path_to_wowza_dir (for example: /usr/local/WowzaStreamingEngine)
-* Use the following Gradle tasks:
-  * **gradle build** compiles the code, builds artifacts and copy them to Wowza lib directory.
+* Invoke the task: **gradle wrapper**. This task will download the suitable Gradle wrapper to your project. Read more at: https://gradle.org/docs/current/userguide/gradle_wrapper.html
+
+**IntelliJ Integration**
+
+IntelliJ users can skip the installation and import the gradle project with IntelliJ (choose "Use customizable gradle wrapper"). IntelliJ will automatically download the Gradle wrapper.
+
+
+**Building The Project**
+
+* In gradle.properties, set the path to Wowza home directory
+* Use the following tasks
+  * **gradle build** compiles the code, builds artifacts and copy them to Wowza lib directory
   * **gradle prepareRelease** builds the distribution (a zip archive with all needed jars)
   * **gradle release -Dusername=your_git_username -Dpassword=your_git_password** prepares the release and uploads it to github
-
-
+* If you're using the gradle wrapper use **gradlew** instead of **gradle**
+* IntelliJ/Eclipse uses are advised to build from the IDE and not from command line
+* Mac and Linux users:
+  * The task copyJarsToWowzaLibDir will fail if you don't have permissions to write to Wowza home directory

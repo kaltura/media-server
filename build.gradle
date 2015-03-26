@@ -29,3 +29,7 @@ subprojects {
         provided 'log4j:log4j:1.2.17'
     }
 }
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}
