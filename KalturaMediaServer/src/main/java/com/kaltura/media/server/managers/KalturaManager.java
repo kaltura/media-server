@@ -9,7 +9,7 @@ import com.kaltura.media.server.KalturaServer;
 abstract public class KalturaManager implements IManager {
 
 	protected String hostname;
-	protected KalturaClient client;
+	private KalturaClient client;
 	protected KalturaConfiguration config;
 	protected Map<String, Object> serverConfiguration;
 
@@ -23,6 +23,17 @@ abstract public class KalturaManager implements IManager {
 		KalturaClient cloneClient = new KalturaClient(impersonateConfig);
 		cloneClient.setSessionId(client.getSessionId());
 
+		return cloneClient;
+	}
+	
+	/**
+	 * Clones a client to create a new instance of it
+	 * Pay attention that the KS isn't renewed and copied from the current client
+	 * @return KalturaClient
+	 */
+	protected KalturaClient getClient() {
+		KalturaClient cloneClient = new KalturaClient(config);
+		cloneClient.setSessionId(client.getSessionId());
 		return cloneClient;
 	}
 

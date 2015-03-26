@@ -107,7 +107,7 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 			
 			try{
 				while(true){
-					KalturaCuePointListResponse CuePointsList = client.getCuePointService().list(filter , pager);
+					KalturaCuePointListResponse CuePointsList = getClient().getCuePointService().list(filter , pager);
 					if(CuePointsList.objects.size() == 0){
 						break;
 					}
