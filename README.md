@@ -58,22 +58,19 @@ Instructions to install a Wowza SaaS server can be found here:
 https://github.com/kaltura/media-server/blob/3.0.8/Installation.md
 
 Media Server Build Instructions
----
-
-Gradle Installation
 --
+
+**Gradle Installation**
 
 * Install Gradle: http://gradle.org/installation
 * Invoke the task: **gradle wrapper**. This task will download the suitable Gradle wrapper to your project. Read more at: https://gradle.org/docs/current/userguide/gradle_wrapper.html
 
-IntelliJ Integration
---
+**IntelliJ Integration**
 
 IntelliJ users can skip the installation and import the gradle project with IntelliJ (choose "Use customizable gradle wrapper"). IntelliJ will automatically download the Gradle wrapper.
 
 
-Building The Project
---
+**Building The Project**
 
 * In gradle.properties, set the path to Wowza home directory
 * Use the following tasks
