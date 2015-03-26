@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__ . '/github-php-client/GitHubClient.php');
+require_once(__DIR__ . '/KalturaWowzaServer/build/tmp/github-php-client/GitHubClient.php');
 
 $owner = 'kaltura';
 $repo = 'media-server';
@@ -13,8 +13,8 @@ $tag_name = "rel-$version";
 $target_commitish = exec("git rev-parse HEAD 2>&1", $output, $retVal);
 if ( $retVal !== 0 )
 {
-	echo implode("\n", $output);
-	exit( $retVal );
+    echo implode("\n", $output);
+    exit( $retVal );
 }
 
 $name = "v$version";
@@ -31,10 +31,15 @@ $releaseId = $release->getId();
 echo "Release created with id $releaseId\n";
 
 $name = "KalturaWowzaServer-$version.jar";
-$filePath = __DIR__ . "/bin/$name";
+$filePath = __DIR__ . "/KalturaWowzaServer/build/libs/$name";
 $contentType = 'application/java-archive';
-
 $client->repos->releases->assets->upload($owner, $repo, $releaseId, $name, $contentType, $filePath);
-echo "JAR file uploaded: $filePath\n";
+echo "Jar file uploaded: $filePath\n";
+
+$name = "KalturaWowzaServer-install-$version.zip";
+$filePath = __DIR__ . "/KalturaWowzaServer/build/distributions/$name";
+$contentType = 'application/zip';
+$client->repos->releases->assets->upload($owner, $repo, $releaseId, $name, $contentType, $filePath);
+echo "Installation zip file uploaded: $filePath\n";
 
 exit(0);
