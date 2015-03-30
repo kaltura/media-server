@@ -3,12 +3,10 @@ task validateWowzaDirExists {
     //search for wowza folder that is defined in gradle.properties
     def folder = new File("${WMSINSTALL_HOME}")
     if( !folder.exists() ) {
-        println "Wowza dir from gradle.properties does not exist: $WMSINSTALL_HOME "
         //if not exists, search for wowza folder defined by env variable
         WMSINSTALL_HOME = System.env.WMSINSTALL_HOME
         folder = new File("${WMSINSTALL_HOME}")
         if( !folder.exists() ) {
-            println "Wowza dir from env var WMSINSTALL_HOME does not exist: $WMSINSTALL_HOME "
             fileExists = false
         }
     }
@@ -38,13 +36,22 @@ dependencies {
  * copy all the needed media-server jars to wowza lib dir
  */
 task copyJarsToWowzaLibDir(type: Copy) {
-    doFirst {
-        println "copying media-server jars to: $WMSINSTALL_HOME/lib"
-    }
+    def dest1 = "$WMSINSTALL_HOME/lib"
+    def dest2 = "$buildDir/tmp/artifacts"
+    println "media-server artifacts will be copied to:"
+    println dest1
+    println dest2
 
-    into "$WMSINSTALL_HOME/lib"
+    into dest1
+    into dest2
     from configurations.runtime.allArtifacts.files
     from (configurations.runtime - configurations.provided)
+
+    doFirst {
+        println "copying media-server jars to:"
+        println dest1
+        println dest2
+    }
 }
 build.dependsOn(copyJarsToWowzaLibDir)
 
