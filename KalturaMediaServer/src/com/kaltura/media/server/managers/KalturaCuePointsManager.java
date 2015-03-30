@@ -122,12 +122,10 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 						// create sync-point 30 seconds before the trigger time
 						long scheduledTime = (cuePoint.triggeredAt / 1000) - 30000;
 						if (scheduledTime < 0) {
-							logger.error("Cue-point was set with illegal triggered at time " + cuePoint.triggeredAt + ", setting time to zero" );
-							scheduledTime =0 ;
-
-							// should validate on code review if we want to exit the while loop
-							// or maybe set a valid time so that the cue point will be executed 
-							// or perhaps even throw an exception 
+							// only valid triggered at cuePoints should reach this point
+							// if the time is negative an exception of invalid time will be thrown 
+							logger.error("Cue-point was set with illegal triggered at time " + cuePoint.triggeredAt +
+									", seems that the filter does not work" );
 						}
 						date.setTime(scheduledTime);
 						timerTask = new TimerTask(){
