@@ -216,7 +216,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			fileSyncFilter.objectSubTypeEqual = LiveChannelContainer.FILE_SYNC_ASSET_SUB_TYPE_ASSET;
 			fileSyncFilter.objectIdIn = StringUtils.join(fileSyncKeys.keySet());
 
-			KalturaFileSyncService fileSyncService = new KalturaFileSyncService(client);
+			KalturaFileSyncService fileSyncService = new KalturaFileSyncService(getClient());
 			
 			Map<String, KalturaFileSync> fileSyncs = new HashMap<String, KalturaFileSync>();
 			try {

@@ -513,7 +513,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 	private void loadLiveParams() {
 		try {
-			KalturaFlavorParamsListResponse flavorParamsList = client.getFlavorParamsService().list();
+			KalturaFlavorParamsListResponse flavorParamsList = getClient().getFlavorParamsService().list();
 			for(KalturaFlavorParams flavorParams : flavorParamsList.objects){
 				if(flavorParams instanceof KalturaLiveParams)
 					liveAssetParams.put(flavorParams.id, (KalturaLiveParams) flavorParams);
