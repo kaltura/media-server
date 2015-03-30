@@ -1,6 +1,8 @@
 package com.kaltura.media.server.api;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import javax.jws.WebService;
@@ -42,11 +44,12 @@ public class KalturaWebServicesServer {
 	}
 
 	public void shutdown() {
-		Set<String> keys = services.keySet();
-		for(String key : keys)
+		Iterator<Map.Entry<String, Endpoint>> serviceIter = services.entrySet().iterator();
+		while(serviceIter.hasNext())
 		{
-			Endpoint endpoint = services.remove(key);
+			Endpoint endpoint = serviceIter.next().getValue();
 			endpoint.stop();
+			serviceIter.remove();
 		}
 	}
 }
