@@ -43,6 +43,7 @@ import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveAssetFilter;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveParams;
+import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.client.types.KalturaServerFileResource;
 import com.kaltura.client.types.KalturaUploadToken;
 import com.kaltura.client.types.KalturaUploadedFileTokenResource;
@@ -433,7 +434,8 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	}
 
 	protected void onEntryPublished(LiveEntryCache liveEntryCache, final KalturaMediaServerIndex serverIndex, String applicationName) {
-		if ( liveEntryCache != null && liveEntryCache.getLiveEntry() != null ) {
+		boolean isPrimary = KalturaMediaServerIndex.PRIMARY.equals(serverIndex);
+		if ( liveEntryCache != null && liveEntryCache.getLiveEntry() != null && isPrimary) {
 			KalturaLiveEntry liveEntry = liveEntryCache.getLiveEntry();
 			KalturaLiveEntry updatedLiveEntry;
 
@@ -449,7 +451,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 			KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 			try {
-				impersonateClient.getBaseEntryService().update(liveEntry.id, updatedLiveEntry);
+				impersonateClient.getLiveStreamService().update(liveEntry.id, (KalturaLiveStreamEntry) updatedLiveEntry);
 			} catch (KalturaApiException e) {
 				logger.error("failed to update entry [" + liveEntry.id + "]: " + e.getMessage());
 			}
