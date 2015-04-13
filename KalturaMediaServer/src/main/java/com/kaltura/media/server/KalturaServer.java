@@ -118,9 +118,6 @@ public class KalturaServer {
 
 		int partnerId = config.containsKey(KalturaServer.KALTURA_SERVER_PARTNER_ID) ? (int) config.get(KalturaServer.KALTURA_SERVER_PARTNER_ID) : MEDIA_SERVER_PARTNER_ID;
 		
-		clientConfig.setPartnerId(partnerId);
-
-		clientConfig.setClientTag("MediaServer-" + hostname);
 
 		if (!config.containsKey(KalturaServer.KALTURA_SERVER_URL))
 			throw new KalturaServerException("Missing configuration [" + KalturaServer.KALTURA_SERVER_URL + "]");
@@ -135,6 +132,8 @@ public class KalturaServer {
 			clientConfig.setTimeout(Integer.parseInt((String) config.get(KalturaServer.KALTURA_SERVER_TIMEOUT)) * 1000);
 
 		client = new KalturaClient(clientConfig);
+		client.setPartnerId(partnerId);
+		client.setClientTag("MediaServer-" + hostname);
 		generateClientSession();
 
 		TimerTask generateSession = new TimerTask() {
