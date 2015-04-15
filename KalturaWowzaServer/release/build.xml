@@ -1,14 +1,27 @@
 <?xml version="1.0"?>
 <project name="Kaltura Media-Server Install" default="install">
 
-	<target name="set-properties">
-		
-		<property environment="env" />
-		<property name="wowza.install.dir" value="${env.WMSINSTALL_HOME}" />
-		<loadproperties srcfile="/etc/kaltura.d/system.ini" prefix="kaltura" />
-		<loadproperties srcfile="${kaltura.APP_DIR}/configurations/local.ini" prefix="kaltura" />
-		
-		<mkdir dir="${basedir}/tmp" />
+    <available file="/etc/kaltura.d/system.ini" property="system-ini-present" />
+    <available file="/opt/kaltura/app/configurations/ecdn.ini" property="ecdn-ini-present" />
+
+    <target name="set-properties">
+        <property environment="env" />
+        <condition property="wowza.install.dir" value="${env.WMSINSTALL_HOME}" else="/usr/local/WowzaStreamingEngine-4.0.1">
+            <isset property="env.WMSINSTALL_HOME"/>
+        </condition>
+        <mkdir dir="${basedir}/tmp" />
+    </target>
+
+    <target  name="set-properties-from-system-ini"  if="system-ini-present">
+        <loadproperties srcfile="/etc/kaltura.d/system.ini" prefix="kaltura" />
+        <loadproperties srcfile="${kaltura.APP_DIR}/configurations/local.ini" prefix="kaltura" />
+    </target>
+
+    <target  name="extract-properties-from-ecdn-ini" if="ecdn-ini-present">
+        <loadproperties srcfile="/opt/kaltura/app/configurations/ecdn.ini" prefix="kaltura" />
+    </target>
+
+    <target name="retrieve-admin-secret-from-db" unless="kaltura.ADMIN_SECRET" depends="extract-properties-from-ecdn-ini, set-properties-from-system-ini">
 		<sql	driver="com.mysql.jdbc.Driver"
 				url="jdbc:mysql://${kaltura.DB1_HOST}:3306/${kaltura.DB1_NAME}"
 				userid="${kaltura.DB1_USER}"
@@ -21,8 +34,8 @@
 		</sql>
 		<loadproperties srcfile="${basedir}/tmp/adminSecret.ini" prefix="kaltura" />
 	</target>
-	
-	<target name="configure">
+
+    <target name="configure" depends="set-properties, retrieve-admin-secret-from-db, set-properties-from-system-ini, extract-properties-from-ecdn-ini">
 		<mkdir dir="${basedir}/tmp" />
 		<xslt reloadstylesheet="true" destdir="${basedir}/tmp" extension=".xml" style="${basedir}/configure.xsl" basedir="${wowza.install.dir}/conf" includes="Server.xml, Application.xml">
 			<param name="BASE_DIR" expression="${kaltura.BASE_DIR}" />
