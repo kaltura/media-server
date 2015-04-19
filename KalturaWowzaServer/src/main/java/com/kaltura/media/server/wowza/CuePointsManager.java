@@ -42,7 +42,7 @@ import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
 public class CuePointsManager extends KalturaCuePointsManager implements ILiveManager.ILiveEntryReferrer {
 
 	public static final String PUBLIC_METADATA = "onMetaData";
-	
+
 	protected ConcurrentHashMap<String, ArrayList<IMediaStream>> streams = new ConcurrentHashMap<String, ArrayList<IMediaStream>>();
 	protected LiveStreamPacketizerListener liveStreamPacketizerListener = new LiveStreamPacketizerListener();
 
@@ -58,7 +58,7 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 		public int getBodySize() {
 			return 1 + serializeStringLen(text);
 		}
-		
+
 		public int serializeBody(byte bytes[], int pos){
 
 			int length = 0;
@@ -67,7 +67,7 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 
 			if(text != null)
 				length += serializeString(text, bytes, pos + length);
-			
+
 			return length;
 		}
 
@@ -75,7 +75,7 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 			this.text = text;
 		}
 	}
-	
+
 	class LiveStreamPacketizerDataHandler implements IHTTPStreamerCupertinoLivePacketizerDataHandler {
 		String streamName = null;
 
@@ -86,52 +86,52 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 
 		private String jsonEscape(String string) {
 			if (string == null || string.length() == 0) {
-	             return "";
-	         }
+				return "";
+			}
 
-	         char         c = 0;
-	         int          i;
-	         int          len = string.length();
-	         StringBuilder sb = new StringBuilder(len + 4);
-	         String       t;
+			char         c = 0;
+			int          i;
+			int          len = string.length();
+			StringBuilder sb = new StringBuilder(len + 4);
+			String       t;
 
-	         for (i = 0; i < len; i += 1) {
-	             c = string.charAt(i);
-	             switch (c) {
-	             case '\\':
-	             case '"':
-	                 sb.append('\\');
-	                 sb.append(c);
-	                 break;
-	             case '/':
-                     sb.append('\\');
-	                 sb.append(c);
-	                 break;
-	             case '\b':
-	                 sb.append("\\b");
-	                 break;
-	             case '\t':
-	                 sb.append("\\t");
-	                 break;
-	             case '\n':
-	                 sb.append("\\n");
-	                 break;
-	             case '\f':
-	                 sb.append("\\f");
-	                 break;
-	             case '\r':
-	                sb.append("\\r");
-	                break;
-	             default:
-	                 if (c < ' ') {
-	                     t = "000" + Integer.toHexString(c);
-	                     sb.append("\\u" + t.substring(t.length() - 4));
-	                 } else {
-	                     sb.append(c);
-	                 }
-	             }
-	         }
-	         return sb.toString();
+			for (i = 0; i < len; i += 1) {
+				c = string.charAt(i);
+				switch (c) {
+					case '\\':
+					case '"':
+						sb.append('\\');
+						sb.append(c);
+						break;
+					case '/':
+						sb.append('\\');
+						sb.append(c);
+						break;
+					case '\b':
+						sb.append("\\b");
+						break;
+					case '\t':
+						sb.append("\\t");
+						break;
+					case '\n':
+						sb.append("\\n");
+						break;
+					case '\f':
+						sb.append("\\f");
+						break;
+					case '\r':
+						sb.append("\\r");
+						break;
+					default:
+						if (c < ' ') {
+							t = "000" + Integer.toHexString(c);
+							sb.append("\\u" + t.substring(t.length() - 4));
+						} else {
+							sb.append(c);
+						}
+				}
+			}
+			return sb.toString();
 		}
 
 		private String jsonAMF(AMFData data) {
@@ -241,11 +241,11 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 			logger.info("Stream [" + streamName + "] Hashed: " + hashedString);
 
 			ID3V2FrameBase frame;
-			
-			
+
+
 			frame = new ID3V2FrameObject();
 			((ID3V2FrameObject) frame).setText(json);
-			
+
 			id3Frames.putFrame(frame);
 		}
 	}
@@ -260,7 +260,7 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 			logger.debug("onLiveStreamPacketizerCreate. stream: " + streamName);
 			if (!(liveStreamPacketizer instanceof LiveStreamPacketizerCupertino))
 				return;
-			
+
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
 			((LiveStreamPacketizerCupertino) liveStreamPacketizer).setDataHandler(new LiveStreamPacketizerDataHandler(streamName));
 		}
@@ -286,58 +286,58 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 	public void onEvent(IKalturaEvent event){
 
 		if(event.getType() instanceof KalturaMediaEventType){
-			
+
 			switch((KalturaMediaEventType) event.getType())
 			{
 				case APPLICATION_INSTANCE_STARTED:
 					KalturaApplicationInstanceEvent applicationInstanceEvent = (KalturaApplicationInstanceEvent) event;
 					onAppStart(applicationInstanceEvent.getApplicationInstance());
 					break;
-					
+
 				default:
 					break;
 			}
 		}
 
 		if(event.getType() instanceof KalturaEventType){
-			
+
 			switch((KalturaEventType) event.getType())
 			{
 				case STREAM_PUBLISHED:
 					KalturaMediaStreamEvent streamEvent = (KalturaMediaStreamEvent) event;
 					onPublish(streamEvent.getMediaStream(), streamEvent.getEntryId());
 					break;
-					
+
 				default:
 					break;
 			}
 		}
-		
+
 		super.onEvent(event);
 	}
-	
+
 	protected void onAppStart(IApplicationInstance applicationInstance) {
 		logger.debug("Application instance started, adding live stream packetizer listener");
 		applicationInstance.addLiveStreamPacketizerListener(liveStreamPacketizerListener);
 	}
 
-	protected void onPublish(IMediaStream stream, String entryId) {		
+	protected void onPublish(IMediaStream stream, String entryId) {
 		if(stream.getClientId() < 0){
 			logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "] is a transcoded rendition");
 			return;
 		}
-		
+
 		logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "]");
 		ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 		liveManager.addReferrer(entryId, this);
-		
+
 		synchronized (streams) {
 			ArrayList<IMediaStream> entryStreams;
 			if (streams.containsKey(entryId))
 				entryStreams = streams.get(entryId);
 			else
 				entryStreams =  new ArrayList<IMediaStream>();
-			
+
 			entryStreams.add(stream);
 			streams.put(entryId, entryStreams);
 		}
@@ -359,7 +359,7 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 		synchronized (streams) {
 			if(!streams.containsKey(liveEntry.id))
 				throw new KalturaManagerException("Entry media stream not found");
-			
+
 			stream = streams.get(liveEntry.id).get(0);
 		}
 
@@ -374,10 +374,10 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 		synchronized (streams) {
 			if(!streams.containsKey(entryId))
 				throw new KalturaManagerException("Entry [" + entryId + "] media stream not found");
-			
+
 			entryStreams = streams.get(entryId);
 		}
-		
+
 		Date date = new Date();
 		AMFDataObj data = new AMFDataObj();
 		data.put("objectType", "KalturaSyncPoint");
@@ -393,7 +393,7 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 
 
 		TimerTask task = new TimerTask() {
-			
+
 			@Override
 			public void run() {
 				AMFDataObj clear = new AMFDataObj();
@@ -406,7 +406,7 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 				}
 			}
 		};
-		
+
 		Timer timer = new Timer("sendSyncPoint-" + entryId, true);
 		timer.schedule(task, 1000);
 	}
