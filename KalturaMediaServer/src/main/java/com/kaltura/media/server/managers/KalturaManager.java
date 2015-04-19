@@ -15,12 +15,12 @@ abstract public class KalturaManager implements IManager {
 
 	protected KalturaClient impersonate(int partnerId) {
 		KalturaConfiguration impersonateConfig = new KalturaConfiguration();
-		impersonateConfig.setPartnerId(partnerId);
-		impersonateConfig.setClientTag(config.getClientTag());
 		impersonateConfig.setEndpoint(config.getEndpoint());
 		impersonateConfig.setTimeout(config.getTimeout());
 
 		KalturaClient cloneClient = new KalturaClient(impersonateConfig);
+		cloneClient.setPartnerId(partnerId);
+		cloneClient.setClientTag(client.getClientTag());
 		cloneClient.setSessionId(client.getSessionId());
 
 		return cloneClient;
