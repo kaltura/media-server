@@ -51,6 +51,9 @@ public class KalturaServer {
 	protected static List<IManager> managers;
 
 	protected KalturaServer() throws KalturaServerException {
+		logger.info("Initializing KalturaUncaughtException handler");
+		Thread.setDefaultUncaughtExceptionHandler(new KalturaUncaughtExceptionHnadler());
+
 		InputStream versionInputStream = getClass().getResourceAsStream("/VERSION.txt");
 		BufferedReader versionBufferedReader = new BufferedReader(new InputStreamReader(versionInputStream));
 		String version = "Version not found";
