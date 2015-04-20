@@ -29,16 +29,16 @@ public class KalturaCuePointsService implements IWebService{
 			@WebParam(name = "duration") final int duration
 			)
 	{
-		logger.debug("liveEntryId [" + liveEntryId + "] interval [" + interval + "] duration [" + duration + "]");
 		TimerTask timerTask = new TimerTask() {
-			
+
 			@Override
 			public void run() {
 				ICuePointsManager cuePointsManager = (ICuePointsManager) KalturaServer.getManager(ICuePointsManager.class);
 				cuePointsManager.createPeriodicSyncPoints(liveEntryId, interval, duration);
 			}
 		};
-		
+
+		logger.debug("createTimeCuePoints: liveEntryId [" + liveEntryId + "] interval [" + interval + "] duration [" + duration + "]");
 		Timer timer = new Timer("createPeriodicSyncPoints-" + liveEntryId, true);
 		timer.schedule(timerTask, 0);
 		
