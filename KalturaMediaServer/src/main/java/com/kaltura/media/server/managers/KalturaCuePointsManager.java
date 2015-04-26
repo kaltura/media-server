@@ -153,9 +153,9 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 							timer.schedule(timerTask, date);
 						}
 					}
+					logger.debug("Filtered list size: " + numFiltered);
 					//filter was empty
 					if (numFiltered == 0) {
-						logger.debug("numFiltered==0. exiting load() function");
 						return;
 					}
 					//update the filter:
