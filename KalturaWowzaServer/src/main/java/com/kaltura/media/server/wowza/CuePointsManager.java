@@ -389,7 +389,7 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 		for (IMediaStream stream : entryStreams) {
 			stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
 			((MediaStream)stream).processSendDirectMessages();
-//			logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "] stream [" + stream.getName() + "] offset [" + offset + "]");
+			logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "] stream [" + stream.getName() + "] offset [" + offset + "]");
 		}
 
 
