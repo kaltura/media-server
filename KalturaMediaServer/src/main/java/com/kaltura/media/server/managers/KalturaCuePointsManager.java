@@ -88,84 +88,86 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 		}
 
 		public void load(final List<String> entryIds, boolean periodic) {
-			logger.debug("Num entries: " + entryIds.size() + " isPeriodic: " + periodic);
-
-			boolean setLastUpdatedAt = periodic || lastUpdatedCuePoint == 0;
-
-			// list all cue-points that should be triggered by absolute time
-			KalturaCuePointFilter filter = new KalturaCuePointFilter();
-			filter.entryIdEqual = StringUtils.join(entryIds);
-			filter.statusEqual = KalturaCuePointStatus.READY;
-			filter.triggeredAtGreaterThanOrEqual = 1;
-			if(periodic){
-				filter.updatedAtGreaterThanOrEqual = lastUpdatedCuePoint;
-			}
-
-			filter.orderBy = KalturaCuePointOrderBy.UPDATED_AT_ASC.hashCode;
-
-			KalturaFilterPager pager = new KalturaFilterPager();
-			pager.pageIndex = 1;
-			pager.pageSize = 100;
-
-			Timer timer;
-			TimerTask timerTask;
-			Date date = new Date();
-
-			try{
-				while(true){
-					KalturaCuePointListResponse CuePointsList = getClient().getCuePointService().list(filter , pager);
-					logger.debug("Got KalturaCuePointListResponse. Size: " + CuePointsList.objects.size());
-					int numFiltered = 0;
-					long now = new Date().getTime();
-					for(final KalturaCuePoint cuePoint : CuePointsList.objects){
-
-						if (cuePoint.triggeredAt < now){
-							continue;
-						}
-						numFiltered++;
-
-						logger.debug("cuePoint: entryId:" + cuePoint.entryId + " id:" + cuePoint.id + " createdAt:" + cuePoint.createdAt + " triggeredAt:" + cuePoint.triggeredAt);
-						if(setLastUpdatedAt){
-							lastUpdatedCuePoint = Math.max(lastUpdatedCuePoint, cuePoint.updatedAt);
-							logger.debug("setLastUpdatedAt: lastUpdatedCuePoint=" + lastUpdatedCuePoint);
-						}
-
-						// create sync-point 30 seconds before the trigger time
-						long scheduledTime = (cuePoint.triggeredAt / 1000) - 30000;
-						if (scheduledTime < 0) {
-							// only valid triggered at cuePoints should reach this point
-							// if the time is negative an exception of invalid time will be thrown
-							logger.error("Cue-point was set with illegal triggered at time " + cuePoint.triggeredAt +
-									", seems that the filter does not work" );
-						}
-						else {
-							date.setTime(scheduledTime);
-							timerTask = new TimerTask(){
-								@Override
-								public void run() {
-									logger.debug("Running TimerTask. about to create cuePoint for entryId: " + cuePoint.entryId);
-									createSyncPoint(cuePoint.entryId);
-								}
-							};
-
-							logger.debug("about to run TimerTask with date: " + date);
-							timer = new Timer(true);
-							timer.schedule(timerTask, date);
-						}
-					}
-					logger.debug("Filtered list size: " + numFiltered);
-					//filter was empty
-					if (numFiltered == 0) {
-						return;
-					}
-					//update the filter:
-					if(periodic){
-						filter.updatedAtGreaterThanOrEqual = lastUpdatedCuePoint;
-					}
-				}
-			} catch (KalturaApiException e) {
-				logger.error("Failed to list entries cue-points: " + e.getMessage());
-			}
+			logger.debug("Skipping load() - currently disabled");
+//
+//			logger.debug("Num entries: " + entryIds.size() + " isPeriodic: " + periodic);
+//
+//			boolean setLastUpdatedAt = periodic || lastUpdatedCuePoint == 0;
+//
+//			// list all cue-points that should be triggered by absolute time
+//			KalturaCuePointFilter filter = new KalturaCuePointFilter();
+//			filter.entryIdEqual = StringUtils.join(entryIds);
+//			filter.statusEqual = KalturaCuePointStatus.READY;
+//			filter.triggeredAtGreaterThanOrEqual = 1;
+//			if(periodic){
+//				filter.updatedAtGreaterThanOrEqual = lastUpdatedCuePoint;
+//			}
+//
+//			filter.orderBy = KalturaCuePointOrderBy.UPDATED_AT_ASC.hashCode;
+//
+//			KalturaFilterPager pager = new KalturaFilterPager();
+//			pager.pageIndex = 1;
+//			pager.pageSize = 100;
+//
+//			Timer timer;
+//			TimerTask timerTask;
+//			Date date = new Date();
+//
+//			try{
+//				while(true){
+//					KalturaCuePointListResponse CuePointsList = getClient().getCuePointService().list(filter , pager);
+//					logger.debug("Got KalturaCuePointListResponse. Size: " + CuePointsList.objects.size());
+//					int numFiltered = 0;
+//					long now = new Date().getTime();
+//					for(final KalturaCuePoint cuePoint : CuePointsList.objects){
+//
+//						if (cuePoint.triggeredAt < now){
+//							continue;
+//						}
+//						numFiltered++;
+//
+//						logger.debug("cuePoint: entryId:" + cuePoint.entryId + " id:" + cuePoint.id + " createdAt:" + cuePoint.createdAt + " triggeredAt:" + cuePoint.triggeredAt);
+//						if(setLastUpdatedAt){
+//							lastUpdatedCuePoint = Math.max(lastUpdatedCuePoint, cuePoint.updatedAt);
+//							logger.debug("setLastUpdatedAt: lastUpdatedCuePoint=" + lastUpdatedCuePoint);
+//						}
+//
+//						// create sync-point 30 seconds before the trigger time
+//						long scheduledTime = (cuePoint.triggeredAt / 1000) - 30000;
+//						if (scheduledTime < 0) {
+//							// only valid triggered at cuePoints should reach this point
+//							// if the time is negative an exception of invalid time will be thrown
+//							logger.error("Cue-point was set with illegal triggered at time " + cuePoint.triggeredAt +
+//									", seems that the filter does not work" );
+//						}
+//						else {
+//							date.setTime(scheduledTime);
+//							timerTask = new TimerTask(){
+//								@Override
+//								public void run() {
+//									logger.debug("Running TimerTask. about to create cuePoint for entryId: " + cuePoint.entryId);
+//									createSyncPoint(cuePoint.entryId);
+//								}
+//							};
+//
+//							logger.debug("about to run TimerTask with date: " + date);
+//							timer = new Timer(true);
+//							timer.schedule(timerTask, date);
+//						}
+//					}
+//					logger.debug("Filtered list size: " + numFiltered);
+//					//filter was empty
+//					if (numFiltered == 0) {
+//						return;
+//					}
+//					//update the filter:
+//					if(periodic){
+//						filter.updatedAtGreaterThanOrEqual = lastUpdatedCuePoint;
+//					}
+//				}
+//			} catch (KalturaApiException e) {
+//				logger.error("Failed to list entries cue-points: " + e.getMessage());
+//			}
 		}
 	}
 
