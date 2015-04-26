@@ -115,11 +115,15 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 				while(true){
 					KalturaCuePointListResponse CuePointsList = getClient().getCuePointService().list(filter , pager);
 					logger.debug("Got KalturaCuePointListResponse. Size: " + CuePointsList.objects.size());
-					if(CuePointsList.objects.size() == 0){
-						break;
-					}
-
+					int numFiltered = 0;
+					long now = new Date().getTime();
 					for(final KalturaCuePoint cuePoint : CuePointsList.objects){
+
+						if (cuePoint.triggeredAt < now){
+							continue;
+						}
+						numFiltered++;
+
 						logger.debug("cuePoint: entryId:" + cuePoint.entryId + " id:" + cuePoint.id + " createdAt:" + cuePoint.createdAt + " triggeredAt:" + cuePoint.triggeredAt);
 						if(setLastUpdatedAt){
 							lastUpdatedCuePoint = Math.max(lastUpdatedCuePoint, cuePoint.updatedAt);
@@ -128,13 +132,13 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 
 						// create sync-point 30 seconds before the trigger time
 						long scheduledTime = (cuePoint.triggeredAt / 1000) - 30000;
-						logger.debug("scheduledTime: " + scheduledTime);
 						if (scheduledTime < 0) {
 							// only valid triggered at cuePoints should reach this point
 							// if the time is negative an exception of invalid time will be thrown
 							logger.error("Cue-point was set with illegal triggered at time " + cuePoint.triggeredAt +
 									", seems that the filter does not work" );
-						}else {
+						}
+						else {
 							date.setTime(scheduledTime);
 							timerTask = new TimerTask(){
 								@Override
@@ -148,6 +152,15 @@ public abstract class KalturaCuePointsManager extends KalturaManager implements 
 							timer = new Timer(true);
 							timer.schedule(timerTask, date);
 						}
+					}
+					//filter was empty
+					if (numFiltered == 0) {
+						logger.debug("numFiltered==0. exiting load() function");
+						return;
+					}
+					//update the filter:
+					if(periodic){
+						filter.updatedAtGreaterThanOrEqual = lastUpdatedCuePoint;
 					}
 				}
 			} catch (KalturaApiException e) {
