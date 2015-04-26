@@ -6,6 +6,7 @@
 <xsl:param name="BASE_DIR" />
 <xsl:param name="APP_URL" />
 <xsl:param name="ADMIN_SECRET" />
+
 <xsl:template name="apply-copy">
 	<xsl:param name="copy-element" select="." />
 	<xsl:param name="indent"><xsl:text>
@@ -34,6 +35,7 @@
 		<xsl:otherwise><xsl:value-of select="$copy-element"/></xsl:otherwise>
 	</xsl:choose>
 </xsl:template>
+
 <xsl:template name="apply-property">
 	<xsl:param name="property" select="." />
 	<xsl:param name="indent" />
@@ -48,11 +50,12 @@
 </xsl:template>
 <xsl:template name="apply-properties">
 	<xsl:param name="set-properties" />
+	<xsl:param name="exclude-properties" />
 	<xsl:param name="existing-properties" select="." />
 	<xsl:param name="indent"><xsl:text>
 			</xsl:text></xsl:param>
 	<xsl:param name="indent-plus"><xsl:value-of select="$indent" /><xsl:text>	</xsl:text></xsl:param>
-	
+				
 	<xsl:for-each select="*">
 		<xsl:variable name="existing-property-name" select="string(Name)" />
 		<xsl:choose>
@@ -61,6 +64,8 @@
 					<xsl:with-param name="property" select="ext:node-set($set-properties)/Property[Name = $existing-property-name]"/>
 					<xsl:with-param name="indent" select="$indent-plus" />
 				</xsl:call-template>
+			</xsl:when>
+			<xsl:when test="count(ext:node-set($exclude-properties)/Property[Name = $existing-property-name]) > 0">
 			</xsl:when>
 			<xsl:otherwise>
 				<xsl:call-template name="apply-property">
@@ -108,6 +113,7 @@
 		<xsl:text>
 		</xsl:text>
 </xsl:template>
+
 <xsl:template name="application-transcoder">
 	<xsl:for-each select="*|comment()">
 			<xsl:text>
@@ -151,6 +157,7 @@
 		<xsl:text>
 		</xsl:text>
 </xsl:template>
+
 <xsl:template name="application-dvr">
 	<xsl:for-each select="*|comment()">
 			<xsl:text>
@@ -206,6 +213,7 @@
 		<xsl:text>
 		</xsl:text>
 </xsl:template>
+
 <xsl:template name="application-rtp-authentication">
 	<xsl:for-each select="*|comment()">
 				<xsl:text>
@@ -444,7 +452,7 @@
 			</xsl:text>
 		<xsl:element name="{local-name(.)}">
 			<xsl:choose>
-				<xsl:when test="string(Name) != 'LiveStreamEntry'">
+				<xsl:when test="string(Name) != 'LiveStreamEntry' and string(Name) != 'ModuleCoreSecurity'">
 					<xsl:call-template name="apply-copy">
 						<xsl:with-param name="indent">
 			<xsl:text>
@@ -461,11 +469,68 @@
 			<Description>LiveStreamEntry</Description>
 			<Class>com.kaltura.media.server.wowza.listeners.LiveStreamEntry</Class>
 		</Module>
+		<Module>
+			<Name>ModuleCoreSecurity</Name>
+			<Description>Core Security Module for Applications</Description>
+			<Class>com.wowza.wms.security.ModuleCoreSecurity</Class>
+		</Module>
 	</xsl:variable>
 	<xsl:call-template name="apply-copy">
 		<xsl:with-param name="copy-element" select="ext:node-set($live-stream-entry-module)" />
 	</xsl:call-template>
 </xsl:template>
+
+
+<xsl:template name="application-client">
+	<xsl:for-each select="*|comment()">
+			<xsl:text>
+			</xsl:text>
+		<xsl:choose>
+			<xsl:when test="self::comment()">
+				<xsl:copy-of select="."/>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:element name="{local-name(.)}">
+					<xsl:choose>
+						<xsl:when test="local-name(.) = 'Access'">
+							<xsl:call-template name="application-client-access" />
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:call-template name="apply-copy" />
+						</xsl:otherwise>
+					</xsl:choose>
+				</xsl:element>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:for-each>
+		<xsl:text>
+		</xsl:text>
+</xsl:template>
+
+
+<xsl:template name="application-client-access">
+	<xsl:for-each select="*|comment()">
+			<xsl:text>
+				</xsl:text>
+		<xsl:choose>
+			<xsl:when test="self::comment()">
+				<xsl:copy-of select="."/>
+			</xsl:when>
+			<xsl:when test="local-name(.) != 'StreamWriteAccess'">
+				<xsl:copy-of select="."/>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:element name="StreamWriteAccess">*</xsl:element>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:for-each>
+	<xsl:text>
+			</xsl:text>
+</xsl:template>
+
+
+
+
 <xsl:template name="application">
 	<xsl:text>
 	</xsl:text>
@@ -491,16 +556,12 @@
 							<xsl:when test="local-name(.) = 'HTTPStreamer'"><xsl:call-template name="application-http_streamer"/></xsl:when>
 							<xsl:when test="local-name(.) = 'Manager'"><xsl:call-template name="application-manager"/></xsl:when>
 							<xsl:when test="local-name(.) = 'Modules'"><xsl:call-template name="application-modules"/></xsl:when>
+							<xsl:when test="local-name(.) = 'Client'"><xsl:call-template name="application-client"/></xsl:when>
 							<xsl:when test="local-name(.) = 'Properties'">
 								<xsl:call-template name="apply-properties">
 									<xsl:with-param name="indent"><xsl:text>
 		</xsl:text></xsl:with-param>
 									<xsl:with-param name="set-properties">
-										<Property>
-											<Name>securityPublishRequirePassword</Name>
-											<Value>false</Value>
-											<Type>Boolean</Type>
-										</Property>
 										<Property>
 											<Name>securityPublishBlockDuplicateStreamNames</Name>
 											<Value>true</Value>
@@ -510,6 +571,11 @@
 											<Name>streamTimeout</Name>
 											<Value>200</Value>
 											<Type>Integer</Type>
+										</Property>
+									</xsl:with-param>
+									<xsl:with-param name="exclude-properties">
+										<Property>
+											<Name>securityPublishRequirePassword</Name>
 										</Property>
 									</xsl:with-param>
 								</xsl:call-template>
