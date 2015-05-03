@@ -41,8 +41,8 @@ public class ID3Demo extends HTTProvider2Base {
 		switch(tagType){
 			case ID3V2FrameBase.TAG_COMM:
 				frame = new ID3V2FrameComment();
-				((ID3V2FrameComment) frame).setDescription("test description");
-				((ID3V2FrameComment) frame).setValue(data);
+				((ID3V2FrameComment) frame).setShortDescription("test description");
+				((ID3V2FrameComment) frame).setText(data);
 				break;
 
 			case ID3V2FrameBase.TAG_PRIV:
