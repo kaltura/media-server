@@ -271,7 +271,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		public KalturaMediaServerIndex getIndex() {
 			return index;
 		}
-
+		
 		public Object getMetadata(String key, Object defaultValue) {
 			synchronized (metadata) {
 				if (!metadata.containsKey(key))
@@ -280,9 +280,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			}
 		}
 		
-		public void setMetadata(String key, Object obj) {
-			metadata.put(key, obj);
-		}
 	}
 	
 	abstract public KalturaServiceBase getLiveServiceInstance (KalturaClient impersonateClient);
@@ -420,19 +417,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		}
 	}
 	
-	public void setMetadata(String entryId, String key, Object value) {
-		synchronized (entries) {
-			if (!entries.containsKey(entryId)) {
-				logger.error("Entry id [" + entryId + "] not found");
-				return;
-			}
-			
-			LiveEntryCache liveEntryCache = entries.get(entryId);
-			liveEntryCache.setMetadata(key, value);
-		}
-	}
-
-
 	@Override
 	public void onEvent(IKalturaEvent event){
 		KalturaStreamEvent streamEvent;

@@ -592,11 +592,9 @@ public class LiveStreamEntry extends ModuleBase {
 	
 	class PacketListener implements IMediaStreamLivePacketNotify {
 		
-		protected static final String STREAMS_PTS = "strems_pts";
-		// Number of historical PTS we keep for each stream
-		protected static final int MAX_PTS_PER_STREAM = 3;
-		// Maximum PTS allowed between the different streams, assuming most users use key-frame every 2-3 seconds 
-		protected static final int MAX_ALLOWED_DIFF = 1000 * 5;
+		protected static final String KNOWN_PTS = "known_pts";
+		// Maximum age allowed for a PTS in comparison to the current one
+		protected static final int MAX_PTS_AGE = 1000 * 10;
 		
 		@Override
 		@SuppressWarnings("unchecked")
@@ -624,13 +622,13 @@ public class LiveStreamEntry extends ModuleBase {
 				// Update PTS metadata and compare to related streams PTSes
 				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 				Map<String, List<Long>> defaultValue = new HashMap<String, List<Long>>();
-				Map<String, List<Long>> streamsPtses = (Map<String, List<Long>>)liveManager.getMetadata(entryId, STREAMS_PTS, defaultValue);
+				Map<String, List<Long>> streamsPtses = (Map<String, List<Long>>)liveManager.getMetadata(entryId, KNOWN_PTS, defaultValue);
 				addPts(streamsPtses, streamName, pts);
 				compareStreams(streamsPtses, streamName, pts);
+				cleanOldPtses(streamsPtses, streamName, pts);
 			}
 		}
 		
-
 		/**
 		 * This function verifies that the last PTS call of the given stream is not too far from the other streams PTSes.
 		 * @param streamsPtses All known PTSes by streams
@@ -640,23 +638,48 @@ public class LiveStreamEntry extends ModuleBase {
 		protected void compareStreams(Map<String, List<Long>> streamsPtses,
 				String streamName, long pts) {
 			
+			boolean foundInAll = true;
 			for (Entry<String, List<Long>> itr : streamsPtses.entrySet()) {
-				if(streamName.equals(itr.getKey()))
+				if(streamName.equals(itr.getKey())) {
 					continue;
-				
-				List<Long> otherPtses = itr.getValue();
-				if(otherPtses.size() < MAX_PTS_PER_STREAM)
-					continue;
-				
-				long minDiff = Integer.MAX_VALUE;
-				for (Long otherPts : otherPtses) {
-					minDiff = Math.min(minDiff, Math.abs(otherPts - pts));
 				}
-				
-				if(minDiff > MAX_ALLOWED_DIFF) {
-					logger.warn("Streams [" + streamName + "," + itr.getKey() + "] aren't in sync."
-							+ " pts " + pts + " range [" + otherPtses.get(0) +"," + otherPtses.get(MAX_PTS_PER_STREAM-1) +"]" );
+				if(!itr.getValue().contains(pts)) {
+					foundInAll = false;
+					break;
+				}
+			}
+			
+			if(foundInAll) {
+				removeFromAll(streamsPtses, pts);
+				return;
+			}
+		}
+		
+		/**
+		 * This function cleans the stream PTSes list from old ptses and warn about them 
+		 * @param pts current pts for time reference
+		 */
+		protected void cleanOldPtses(Map<String, List<Long>> streamsPtses, String streamName, long pts) {
+			
+			List<Long> streamPts = streamsPtses.get(streamName);
+			synchronized (streamPts) {
+				for (Iterator<Long> iterator = streamPts.iterator(); iterator.hasNext();) {
+					Long pastPts = iterator.next();
+					if(Math.abs(pts - pastPts) > MAX_PTS_AGE) {
+						logger.warn("Stream [" + streamName + "] has a PTS:" + pastPts + " which didn't appear in all other streams. ");
+						iterator.remove();
+					}
+				}
+			}
+		}
 
+		/**
+		 * Removes a given PTS from all the streams
+		 */
+		private void removeFromAll(Map<String, List<Long>> streamsPtses, long pts) {
+			synchronized(streamsPtses) {
+				for (List<Long> streamPts : streamsPtses.values()) {
+					streamPts.remove(pts);
 				}
 			}
 		}
@@ -664,7 +687,6 @@ public class LiveStreamEntry extends ModuleBase {
 
 		/**
 		 * Adds a new key-frame pts to the stream-ptses metadata object. 
-		 * This function locks the streamsPtses
 		 * @param streamsPtses Ptses per stream-name
 		 * @param streamName current stream name
 		 * @param pts the pts to add
@@ -675,14 +697,9 @@ public class LiveStreamEntry extends ModuleBase {
 				if(!streamsPtses.containsKey(streamName)) 
 					streamsPtses.put(streamName, new ArrayList<Long>());
 				List<Long> streamPts = streamsPtses.get(streamName);
-				if(streamPts.size() == MAX_PTS_PER_STREAM) 
-					streamPts.remove(0);
 				streamPts.add(pts);
 			}
-			
 		}
-		
-		
 	}
 
 	private void restream(Stream stream, String inputStreamName) {
