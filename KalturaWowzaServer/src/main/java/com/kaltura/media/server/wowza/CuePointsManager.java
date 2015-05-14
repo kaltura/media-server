@@ -25,14 +25,13 @@ import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.MediaStream;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizer;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
-import org.apache.commons.codec.binary.Base64;
 
 import java.util.*;
 
 public class CuePointsManager extends KalturaCuePointsManager implements ILiveManager.ILiveEntryReferrer {
 
 	public static final String PUBLIC_METADATA = "onMetaData";
-	protected final static int SYNC_POINTS_INTERVAL_IN_MS = 5000;
+	protected final static int SYNC_POINTS_INTERVAL_IN_MS = 10000;
 
 	protected final HashMap<IMediaStream, Timer> streams;
 	protected LiveStreamPacketizerListener liveStreamPacketizerListener;
