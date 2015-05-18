@@ -184,7 +184,7 @@
 									</Property>
 									<Property>
 										<Name>dvrChunkDurationMinimum</Name>
-										<Value>10000</Value>
+										<Value>9999</Value>
 										<Type>Integer</Type>
 									</Property>
 									<Property>
