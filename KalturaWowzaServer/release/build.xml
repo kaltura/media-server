@@ -112,13 +112,35 @@
 		</propertyfile>
 	</target>
 
+	<target name="delete-old-version-files">
+		<!-- create fileset from all files in media-server lib directory-->
+		<fileset dir="${basedir}/lib" includes="*" id="lib-patterns"/>
+
+		<!-- remove version string to match older files-->
+                <property name="pattern-string" refid="lib-patterns"/>
+                <loadresource property="subst-pattern-string">
+                	<propertyresource name="pattern-string"/>
+                        <filterchain>
+                        	<tokenfilter>
+                                	<filetokenizer/>
+                                       	<containsregex pattern="-[0-9]+(\.[0-9]+)*" replace="*" flags="g"/>
+                                        <replacestring from=";" to=" "/>
+                        	</tokenfilter>
+                        </filterchain>
+                </loadresource>
+		<!-- delete all files matching the pattern-->
+         	<delete includeEmptyDirs="true">
+         		<fileset dir="${wowza.install.dir}/lib" includes="${subst-pattern-string}"/>
+        	</delete>
+        </target>
+        
 	<target name="copy-files">
 		<copy todir="${wowza.install.dir}/lib" overwrite="false">
 			<fileset dir="${basedir}/lib" includes="*" />
 		</copy>
 	</target>
 
-	<target name="install" depends="set-properties, copy-files, configure">
+	<target name="install" depends="set-properties, delete-old-version-files, copy-files, configure">
 	</target>
 
 </project>
