@@ -41,5 +41,7 @@ public interface ILiveManager extends IManager {
 	
 	public KalturaLiveParams getLiveAssetParams(int assetParamsId);
 	
-	public Object getMetadata(String entryId, String key, Object defaultValue);
+	public Object getOrAddMetadata(String entryId, String key, Object defaultValue);
+	public Object getMetadata(String entryId, String key);
+	public Object setMetadata(String entryId, String key, Object value);
 }

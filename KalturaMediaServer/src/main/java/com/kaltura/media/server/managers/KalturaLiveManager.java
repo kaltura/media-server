@@ -274,9 +274,15 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		
 		public Object getMetadata(String key, Object defaultValue) {
 			synchronized (metadata) {
-				if (!metadata.containsKey(key))
+				if (!metadata.containsKey(key) && (null != defaultValue))
 					metadata.put(key, defaultValue);
 				return metadata.get(key);
+			}
+		}
+		
+		public Object setMetadata(String key, Object value) {
+			synchronized (metadata) {
+				return metadata.put(key, value);
 			}
 		}
 		
@@ -405,7 +411,11 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		return dvrWindowSeconds;
 	}
 	
-	public Object getMetadata(String entryId, String key, Object defaultValue) {
+	public Object getMetadata(String entryId, String key) {
+		return getOrAddMetadata(entryId, key, null);
+	}
+	
+	public Object getOrAddMetadata(String entryId, String key, Object defaultValue) {
 		synchronized (entries) {
 			if (!entries.containsKey(entryId)) {
 				logger.error("Entry id [" + entryId + "] not found");
@@ -414,6 +424,18 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			
 			LiveEntryCache liveEntryCache = entries.get(entryId);
 			return liveEntryCache.getMetadata(key, defaultValue);
+		}
+	}
+	
+	public Object setMetadata(String entryId, String key, Object value) {
+		synchronized (entries) {
+			if (!entries.containsKey(entryId)) {
+				logger.error("Entry id [" + entryId + "] not found");
+				return null;
+			}
+			
+			LiveEntryCache liveEntryCache = entries.get(entryId);
+			return liveEntryCache.setMetadata(key, value);
 		}
 	}
 	

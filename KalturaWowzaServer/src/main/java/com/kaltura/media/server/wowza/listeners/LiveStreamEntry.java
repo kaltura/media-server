@@ -191,7 +191,8 @@ public class LiveStreamEntry extends ModuleBase {
 			super.onCodecInfoVideo(stream, videoCodec);
 			
 			WMSProperties properties = getConnectionProperties(stream);
-			properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_CODEC_TYPE, videoCodec.getCodec());
+			if(properties != null)
+				properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_CODEC_TYPE, videoCodec.getCodec());
 		}
 		
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
@@ -627,7 +628,7 @@ public class LiveStreamEntry extends ModuleBase {
 				// didn't appear yet on all other streams. Once a PTS has arrived on all PTSes - 
 				// it's removed from all streams.
 				Map<String, List<Long>> defaultValue = new HashMap<String, List<Long>>();
-				Map<String, List<Long>> streamsPtses = (Map<String, List<Long>>)liveManager.getMetadata(entryId, KNOWN_PTS, defaultValue);
+				Map<String, List<Long>> streamsPtses = (Map<String, List<Long>>)liveManager.getOrAddMetadata(entryId, KNOWN_PTS, defaultValue);
 				
 				addPtsToStream(streamsPtses, streamName, pts);
 				if(ptsAppearInAllStreams(streamsPtses, streamName, pts))
