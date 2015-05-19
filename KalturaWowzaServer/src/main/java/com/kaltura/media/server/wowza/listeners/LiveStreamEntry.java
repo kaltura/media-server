@@ -609,7 +609,7 @@ public class LiveStreamEntry extends ModuleBase {
 				String streamName = stream.getName();
 				String entryId = getEntryIdFromStreamName(streamName);
 				if(entryId == null){
-					logger.info("Stream [" + streamName + "] does not match entry id");
+					logger.warn("Stream [" + streamName + "] does not match entry id");
 					return;
 				}
 				
@@ -621,45 +621,49 @@ public class LiveStreamEntry extends ModuleBase {
 				
 				// Update PTS metadata and compare to related streams PTSes
 				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
+				
+				
+				// Stream PTSes contains for each stream of the entry, the PTSes that arrived on that stream and 
+				// didn't appear yet on all other streams. Once a PTS has arrived on all PTSes - 
+				// it's removed from all streams.
 				Map<String, List<Long>> defaultValue = new HashMap<String, List<Long>>();
 				Map<String, List<Long>> streamsPtses = (Map<String, List<Long>>)liveManager.getMetadata(entryId, KNOWN_PTS, defaultValue);
-				addPts(streamsPtses, streamName, pts);
-				compareStreams(streamsPtses, streamName, pts);
-				cleanOldPtses(streamsPtses, streamName, pts);
+				
+				addPtsToStream(streamsPtses, streamName, pts);
+				if(ptsAppearInAllStreams(streamsPtses, streamName, pts))
+					removePtsFromStreams(streamsPtses, pts);
+				
+				handleOldPtses(streamsPtses, streamName, pts);
 			}
 		}
 		
 		/**
-		 * This function verifies that the last PTS call of the given stream is not too far from the other streams PTSes.
+		 * This function verifies that the arrived PTS appears in all streams
 		 * @param streamsPtses All known PTSes by streams
-		 * @param streamName Current stream name
+		 * @param currentStreamName Current stream name
 		 * @param pts Current stream read
+		 * @return Whether it appeared in all streams
 		 */
-		protected void compareStreams(Map<String, List<Long>> streamsPtses,
-				String streamName, long pts) {
+		protected boolean ptsAppearInAllStreams(Map<String, List<Long>> streamsPtses,
+				String currentStreamName, long pts) {
 			
-			boolean foundInAll = true;
 			for (Entry<String, List<Long>> itr : streamsPtses.entrySet()) {
-				if(streamName.equals(itr.getKey())) {
+				if(currentStreamName.equals(itr.getKey())) {
 					continue;
 				}
-				if(!itr.getValue().contains(pts)) {
-					foundInAll = false;
-					break;
-				}
+				
+				if(!itr.getValue().contains(pts)) 
+					return false;
 			}
 			
-			if(foundInAll) {
-				removeFromAll(streamsPtses, pts);
-				return;
-			}
+			return true;
 		}
 		
 		/**
-		 * This function cleans the stream PTSes list from old ptses and warn about them 
+		 * This function cleans the stream PTSes list from old ptses and warn about them.
 		 * @param pts current pts for time reference
 		 */
-		protected void cleanOldPtses(Map<String, List<Long>> streamsPtses, String streamName, long pts) {
+		protected void handleOldPtses(Map<String, List<Long>> streamsPtses, String streamName, long pts) {
 			
 			List<Long> streamPts = streamsPtses.get(streamName);
 			synchronized (streamPts) {
@@ -676,7 +680,7 @@ public class LiveStreamEntry extends ModuleBase {
 		/**
 		 * Removes a given PTS from all the streams
 		 */
-		private void removeFromAll(Map<String, List<Long>> streamsPtses, long pts) {
+		private void removePtsFromStreams(Map<String, List<Long>> streamsPtses, long pts) {
 			synchronized(streamsPtses) {
 				for (List<Long> streamPts : streamsPtses.values()) {
 					streamPts.remove(pts);
@@ -691,7 +695,7 @@ public class LiveStreamEntry extends ModuleBase {
 		 * @param streamName current stream name
 		 * @param pts the pts to add
 		 */
-		protected void addPts(Map<String, List<Long>> streamsPtses, String streamName, long pts) {
+		protected void addPtsToStream(Map<String, List<Long>> streamsPtses, String streamName, long pts) {
 			
 			synchronized(streamsPtses) {
 				if(!streamsPtses.containsKey(streamName)) 
