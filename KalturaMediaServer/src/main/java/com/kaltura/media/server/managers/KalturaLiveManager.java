@@ -85,6 +85,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		private Map<Integer, KalturaLiveAsset> liveAssets = new HashMap<Integer, KalturaLiveAsset>();
 		private Timer timer;
 		Set<ILiveEntryReferrer> referrers = new HashSet<ILiveManager.ILiveEntryReferrer>();
+		Map<String, Object> metadata = new ConcurrentHashMap<String, Object>();
 
 		public void addReferrer(ILiveEntryReferrer obj) {
 			synchronized (referrers) {
@@ -270,6 +271,25 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		public KalturaMediaServerIndex getIndex() {
 			return index;
 		}
+		
+		public Object getMetadata(String key) {
+			return getOrAddMetadata(key, null);
+		}
+		
+		public Object getOrAddMetadata(String key, Object defaultValue) {
+			synchronized (metadata) {
+				if (!metadata.containsKey(key) && (null != defaultValue))
+					metadata.put(key, defaultValue);
+				return metadata.get(key);
+			}
+		}
+		
+		public Object setMetadata(String key, Object value) {
+			synchronized (metadata) {
+				return metadata.put(key, value);
+			}
+		}
+		
 	}
 	
 	abstract public KalturaServiceBase getLiveServiceInstance (KalturaClient impersonateClient);
@@ -394,8 +414,43 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 		return dvrWindowSeconds;
 	}
-
-
+	
+	public Object getMetadata(String entryId, String key) {
+		synchronized (entries) {
+			if (!entries.containsKey(entryId)) {
+				logger.error("Entry id [" + entryId + "] not found");
+				return null;
+			}
+			
+			LiveEntryCache liveEntryCache = entries.get(entryId);
+			return liveEntryCache.getMetadata(key);
+		}
+	}
+	
+	public Object getOrAddMetadata(String entryId, String key, Object defaultValue) {
+		synchronized (entries) {
+			if (!entries.containsKey(entryId)) {
+				logger.error("Entry id [" + entryId + "] not found");
+				return null;
+			}
+			
+			LiveEntryCache liveEntryCache = entries.get(entryId);
+			return liveEntryCache.getOrAddMetadata(key, defaultValue);
+		}
+	}
+	
+	public Object setMetadata(String entryId, String key, Object value) {
+		synchronized (entries) {
+			if (!entries.containsKey(entryId)) {
+				logger.error("Entry id [" + entryId + "] not found");
+				return null;
+			}
+			
+			LiveEntryCache liveEntryCache = entries.get(entryId);
+			return liveEntryCache.setMetadata(key, value);
+		}
+	}
+	
 	@Override
 	public void onEvent(IKalturaEvent event){
 		KalturaStreamEvent streamEvent;
