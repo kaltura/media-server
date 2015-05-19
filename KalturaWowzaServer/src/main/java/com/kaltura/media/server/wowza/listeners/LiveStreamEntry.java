@@ -631,8 +631,9 @@ public class LiveStreamEntry extends ModuleBase {
 				Map<String, List<Long>> streamsPtses = (Map<String, List<Long>>)liveManager.getOrAddMetadata(entryId, KNOWN_PTS, defaultValue);
 				
 				addPtsToStream(streamsPtses, streamName, pts);
-				if(ptsAppearInAllStreams(streamsPtses, streamName, pts))
+				if(ptsAppearInAllStreams(streamsPtses, streamName, pts)) {
 					removePtsFromStreams(streamsPtses, pts);
+				}
 				
 				handleOldPtses(streamsPtses, streamName, pts);
 			}
@@ -653,8 +654,9 @@ public class LiveStreamEntry extends ModuleBase {
 					continue;
 				}
 				
-				if(!itr.getValue().contains(pts)) 
+				if(!itr.getValue().contains(pts)) {
 					return false;
+				}
 			}
 			
 			return true;
@@ -681,7 +683,7 @@ public class LiveStreamEntry extends ModuleBase {
 		/**
 		 * Removes a given PTS from all the streams
 		 */
-		private void removePtsFromStreams(Map<String, List<Long>> streamsPtses, long pts) {
+		protected void removePtsFromStreams(Map<String, List<Long>> streamsPtses, long pts) {
 			synchronized(streamsPtses) {
 				for (List<Long> streamPts : streamsPtses.values()) {
 					streamPts.remove(pts);
@@ -699,8 +701,9 @@ public class LiveStreamEntry extends ModuleBase {
 		protected void addPtsToStream(Map<String, List<Long>> streamsPtses, String streamName, long pts) {
 			
 			synchronized(streamsPtses) {
-				if(!streamsPtses.containsKey(streamName)) 
+				if(!streamsPtses.containsKey(streamName)) {
 					streamsPtses.put(streamName, new ArrayList<Long>());
+				}
 				List<Long> streamPts = streamsPtses.get(streamName);
 				streamPts.add(pts);
 			}
