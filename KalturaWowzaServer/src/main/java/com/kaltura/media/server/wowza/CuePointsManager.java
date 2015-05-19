@@ -5,11 +5,9 @@ import com.kaltura.infra.StringUtils;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.events.IKalturaEvent;
+import com.kaltura.media.server.events.IKalturaEventConsumer;
 import com.kaltura.media.server.events.KalturaEventType;
-import com.kaltura.media.server.managers.ILiveManager;
-import com.kaltura.media.server.managers.ILiveStreamManager;
-import com.kaltura.media.server.managers.KalturaCuePointsManager;
-import com.kaltura.media.server.managers.KalturaManagerException;
+import com.kaltura.media.server.managers.*;
 import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
@@ -25,16 +23,21 @@ import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.MediaStream;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizer;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
+import org.apache.log4j.Logger;
 
 import java.util.*;
 
-public class CuePointsManager extends KalturaCuePointsManager implements ILiveManager.ILiveEntryReferrer {
+public class CuePointsManager extends KalturaManager implements IKalturaEventConsumer, ILiveManager.ILiveEntryReferrer {
 
-	public static final String PUBLIC_METADATA = "onMetaData";
-	protected final static int SYNC_POINTS_INTERVAL_IN_MS = 10000;
+	private static final Logger logger = Logger.getLogger(CuePointsManager.class);
+	private static final String PUBLIC_METADATA = "onMetaData";
+	private final static int DEFAULT_SYNC_POINTS_INTERVAL_IN_MS = 30000;
+	private final static String KALTURA_SYNC_POINTS_INTERVAL_PROPERTY = "KalturaSyncPointsInterval";
 
-	protected final HashMap<IMediaStream, Timer> streams;
-	protected LiveStreamPacketizerListener liveStreamPacketizerListener;
+	private final Map<String,Timer> streams;
+	private LiveStreamPacketizerListener liveStreamPacketizerListener;
+	private ILiveManager liveManager;
+	private int syncPointsInterval;
 
 	public CuePointsManager() {
 		logger.debug("Creating a new instance of CuePointsManager");
@@ -85,7 +88,7 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 				return "";
 			}
 
-			char         c = 0;
+			char         c;
 			int          i;
 			int          len = string.length();
 			StringBuilder sb = new StringBuilder(len + 4);
@@ -121,7 +124,7 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 					default:
 						if (c < ' ') {
 							t = "000" + Integer.toHexString(c);
-							sb.append("\\u" + t.substring(t.length() - 4));
+							sb.append("\\u").append(t.substring(t.length() - 4));
 						} else {
 							sb.append(c);
 						}
@@ -135,7 +138,7 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 			int t = data.getType();
 
 			if (t == AMFData.DATA_TYPE_STRING || t == AMFData.DATA_TYPE_DATE) {
-				sb.append("\"").append(jsonEscape(((AMFDataItem) data).toString())).append("\"");
+				sb.append("\"").append(jsonEscape(data.toString())).append("\"");
 			}
 
 			else if (t == AMFData.DATA_TYPE_NUMBER || t == AMFData.DATA_TYPE_BOOLEAN) {
@@ -270,10 +273,14 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 
 	@Override
 	public void init() throws KalturaManagerException {
-		super.init();
-
-		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_PUBLISHED, KalturaMediaEventType.APPLICATION_INSTANCE_STARTED);
+		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_PUBLISHED, KalturaEventType.STREAM_UNPUBLISHED, KalturaMediaEventType.APPLICATION_INSTANCE_STARTED);
+		liveManager = KalturaServer.getManager(ILiveManager.class);
 		setInitialized();
+	}
+
+	@Override
+	public void stop() {
+
 	}
 
 	@Override
@@ -311,24 +318,24 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 		final String streamName = mediaStream.getName();
 		Timer t;
 		synchronized (streams) {
-			if (!streams.containsKey(mediaStream)) {
+			if (!streams.containsKey(streamName)) {
 				logger.error("Unpublishing a stream that does not exist in streams map: " + streamName);
 				return;
 			}
-			t = streams.remove(mediaStream);
+			t = streams.remove(streamName);
 		}
 		logger.debug("Stopping CuePoints timer for stream " + streamName);
 		t.cancel();
 		t.purge();
 
-		ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 		liveManager.removeReferrer(entryId, this);
 
 	}
 
 	protected void onAppStart(IApplicationInstance applicationInstance) {
-		logger.debug("Application instance started, adding live stream packetizer listener");
 		applicationInstance.addLiveStreamPacketizerListener(liveStreamPacketizerListener);
+		syncPointsInterval = applicationInstance.getProperties().getPropertyInt(KALTURA_SYNC_POINTS_INTERVAL_PROPERTY, DEFAULT_SYNC_POINTS_INTERVAL_IN_MS);
+		logger.info("CuePointsManager application instance started. Sync points interval: " + syncPointsInterval);
 	}
 
 	protected void onPublish(final IMediaStream stream, final String entryId) {
@@ -339,19 +346,19 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 
 		String streamName = stream.getName();
 		logger.debug("Stream [" + streamName + "] entry [" + entryId + "]");
-		ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 		liveManager.addReferrer(entryId, this);
 
 		final Timer t;
 		synchronized (streams) {
-			if (streams.containsKey(stream)) {
+			if (streams.containsKey(streamName)) {
+				//TODO, can this situation occur? need to reset timer?
 				logger.debug("Stream with name " + streamName + " already exists in streams map");
-				t = streams.get(stream);
+				t = streams.get(streamName);
 			}
 			else {
 				logger.debug("Stream with name " + streamName + " does not exist in streams map. creating a new map entry.");
 				t = new Timer();
-				streams.put(stream, t);
+				streams.put(streamName, t);
 			}
 		}
 
@@ -371,7 +378,7 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 			}
 		};
 		try {
-			t.schedule(tt,0,SYNC_POINTS_INTERVAL_IN_MS);
+			t.schedule(tt,0, syncPointsInterval);
 		} catch (Exception e) {
 			logger.error("Error occurred while scheduling a timer task",e);
 		}
@@ -382,44 +389,34 @@ public class CuePointsManager extends KalturaCuePointsManager implements ILiveMa
 		KalturaLiveEntry liveEntry = liveManager.get(entryId);
 		String id = StringUtils.getUniqueId();
 		double offset = liveEntry.duration + stream.getElapsedTime().getTimeSeconds();
-
-		try{
-			sendSyncPoint(stream,entryId, id, offset);
-		} catch (KalturaManagerException e) {
-			logger.error("Failed sending sync-point [" + id + "] to entry [" + entryId + "]: " + e.getMessage());
-		}
+		sendSyncPoint(stream,entryId, id, offset);
 	}
 
-	public void sendSyncPoint(IMediaStream stream, String entryId, String id, double offset) throws KalturaManagerException {
+	public void sendSyncPoint(final IMediaStream stream, String entryId, String id, double offset) {
 		logger.debug("sendSyncPoint: entryId: " + entryId + " id: " + id + " offest: " + offset);
 
 		Date date = new Date();
+		long time = date.getTime();
 		AMFDataObj data = new AMFDataObj();
 		data.put("objectType", "KalturaSyncPoint");
 		data.put("id", id);
 		data.put("offset", offset * 1000);
-		data.put("timestamp", date.getTime());
+		data.put("timestamp", time);
 
 		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
 		((MediaStream)stream).processSendDirectMessages();
-		logger.info("Sent sync-point [" + id + "] to entry [" + entryId + "] stream [" + stream.getName() + "] offset [" + offset + "]");
+		logger.info("Sent sync-point: stream " + stream.getName() + "time: " + time + " offset: " + offset + "id: " + id);
 
-		//TODO need to override the data?
+//		//TODO need to override the data?
 //		TimerTask task = new TimerTask() {
-//
 //			@Override
 //			public void run() {
 //				AMFDataObj clear = new AMFDataObj();
 //				clear.put("objectType", "");
-//
-//				for (IMediaStream stream : entryStreams) {
-//					stream.sendDirect(CuePointsManager.PUBLIC_METADATA, clear);
-//					((MediaStream)stream).processSendDirectMessages();
-////					logger.debug("clearing sync point. stream name:" + stream.getName());
-//				}
+//				stream.sendDirect(CuePointsManager.PUBLIC_METADATA, clear);
+//				((MediaStream)stream).processSendDirectMessages();
 //			}
 //		};
-//
 //		Timer timer = new Timer("sendSyncPoint-" + entryId, true);
 //		timer.schedule(task, 1000);
 	}

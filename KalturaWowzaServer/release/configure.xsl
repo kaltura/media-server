@@ -606,7 +606,7 @@
 										</Property>
 										<Property>
 											<Name>KalturaServerWebServices</Name>
-											<Value>com.kaltura.media.server.api.services.KalturaLiveService, com.kaltura.media.server.api.services.KalturaCuePointsService</Value>
+											<Value>com.kaltura.media.server.api.services.KalturaLiveService</Value>
 										</Property>
 										<Property>
 											<Name>KalturaServerStatusInterval</Name>
