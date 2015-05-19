@@ -2,11 +2,13 @@ package com.kaltura.media.server.wowza.listeners;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Matcher;
@@ -34,6 +36,8 @@ import com.kaltura.media.server.wowza.SmilManager;
 import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
+import com.wowza.util.BufferUtils;
+import com.wowza.util.FLVUtils;
 import com.wowza.wms.amf.AMFData;
 import com.wowza.wms.amf.AMFDataList;
 import com.wowza.wms.amf.AMFDataObj;
@@ -44,11 +48,13 @@ import com.wowza.wms.client.IClient;
 import com.wowza.wms.dvr.DvrApplicationContext;
 import com.wowza.wms.dvr.IDvrConstants;
 import com.wowza.wms.httpstreamer.model.IHTTPStreamerSession;
+import com.wowza.wms.media.model.MediaCodecInfoVideo;
 import com.wowza.wms.medialist.MediaListRendition;
 import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.rtp.model.RTPSession;
 import com.wowza.wms.stream.IMediaStream;
+import com.wowza.wms.stream.IMediaStreamLivePacketNotify;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import com.wowza.wms.stream.livedvr.ILiveStreamDvrRecorderControl;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerControl;
@@ -61,6 +67,7 @@ import com.wowza.wms.transcoder.model.LiveStreamTranscoder;
 import com.wowza.wms.transcoder.model.LiveStreamTranscoderActionNotifyBase;
 import com.wowza.wms.transcoder.model.TranscoderStreamNameGroup;
 import com.wowza.wms.transcoder.model.TranscoderStreamNameGroupMember;
+import com.wowza.wms.vhost.IVHost;
 
 public class LiveStreamEntry extends ModuleBase {
 
@@ -74,6 +81,7 @@ public class LiveStreamEntry extends ModuleBase {
 	protected final static String CLIENT_PROPERTY_PARTNER_ID = "partnerId";
 	protected final static String CLIENT_PROPERTY_SERVER_INDEX = "serverIndex";
 	protected final static String CLIENT_PROPERTY_ENTRY_ID = "entryId";
+	protected final static String CLIENT_PROPERTY_CODEC_TYPE = "codecType";
 	protected final static String STREAM_PROPERTY_SUFFIX = "suffix";
 	protected final static String APPLICATION_MANAGERS_PROPERTY_NAME = "ApplicationManagers";
 
@@ -86,6 +94,7 @@ public class LiveStreamEntry extends ModuleBase {
 	private DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
 	private LiveStreamTranscoderListener liveStreamTranscoderListener = new LiveStreamTranscoderListener();
 	private LiveStreamTranscoderActionListener liveStreamTranscoderActionListener = new LiveStreamTranscoderActionListener();
+	private PacketListener packetListener = new PacketListener();
 	private IApplicationInstance appInstance;
 	private Map<String, Map<String, Stream>> restreams = new HashMap<String, Map<String, Stream>>();
 
@@ -176,7 +185,16 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	class LiveStreamListener extends MediaStreamActionNotifyBase implements ILiveManager.ILiveEntryReferrer {
-
+		
+		@Override
+		public void onCodecInfoVideo(IMediaStream stream, MediaCodecInfoVideo videoCodec) {
+			super.onCodecInfoVideo(stream, videoCodec);
+			
+			WMSProperties properties = getConnectionProperties(stream);
+			if(properties != null)
+				properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_CODEC_TYPE, videoCodec.getCodec());
+		}
+		
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
 			logger.debug("Stream [" + streamName + "]");
@@ -572,6 +590,125 @@ public class LiveStreamEntry extends ModuleBase {
 			((LiveStreamTranscoder) liveStreamTranscoder).addActionListener(liveStreamTranscoderActionListener);
 		}
 	}
+	
+	class PacketListener implements IMediaStreamLivePacketNotify {
+		
+		protected static final String KNOWN_PTS = "known_pts";
+		// Maximum age allowed for a PTS in comparison to the current one
+		protected static final int MAX_PTS_AGE = 1000 * 10;
+		
+		@Override
+		@SuppressWarnings("unchecked")
+		public void onLivePacket(IMediaStream stream, AMFPacket packet) {
+
+			final int DEFAULT_CODEC = -1;
+			if (FLVUtils.isVideoKeyFrame(packet)) {
+				WMSProperties properties = getConnectionProperties(stream);
+				if(properties == null)
+					return; // Transcoded stream
+				
+				String streamName = stream.getName();
+				String entryId = getEntryIdFromStreamName(streamName);
+				if(entryId == null){
+					logger.warn("Stream [" + streamName + "] does not match entry id");
+					return;
+				}
+				
+				// Calculate PTS
+				long pts = packet.getAbsTimecode();
+				int codec = properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_CODEC_TYPE, DEFAULT_CODEC);
+				if ((codec == IVHost.CODEC_VIDEO_H264 || codec == IVHost.CODEC_VIDEO_H265) && packet.getSize() >= 5)
+					pts += BufferUtils.byteArrayToLong(packet.getData(), 2, 3);
+				
+				// Update PTS metadata and compare to related streams PTSes
+				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
+				
+				
+				// Stream PTSes contains for each stream of the entry, the PTSes that arrived on that stream and 
+				// didn't appear yet on all other streams. Once a PTS has arrived on all PTSes - 
+				// it's removed from all streams.
+				Map<String, List<Long>> defaultValue = new HashMap<String, List<Long>>();
+				Map<String, List<Long>> streamsPtses = (Map<String, List<Long>>)liveManager.getOrAddMetadata(entryId, KNOWN_PTS, defaultValue);
+				
+				addPtsToStream(streamsPtses, streamName, pts);
+				if(ptsAppearInAllStreams(streamsPtses, streamName, pts)) {
+					removePtsFromStreams(streamsPtses, pts);
+				}
+				
+				handleOldPtses(streamsPtses, streamName, pts);
+			}
+		}
+		
+		/**
+		 * This function verifies that the arrived PTS appears in all streams
+		 * @param streamsPtses All known PTSes by streams
+		 * @param currentStreamName Current stream name
+		 * @param pts Current stream read
+		 * @return Whether it appeared in all streams
+		 */
+		protected boolean ptsAppearInAllStreams(Map<String, List<Long>> streamsPtses,
+				String currentStreamName, long pts) {
+			
+			for (Entry<String, List<Long>> itr : streamsPtses.entrySet()) {
+				if(currentStreamName.equals(itr.getKey())) {
+					continue;
+				}
+				
+				if(!itr.getValue().contains(pts)) {
+					return false;
+				}
+			}
+			
+			return true;
+		}
+		
+		/**
+		 * This function cleans the stream PTSes list from old ptses and warn about them.
+		 * @param pts current pts for time reference
+		 */
+		protected void handleOldPtses(Map<String, List<Long>> streamsPtses, String streamName, long pts) {
+			
+			List<Long> streamPts = streamsPtses.get(streamName);
+			synchronized (streamPts) {
+				for (Iterator<Long> iterator = streamPts.iterator(); iterator.hasNext();) {
+					Long pastPts = iterator.next();
+					if(Math.abs(pts - pastPts) > MAX_PTS_AGE) {
+						logger.warn("Stream [" + streamName + "] has a PTS:" + pastPts + " which didn't appear in all other streams. ");
+						iterator.remove();
+					}
+				}
+			}
+		}
+
+		/**
+		 * Removes a given PTS from all the streams
+		 */
+		protected void removePtsFromStreams(Map<String, List<Long>> streamsPtses, long pts) {
+			synchronized(streamsPtses) {
+				for (List<Long> streamPts : streamsPtses.values()) {
+					streamPts.remove(pts);
+				}
+			}
+		}
+
+
+		/**
+		 * Adds a new key-frame pts to the stream-ptses metadata object. 
+		 * @param streamsPtses Ptses per stream-name
+		 * @param streamName current stream name
+		 * @param pts the pts to add
+		 */
+		protected void addPtsToStream(Map<String, List<Long>> streamsPtses, String streamName, long pts) {
+			
+			synchronized(streamsPtses) {
+				if(!streamsPtses.containsKey(streamName)) {
+					streamsPtses.put(streamName, new ArrayList<Long>());
+				}
+				List<Long> streamPts = streamsPtses.get(streamName);
+				streamPts.add(pts);
+			}
+		}
+	}
 
 	private void restream(Stream stream, String inputStreamName) {
 		logger.debug("Restream [" + stream.getName() + "] from [" + inputStreamName + "]");
@@ -648,6 +785,12 @@ public class LiveStreamEntry extends ModuleBase {
 	public void onStreamCreate(IMediaStream stream) {
 		logger.debug("LiveStreamEntry::onStreamCreate");
 		stream.addClientListener(new LiveStreamListener());
+		stream.addLivePacketListener(packetListener);
+	}
+	
+	public void onStreamDestroy(IMediaStream stream)
+	{
+		stream.removeLivePacketListener(packetListener);
 	}
 
 	public void onDisconnect(IClient client) {
