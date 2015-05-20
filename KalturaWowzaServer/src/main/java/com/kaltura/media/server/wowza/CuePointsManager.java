@@ -7,7 +7,9 @@ import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.IKalturaEventConsumer;
 import com.kaltura.media.server.events.KalturaEventType;
-import com.kaltura.media.server.managers.*;
+import com.kaltura.media.server.managers.ILiveManager;
+import com.kaltura.media.server.managers.KalturaManager;
+import com.kaltura.media.server.managers.KalturaManagerException;
 import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
@@ -31,7 +33,7 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 
 	private static final Logger logger = Logger.getLogger(CuePointsManager.class);
 	private static final String PUBLIC_METADATA = "onMetaData";
-	private final static int DEFAULT_SYNC_POINTS_INTERVAL_IN_MS = 30000;
+	private final static int DEFAULT_SYNC_POINTS_INTERVAL_IN_MS = 8000;
 	private final static String KALTURA_SYNC_POINTS_INTERVAL_PROPERTY = "KalturaSyncPointsInterval";
 
 	private final Map<String,Timer> streams;
@@ -273,14 +275,10 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 
 	@Override
 	public void init() throws KalturaManagerException {
+		super.init();
 		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_PUBLISHED, KalturaEventType.STREAM_UNPUBLISHED, KalturaMediaEventType.APPLICATION_INSTANCE_STARTED);
 		liveManager = KalturaServer.getManager(ILiveManager.class);
 		setInitialized();
-	}
-
-	@Override
-	public void stop() {
-
 	}
 
 	@Override
@@ -352,7 +350,7 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 		synchronized (streams) {
 			if (streams.containsKey(streamName)) {
 				//TODO, can this situation occur? need to reset timer?
-				logger.debug("Stream with name " + streamName + " already exists in streams map");
+				logger.error("Stream with name " + streamName + " already exists in streams map");
 				t = streams.get(streamName);
 			}
 			else {

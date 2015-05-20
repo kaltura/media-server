@@ -47,4 +47,8 @@ abstract public class KalturaManager implements IManager {
 	protected void setInitialized() throws KalturaManagerException {
 		KalturaServer.setManagerInitialized(getClass().getName());
 	}
+
+	@Override
+	public void stop() {
+	}
 }
