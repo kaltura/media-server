@@ -238,10 +238,6 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 			json = json.replaceAll("[^\\x20-\\x7F]", "");
 			logger.debug("Stream [" + streamName + "] JSON after char removal:\n" + json);
 
-			//TODO, not used
-//			String hashedString = new String(Base64.encodeBase64(json.getBytes()));
-//			logger.info("Stream [" + streamName + "] Hashed: " + hashedString);
-
 			ID3V2FrameBase frame;
 			frame = new ID3V2FrameObject();
 			((ID3V2FrameObject) frame).setText(json);
@@ -404,18 +400,5 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
 		((MediaStream)stream).processSendDirectMessages();
 		logger.info("Sent sync-point: stream " + stream.getName() + "time: " + time + " offset: " + offset + "id: " + id);
-
-//		//TODO need to override the data?
-//		TimerTask task = new TimerTask() {
-//			@Override
-//			public void run() {
-//				AMFDataObj clear = new AMFDataObj();
-//				clear.put("objectType", "");
-//				stream.sendDirect(CuePointsManager.PUBLIC_METADATA, clear);
-//				((MediaStream)stream).processSendDirectMessages();
-//			}
-//		};
-//		Timer timer = new Timer("sendSyncPoint-" + entryId, true);
-//		timer.schedule(task, 1000);
 	}
 }
