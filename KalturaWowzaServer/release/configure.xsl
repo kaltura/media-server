@@ -511,6 +511,16 @@
 											<Value>200</Value>
 											<Type>Integer</Type>
 										</Property>
+                                        <Property>
+                                            <Name>ApplicationManagers</Name>
+                                            <Value>com.kaltura.media.server.wowza.CuePointsManager</Value>
+                                            <Type>String</Type>
+                                        </Property>
+                                        <Property>
+                                            <Name>KalturaSyncPointsInterval</Name>
+                                            <Value>8000</Value>
+                                            <Type>Integer</Type>
+                                        </Property>
 									</xsl:with-param>
 								</xsl:call-template>
 							</xsl:when>
