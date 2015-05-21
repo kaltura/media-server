@@ -273,7 +273,7 @@ media_servers.ini is optional and needed only for custom configurations.
 <Property>
 	<!-- Kaltura server managers to be loaded -->
 	<Name>KalturaServerManagers</Name>
-	<Value>com.kaltura.media.server.wowza.StatusManager, com.kaltura.media.server.wowza.LiveStreamManager, com.kaltura.media.server.wowza.CuePointsManager, com.kaltura.media.server.wowza.PushPublishManager</Value>
+	<Value>com.kaltura.media.server.wowza.StatusManager, com.kaltura.media.server.wowza.LiveStreamManager, com.kaltura.media.server.wowza.PushPublishManager</Value>
 </Property>
 <Property>
 	<!-- Kaltura web services to be loaded -->
