@@ -235,6 +235,11 @@ media_servers.ini is optional and needed only for custom configurations.
 	<Value>false</Value>
 	<Type>Boolean</Type>
 </Property>
+<Property>
+	<Name>ApplicationManagers</Name>
+	<Value>com.kaltura.media.server.wowza.CuePointsManager</Value>
+	<Type>String</Type>
+</Property>
 <!-- Time in ms in which sync points will be sent on the stream -->
 <Property>
 	<Name>KalturaSyncPointsInterval</Name>
