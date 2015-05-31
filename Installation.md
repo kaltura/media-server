@@ -235,6 +235,17 @@ media_servers.ini is optional and needed only for custom configurations.
 	<Value>false</Value>
 	<Type>Boolean</Type>
 </Property>
+<Property>
+	<Name>ApplicationManagers</Name>
+	<Value>com.kaltura.media.server.wowza.CuePointsManager</Value>
+	<Type>String</Type>
+</Property>
+<!-- Time in ms in which sync points will be sent on the stream -->
+<Property>
+	<Name>KalturaSyncPointsInterval</Name>
+	<Value>8000</Value>
+	<Type>Integer</Type>
+</Property>
 ```
 
 
@@ -267,12 +278,12 @@ media_servers.ini is optional and needed only for custom configurations.
 <Property>
 	<!-- Kaltura server managers to be loaded -->
 	<Name>KalturaServerManagers</Name>
-	<Value>com.kaltura.media.server.wowza.StatusManager, com.kaltura.media.server.wowza.LiveStreamManager, com.kaltura.media.server.wowza.CuePointsManager, com.kaltura.media.server.wowza.PushPublishManager</Value>
+	<Value>com.kaltura.media.server.wowza.StatusManager, com.kaltura.media.server.wowza.LiveStreamManager, com.kaltura.media.server.wowza.PushPublishManager</Value>
 </Property>
 <Property>
 	<!-- Kaltura web services to be loaded -->
 	<Name>KalturaServerWebServices</Name>
-	<Value>com.kaltura.media.server.api.services.KalturaLiveService, com.kaltura.media.server.api.services.KalturaCuePointsService</Value>
+	<Value>com.kaltura.media.server.api.services.KalturaLiveService</Value>
 </Property>
 <Property>
 	<!-- Kaltura server status reporting interval, in seconds -->
