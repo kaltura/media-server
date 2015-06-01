@@ -376,7 +376,7 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 
 			/*
 			 TODO, the START_SYNC_POINTS_DELAY is a workaround for a bug that was discovered when sending sync points
-			 immediately after the onPublish event. onPublish is called twice for each stream instead of once. the result
+			 immediately after the onPublish event - onPublish is called twice for each stream instead of once. the result
 			 is that some referrers are not cleared --> no unregister --> isLive for stream remains true.
 			*/
 			t.schedule(tt,START_SYNC_POINTS_DELAY, syncPointsInterval);
