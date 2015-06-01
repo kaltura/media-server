@@ -366,7 +366,6 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 			@Override
 			public void run() {
 				try {
-					logger.debug("Sync points timer has started for entry " + stream.getName());
 					createSyncPoint(stream, entryId);
 				} catch (Exception e) {
 					logger.error("Error occured while running sync points timer", e);
