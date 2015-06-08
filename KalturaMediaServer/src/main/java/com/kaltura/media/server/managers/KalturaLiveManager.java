@@ -526,7 +526,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				//stream has already started - update the entry cache with the start time value
 				if (updatedEntry.currentBroadcastStartTime > 0d) {
 					logger.debug("currentBroadcastStartTime already set in server - updating liveEntryCache: " + liveEntry.currentBroadcastStartTime);
-					liveEntry.currentBroadcastStartTime = updatedEntry.currentBroadcastStartTime;
+					updateEntryCache(updatedEntry);
 					return;
 				}
 
