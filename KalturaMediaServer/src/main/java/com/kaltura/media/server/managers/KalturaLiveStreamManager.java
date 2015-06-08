@@ -47,8 +47,7 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 	public KalturaLiveStreamEntry get(String entryId, int partnerId) throws KalturaApiException {
 		KalturaClient impersonateClient = impersonate(partnerId);
 		KalturaLiveStreamEntry liveStreamEntry = impersonateClient.getLiveStreamService().get(entryId);
-		impersonateClient = null;
-		
+
 		synchronized (entries) {
 			entries.put(liveStreamEntry.id, new LiveEntryCache(liveStreamEntry));
 		}
