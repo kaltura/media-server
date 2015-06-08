@@ -35,12 +35,9 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 	public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token) throws KalturaApiException {
 		KalturaClient impersonateClient = impersonate(partnerId);
 		KalturaLiveStreamEntry liveStreamEntry = impersonateClient.getLiveStreamService().authenticate(entryId, token);
-		impersonateClient = null;
-		
-		synchronized (entries) {
-			entries.put(liveStreamEntry.id, new LiveEntryCache(liveStreamEntry));
-		}
-		
+
+		updateEntryCache(liveStreamEntry);
+
 		return liveStreamEntry;
 	}
 	
@@ -48,9 +45,7 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 		KalturaClient impersonateClient = impersonate(partnerId);
 		KalturaLiveStreamEntry liveStreamEntry = impersonateClient.getLiveStreamService().get(entryId);
 
-		synchronized (entries) {
-			entries.put(liveStreamEntry.id, new LiveEntryCache(liveStreamEntry));
-		}
+		updateEntryCache(liveStreamEntry);
 		
 		return liveStreamEntry;
 	}
@@ -64,5 +59,16 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 	public KalturaServiceBase getLiveServiceInstance (KalturaClient impersonateClient)
 	{
 		return impersonateClient.getLiveStreamService();
+	}
+
+	private void updateEntryCache(KalturaLiveStreamEntry liveStreamEntry) {
+		synchronized (entries) {
+			LiveEntryCache c = entries.get(liveStreamEntry.id);
+			if (c == null) {
+				entries.put(liveStreamEntry.id, new LiveEntryCache(liveStreamEntry));
+			} else {
+				c.setLiveEntry(liveStreamEntry);
+			}
+		}
 	}
 }

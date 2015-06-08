@@ -77,7 +77,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	private Timer setMediaServerTimer;
 
 	protected class LiveEntryCache {
-		private Object liveEntryCacheLock = new Object();
 		private KalturaLiveEntry liveEntry;
 		private boolean registered = false;
 		private KalturaMediaServerIndex index = null;
@@ -87,10 +86,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		private Timer timer;
 		Set<ILiveEntryReferrer> referrers = new HashSet<ILiveManager.ILiveEntryReferrer>();
 		Map<String, Object> metadata = new ConcurrentHashMap<String, Object>();
-
-		public Object getLiveEntryCacheLock() {
-			return liveEntryCacheLock;
-		}
 
 		public void addReferrer(ILiveEntryReferrer obj) {
 			synchronized (referrers) {
@@ -481,12 +476,12 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 		synchronized (entries) {
 
-			if (entries.containsKey(entryId)){
+			if (entries.containsKey(entryId)) {
 				liveEntryCache = entries.get(entryId);
 				liveEntryCache.register(serverIndex, applicationName);
-			}
-			else{
+			} else {
 				logger.error("entry [" + entryId + "] not found in entries array");
+				return;
 			}
 		}
 
@@ -495,21 +490,20 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 	protected void onEntryPublished(String entryId, LiveEntryCache liveEntryCache, final KalturaMediaServerIndex serverIndex, String applicationName) {
 
-		logger.debug("onEntryPublished - entryId: " + entryId);
 		if (liveEntryCache == null || liveEntryCache.getLiveEntry() == null) {
 			logger.debug("liveEntryCache is null. or getLiveEntry is null");
 			return;
 		}
 		//update the entry cache object with the correct currentBroadcastStartTime
 		//lock the entry cache object to ensure only one thread writes the start value
-		synchronized (liveEntryCache.getLiveEntryCacheLock()) {
+		synchronized (liveEntryCache) {
 
+			logger.debug("onEntryPublished - entryId: " + entryId);
 			KalturaLiveEntry liveEntry = liveEntryCache.getLiveEntry();
 
 			//entry cache is already updated
 			logger.debug("currentBroadcastStartTime = " + liveEntry.currentBroadcastStartTime);
 			if (liveEntry.currentBroadcastStartTime > 0d) {
-				logger.debug("currentBroadcastStartTime is updated");
 				return;
 			}
 
@@ -521,7 +515,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				logger.debug("got updatedEntry from the server. currentBroadcastStartTime = " + updatedEntry.currentBroadcastStartTime);
 				//stream has already started - update the entry cache with the start time value
 				if (updatedEntry.currentBroadcastStartTime > 0d) {
-					logger.debug("currentBroadcastStartTime already set in server - updating liveEntryCache");
+					logger.debug("currentBroadcastStartTime already set in server - updating liveEntryCache: " + liveEntry.currentBroadcastStartTime);
 					liveEntry.currentBroadcastStartTime = updatedEntry.currentBroadcastStartTime;
 					return;
 				}
@@ -541,7 +535,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 					logger.debug("current Wowza is not primary. skipping server update.");
 				}
 			} catch (KalturaApiException e) {
-				logger.error("failed to update entry [" + liveEntry.id + "]",e);
+				logger.error("failed to update entry [" + liveEntry.id + "]", e);
 			} catch (InstantiationException | IllegalAccessException e) {
 				logger.error("failed to instantiate updatedLiveEntry", e);
 			}
@@ -670,9 +664,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			}
 			logger.error("Unexpected error occurred [" + entryId + "]", e);
 		}
-
-		impersonateClient = null;
-
 	}
 
 	protected KalturaDataCenterContentResource getContentResource (String filePath, KalturaLiveEntry liveEntry) {
@@ -707,7 +698,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			} catch (KalturaApiException e) {
 				logger.error("Content resource creation error: " + e.getMessage());
 			}
-			impersonateClient = null;
 		}
 
 		return null;
@@ -748,7 +738,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				}
 			}
 		}
-		impersonateClient = null;
 	}
 
 	protected void unsetEntryMediaServer(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
@@ -762,7 +751,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		} catch (Exception e) {
 			logger.error("Unable to unregister media server [" + liveEntry.id + "]: ", e);
 		}
-		impersonateClient = null;
 	}
 
 	public KalturaLiveEntry reloadEntry(String entryId, int partnerId) {
@@ -772,9 +760,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		try {
 			Method method = liveServiceInstance.getClass().getMethod("get", String.class);
 			liveEntry = (KalturaLiveEntry)method.invoke(liveServiceInstance, entryId);
-			impersonateClient = null;
 		} catch (Exception e) {
-			impersonateClient = null;
 			logger.error("KalturaLiveManager::reloadEntry unable to get entry [" + entryId + "]: " + e.getMessage());
 			return null;
 		}

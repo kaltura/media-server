@@ -53,10 +53,15 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 	public KalturaLiveChannel get(String liveChannelId, int partnerId) throws KalturaApiException{
 		KalturaClient impersonateClient = impersonate(partnerId);
 		KalturaLiveChannel liveEntry = impersonateClient.getLiveChannelService().get(liveChannelId);
-		impersonateClient = null;
 
 		synchronized (entries) {
-			entries.put(liveEntry.id, new LiveEntryCache(liveEntry));
+			LiveEntryCache c = entries.get(liveEntry.id);
+			if (c == null) {
+				entries.put(liveEntry.id, new LiveEntryCache(liveEntry));
+			}
+			else {
+				c.setLiveEntry(liveEntry);
+			}
 			addReferrer(liveEntry.id, this);
 		}
 		
