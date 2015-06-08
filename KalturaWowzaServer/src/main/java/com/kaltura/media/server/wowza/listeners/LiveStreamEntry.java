@@ -642,9 +642,9 @@ public class LiveStreamEntry extends ModuleBase {
 		/**
 		 * This function verifies that the arrived PTS appears in all streams
 		 *
-		 * @param streamsPtses      All known PTSes by streams
+		 * @param streamsPtses All known PTSes by streams
 		 * @param currentStreamName Current stream name
-		 * @param pts               Current stream read
+		 * @param pts Current stream read
 		 * @return Whether it appeared in all streams
 		 */
 		protected boolean ptsAppearInAllStreams(Map<String, List<Long>> streamsPtses, String currentStreamName, long pts) {
