@@ -521,7 +521,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				}
 
 				//this stream is the first one to broadcast, update the server
-				liveEntry.currentBroadcastStartTime = new Date().getTime();
+				liveEntry.currentBroadcastStartTime = new Date().getTime() / 1000.0;
 				logger.debug("currentBroadcastStartTime is not updated in server. updating to value - " + liveEntry.currentBroadcastStartTime);
 				boolean isPrimary = KalturaMediaServerIndex.PRIMARY.equals(serverIndex);
 
