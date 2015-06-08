@@ -55,13 +55,7 @@ abstract public class KalturaLiveChannelManager extends KalturaLiveManager imple
 		KalturaLiveChannel liveEntry = impersonateClient.getLiveChannelService().get(liveChannelId);
 
 		synchronized (entries) {
-			LiveEntryCache c = entries.get(liveEntry.id);
-			if (c == null) {
-				entries.put(liveEntry.id, new LiveEntryCache(liveEntry));
-			}
-			else {
-				c.setLiveEntry(liveEntry);
-			}
+			updateEntryCache(liveEntry);
 			addReferrer(liveEntry.id, this);
 		}
 		

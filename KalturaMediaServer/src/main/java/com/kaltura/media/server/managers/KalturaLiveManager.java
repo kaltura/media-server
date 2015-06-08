@@ -76,6 +76,16 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 	private Timer setMediaServerTimer;
 
+	protected void updateEntryCache(KalturaLiveEntry liveStreamEntry) {
+		LiveEntryCache c = entries.get(liveStreamEntry.id);
+		if (c == null) {
+			entries.put(liveStreamEntry.id, new LiveEntryCache(liveStreamEntry));
+		} else {
+			c.setLiveEntry(liveStreamEntry);
+		}
+
+	}
+
 	protected class LiveEntryCache {
 		private KalturaLiveEntry liveEntry;
 		private boolean registered = false;

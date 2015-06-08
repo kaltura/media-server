@@ -15,7 +15,7 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 
 	protected final static String KALTURA_SYNC_ENTRY_IDS = "KalturaSyncEntryids";
 	protected List<String> syncEntryIds = new ArrayList<String>();
-	
+
 	@Override
 	public void init() throws KalturaManagerException {
 		super.init();
@@ -27,29 +27,33 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 			syncEntryIds = Arrays.asList(entryIds);
 		}
 	}
-	
+
 	public boolean shouldSync(String entryId) {
 		return syncEntryIds.contains(entryId);
 	}
-	
+
 	public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token) throws KalturaApiException {
 		KalturaClient impersonateClient = impersonate(partnerId);
 		KalturaLiveStreamEntry liveStreamEntry = impersonateClient.getLiveStreamService().authenticate(entryId, token);
 
-		updateEntryCache(liveStreamEntry);
+		synchronized (entries) {
+			updateEntryCache(liveStreamEntry);
+		}
 
 		return liveStreamEntry;
 	}
-	
+
 	public KalturaLiveStreamEntry get(String entryId, int partnerId) throws KalturaApiException {
 		KalturaClient impersonateClient = impersonate(partnerId);
 		KalturaLiveStreamEntry liveStreamEntry = impersonateClient.getLiveStreamService().get(entryId);
 
-		updateEntryCache(liveStreamEntry);
-		
+		synchronized (entries) {
+			updateEntryCache(liveStreamEntry);
+		}
+
 		return liveStreamEntry;
 	}
-	
+
 	@Override
 	public KalturaLiveStreamEntry get(String entryId) {
 		return (KalturaLiveStreamEntry) super.get(entryId);
@@ -61,14 +65,5 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 		return impersonateClient.getLiveStreamService();
 	}
 
-	private void updateEntryCache(KalturaLiveStreamEntry liveStreamEntry) {
-		synchronized (entries) {
-			LiveEntryCache c = entries.get(liveStreamEntry.id);
-			if (c == null) {
-				entries.put(liveStreamEntry.id, new LiveEntryCache(liveStreamEntry));
-			} else {
-				c.setLiveEntry(liveStreamEntry);
-			}
-		}
-	}
+
 }
