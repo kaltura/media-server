@@ -389,7 +389,7 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 		logger.debug("createSyncPoint. entryId:"+entryId);
 		KalturaLiveEntry liveEntry = liveManager.get(entryId);
 		String id = StringUtils.getUniqueId();
-		double offset = new Date().getTime() - liveEntry.currentBroadcastStartTime * 1000;
+		double offset = (new Date().getTime() - liveEntry.currentBroadcastStartTime * 1000) / 1000;	//offset in seconds
 		sendSyncPoint(stream,entryId, id, offset);
 	}
 
