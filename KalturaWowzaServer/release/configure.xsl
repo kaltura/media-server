@@ -511,6 +511,16 @@
 											<Value>200</Value>
 											<Type>Integer</Type>
 										</Property>
+										<Property>
+											<Name>ApplicationManagers</Name>
+											<Value>com.kaltura.media.server.wowza.CuePointsManager</Value>
+											<Type>String</Type>
+										</Property>
+										<Property>
+											<Name>KalturaSyncPointsInterval</Name>
+											<Value>8000</Value>
+											<Type>Integer</Type>
+										</Property>
 									</xsl:with-param>
 								</xsl:call-template>
 							</xsl:when>
@@ -602,11 +612,11 @@
 										<Property>
 											<Name>KalturaServerManagers</Name>
 											<!--list of managers to be loaded-->
-											<Value>com.kaltura.media.server.wowza.StatusManager, com.kaltura.media.server.wowza.LiveStreamManager, com.kaltura.media.server.managers.KalturaMemoryDebugManager, com.kaltura.media.server.wowza.CuePointsManager, com.kaltura.media.server.wowza.PushPublishManager</Value>
+											<Value>com.kaltura.media.server.wowza.StatusManager, com.kaltura.media.server.wowza.LiveStreamManager, com.kaltura.media.server.wowza.PushPublishManager</Value>
 										</Property>
 										<Property>
 											<Name>KalturaServerWebServices</Name>
-											<Value>com.kaltura.media.server.api.services.KalturaLiveService, com.kaltura.media.server.api.services.KalturaCuePointsService</Value>
+											<Value>com.kaltura.media.server.api.services.KalturaLiveService</Value>
 										</Property>
 										<Property>
 											<Name>KalturaServerStatusInterval</Name>
