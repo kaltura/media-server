@@ -386,23 +386,21 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 	}
 
 	private void createSyncPoint(IMediaStream stream, String entryId) {
-		logger.debug("createSyncPoint. entryId:"+entryId);
 		KalturaLiveEntry liveEntry = liveManager.get(entryId);
 		String id = StringUtils.getUniqueId();
-		double timeInSeconds = new Date().getTime() / 1000.0;
-		double offset = timeInSeconds - liveEntry.currentBroadcastStartTime;	//offset in seconds
-		sendSyncPoint(stream,entryId, id, offset);
+		double currentTime = new Date().getTime();
+		double offset = currentTime - liveEntry.currentBroadcastStartTime * 1000;	//offset in ms
+
+		logger.debug("Sending sync point: entryId: " + entryId + " stream: " + stream.getName() + " id: " + id + " timestamp: " + currentTime + " offset: " + offset + " BCStartTime: " + (liveEntry.currentBroadcastStartTime * 1000));
+		sendSyncPoint(stream, id, currentTime, offset);
 	}
 
-	public void sendSyncPoint(final IMediaStream stream, String entryId, String id, double offset) {
-		logger.debug("sendSyncPoint: entryId: " + entryId + " id: " + id + " offest: " + offset);
+	public void sendSyncPoint(final IMediaStream stream, String id, double time, double offset) {
 
-		Date date = new Date();
-		long time = date.getTime();
 		AMFDataObj data = new AMFDataObj();
 		data.put("objectType", "KalturaSyncPoint");
 		data.put("id", id);
-		data.put("offset", offset * 1000);
+		data.put("offset", offset);
 		data.put("timestamp", time);
 
 		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
