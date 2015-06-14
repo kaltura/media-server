@@ -35,6 +35,7 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 	private static final String PUBLIC_METADATA = "onMetaData";
 	private final static int DEFAULT_SYNC_POINTS_INTERVAL_IN_MS = 8000;
 	private final static String KALTURA_SYNC_POINTS_INTERVAL_PROPERTY = "KalturaSyncPointsInterval";
+	private static final long START_SYNC_POINTS_DELAY = 15000;
 
 	private final Map<String,Timer> streams;
 	private LiveStreamPacketizerListener liveStreamPacketizerListener;
@@ -365,36 +366,41 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 			@Override
 			public void run() {
 				try {
-					createSyncPoint(stream,entryId);
+					createSyncPoint(stream, entryId);
 				} catch (Exception e) {
 					logger.error("Error occured while running sync points timer", e);
 				}
 			}
 		};
 		try {
-			t.schedule(tt,0, syncPointsInterval);
+
+			/*
+			 TODO, the START_SYNC_POINTS_DELAY is a workaround for a bug that was discovered when sending sync points
+			 immediately after the onPublish event - onPublish is called twice for each stream instead of once. the result
+			 is that some referrers are not cleared --> no unregister --> isLive for stream remains true.
+			*/
+			t.schedule(tt,START_SYNC_POINTS_DELAY, syncPointsInterval);
 		} catch (Exception e) {
 			logger.error("Error occurred while scheduling a timer task",e);
 		}
 	}
 
 	private void createSyncPoint(IMediaStream stream, String entryId) {
-		logger.debug("createSyncPoint. entryId:"+entryId);
 		KalturaLiveEntry liveEntry = liveManager.get(entryId);
 		String id = StringUtils.getUniqueId();
-		double offset = liveEntry.duration + stream.getElapsedTime().getTimeSeconds();
-		sendSyncPoint(stream,entryId, id, offset);
+		double currentTime = new Date().getTime();
+		double offset = currentTime - liveEntry.currentBroadcastStartTime * 1000;	//offset in ms
+
+		logger.debug("Sending sync point: entryId: " + entryId + " stream: " + stream.getName() + " id: " + id + " timestamp: " + currentTime + " offset: " + offset + " BCStartTime: " + (liveEntry.currentBroadcastStartTime * 1000));
+		sendSyncPoint(stream, id, currentTime, offset);
 	}
 
-	public void sendSyncPoint(final IMediaStream stream, String entryId, String id, double offset) {
-		logger.debug("sendSyncPoint: entryId: " + entryId + " id: " + id + " offest: " + offset);
+	public void sendSyncPoint(final IMediaStream stream, String id, double time, double offset) {
 
-		Date date = new Date();
-		long time = date.getTime();
 		AMFDataObj data = new AMFDataObj();
 		data.put("objectType", "KalturaSyncPoint");
 		data.put("id", id);
-		data.put("offset", offset * 1000);
+		data.put("offset", offset);
 		data.put("timestamp", time);
 
 		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
