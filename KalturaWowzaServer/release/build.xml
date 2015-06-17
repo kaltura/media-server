@@ -6,7 +6,7 @@
 
     <target name="set-properties">
         <property environment="env" />
-        <condition property="wowza.install.dir" value="${env.WMSINSTALL_HOME}" else="/usr/local/WowzaStreamingEngine-4.0.1">
+        <condition property="wowza.install.dir" value="${env.WMSINSTALL_HOME}" else="/usr/local/WowzaStreamingEngine">
             <isset property="env.WMSINSTALL_HOME"/>
         </condition>
         <mkdir dir="${basedir}/tmp" />
