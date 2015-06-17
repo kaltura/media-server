@@ -1,0 +1,42 @@
+subprojects {
+    apply plugin: 'java'
+
+    sourceCompatibility = 1.7
+    version = '1.0'
+
+    repositories {
+        mavenCentral()
+        maven {
+            //TODO replace to master
+            url "https://raw.github.com/kaltura/KalturaGeneratedAPIClientsJava/PLAT-2504/maven"
+        }
+    }
+
+    compileJava {
+        options.compilerArgs << "-Xlint:unchecked"
+    }
+
+    dependencies {
+        testCompile group: 'junit', name: 'junit', version: '4.11'
+        compile 'log4j:log4j:1.2.17'
+    }
+
+    /**
+     * copy all artifacts to tmp dir
+     */
+    task copyArtifacts(type: Copy) {
+        def dest = "$buildDir/tmp/artifacts"
+        into dest
+        from configurations.runtime
+
+        doFirst {
+            println "copying artifacts to " + dest
+        }
+    }
+    build.dependsOn(copyArtifacts)
+}
+
+task wrapper(type: org.gradle.api.tasks.wrapper.Wrapper) {
+    gradleVersion = '2.3'
+}
+
