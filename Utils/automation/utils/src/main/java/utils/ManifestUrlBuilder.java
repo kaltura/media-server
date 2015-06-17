@@ -15,8 +15,4 @@ public class ManifestUrlBuilder {
 		return base.resolve("/kLive/smil:" + entryId + "_all.smil/playlist.m3u8");
 //        return base.resolve(String.format("/p/%1$s/sp/%1$s00/playManifest/entryId/%2$s/format/applehttp", partnerId, entryId));
     }
-
-	public static void main(String[] args) throws URISyntaxException {
-		System.out.println(buildManifestUrl("http://sabanas","012345","111"));
-	}
 }
