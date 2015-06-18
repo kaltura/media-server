@@ -76,11 +76,8 @@ public class MultiBitrateSyncTest {
         //append streams to ffmpeg command. TODO, this is a workaround!
         String ffmpegCommand = encoderConfig.getArgs();
         for (int i = 1; i <= 3; i++) {
-            //TODO, primary/secondary
             ffmpegCommand = ffmpegCommand.replace("{" + i + "}", entry.primaryBroadcastingUrl + "/" + entry.id + "_" + i);
         }
-		//TODO workaround primary URL:
-		ffmpegCommand = ffmpegCommand.replaceAll("ny-publish\\.kaltura\\.com", "208.185.60.207");
 		System.out.println("FFMpeg command: " + ffmpegCommand);
         encoder = new Encoder(encoderConfig.getEncoderName(),encoderConfig.getPathToExecutable(),ffmpegCommand);
 

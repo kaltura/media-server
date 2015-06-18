@@ -19,11 +19,10 @@ test {
     beforeTest { descriptor ->
         logger.lifecycle("Running test: " + descriptor)
     }
-
     // listen to standard out and standard error of the test JVM(s)
-    onOutput { descriptor, event ->
-        logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
-    }
+//    onOutput { descriptor, event ->
+//        logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+//    }
 }
 
 task runTest(type: Test, dependsOn: build) {
@@ -86,7 +85,6 @@ task generateConfFile {
 }
 
 task collect(type: JavaExec) {
-
     doFirst {
         if (project.hasProperty("confFilePath")) {
             args = [confFilePath]
