@@ -1,6 +1,7 @@
 package comparators.imagemagik;
 
 import comparators.ImageComparator;
+import org.apache.log4j.Logger;
 import org.im4java.core.CompareCmd;
 import org.im4java.core.IM4JavaException;
 import org.im4java.core.IMOperation;
@@ -15,6 +16,7 @@ public class ImageMagikComparator implements ImageComparator {
 
 	private double precision;
 	private String diffImagePath;
+	private static final Logger log = Logger.getLogger(ImageMagikComparator.class);
 
 	public ImageMagikComparator(double precision,String diffImagePath) {
 		this.precision = precision;
@@ -24,7 +26,11 @@ public class ImageMagikComparator implements ImageComparator {
 	@Override
 	public boolean isSimilar(File image1, File image2) {
 		double diff = compareImages(image1.getAbsolutePath(), image2.getAbsolutePath());
-		return (diff <= precision);
+		if (diff > precision) {
+			log.error("diff is " + diff);
+			return false;
+		}
+		return true;
 	}
 
 	private double compareImages(String srcImagePath, String destImagePath) {
