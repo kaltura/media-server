@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,15 +42,17 @@ public class SmilManager {
 	}
 	
 	public static void removeGroupSmils(String entryId, String groupName) {
-		synchronized(smils){
-			if(smils.containsKey(entryId)){
-				for (String filePath : smils.get(entryId)) {
-					if (filePath.endsWith(entryId + "_" + groupName + ".smil")) {
+		synchronized (smils) {
+			if (smils.containsKey(entryId)) {
+				Iterator<String> entrySmils = smils.get(entryId).iterator();
+				while (entrySmils.hasNext()) {
+					String filePath = entrySmils.next();
+					if (filePath.endsWith(entryId + "_" + groupName	+ ".smil")) {
 						File file = new File(filePath);
-						if(file.exists()){
+						if (file.exists()) {
 							file.delete();
 						}
-						smils.get(entryId).remove(filePath);
+						entrySmils.remove();
 					}
 				}
 			}
