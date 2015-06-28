@@ -1,0 +1,107 @@
+dependencies {
+    compile project(":utils")
+    compile project(":streamer")
+    compile project(":stream-downloader")
+    compile project(":comparators")
+    compile 'org.testng:testng:6.8.21'
+    compile 'com.kaltura:KalturaJavaClientLib:1.0'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.5.1'
+}
+
+
+
+task runTest(type: Test, dependsOn: build) {
+
+    outputs.upToDateWhen { false }
+
+    if (project.hasProperty('single')) {
+        println project.property("single")
+        filter {
+            //specific test class, wildcard for packages
+            println "adding filter: *${project.property('single')}*"
+            includeTestsMatching "*${project.property('single')}*"
+        }
+    }
+
+    useTestNG {
+        useDefaultListeners = true
+    }
+    // listen to events in the test execution lifecycle
+    beforeTest { descriptor ->
+        logger.lifecycle("Running test: " + descriptor)
+    }
+
+    // listen to standard out and standard error of the test JVM(s)
+    onOutput { descriptor, event ->
+        logger.lifecycle(event.message)
+    }
+    description = "Runs Integration Tests"
+    testClassesDir = file("$buildDir/classes/main/tests")
+    classpath += sourceSets.main.runtimeClasspath
+}
+
+task generateConfFile {
+
+    doFirst {
+        //read conf template:
+//        println ClassLoader.getSystemResource("/test-conf.json.template")
+//        def template = new File(ClassLoader.getSystemResource("test-conf.json.template").file).getText('UTF-8');
+        //TODO solve resources
+        def template = new File("$projectDir/src/main/resources/test-conf.json.template").getText('UTF-8');
+
+        def envVars = ['SERVICE_URL','PARTNER_ID', 'ARGS', 'TEST_DURATION', 'DESTINATION_FOLDER', 'DELETE_FILES', 'DVR', 'RECORDING', 'FFMPEG_EXECUTABLE','CONVERSION_PROFILE_ID','ADMIN_SECRET']
+        envVars.each {v ->
+            def val = System.env[v]
+            if (val != null){
+                val = val.replaceAll("\"","\\\\\"");    //escape quotation marks
+                println "setting @$v@ to $val"
+                template = template.replaceAll("@$v@", val)
+            }
+            else {
+                println "Env var '$v' was not set"
+            }
+        }
+        //write if to file
+        println "Generated Template:"
+        println template
+        def conf = new File("$projectDir/src/main/resources/test-conf.json")
+        conf.write template
+    }
+}
+
+task collect(type: JavaExec) {
+    doFirst {
+        if (project.hasProperty("confFilePath")) {
+            args = [confFilePath]
+        }
+    }
+    main = "tasks.PartnerMonitor"
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+task validate(type: JavaExec) {
+    doFirst {
+        if (!project.hasProperty("sourceFolder") || !project.hasProperty("ffmpegPath") || !project.hasProperty("diffFolder")) {
+            throw new InvalidUserDataException("Usage: gradle validate -PsourceFolder=... -PffmpegPath=... -PdiffFolder=...")
+        }
+        else {
+            args = [sourceFolder,ffmpegPath,diffFolder]
+        }
+    }
+    main = "tasks.TsComparator"
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+//task collect() {
+//    project.ext.set("userDefinedMainClass", "tasks.TestDriver")
+//    tasks.run.execute()
+//}
+//task collect(type: JavaExec) {
+//    main = "tasks.TestDriver"
+//    args = [myArgs]
+//    //TODO, default value for the conf.json file
+////    args = Eval.me(myArgs)
+////    args = project.property('myArgs')//""['localhost','8080']"["my arg", "my_2"]
+//    classpath = sourceSets.main.runtimeClasspath
+//}
+
