@@ -294,38 +294,41 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	}
 	
 	protected void onUnPublish (KalturaLiveEntry entry) {
-		logger.info("unpublishing entry [" + entry.id + "]");
-		synchronized (publishers) {
-			ArrayList<PushPublishBase> currentPublishers = publishers.remove(entry.id);
-			if (currentPublishers == null) {
-				logger.info("No publishers were found for entry ID " + entry.id + ".");
-				return;
+		try {				
+			logger.info("unpublishing entry [" + entry.id + "]");
+			synchronized (publishers) {
+				ArrayList<PushPublishBase> currentPublishers = publishers.remove(entry.id);
+				if (currentPublishers == null) {
+					logger.info("No publishers were found for entry ID " + entry.id + ".");
+					return;
+				}
+				
+				for (PushPublishBase publisher : currentPublishers) {
+					logger.info("Unpublishing stream " + publisher.getDstStreamName());
+					publisher.disconnect();
+				}
 			}
 			
-			for (PushPublishBase publisher : currentPublishers) {
-				logger.info("Unpublishing stream " + publisher.getDstStreamName());
-				publisher.disconnect();
+			synchronized (multicastPortsInUse) {
+				if (multicastPortsInUse.containsKey(entry.id)) {
+					int freePort = multicastPortsInUse.remove(entry.id);
+					if (freePort < minFreePort)
+						minFreePort = freePort;
+				}
+			}
+			
+			try {
+				KalturaClient impersonateClient = impersonate(entry.partnerId);
+				impersonateClient.getLiveStreamService().removeLiveStreamPushPublishConfiguration(entry.id, KalturaPlaybackProtocol.MULTICAST_SL);
+			}
+			catch (KalturaApiException e) {
+				logger.error("Operation failed. Exception message:  [" + e.getMessage() + "]");
 			}
 		}
-		
-		synchronized (multicastPortsInUse) {
-			if (multicastPortsInUse.containsKey(entry.id)) {
-				int freePort = multicastPortsInUse.remove(entry.id);
-				if (freePort < minFreePort)
-					minFreePort = freePort;
-			}
+		finally {
+			ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
+			liveManager.removeReferrer(entry.id, this);
 		}
-		
-		try {
-	    	KalturaClient impersonateClient = impersonate(entry.partnerId);
-	    	impersonateClient.getLiveStreamService().removeLiveStreamPushPublishConfiguration(entry.id, KalturaPlaybackProtocol.MULTICAST_SL);
-	    }
-	    catch (KalturaApiException e) {
-	    	logger.error("Operation failed. Exception message:  [" + e.getMessage() + "]");
-	    }
-		
-		ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
-		liveManager.removeReferrer(entry.id, this);
 	}
 	
 }
