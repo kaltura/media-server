@@ -143,7 +143,7 @@ public class HLSDownloader implements StreamDownloader {
                     //wait 5 seconds before next download attempt
                     log.info("Failed to download playlist. waiting additional 5 seconds");  //TODO magic numbers
                     currentTime = System.currentTimeMillis();
-                    Thread.sleep(180000);
+                    Thread.sleep(5000);
 
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
@@ -157,13 +157,4 @@ public class HLSDownloader implements StreamDownloader {
             }
         }
     }
-
-//	public static void main(String[] args) throws Exception {
-//		if (args.length != 2) {
-//			System.out.println("Usage: [master playlist url] [files destination]");
-//			return;
-//		}
-//		HLSDownloader d = new HLSDownloader();
-//		d.downloadFiles(args[0],args[1]);
-//	}
 }
