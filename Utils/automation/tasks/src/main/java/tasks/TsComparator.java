@@ -7,8 +7,10 @@ import utils.ImageUtils;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,7 +20,9 @@ import java.util.regex.Pattern;
 public class TsComparator {
 
 	private static final Logger log = Logger.getLogger(TsComparator.class);
+	private static final int NUM_FAILED_TS_SEQUENCE = 3;
 	private static ExecutorService executor = Executors.newFixedThreadPool(20);
+	private static final Object errorMsgsLock = new Object();
 
 	private static File getFirstFrameFromFile(File ts) throws Exception {
 
@@ -29,15 +33,21 @@ public class TsComparator {
 
 		return dest;
 	}
-	private static void compareFiles(List<File> sortedFiles, final File tempDiffFolder) {
-
-		boolean success = true;
+	private static boolean compareFiles(List<File> sortedFiles, final File tempDiffFolder) {
 
 		if (sortedFiles.size() == 0) {
 			log.error("Sorted list is empty");
-			return;
+			return true;
 		}
 		File first = sortedFiles.get(0);
+		File last = sortedFiles.get(sortedFiles.size() - 1);
+		final int firstTsIndex = extractTsNumber(first.getName());
+		int lastTsIndex = extractTsNumber(last.getName());
+
+		//create a boolean array that will hold the result of that ts
+		final boolean[] results = new boolean[lastTsIndex - firstTsIndex + 1];
+		final Map<Integer, List<String>> errorMsgs = new ConcurrentHashMap<>();
+
 		try {
 			File firstImage = getFirstFrameFromFile(first);
 			for (int i = 1; i < sortedFiles.size(); i++) {
@@ -59,9 +69,8 @@ public class TsComparator {
 							//compare the pair of images
 							ImageMagikComparator imComparator = new ImageMagikComparator(10.0,tempDiffFolder.getAbsolutePath() + "/diff"+firstNum+".jpg");
 							if (!imComparator.isSimilar(finalFirstImage, secondImage)) {
-								log.error("TS files are different: " + finalFirst.getName() + " , " + second.getName());
+								results[firstNum - firstTsIndex] = true;
 							}
-
 						}
 					});
 				}
@@ -70,10 +79,43 @@ public class TsComparator {
 			}
 
 			executor.shutdown();
+			log.info("Waiting for all threads to finish. 5min timeout");
+			executor.awaitTermination(5, TimeUnit.MINUTES);
+			log.info("All threads finished, analyzing results");
+			return verifyResults(results, errorMsgs, firstTsIndex);
 
 		} catch (Exception e) {
-			log.error("Failed to extract first frame from " + first.getAbsolutePath(), e);
+			log.error(e);
+			return false;
 		}
+	}
+
+	private static boolean verifyResults(boolean[] results, Map<Integer, List<String>> errorMsgs, int tsOffset) {
+		boolean success = true;
+		int counter = 0;
+		int i;
+		for (i = 0; i < results.length - 1; i++) {
+			if (results[i] && results[i + 1]) {
+				counter++;
+			}
+			else {
+				if (counter > NUM_FAILED_TS_SEQUENCE) {
+					success = false;
+					printErrorMsg(i, counter, tsOffset);
+					counter = 0;
+				}
+			}
+		}
+		//handle the last sequence of printing
+		if (counter > NUM_FAILED_TS_SEQUENCE) {
+			success = false;
+			printErrorMsg(i, counter, tsOffset);
+		}
+		return success;
+	}
+
+	private static void printErrorMsg(int i, int counter, int tsOffset) {
+		log.info("Ts files in range: " + (i-1-counter+tsOffset) + " to " + (i-1+tsOffset) + " are different");
 	}
 
 	private static Integer extractTsNumber(String tsName) {
@@ -100,11 +142,9 @@ public class TsComparator {
 	}
 
 	public static boolean compareFiles(File folderPath, File tempDiffFolder) {
-		boolean success = true;
 		Collection files = FileUtils.listFiles(folderPath, new String[]{"ts"}, true);
 		List<File> sortedFiles = getSortedFilesList(files);
-		compareFiles(sortedFiles, tempDiffFolder);
-		return success;
+		return compareFiles(sortedFiles, tempDiffFolder);
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -118,8 +158,12 @@ public class TsComparator {
 		log.info("Path to ffmpeg: " + args[1]);
 		log.info("Temp diff folder: " + args[2]);
 
+		File tempDiffFolder = new File(args[2]);
+		log.info("Creating temp diff folder if not exists: " + tempDiffFolder.getAbsolutePath());
+		FileUtils.forceMkdir(tempDiffFolder);
+
 		ImageUtils.initializeImageUtils(args[1]);
-		compareFiles(new File(args[0]),new File(args[2]));
+		compareFiles(new File(args[0]),tempDiffFolder);
 	}
 }
 
