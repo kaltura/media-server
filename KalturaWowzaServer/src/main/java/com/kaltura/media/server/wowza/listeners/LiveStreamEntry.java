@@ -33,6 +33,7 @@ import com.kaltura.media.server.managers.ILiveManager;
 import com.kaltura.media.server.managers.ILiveStreamManager;
 import com.kaltura.media.server.wowza.LiveStreamManager;
 import com.kaltura.media.server.wowza.SmilManager;
+import com.kaltura.media.server.wowza.ZombieStreamsWatcher;
 import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
@@ -95,6 +96,7 @@ public class LiveStreamEntry extends ModuleBase {
 	private LiveStreamTranscoderListener liveStreamTranscoderListener = new LiveStreamTranscoderListener();
 	private LiveStreamTranscoderActionListener liveStreamTranscoderActionListener = new LiveStreamTranscoderActionListener();
 	private PacketListener packetListener = new PacketListener();
+	private ZombieStreamsWatcher zombieManager = new ZombieStreamsWatcher();
 	private IApplicationInstance appInstance;
 	private Map<String, Map<String, Stream>> restreams = new HashMap<String, Map<String, Stream>>();
 
@@ -792,11 +794,16 @@ public class LiveStreamEntry extends ModuleBase {
 		logger.debug("LiveStreamEntry::onStreamCreate");
 		stream.addClientListener(new LiveStreamListener());
 		stream.addLivePacketListener(packetListener);
+		
+		stream.addClientListener(zombieManager);
+		stream.addLivePacketListener(zombieManager);
 	}
 
 	public void onStreamDestroy(IMediaStream stream)
 	{
 		stream.removeLivePacketListener(packetListener);
+		stream.removeLivePacketListener(zombieManager);
+		stream.removeClientListener(zombieManager);
 	}
 
 	public void onDisconnect(IClient client) {
