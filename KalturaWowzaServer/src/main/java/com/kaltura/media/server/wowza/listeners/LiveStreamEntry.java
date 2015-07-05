@@ -794,6 +794,8 @@ public class LiveStreamEntry extends ModuleBase {
 		logger.debug("LiveStreamEntry::onStreamCreate");
 		stream.addClientListener(new LiveStreamListener());
 		stream.addLivePacketListener(packetListener);
+		
+		stream.addClientListener(zombieManager);
 		stream.addLivePacketListener(zombieManager);
 	}
 
@@ -801,7 +803,7 @@ public class LiveStreamEntry extends ModuleBase {
 	{
 		stream.removeLivePacketListener(packetListener);
 		stream.removeLivePacketListener(zombieManager);
-		onStreamDestroy(stream);
+		stream.removeClientListener(zombieManager);
 	}
 
 	public void onDisconnect(IClient client) {

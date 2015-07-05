@@ -12,12 +12,13 @@ import com.wowza.wms.amf.AMFPacket;
 import com.wowza.wms.client.IClient;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.IMediaStreamLivePacketNotify;
+import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 
 /**
  * This watcher was added in order to identify zombie streams.  
  *
  */
-public class ZombieStreamsWatcher implements IMediaStreamLivePacketNotify {
+public class ZombieStreamsWatcher extends MediaStreamActionNotifyBase implements IMediaStreamLivePacketNotify {
 
 	private static final Logger logger = Logger.getLogger(ZombieStreamsWatcher.class);
 	// This is the threshold for milliseconds from last packet after which we will define the stream as zombie.
@@ -43,9 +44,13 @@ public class ZombieStreamsWatcher implements IMediaStreamLivePacketNotify {
 		}
 	}
 	
-	public void onStreamDestroy(IMediaStream mediaStream) {
-		final String streamName = mediaStream.getName();
-		TimerTask t;
+	public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
+		if(stream.getClientId() < 0){
+			// Stream is a transcoded rendition
+			return;
+		}
+		
+		TimerTask t = null;
 		synchronized (streams) {
 			if (!streams.containsKey(streamName)) {
 				logger.error("Unpublishing a stream that does not exist in streams map: " + streamName);
@@ -53,8 +58,11 @@ public class ZombieStreamsWatcher implements IMediaStreamLivePacketNotify {
 			}
 			t = streams.remove(streamName);
 		}
-		logger.debug("Stopping zombie timer for stream " + streamName);
-		t.cancel();
+		
+		if(t != null) {
+			logger.debug("Stopping zombie timer for stream " + streamName);
+			t.cancel();
+		}
 	}
 
 	private void resetTimer(IMediaStream stream) {
@@ -68,23 +76,35 @@ public class ZombieStreamsWatcher implements IMediaStreamLivePacketNotify {
 			
 			TimerTask task = createStreamTimeoutTask(stream);
 			streams.put(streamName, task);
+			
+			// Schedule task
+			try {
+				timer.schedule(task, ZOMBIE_STREAM_THRESHOLD);
+			} catch (Exception e) {
+				logger.error("Error occurred while scheduling a timer task",e);
+			}
 		}
 	}
 
 	private TimerTask createStreamTimeoutTask(final IMediaStream stream) {
 		TimerTask tt = new TimerTask() {
+			
+			/**
+			 *  If this function was triggered, it means that the stream wasn't active for ZOMBIE_STREAM_THREASHOLD 
+			 *  and therefore should be killed.
+			 */
 			@Override
 			public void run() {
 				try {
-
-					// If this function was triggered, it means that the stream wasn't active for ZOMBIE_STREAM_THREASHOLD 
-					// and therefore should be killed.
 					String streamName = stream.getName();
-					streams.remove(streamName);
 					
-					logger.error("Published stream [" + streamName + "] didn't recieve packets for more than " + ZOMBIE_STREAM_THRESHOLD + "mSecs");
+					synchronized (streams) {
+						streams.remove(streamName);
+					}
+					
+					logger.error("Published stream [" + streamName + "] didn't recieve packets for more than " + ZOMBIE_STREAM_THRESHOLD + " mSecs");
 					IClient client = stream.getClient();
-					client.rejectConnection("Published stream [" + streamName + "] didn't recieve packets for more than " + ZOMBIE_STREAM_THRESHOLD + "mSecs");
+					client.rejectConnection("Published stream [" + streamName + "] didn't recieve packets for more than " + ZOMBIE_STREAM_THRESHOLD + " mSecs");
 					client.shutdownClient();
 					
 				} catch (Exception e) {
@@ -93,12 +113,6 @@ public class ZombieStreamsWatcher implements IMediaStreamLivePacketNotify {
 				}
 			}
 		};
-		
-		try {
-			timer.schedule(tt, ZOMBIE_STREAM_THRESHOLD);
-		} catch (Exception e) {
-			logger.error("Error occurred while scheduling a timer task",e);
-		}
 		
 		return tt;
 	}
