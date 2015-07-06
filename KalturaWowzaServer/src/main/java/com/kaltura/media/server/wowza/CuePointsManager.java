@@ -104,15 +104,11 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 		}
 
 		private String jsonAMF(AMFDataObj dataObj) throws JsonProcessingException {
-
 			Map<String, Object> map = new HashMap<>();
-			AMFData objType = dataObj.get(OBJECT_TYPE_KEY);
-			if (objType != null) {
-				map.put(OBJECT_TYPE_KEY, objType.getValue());
-				addToMap(map, dataObj, OFFSET_KEY);
-				addToMap(map, dataObj, TIMESTAMP_KEY);
-				addToMap(map, dataObj, ID_KEY);
-			}
+			addToMap(map, dataObj, OBJECT_TYPE_KEY);
+			addToMap(map, dataObj, OFFSET_KEY);
+			addToMap(map, dataObj, TIMESTAMP_KEY);
+			addToMap(map, dataObj, ID_KEY);
 			return new ObjectMapper().writeValueAsString(map);
 		}
 
@@ -159,13 +155,15 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 					return;
 				}
 
-				String json = jsonAMF(data);
-				logger.debug("Stream [" + streamName + "] JSON after char removal:\n" + json);
+				if ( data.get(OBJECT_TYPE_KEY) != null){
+					String json = jsonAMF(data);
+					logger.debug("Stream [" + streamName + "] JSON:\n" + json);
 
-				ID3V2FrameBase frame;
-				frame = new ID3V2FrameObject();
-				((ID3V2FrameObject) frame).setText(json);
-				id3Frames.putFrame(frame);
+					ID3V2FrameBase frame;
+					frame = new ID3V2FrameObject();
+					((ID3V2FrameObject) frame).setText(json);
+					id3Frames.putFrame(frame);
+				}
 
 			} catch (Exception e) {
 				logger.error("failed to add sync points data to ID3Tag",e);
