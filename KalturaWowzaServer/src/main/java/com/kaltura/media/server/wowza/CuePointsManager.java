@@ -1,5 +1,7 @@
 package com.kaltura.media.server.wowza;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.infra.StringUtils;
 import com.kaltura.media.server.KalturaEventsManager;
@@ -30,6 +32,12 @@ import org.apache.log4j.Logger;
 import java.util.*;
 
 public class CuePointsManager extends KalturaManager implements IKalturaEventConsumer, ILiveManager.ILiveEntryReferrer {
+
+	private static final String OBJECT_TYPE_KEY = "objectType";
+	private static final String OBJECT_TYPE_VALUE = "KalturaSyncPoint";
+	private static final String OFFSET_KEY = "offset";
+	private static final String TIMESTAMP_KEY = "timestamp";
+	private static final String ID_KEY = "id";
 
 	private static final Logger logger = Logger.getLogger(CuePointsManager.class);
 	private static final String PUBLIC_METADATA = "onMetaData";
@@ -86,114 +94,37 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 			this.streamName = streamName;
 		}
 
-		private String jsonEscape(String string) {
-			if (string == null || string.length() == 0) {
-				return "";
+		private void addToMap(Map<String, Object> map, AMFDataObj o, String key) {
+			AMFData obj = o.get(key);
+			if (obj != null) {
+				map.put(key, obj.getValue());
+			} else {
+				logger.debug(key + " is not found in AMFDataObj");
 			}
-
-			char         c;
-			int          i;
-			int          len = string.length();
-			StringBuilder sb = new StringBuilder(len + 4);
-			String       t;
-
-			for (i = 0; i < len; i += 1) {
-				c = string.charAt(i);
-				switch (c) {
-					case '\\':
-					case '"':
-						sb.append('\\');
-						sb.append(c);
-						break;
-					case '/':
-						sb.append('\\');
-						sb.append(c);
-						break;
-					case '\b':
-						sb.append("\\b");
-						break;
-					case '\t':
-						sb.append("\\t");
-						break;
-					case '\n':
-						sb.append("\\n");
-						break;
-					case '\f':
-						sb.append("\\f");
-						break;
-					case '\r':
-						sb.append("\\r");
-						break;
-					default:
-						if (c < ' ') {
-							t = "000" + Integer.toHexString(c);
-							sb.append("\\u").append(t.substring(t.length() - 4));
-						} else {
-							sb.append(c);
-						}
-				}
-			}
-			return sb.toString();
 		}
 
-		private String jsonAMF(AMFData data) {
-			StringBuilder sb = new StringBuilder();
-			int t = data.getType();
+		private String jsonAMF(AMFDataObj dataObj) {
 
-			if (t == AMFData.DATA_TYPE_STRING || t == AMFData.DATA_TYPE_DATE) {
-				sb.append("\"").append(jsonEscape(data.toString())).append("\"");
+			if (dataObj == null) {
+				logger.debug("data object is null");
+				return null;
 			}
 
-			else if (t == AMFData.DATA_TYPE_NUMBER || t == AMFData.DATA_TYPE_BOOLEAN) {
-				sb.append(data);
+			String json = null;
+			try {
+
+				Map<String, Object> map = new HashMap<>();
+				addToMap(map, dataObj, OBJECT_TYPE_KEY);
+				addToMap(map, dataObj, OFFSET_KEY);
+				addToMap(map, dataObj, TIMESTAMP_KEY);
+				addToMap(map, dataObj, ID_KEY);
+				json = new ObjectMapper().writeValueAsString(map);
+
+			} catch (JsonProcessingException e) {
+				logger.debug("error occurred while parsing AMFData", e);
 			}
 
-			else if (t == AMFData.DATA_TYPE_UNDEFINED || t == AMFData.DATA_TYPE_UNKNOWN || t == AMFData.DATA_TYPE_NULL) {
-				sb.append("null");
-			}
-
-			// Mixed Array is not a perfect match:
-			// JSON only has string keys, whereas this allows integer keys as
-			// well as strings
-			else if (t == AMFData.DATA_TYPE_OBJECT || t == AMFData.DATA_TYPE_MIXED_ARRAY) {
-				AMFDataObj o = (AMFDataObj) data;
-				sb.append("{");
-				@SuppressWarnings("rawtypes")
-				Iterator i = o.getKeys().iterator();
-				boolean notfirst = false;
-				while (i.hasNext()) {
-					if (notfirst) {
-						sb.append(",");
-					} else {
-						notfirst = true;
-					}
-					String k = (String) i.next();
-					sb.append("\"").append(jsonEscape(k)).append("\":");
-					sb.append(jsonAMF(o.get(k)));
-				}
-				sb.append("}");
-			}
-
-			else if (t == AMFData.DATA_TYPE_ARRAY) {
-				AMFDataArray o = (AMFDataArray) data;
-				sb.append("[");
-				int i = 1, z = o.size();
-				if (z > 0) {
-					sb.append(jsonAMF(o.get(0)));
-				}
-				for (; i < z; i++) {
-					sb.append(",");
-					sb.append(jsonAMF(o.get(i)));
-				}
-				sb.append("]");
-			}
-
-			else {
-				logger.error("Invalid amf data for json encode! (" + t + ")");
-				return "null /* Invalid amf data for json encode! (" + t + ") */";
-			}
-
-			return sb.toString();
+			return json;
 		}
 
 		public void onFillChunkDataPacket(CupertinoPacketHolder holder, AMFPacket packet, ID3Frames id3Frames) {
@@ -227,7 +158,7 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 			}
 
 			String metaDataStr = amfList.getString(0);
-			AMFData data = amfList.getObject(1);
+			AMFDataObj data = amfList.getObject(1);
 
 			if (!metaDataStr.equals(CuePointsManager.PUBLIC_METADATA)) {
 				logger.info("Stream [" + streamName + "] metadata [" + metaDataStr + "]");
@@ -235,8 +166,6 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 			}
 
 			String json = jsonAMF(data);
-			//escape not ascii chars that are not in 0x20-0x7F
-			json = json.replaceAll("[^\\x20-\\x7F]", "");
 			logger.debug("Stream [" + streamName + "] JSON after char removal:\n" + json);
 
 			ID3V2FrameBase frame;
@@ -398,10 +327,11 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 	public void sendSyncPoint(final IMediaStream stream, String id, double time, double offset) {
 
 		AMFDataObj data = new AMFDataObj();
-		data.put("objectType", "KalturaSyncPoint");
-		data.put("id", id);
-		data.put("offset", offset);
-		data.put("timestamp", time);
+
+		data.put(OBJECT_TYPE_KEY, OBJECT_TYPE_VALUE);
+		data.put(ID_KEY, id);
+		data.put(OFFSET_KEY, offset);
+		data.put(TIMESTAMP_KEY, time);
 
 		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
 		((MediaStream)stream).processSendDirectMessages();
