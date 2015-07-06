@@ -94,20 +94,16 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 			this.streamName = streamName;
 		}
 
-		private void addToMap(Map<String, Object> map, AMFDataObj o, String key) throws Exception {
+		private void addToMap(Map<String, Object> map, AMFDataObj o, String key) {
 			AMFData obj = o.get(key);
 			if (obj != null) {
 				map.put(key, obj.getValue());
 			} else {
-				throw new Exception(key + " is not found in AMFDataObj");
+				throw new NoSuchElementException(key + " is not found in AMFDataObj");
 			}
 		}
 
-		private String jsonAMF(AMFDataObj dataObj) throws Exception {
-
-			if (dataObj == null) {
-				throw new Exception("AMFDataObj is null");
-			}
+		private String jsonAMF(AMFDataObj dataObj) throws JsonProcessingException {
 
 			Map<String, Object> map = new HashMap<>();
 			AMFData objType = dataObj.get(OBJECT_TYPE_KEY);
@@ -159,6 +155,10 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 			}
 
 			try {
+				if (data == null) {
+					return;
+				}
+
 				String json = jsonAMF(data);
 				logger.debug("Stream [" + streamName + "] JSON after char removal:\n" + json);
 
