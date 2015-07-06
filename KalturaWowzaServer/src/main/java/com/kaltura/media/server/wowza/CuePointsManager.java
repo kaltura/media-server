@@ -94,37 +94,30 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 			this.streamName = streamName;
 		}
 
-		private void addToMap(Map<String, Object> map, AMFDataObj o, String key) {
+		private void addToMap(Map<String, Object> map, AMFDataObj o, String key) throws Exception {
 			AMFData obj = o.get(key);
 			if (obj != null) {
 				map.put(key, obj.getValue());
 			} else {
-				logger.debug(key + " is not found in AMFDataObj");
+				throw new Exception(key + " is not found in AMFDataObj");
 			}
 		}
 
-		private String jsonAMF(AMFDataObj dataObj) {
+		private String jsonAMF(AMFDataObj dataObj) throws Exception {
 
 			if (dataObj == null) {
-				logger.debug("data object is null");
-				return null;
+				throw new Exception("AMFDataObj is null");
 			}
 
-			String json = null;
-			try {
-
-				Map<String, Object> map = new HashMap<>();
-				addToMap(map, dataObj, OBJECT_TYPE_KEY);
+			Map<String, Object> map = new HashMap<>();
+			AMFData objType = dataObj.get(OBJECT_TYPE_KEY);
+			if (objType != null) {
+				map.put(OBJECT_TYPE_KEY, objType.getValue());
 				addToMap(map, dataObj, OFFSET_KEY);
 				addToMap(map, dataObj, TIMESTAMP_KEY);
 				addToMap(map, dataObj, ID_KEY);
-				json = new ObjectMapper().writeValueAsString(map);
-
-			} catch (JsonProcessingException e) {
-				logger.debug("error occurred while parsing AMFData", e);
 			}
-
-			return json;
+			return new ObjectMapper().writeValueAsString(map);
 		}
 
 		public void onFillChunkDataPacket(CupertinoPacketHolder holder, AMFPacket packet, ID3Frames id3Frames) {
@@ -165,13 +158,19 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 				return;
 			}
 
-			String json = jsonAMF(data);
-			logger.debug("Stream [" + streamName + "] JSON after char removal:\n" + json);
+			try {
+				String json = jsonAMF(data);
+				logger.debug("Stream [" + streamName + "] JSON after char removal:\n" + json);
 
-			ID3V2FrameBase frame;
-			frame = new ID3V2FrameObject();
-			((ID3V2FrameObject) frame).setText(json);
-			id3Frames.putFrame(frame);
+				ID3V2FrameBase frame;
+				frame = new ID3V2FrameObject();
+				((ID3V2FrameObject) frame).setText(json);
+				id3Frames.putFrame(frame);
+
+			} catch (Exception e) {
+				logger.error("failed to add sync points data to ID3Tag",e);
+			}
+
 		}
 	}
 
