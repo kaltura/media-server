@@ -1,8 +1,10 @@
 subprojects {
 
     apply plugin: 'java'
-    sourceCompatibility = 1.7
-    
+
+    def javaVersion = JavaVersion.VERSION_1_7;
+    sourceCompatibility = javaVersion;
+    targetCompatibility = javaVersion;
 
     configurations {
         forInstaller
@@ -27,6 +29,14 @@ subprojects {
         compile 'com.kaltura:KalturaClientLib:3.2.0'
         provided 'log4j:log4j:1.2.17'
     }
+
+    task enforceJavaVersion() {
+        def foundVersion = JavaVersion.current();
+        if (foundVersion != javaVersion)
+            throw new IllegalStateException("Wrong Java version; required is "
+                    + javaVersion + ", but found " + foundVersion);
+    }
+    compileJava.dependsOn(enforceJavaVersion);
 }
 
 task wrapper(type: Wrapper) {
