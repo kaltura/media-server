@@ -69,6 +69,15 @@ task generateConfFile {
     }
 }
 
+task executeMain(type: JavaExec) {
+    doFirst {
+        if (project.hasProperty("mainClass")) {
+            main = mainClass
+        }
+    }
+    classpath = sourceSets.main.runtimeClasspath
+}
+
 task collect(type: JavaExec) {
     doFirst {
         if (project.hasProperty("confFilePath")) {
