@@ -42,7 +42,7 @@ public class EntryComparator implements Runnable {
 		
 		// Register root dir for files creation
 		String dir = config.getDestinationFolder() + "/" + entryId;
-		FileHandlerIfc watcher = new EntryTsComparatorFileHandler(dir + "/diff",  nStreams);
+		FileHandlerIfc watcher = new EntryTsComparatorFileHandler(config.getPathToFfmpeg(), dir + "/diff",  nStreams);
 		Path pathToWatch = Paths.get(dir);
 		
 		try {

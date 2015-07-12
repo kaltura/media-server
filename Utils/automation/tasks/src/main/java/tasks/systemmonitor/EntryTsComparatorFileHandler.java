@@ -39,12 +39,13 @@ public class EntryTsComparatorFileHandler implements FileHandlerIfc {
 	// This list contains all ids of failed indexes
 	private List<Integer> failedIdx = new ArrayList<Integer>();
 
-	public EntryTsComparatorFileHandler(String outputFolder, int nStreams) {
+	public EntryTsComparatorFileHandler(String ffmpegPath, String outputFolder, int nStreams) {
 		this.outputFolder = outputFolder;
 		this.nStreams = nStreams;
 		
 		// Set verify failures to run automatically every VERIFY_PERIOD.
 		schedulerExecutor.scheduleAtFixedRate(new VerifyComparisonResults(), VerifyComparisonResults.VERIFY_PERIOD, VerifyComparisonResults.VERIFY_PERIOD, TimeUnit.SECONDS);
+		ImageUtils.initializeImageUtils(ffmpegPath);
 	}
 	
 	/**
@@ -122,7 +123,8 @@ public class EntryTsComparatorFileHandler implements FileHandlerIfc {
 				ImageMagikComparator imComparator = new ImageMagikComparator(10.0,outputFolder + "/diff_" + tsNumber + ".jpg");
 				if ((image1 == null) || (image2 == null) || (!imComparator.isSimilar(image1, image2))) {
 					synchronized (failedIdx) {
-						System.out.println("Comparison of " + tsPaths.get(i-1).toFile()+ " and " + tsPaths.get(i).toFile() + " failed");
+						System.out.println("Comparison of " + file1 + " and " + file2 + " failed. "
+								+ "Image files: " + image1 + " , " + image2);
 						failedIdx.add(tsNumber);
 						break;
 					}
