@@ -1,5 +1,6 @@
 package tasks.systemmonitor;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,7 +43,13 @@ public class EntryComparator implements Runnable {
 		
 		// Register root dir for files creation
 		String dir = config.getDestinationFolder() + "/" + entryId;
-		FileHandlerIfc watcher = new EntryTsComparatorFileHandler(config.getPathToFfmpeg(), dir + "/diff",  nStreams);
+		String outputDirStr = dir + "/diff";
+		File outputDir = new File(outputDirStr);
+		if(!outputDir.exists()) {
+			outputDir.mkdir();
+		}
+		
+		FileHandlerIfc watcher = new EntryTsComparatorFileHandler(entryId, config.getPathToFfmpeg(), outputDirStr,  nStreams);
 		Path pathToWatch = Paths.get(dir);
 		
 		try {

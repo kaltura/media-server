@@ -17,7 +17,6 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 import utils.ImageUtils;
-
 import comparators.imagemagik.ImageMagikComparator;
 
 /**
@@ -30,7 +29,8 @@ public class EntryTsComparatorFileHandler implements FileHandlerIfc {
 	// Thread pools
 	private static ExecutorService executor = Executors.newCachedThreadPool();
 	private static ScheduledThreadPoolExecutor schedulerExecutor = new ScheduledThreadPoolExecutor(20);
-	
+
+	private String entryId;
 	private String outputFolder;
 	private int nStreams;
 	
@@ -39,7 +39,8 @@ public class EntryTsComparatorFileHandler implements FileHandlerIfc {
 	// This list contains all ids of failed indexes
 	private List<Integer> failedIdx = new ArrayList<Integer>();
 
-	public EntryTsComparatorFileHandler(String ffmpegPath, String outputFolder, int nStreams) {
+	public EntryTsComparatorFileHandler(String entryId, String ffmpegPath, String outputFolder, int nStreams) {
+		this.entryId = entryId;
 		this.outputFolder = outputFolder;
 		this.nStreams = nStreams;
 		
@@ -107,7 +108,7 @@ public class EntryTsComparatorFileHandler implements FileHandlerIfc {
 
 		@Override
 		public void run() {
-			Thread.currentThread().setName(THREAD_NAME+tsNumber);
+			Thread.currentThread().setName(THREAD_NAME + "_" +entryId + "_" + tsNumber);
 			
 			File file1 = tsPaths.get(0).toFile();
 			File image1 = getFirstFrameFromFile(file1);
@@ -118,7 +119,7 @@ public class EntryTsComparatorFileHandler implements FileHandlerIfc {
 				File file2 = tsPaths.get(i).toFile();
 				File image2 = getFirstFrameFromFile(file2);
 				
-				System.out.println("Comparison of " + file1 + " and " + file2);
+				System.out.println("Comparison of entry [" + entryId + "]" + file1 + " and " + file2);
 				
 				ImageMagikComparator imComparator = new ImageMagikComparator(10.0,outputFolder + "/diff_" + tsNumber + ".jpg");
 				if ((image1 == null) || (image2 == null) || (!imComparator.isSimilar(image1, image2))) {
@@ -144,11 +145,11 @@ public class EntryTsComparatorFileHandler implements FileHandlerIfc {
 		protected static final String THREAD_NAME = "Periodic-compare-results";
 		protected static final int VERIFY_PERIOD = 60;
 		protected static final int NUM_FAILED_TS_SEQUENCE = 3;
-
+		
 		@Override
 		public void run() {
 
-			Thread.currentThread().setName(THREAD_NAME);
+			Thread.currentThread().setName(THREAD_NAME + "_" +entryId);
 			if(failedIdx.isEmpty())
 				return;
 			
@@ -174,7 +175,7 @@ public class EntryTsComparatorFileHandler implements FileHandlerIfc {
 
 		private void checkStrike(Integer first, int total) {
 			if(total > NUM_FAILED_TS_SEQUENCE)
-				log.info("Ts files in range: " + first + " to " + (first + total) + " are different (The sequence may be longer)");
+				log.info("Entry Id [" + entryId + "] Ts files in range: " + first + " to " + (first + total) + " are different (The sequence may be longer)");
 			
 			synchronized (failedIdx) {
 				for(Integer i = first; i < first + total; ++i)
