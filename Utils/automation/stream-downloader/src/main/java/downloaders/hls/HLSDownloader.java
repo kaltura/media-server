@@ -18,9 +18,9 @@ import java.util.*;
  */
 public class HLSDownloader implements StreamDownloader {
 
-    private static final Logger log = Logger.getLogger(HLSDownloader.class);
-    private static final long MANIFEST_DOWNLOAD_TIMEOUT_SEC = 120;
-    private List<AbstractMap.SimpleEntry<HLSDownloaderWorker,Thread>> threadsList;
+	private static final Logger log = Logger.getLogger(HLSDownloader.class);
+	private static final long MANIFEST_DOWNLOAD_TIMEOUT_SEC = 120;
+	private List<AbstractMap.SimpleEntry<HLSDownloaderWorker,Thread>> threadsList;
 	private PlaylistEnhancer enhancer;
 
 	public HLSDownloader() {
@@ -31,141 +31,141 @@ public class HLSDownloader implements StreamDownloader {
 		this.enhancer = enhancer;
 	}
 
-    @Override
-    public void shutdownDownloader() {
-        //order each downloader to shut down
-        for (AbstractMap.SimpleEntry<HLSDownloaderWorker, Thread> e : threadsList) {
-            e.getKey().stopDownload();
-        }
+	@Override
+	public void shutdownDownloader() {
+		//order each downloader to shut down
+		for (AbstractMap.SimpleEntry<HLSDownloaderWorker, Thread> e : threadsList) {
+			e.getKey().stopDownload();
+		}
 
-        //wait for all threads to finish
-        for (AbstractMap.SimpleEntry<HLSDownloaderWorker, Thread> e : threadsList) {
-            Thread t = e.getValue();
-            log.debug("waiting for thread: " + t.getId());
-            try {
-                t.join();
-            } catch (InterruptedException e1) {
-                e1.printStackTrace();   //TODO, while loop?
-            }
-        }
-    }
+		//wait for all threads to finish
+		for (AbstractMap.SimpleEntry<HLSDownloaderWorker, Thread> e : threadsList) {
+			Thread t = e.getValue();
+			log.debug("waiting for thread: " + t.getId());
+			try {
+				t.join();
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();   //TODO, while loop?
+			}
+		}
+	}
 
-    private Set<String> getStreamsListsFromMasterPlaylist(String masterPlaylist) {
-        String[] lines = masterPlaylist.split("\n");
-        Set<String> streamsSet = new HashSet<>();
+	private Set<String> getStreamsListsFromMasterPlaylist(String masterPlaylist) {
+		String[] lines = masterPlaylist.split("\n");
+		Set<String> streamsSet = new HashSet<>();
 
-        for (int i=0; i<lines.length; i++) {
-            String line = lines[i].trim();
-            if (line.startsWith("#EXT-X-STREAM-INF:")) {
+		for (int i=0; i<lines.length; i++) {
+			String line = lines[i].trim();
+			if (line.startsWith("#EXT-X-STREAM-INF:")) {
 //                System.out.println(line);
-                int j = i + 1;
-                String tempLine = lines[j].trim();
-                while (j < lines.length && (tempLine.startsWith("#") || tempLine.equals(""))) {
-                    j++;
-                    tempLine = lines[j].trim();
-                }
-                i=j;    //TODO index out of bounds in case there is nothing after #EXT-X-STREAM-INF:
+				int j = i + 1;
+				String tempLine = lines[j].trim();
+				while (j < lines.length && (tempLine.startsWith("#") || tempLine.equals(""))) {
+					j++;
+					tempLine = lines[j].trim();
+				}
+				i=j;    //TODO index out of bounds in case there is nothing after #EXT-X-STREAM-INF:
 
-                if (streamsSet.contains(tempLine)) {
-                    continue;
-                }
-                log.info("Adding stream: " + tempLine);
-                streamsSet.add(tempLine);
-            }
-        }
-        return streamsSet;
-    }
+				if (streamsSet.contains(tempLine)) {
+					continue;
+				}
+				log.info("Adding stream: " + tempLine);
+				streamsSet.add(tempLine);
+			}
+		}
+		return streamsSet;
+	}
 
-    @Override
-    public void downloadFiles(String masterPlaylistUrl, String filesDestination) throws Exception {
-        //extract base url:
-        String baseUrl = masterPlaylistUrl.substring(0, masterPlaylistUrl.lastIndexOf("/"));
+	@Override
+	public void downloadFiles(String masterPlaylistUrl, String filesDestination) throws Exception {
+		//extract base url:
+		String baseUrl = masterPlaylistUrl.substring(0, masterPlaylistUrl.lastIndexOf("/"));
 
-        //get playlist data:
+		//get playlist data:
 
-        String masterPlaylistData = getPlaylistData(masterPlaylistUrl);
+		String masterPlaylistData = getPlaylistData(masterPlaylistUrl);
 
-        log.debug("Master playlist");
-        log.debug(masterPlaylistData);
+		log.debug("Master playlist");
+		log.debug(masterPlaylistData);
 
-        //save playlist to disk
-        String playlistDestination = filesDestination + "/playlist.m3u8";
-        FileUtils.writeStringToFile(new File(playlistDestination), masterPlaylistData);
-        log.info("Wrote master playlist to: " + playlistDestination);
+		//save playlist to disk
+		String playlistDestination = filesDestination + "/playlist.m3u8";
+		FileUtils.writeStringToFile(new File(playlistDestination), masterPlaylistData);
+		log.info("Wrote master playlist to: " + playlistDestination);
 
-        //get streams urls:
-        Set<String> streamsSet = getStreamsListsFromMasterPlaylist(masterPlaylistData);
+		//get streams urls:
+		Set<String> streamsSet = getStreamsListsFromMasterPlaylist(masterPlaylistData);
 		if (enhancer != null) {
 			streamsSet = enhancer.enhanceStreamsSet(streamsSet);
 		}
 
 		int numStreamFound = streamsSet.size();
 
-        //TODO, put in constant. create global context tags in the future
-        GlobalContext.putValue("NUM_STREAMS", numStreamFound);
+		//TODO, put in constant. create global context tags in the future
+		GlobalContext.putValue("NUM_STREAMS", numStreamFound);
 
-        log.info("Got total of " + numStreamFound + " streams from master playlist");
-        threadsList = new ArrayList<>(numStreamFound);
+		log.info("Got total of " + numStreamFound + " streams from master playlist");
+		threadsList = new ArrayList<>(numStreamFound);
 
-        //download streams:
-        for (String stream : streamsSet) {
+		//download streams:
+		for (String stream : streamsSet) {
 
 			String playlistFileName = stream.substring(stream.lastIndexOf("/")+1);
 
 			String streamDestination = filesDestination + "/" + playlistFileName;
-            //write stream name to file:
-            FileUtils.writeStringToFile(new File(streamDestination + "/stream.txt"), stream);
+			//write stream name to file:
+			FileUtils.writeStringToFile(new File(streamDestination + "/stream.txt"), stream);
 
-            String playlistUrl;
-            //if stream is not a valid URL, concat it to the base URL
-            try {
-                playlistUrl = new URL(stream).toString();
-            } catch (MalformedURLException e) {
-                playlistUrl = baseUrl + "/" + stream;
-            }
+			String playlistUrl;
+			//if stream is not a valid URL, concat it to the base URL
+			try {
+				playlistUrl = new URL(stream).toString();
+			} catch (MalformedURLException e) {
+				playlistUrl = baseUrl + "/" + stream;
+			}
 
-            HLSDownloaderWorker worker = new HLSDownloaderWorker(playlistUrl, streamDestination);
-            Thread t = new Thread(worker);
-            threadsList.add(new AbstractMap.SimpleEntry<>(worker, t));
-            t.start();
-        }
-    }
+			HLSDownloaderWorker worker = new HLSDownloaderWorker(playlistUrl, streamDestination);
+			Thread t = new Thread(worker);
+			threadsList.add(new AbstractMap.SimpleEntry<>(worker, t));
+			t.start();
+		}
+	}
 
-    private String getPlaylistData(String masterPlaylistUrl) throws Exception {
+	private String getPlaylistData(String masterPlaylistUrl) throws Exception {
 
-        log.info("Downloading playlist from URL: " + masterPlaylistUrl + " . timeout in seconds: " + MANIFEST_DOWNLOAD_TIMEOUT_SEC);
+		log.info("Downloading playlist from URL: " + masterPlaylistUrl + " . timeout in seconds: " + MANIFEST_DOWNLOAD_TIMEOUT_SEC);
 
-        long timeoutInMillis = MANIFEST_DOWNLOAD_TIMEOUT_SEC * 1000;
-        long startTime = System.currentTimeMillis();
-        long currentTime = startTime;
+		long timeoutInMillis = MANIFEST_DOWNLOAD_TIMEOUT_SEC * 1000;
+		long startTime = System.currentTimeMillis();
+		long currentTime = startTime;
 
-        CloseableHttpClient client = null;
-        try {
-            client = HttpUtils.getHttpClient();
-            String masterPlaylistData;
-            while ((currentTime - startTime) <= timeoutInMillis) {
-                try {
-                    masterPlaylistData = HttpUtils.doGetRequest(client, masterPlaylistUrl);
-                    if (masterPlaylistData != null) {
-                        log.info("Downloaded playlist manifest after " + (currentTime - startTime) + " milliseconds");
-                        return masterPlaylistData;
-                    }
+		CloseableHttpClient client = null;
+		try {
+			client = HttpUtils.getHttpClient();
+			String masterPlaylistData;
+			while ((currentTime - startTime) <= timeoutInMillis) {
+				try {
+					masterPlaylistData = HttpUtils.doGetRequest(client, masterPlaylistUrl);
+					if (masterPlaylistData != null) {
+						log.info("Downloaded playlist manifest after " + (currentTime - startTime) + " milliseconds");
+						return masterPlaylistData;
+					}
 
-                    //wait 5 seconds before next download attempt
-                    log.info("Failed to download playlist. waiting additional 5 seconds");  //TODO magic numbers
-                    currentTime = System.currentTimeMillis();
-                    Thread.sleep(5000);
+					//wait 5 seconds before next download attempt
+					log.info("Failed to download playlist. waiting additional 5 seconds");  //TODO magic numbers
+					currentTime = System.currentTimeMillis();
+					Thread.sleep(5000);
 
-                } catch (IOException | InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            throw new Exception("Failed to download playlist manifest after " + (currentTime - startTime) + " milliseconds");
+				} catch (IOException | InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			throw new Exception("Failed to download playlist manifest after " + (currentTime - startTime) + " milliseconds");
 
-        } finally {
-            if (client != null) {
-                client.close();
-            }
-        }
-    }
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
+	}
 }
