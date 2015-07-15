@@ -38,8 +38,6 @@ class HLSDownloaderWorker implements Runnable {
 
 		//extract base url:
 		String baseUrl = url.substring(0, url.lastIndexOf("/"));
-		String playlistFileName = url.substring(url.lastIndexOf("/")+1);
-		String dest = destinationPath + "/" + playlistFileName;
 
 		int counter = 0;
 		while (true) {
@@ -59,7 +57,7 @@ class HLSDownloaderWorker implements Runnable {
 				content = HttpUtils.doGetRequest(httpClient, url);
 
 				//write to file
-				FileUtils.writeStringToFile(new File(dest + "/iter_" + counter),content);
+				FileUtils.writeStringToFile(new File(destinationPath + "/iter_" + counter),content);
 
 			} catch (IOException e) {
 				log.error("Get request failed.");
@@ -102,7 +100,7 @@ class HLSDownloaderWorker implements Runnable {
 					String fileName = ts.getName();
 
 					//get the ts number:
-					int tsNumber = -1;
+					int tsNumber;
 					try {
 						tsNumber = getTsNumber(fileName);
 					} catch (Exception e) {
@@ -118,13 +116,7 @@ class HLSDownloaderWorker implements Runnable {
 
 					//download ts:
 					try {
-						HttpUtils.downloadFile(baseUrl + "/" + tsName, dest + "/" + fileName);
-//						if (validateSyncPoints(dest + "/" + fileName)) {
-//							new File(dest + "/" + fileName).delete();
-//						}
-//						else {
-//							System.out.println("Missing sync points: " + dest + "/" + fileName);
-//						}
+						HttpUtils.downloadFile(baseUrl + "/" + tsName, destinationPath + "/" + fileName);
 					} catch (IOException e) {
 						e.printStackTrace();
 						continue;
@@ -145,21 +137,6 @@ class HLSDownloaderWorker implements Runnable {
 					e.printStackTrace();
 				}
 			}
-		}
-	}
-
-	private boolean validateSyncPoints(String s) {
-		File f = new File(s);
-		try {
-			String tmp = FileUtils.readFileToString(f);
-			if (tmp.contains("KalturaSyncPoint")) {
-				log.debug(f.getAbsoluteFile() + " contains sync points");
-				return true;
-			}
-			return false;
-		} catch (IOException e) {
-			log.error("failed to validate sync points in: " + f.getAbsolutePath());
-			return false;
 		}
 	}
 
