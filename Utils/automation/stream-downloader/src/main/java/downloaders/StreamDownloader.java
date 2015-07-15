@@ -7,4 +7,5 @@ public interface StreamDownloader {
 
     public void downloadFiles(String manifestUrl, String destination) throws Exception;
     public void shutdownDownloader();
+    public boolean isAlive();
 }
