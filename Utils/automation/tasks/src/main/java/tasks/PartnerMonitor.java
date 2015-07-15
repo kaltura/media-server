@@ -9,6 +9,7 @@ import com.kaltura.client.types.KalturaLiveStreamListResponse;
 import configurations.ConfigurationReader;
 import configurations.TestConfig;
 import downloaders.hls.HLSDownloader;
+import downloaders.hls.DVRInputStreamEnhancer;
 import kaltura.actions.StartSession;
 
 import java.net.URL;
@@ -116,8 +117,8 @@ public class PartnerMonitor {
 			String downloadDir = downloadPath + "/" + entryId;
 			if(this.useDvr)
 				downloadDir += "_DVR";
-						
-			HLSDownloader d = new HLSDownloader();
+
+			HLSDownloader d = new HLSDownloader(new DVRInputStreamEnhancer());
 			try {
 				d.downloadFiles(manifestUrl, downloadDir);
 			} catch (Exception e) {

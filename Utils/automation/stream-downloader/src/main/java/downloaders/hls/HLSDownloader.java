@@ -21,7 +21,15 @@ public class HLSDownloader implements StreamDownloader {
     private static final Logger log = Logger.getLogger(HLSDownloader.class);
     private static final long MANIFEST_DOWNLOAD_TIMEOUT_SEC = 120;
     private List<AbstractMap.SimpleEntry<HLSDownloaderWorker,Thread>> threadsList;
+	private PlaylistEnhancer enhancer;
 
+	public HLSDownloader() {
+		this.enhancer = null;
+	}
+
+	public HLSDownloader(PlaylistEnhancer enhancer) {
+		this.enhancer = enhancer;
+	}
 
     @Override
     public void shutdownDownloader() {
@@ -87,7 +95,11 @@ public class HLSDownloader implements StreamDownloader {
 
         //get streams urls:
         Set<String> streamsSet = getStreamsListsFromMasterPlaylist(masterPlaylistData);
-        int numStreamFound = streamsSet.size();
+		if (enhancer != null) {
+			streamsSet = enhancer.enhanceStreamsSet(streamsSet);
+		}
+
+		int numStreamFound = streamsSet.size();
 
         //TODO, put in constant. create global context tags in the future
         GlobalContext.putValue("NUM_STREAMS", numStreamFound);
@@ -96,10 +108,11 @@ public class HLSDownloader implements StreamDownloader {
         threadsList = new ArrayList<>(numStreamFound);
 
         //download streams:
-        int counter = 0;
         for (String stream : streamsSet) {
 
-            String streamDestination = filesDestination + "/flavor_" + counter;
+			String playlistFileName = stream.substring(stream.lastIndexOf("/")+1);
+
+			String streamDestination = filesDestination + "/" + playlistFileName;
             //write stream name to file:
             FileUtils.writeStringToFile(new File(streamDestination + "/stream.txt"), stream);
 
@@ -115,9 +128,7 @@ public class HLSDownloader implements StreamDownloader {
             Thread t = new Thread(worker);
             threadsList.add(new AbstractMap.SimpleEntry<>(worker, t));
             t.start();
-            counter++;
         }
-
     }
 
     private String getPlaylistData(String masterPlaylistUrl) throws Exception {
