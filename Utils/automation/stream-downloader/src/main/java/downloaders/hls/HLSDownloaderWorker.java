@@ -67,6 +67,11 @@ class HLSDownloaderWorker implements Runnable {
 				continue; //TODO
 			}
 
+            if(content == null) {
+            	log.error("Get request failed. Closing session.");
+            	return;
+            }
+			
 			long downloadTime = System.currentTimeMillis();
 			int tsDuration = 0;
 
