@@ -3,6 +3,7 @@ package tasks.systemmonitor;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import downloaders.hls.DVRInputStreamEnhancer;
 import tasks.StatusWatcher;
 import utils.ManifestUrlBuilder;
 import configurations.TestConfig;
@@ -42,7 +43,7 @@ public class EntryDownloader implements StatusWatcher, Runnable {
 		System.out.println(manifestUrl);
 		
 		String downloadDir = config.getDestinationFolder() + "/" + entryId;
-		hlsDownloader = new HLSDownloader();
+		hlsDownloader = new HLSDownloader(new DVRInputStreamEnhancer());
 		
 		try {
 			hlsDownloader.downloadFiles(manifestUrl, downloadDir);
