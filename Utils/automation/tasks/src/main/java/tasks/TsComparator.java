@@ -67,7 +67,7 @@ public class TsComparator {
 						@Override
 						public void run() {
 							//compare the pair of images
-							log.info("--: " + tempDiffFolder.getName() + " " + tempDiffFolder.getName() + "diff: " + "/diff"+firstNum+".jpg");
+							log.info("--: " + finalFirstImage.getName() + " " + secondImage.getName() + "diff: " + "/diff"+firstNum+".jpg");
 							ImageMagikComparator imComparator = new ImageMagikComparator(10.0,tempDiffFolder.getAbsolutePath() + "/diff"+firstNum+".jpg");
 							if (!imComparator.isSimilar(finalFirstImage, secondImage)) {
 								results[firstNum - firstTsIndex] = true;
