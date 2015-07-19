@@ -21,7 +21,7 @@ public class TsComparator {
 
 	private static final Logger log = Logger.getLogger(TsComparator.class);
 	private static final int NUM_FAILED_TS_SEQUENCE = 3;
-	private static ExecutorService executor = Executors.newFixedThreadPool(20);
+	private static ExecutorService executor = Executors.newFixedThreadPool(5);
 	private static final Object errorMsgsLock = new Object();
 
 	private static File getFirstFrameFromFile(File ts) throws Exception {
@@ -143,8 +143,11 @@ public class TsComparator {
 	}
 
 	public static boolean compareFiles(File folderPath, File tempDiffFolder) {
+		log.info("getting files from folder: " + folderPath);
 		Collection files = FileUtils.listFiles(folderPath, new String[]{"ts"}, true);
 		List<File> sortedFiles = getSortedFilesList(files);
+		log.info("got files from folder: " + sortedFiles.size());
+
 		return compareFiles(sortedFiles, tempDiffFolder);
 	}
 
