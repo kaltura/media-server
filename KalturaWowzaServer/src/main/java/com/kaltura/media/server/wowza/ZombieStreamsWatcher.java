@@ -104,8 +104,8 @@ public class ZombieStreamsWatcher extends MediaStreamActionNotifyBase implements
 					
 					logger.error("Published stream [" + streamName + "] didn't recieve packets for more than " + ZOMBIE_STREAM_THRESHOLD + " mSecs");
 					IClient client = stream.getClient();
-					client.rejectConnection("Published stream [" + streamName + "] didn't recieve packets for more than " + ZOMBIE_STREAM_THRESHOLD + " mSecs");
-					client.shutdownClient();
+					client.setShutdownClient(true); 
+					logger.error("Stream [" + streamName + "] was shut down");
 					
 				} catch (Exception e) {
 					// Swallow exception
