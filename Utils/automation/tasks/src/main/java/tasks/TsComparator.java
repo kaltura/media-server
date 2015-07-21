@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 import utils.ImageUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -142,7 +143,7 @@ public class TsComparator {
 		return newList;
 	}
 
-	public static boolean compareFiles(File folderPath, File tempDiffFolder) {
+	private static boolean compareFiles(File folderPath, File tempDiffFolder) {
 		log.info("getting files from folder: " + folderPath);
 		Collection files = FileUtils.listFiles(folderPath, new String[]{"ts"}, true);
 		List<File> sortedFiles = getSortedFilesList(files);
@@ -151,23 +152,27 @@ public class TsComparator {
 		return compareFiles(sortedFiles, tempDiffFolder);
 	}
 
+	public static boolean compareFiles(String folderPath, String pathToFfmpeg, String diffTempFolder) throws IOException {
+		log.info("Folder: " + folderPath);
+		log.info("Path to ffmpeg: " + pathToFfmpeg);
+		log.info("Temp diff folder: " + diffTempFolder);
+
+		File tempDiffFolder = new File(diffTempFolder);
+		log.info("Creating temp diff folder if not exists: " + tempDiffFolder.getAbsolutePath());
+		FileUtils.forceMkdir(tempDiffFolder);
+
+		ImageUtils.initializeImageUtils(pathToFfmpeg);
+		return compareFiles(new File(folderPath),tempDiffFolder);
+
+	}
+
 	public static void main(String[] args) throws Exception {
 
 		if (args.length != 3) {
 			System.out.println("Usage: [files destination] [path to ffmpeg] [temp diff folder]");
 			System.exit(1);
 		}
-
-		log.info("Folder: " + args[0]);
-		log.info("Path to ffmpeg: " + args[1]);
-		log.info("Temp diff folder: " + args[2]);
-
-		File tempDiffFolder = new File(args[2]);
-		log.info("Creating temp diff folder if not exists: " + tempDiffFolder.getAbsolutePath());
-		FileUtils.forceMkdir(tempDiffFolder);
-
-		ImageUtils.initializeImageUtils(args[1]);
-		compareFiles(new File(args[0]),tempDiffFolder);
+		compareFiles(args[0], args[1], args[2]);
 	}
 }
 
