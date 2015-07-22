@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,6 +44,9 @@ public class TestConfig {
 
     @JsonProperty("entry-details")
     private EntryConfig entryDetails;
+    
+    @JsonProperty("sync-entries")
+    private List<String> syncEntries;
 
     private final Map<String , Object> otherProperties = new HashMap<>();
 
@@ -98,4 +102,8 @@ public class TestConfig {
     public String getAdminSecret() {
         return adminSecret;
     }
+
+	public List<String> getSyncEntries() {
+		return syncEntries;
+	}
 }

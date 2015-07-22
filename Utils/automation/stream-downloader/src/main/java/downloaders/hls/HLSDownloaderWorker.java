@@ -3,6 +3,7 @@ package downloaders.hls;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
+
 import utils.HttpUtils;
 
 import java.io.File;
@@ -21,7 +22,13 @@ class HLSDownloaderWorker implements Runnable {
 	private final String destinationPath;
 	private int lastTsNumber;
 	private volatile boolean stopDownloading;
+	private boolean runForever = false;
 
+	public HLSDownloaderWorker(String url, String destinationPath, boolean runForever) {
+		this(url, destinationPath);
+		this.runForever = runForever;
+	}
+	
 	public HLSDownloaderWorker(String url, String destinationPath) {
 		this.url = url;
 		this.destinationPath = destinationPath;
@@ -66,8 +73,11 @@ class HLSDownloaderWorker implements Runnable {
 			}
 
             if(content == null) {
-            	log.error("Get request failed. Closing session.");
-            	return;
+            	if(canHandleNullContent()) {
+            		continue;
+            	} else {
+            		return;
+            	}
             }
 			
 			long downloadTime = System.currentTimeMillis();
@@ -138,6 +148,21 @@ class HLSDownloaderWorker implements Runnable {
 				}
 			}
 		}
+	}
+
+	private boolean canHandleNullContent() {
+		log.error("Get request failed. Closing session.");
+    	if(runForever) {
+    		try {
+				Thread.sleep(30000);
+			} catch (InterruptedException e) {
+				log.error("Failed to sleep.");
+				return false;
+			}
+    		return true;
+    	}
+    	return false;
+		
 	}
 
 	private int getTsNumber(String tsName) throws Exception {

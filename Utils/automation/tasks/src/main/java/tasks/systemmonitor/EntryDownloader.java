@@ -17,14 +17,16 @@ public class EntryDownloader implements StatusWatcher, Runnable {
 	private TestConfig config;
 	private String partnerId;
 	private String entryId;
+	private boolean runForever;
 	
 	private boolean isAlive = true;
 	private HLSDownloader hlsDownloader = null;
 	
-	public EntryDownloader (TestConfig config, Integer partnerId, String entryId) {
+	public EntryDownloader (TestConfig config, Integer partnerId, String entryId, boolean runForever) {
 		this.config = config;
 		this.partnerId = ""+partnerId;
 		this.entryId = entryId;
+		this.runForever = runForever;
 	}
 
 	@Override
@@ -43,7 +45,7 @@ public class EntryDownloader implements StatusWatcher, Runnable {
 		System.out.println(manifestUrl);
 		
 		String downloadDir = config.getDestinationFolder() + "/" + entryId;
-		hlsDownloader = new HLSDownloader(new DVRInputStreamEnhancer());
+		hlsDownloader = new HLSDownloader(new DVRInputStreamEnhancer(), runForever);
 		
 		try {
 			hlsDownloader.downloadFiles(manifestUrl, downloadDir);

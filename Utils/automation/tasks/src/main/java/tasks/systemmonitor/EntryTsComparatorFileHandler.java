@@ -7,8 +7,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -17,6 +15,7 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 import utils.ImageUtils;
+
 import comparators.imagemagik.ImageMagikComparator;
 
 /**
@@ -27,7 +26,6 @@ public class EntryTsComparatorFileHandler implements FileHandlerIfc {
 	private static final Logger log = Logger.getLogger(EntryTsComparatorFileHandler.class);
 	
 	// Thread pools
-	private static ExecutorService executor = Executors.newCachedThreadPool();
 	private static ScheduledThreadPoolExecutor schedulerExecutor = new ScheduledThreadPoolExecutor(20);
 
 	private String entryId;
@@ -85,6 +83,7 @@ public class EntryTsComparatorFileHandler implements FileHandlerIfc {
 	protected class TsCompareTask implements Runnable {
 
 		protected static final String THREAD_NAME = "Ts-Compare-";
+		protected static final long COMPARE_DELAY = 10;
 		private Integer tsNumber;
 		private List<Path> tsPaths;
 
@@ -119,12 +118,12 @@ public class EntryTsComparatorFileHandler implements FileHandlerIfc {
 				File file2 = tsPaths.get(i).toFile();
 				File image2 = getFirstFrameFromFile(file2);
 				
-				System.out.println("Comparison of entry [" + entryId + "]" + file1 + " and " + file2);
+				log.info("Comparison of entry [" + entryId + "]" + file1 + " and " + file2);
 				
 				ImageMagikComparator imComparator = new ImageMagikComparator(10.0,outputFolder + "/diff_" + tsNumber + ".jpg");
 				if ((image1 == null) || (image2 == null) || (!imComparator.isSimilar(image1, image2))) {
 					synchronized (failedIdx) {
-						System.out.println("Comparison of " + file1 + " and " + file2 + " failed. "
+						log.error("Comparison of " + file1 + " and " + file2 + " failed. "
 								+ "Image files: " + image1 + " , " + image2);
 						failedIdx.add(tsNumber);
 						break;
@@ -209,7 +208,7 @@ public class EntryTsComparatorFileHandler implements FileHandlerIfc {
 		}
 		
 		if(paths != null)
-			executor.execute(new TsCompareTask(tsNumber, paths));
+			schedulerExecutor.schedule(new TsCompareTask(tsNumber, paths), TsCompareTask.COMPARE_DELAY, TimeUnit.SECONDS);
 	}
 	
 	private static Integer extractTsNumber(String tsName) {
