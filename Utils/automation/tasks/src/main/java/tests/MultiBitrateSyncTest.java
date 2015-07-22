@@ -17,8 +17,11 @@ import org.testng.Reporter;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import tasks.TsFilesComparator;
-import utils.*;
+import tasks.TsComparator;
+import utils.ImageUtils;
+import utils.ManifestUrlBuilder;
+import utils.ProcessHandler;
+import utils.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -130,9 +133,10 @@ public class MultiBitrateSyncTest {
     }
 
     @Test(dependsOnMethods = "downloadTsFiles")
-    public void compareFiles() {
+    public void compareFiles() throws IOException {
         comment("Comparing files");
-        Assert.assertEquals(true, TsFilesComparator.compareFiles(new File(dest), (Integer) GlobalContext.getValue("NUM_STREAMS")));
+        Assert.assertEquals(true,TsComparator.compareFiles(dest, config.getPathToFfmpeg(), dest + "/diff_dir"));
+//        Assert.assertEquals(true, TsFilesComparator.compareFiles(new File(dest), (Integer) GlobalContext.getValue("NUM_STREAMS")));
 
         //test passed, delete downloads
         try {
