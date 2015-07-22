@@ -3,6 +3,7 @@ package tasks.systemmonitor;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -40,6 +41,8 @@ public class SystemMonitor {
 	public void execute() throws Exception {
 		config = getTestConfiguration("batch-conf.json");
 		int partnerId = Integer.valueOf(config.getPartnerId());
+		List<String> syncEntries = config.getSyncEntries();
+		
 		session = new StartSession(partnerId,
 				config.getServiceUrl(), config.getAdminSecret());
 		client = session.execute();
@@ -56,7 +59,7 @@ public class SystemMonitor {
 					// Create downloaders threads
 					System.out.println("### Create new thread for entry - " + entry.getKey());
 					
-					EntryDownloader downloader = new EntryDownloader(config, entry.getValue(), entry.getKey());
+					EntryDownloader downloader = new EntryDownloader(config, entry.getValue(), entry.getKey(), syncEntries.contains(entry.getKey()));
 					(new Thread(downloader, "Downloader_" + entry.getKey())).start();
 					EntryComparator comparator = new EntryComparator(config, downloader, entry.getKey());
 					(new Thread(comparator, "Comparator_" + entry.getKey())).start();

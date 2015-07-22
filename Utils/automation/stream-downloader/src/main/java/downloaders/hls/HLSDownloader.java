@@ -29,13 +29,16 @@ public class HLSDownloader implements StreamDownloader {
     private static final long MANIFEST_DOWNLOAD_TIMEOUT_SEC = 120;
     private List<AbstractMap.SimpleEntry<HLSDownloaderWorker,Thread>> threadsList;
     private PlaylistEnhancer enhancer;
+    private boolean runForever;
 
     public HLSDownloader() {
         this.enhancer = null;
+        this.runForever = false;
     }
 
-    public HLSDownloader(PlaylistEnhancer enhancer) {
+    public HLSDownloader(PlaylistEnhancer enhancer, boolean runForever) {
         this.enhancer = enhancer;
+        this.runForever = runForever;
     }
 
     @Override
@@ -131,7 +134,7 @@ public class HLSDownloader implements StreamDownloader {
                 playlistUrl = baseUrl + "/" + stream;
             }
 
-            HLSDownloaderWorker worker = new HLSDownloaderWorker(playlistUrl, streamDestination);
+            HLSDownloaderWorker worker = new HLSDownloaderWorker(playlistUrl, streamDestination, runForever);
             Thread t = new Thread(worker, stream);
             threadsList.add(new AbstractMap.SimpleEntry<>(worker, t));
             t.start();

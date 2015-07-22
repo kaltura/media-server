@@ -119,7 +119,7 @@ public class PartnerMonitor {
 
 			try {
 				URI uri = ManifestUrlBuilder.buildManifestUrl(config.getServiceUrl(), this.entryId, String.valueOf(this.partnerId));
-				HLSDownloader d = new HLSDownloader(new DVRInputStreamEnhancer());
+				HLSDownloader d = new HLSDownloader(new DVRInputStreamEnhancer(), false);
 				d.downloadFiles(uri.toString(), downloadDir);
 			} catch (Exception e) {
 				System.out.println("Failed to download content");
