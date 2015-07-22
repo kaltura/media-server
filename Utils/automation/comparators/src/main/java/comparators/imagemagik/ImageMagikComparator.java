@@ -26,7 +26,6 @@ public class ImageMagikComparator implements ImageComparator {
 	@Override
 	public boolean isSimilar(File image1, File image2) {
 		double diff = compareImages(image1.getAbsolutePath(), image2.getAbsolutePath());
-		log.info("compared " + image1.getName() + " and  " + image2.getName() + " diff: " + diff);
 		if (diff > precision) {
 			log.error("diff is " + diff);
 			return false;
@@ -55,7 +54,6 @@ public class ImageMagikComparator implements ImageComparator {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} catch (IM4JavaException e) {
-			log.error(e);
 			// Nothing to do
 		}
 	}

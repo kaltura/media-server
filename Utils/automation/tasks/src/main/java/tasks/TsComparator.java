@@ -22,7 +22,7 @@ public class TsComparator {
 
 	private static final Logger log = Logger.getLogger(TsComparator.class);
 	private static final int NUM_FAILED_TS_SEQUENCE = 3;
-	private static ExecutorService executor = Executors.newFixedThreadPool(5);
+	private static ExecutorService executor = Executors.newFixedThreadPool(20);
 	private static final Object errorMsgsLock = new Object();
 
 	private static File getFirstFrameFromFile(File ts) throws Exception {
@@ -63,12 +63,10 @@ public class TsComparator {
 
 				if (firstNum == secondNum) {
 					final File finalFirstImage = firstImage;
-					final File finalFirst = first;
 					executor.submit(new Runnable() {
 						@Override
 						public void run() {
 							//compare the pair of images
-							log.info("--: " + finalFirstImage.getName() + " " + secondImage.getName() + "diff: " + "/diff"+firstNum+".jpg");
 							ImageMagikComparator imComparator = new ImageMagikComparator(10.0,tempDiffFolder.getAbsolutePath() + "/diff"+firstNum+".jpg");
 							if (!imComparator.isSimilar(finalFirstImage, secondImage)) {
 								results[firstNum - firstTsIndex] = true;
