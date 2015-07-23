@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -89,6 +91,8 @@ public class LiveStreamEntry extends ModuleBase {
 	protected final static int INVALID_SERVER_INDEX = -1;
 
 	protected static Logger logger = Logger.getLogger(LiveStreamEntry.class);
+	
+	private static ExecutorService executor = Executors.newCachedThreadPool();
 
 	private String applicationName;
 	private LiveStreamManager liveStreamManager;
@@ -604,47 +608,58 @@ public class LiveStreamEntry extends ModuleBase {
 		protected static final String KNOWN_PTS = "known_pts";
 		// Maximum age allowed for a PTS in comparison to the current one
 		protected static final int MAX_PTS_AGE = 1000 * 10;
+		private static final int DEFAULT_CODEC = -1;
 
 		@Override
-		@SuppressWarnings("unchecked")
 		public void onLivePacket(IMediaStream stream, AMFPacket packet) {
 
-			final int DEFAULT_CODEC = -1;
 			if (FLVUtils.isVideoKeyFrame(packet)) {
 				WMSProperties properties = getConnectionProperties(stream);
 				if(properties == null)
 					return; // Transcoded stream
 
-				String streamName = stream.getName();
-				String entryId = getEntryIdFromStreamName(streamName);
-				if(entryId == null){
-					logger.warn("Stream [" + streamName + "] does not match entry id");
-					return;
-				}
-
-				// Calculate PTS
-				long pts = packet.getAbsTimecode();
-				int codec = properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_CODEC_TYPE, DEFAULT_CODEC);
-				if ((codec == IVHost.CODEC_VIDEO_H264 || codec == IVHost.CODEC_VIDEO_H265) && packet.getSize() >= 5)
-					pts += BufferUtils.byteArrayToLong(packet.getData(), 2, 3);
-
-				// Update PTS metadata and compare to related streams PTSes
-				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
-
-
-				// Stream PTSes contains for each stream of the entry, the PTSes that arrived on that stream and
-				// didn't appear yet on all other streams. Once a PTS has arrived on all PTSes -
-				// it's removed from all streams.
-				Map<String, List<Long>> defaultValue = new HashMap<String, List<Long>>();
-				Map<String, List<Long>> streamsPtses = (Map<String, List<Long>>)liveManager.getOrAddMetadata(entryId, KNOWN_PTS, defaultValue);
-
-				addPtsToStream(streamsPtses, streamName, pts);
-				if(ptsAppearInAllStreams(streamsPtses, streamName, pts)) {
-					removePtsFromStreams(streamsPtses, pts);
-				}
-
-				handleOldPtses(streamsPtses, streamName, pts);
+				handleStream(stream, packet, properties);
 			}
+		}
+
+		@SuppressWarnings("unchecked")
+		private void handleStream(final IMediaStream stream, final AMFPacket packet, final WMSProperties properties) {
+
+			executor.execute(new Runnable() {
+				
+				@Override
+				public void run() {
+					String streamName = stream.getName();
+					String entryId = getEntryIdFromStreamName(streamName);
+					if(entryId == null){
+						logger.warn("Stream [" + streamName + "] does not match entry id");
+						return;
+					}
+
+					// Calculate PTS
+					long pts = packet.getAbsTimecode();
+					int codec = properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_CODEC_TYPE, DEFAULT_CODEC);
+					if ((codec == IVHost.CODEC_VIDEO_H264 || codec == IVHost.CODEC_VIDEO_H265) && packet.getSize() >= 5)
+						pts += BufferUtils.byteArrayToLong(packet.getData(), 2, 3);
+
+					// Update PTS metadata and compare to related streams PTSes
+					ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
+
+
+					// Stream PTSes contains for each stream of the entry, the PTSes that arrived on that stream and
+					// didn't appear yet on all other streams. Once a PTS has arrived on all PTSes -
+					// it's removed from all streams.
+					Map<String, List<Long>> defaultValue = new HashMap<String, List<Long>>();
+					Map<String, List<Long>> streamsPtses = (Map<String, List<Long>>)liveManager.getOrAddMetadata(entryId, KNOWN_PTS, defaultValue);
+
+					addPtsToStream(streamsPtses, streamName, pts);
+					if(ptsAppearInAllStreams(streamsPtses, streamName, pts)) {
+						removePtsFromStreams(streamsPtses, pts);
+					}
+
+					handleOldPtses(streamsPtses, streamName, pts);
+				}
+			});
 		}
 
 		/**
