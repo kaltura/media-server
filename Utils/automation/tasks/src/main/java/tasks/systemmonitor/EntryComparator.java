@@ -19,6 +19,7 @@ public class EntryComparator implements Runnable {
 	private TestConfig config;
 	private String entryId;
 	private StatusWatcher statusWatcher;
+	private String directoryPath;
 	
 	/**
 	 * Constructor
@@ -26,10 +27,11 @@ public class EntryComparator implements Runnable {
 	 * @param statusWatcher whatever tells us to stop watching the directory.
 	 * @param entryId The entry we monitor
 	 */
-	public EntryComparator(TestConfig config, StatusWatcher statusWatcher, String entryId) {
+	public EntryComparator(TestConfig config, StatusWatcher statusWatcher, String entryId, String directoryPath) {
 		this.config = config;
 		this.statusWatcher = statusWatcher;
 		this.entryId = entryId;
+		this.directoryPath = directoryPath;
 	}
 
 	public void run() {
@@ -42,15 +44,14 @@ public class EntryComparator implements Runnable {
 		}
 		
 		// Register root dir for files creation
-		String dir = config.getDestinationFolder() + "/" + entryId;
-		String outputDirStr = dir + "/diff";
+		String outputDirStr = directoryPath + "/diff";
 		File outputDir = new File(outputDirStr);
 		if(!outputDir.exists()) {
 			outputDir.mkdir();
 		}
 		
 		FileHandlerIfc watcher = new EntryTsComparatorFileHandler(entryId, config.getPathToFfmpeg(), outputDirStr,  nStreams);
-		Path pathToWatch = Paths.get(dir);
+		Path pathToWatch = Paths.get(directoryPath);
 		
 		try {
 			DirectoryWatcher watch = new DirectoryWatcher(pathToWatch, ".*\\.ts$", statusWatcher, watcher);

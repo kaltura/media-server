@@ -1,6 +1,9 @@
 package tasks.systemmonitor;
 
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,6 +32,7 @@ import configurations.TestConfig;
  */
 public class SystemMonitor {
 
+	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
 	private TestConfig config;
 	private StartSession session;
 	private KalturaClient client;
@@ -58,10 +62,12 @@ public class SystemMonitor {
 				if(!entries.contains(entry.getKey())) {
 					// Create downloaders threads
 					System.out.println("### Create new thread for entry - " + entry.getKey());
+					String downloadDir = createDefaultDownloadDir(config,  entry.getKey());
 					
 					EntryDownloader downloader = new EntryDownloader(config, entry.getValue(), entry.getKey(), syncEntries.contains(entry.getKey()));
+					downloader.setDownloadDir(downloadDir);
 					(new Thread(downloader, "Downloader_" + entry.getKey())).start();
-					EntryComparator comparator = new EntryComparator(config, downloader, entry.getKey());
+					EntryComparator comparator = new EntryComparator(config, downloader, entry.getKey(), downloadDir);
 					(new Thread(comparator, "Comparator_" + entry.getKey())).start();
 				}
 			}
@@ -71,7 +77,10 @@ public class SystemMonitor {
 		}
 	}
 	
-	
+	private String createDefaultDownloadDir(TestConfig config, String entryId) {
+		String reportDate = dateFormat.format(new Date());
+		return config.getDestinationFolder() + "/" + entryId + "/" + reportDate;
+	}
 	
 	private TestConfig getTestConfiguration(String configFileName)
 			throws Exception {

@@ -8,6 +8,9 @@ import utils.HttpUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +20,7 @@ import java.util.regex.Pattern;
 class HLSDownloaderWorker implements Runnable {
 
 	private static final Logger log = Logger.getLogger(HLSDownloaderWorker.class);
+	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
 	private static final int DEFAULT_TS_DURATION = 10;
 	private final String url;
 	private final String destinationPath;
@@ -64,7 +68,8 @@ class HLSDownloaderWorker implements Runnable {
 				content = HttpUtils.doGetRequest(httpClient, url);
 
 				//write to file
-				FileUtils.writeStringToFile(new File(destinationPath + "/iter_" + counter),content);
+				String reportDate = dateFormat.format(new Date());
+				FileUtils.writeStringToFile(new File(destinationPath + "/iter_" + counter + "_" + reportDate),content);
 
 			} catch (IOException e) {
 				log.error("Get request failed.");

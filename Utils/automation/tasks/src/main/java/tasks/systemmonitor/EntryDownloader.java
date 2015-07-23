@@ -3,10 +3,10 @@ package tasks.systemmonitor;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import downloaders.hls.DVRInputStreamEnhancer;
 import tasks.StatusWatcher;
 import utils.ManifestUrlBuilder;
 import configurations.TestConfig;
+import downloaders.hls.DVRInputStreamEnhancer;
 import downloaders.hls.HLSDownloader;
 
 /**
@@ -18,6 +18,7 @@ public class EntryDownloader implements StatusWatcher, Runnable {
 	private String partnerId;
 	private String entryId;
 	private boolean runForever;
+	private String downloadDir;
 	
 	private boolean isAlive = true;
 	private HLSDownloader hlsDownloader = null;
@@ -27,6 +28,7 @@ public class EntryDownloader implements StatusWatcher, Runnable {
 		this.partnerId = ""+partnerId;
 		this.entryId = entryId;
 		this.runForever = runForever;
+		this.downloadDir = config.getDestinationFolder() + "/" + entryId;
 	}
 
 	@Override
@@ -44,7 +46,6 @@ public class EntryDownloader implements StatusWatcher, Runnable {
 		String manifestUrl = manifestUri.toString();
 		System.out.println(manifestUrl);
 		
-		String downloadDir = config.getDestinationFolder() + "/" + entryId;
 		hlsDownloader = new HLSDownloader(new DVRInputStreamEnhancer(), runForever);
 		
 		try {
@@ -68,5 +69,9 @@ public class EntryDownloader implements StatusWatcher, Runnable {
 				return false;
 		}
 		return true;
+	}
+	
+	public void setDownloadDir(String downloadDir) {
+		this.downloadDir = downloadDir;
 	}
 }
