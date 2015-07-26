@@ -9,8 +9,11 @@ import com.kaltura.client.types.KalturaLiveStreamListResponse;
 import configurations.ConfigurationReader;
 import configurations.TestConfig;
 import downloaders.hls.HLSDownloader;
+import downloaders.hls.DVRInputStreamEnhancer;
 import kaltura.actions.StartSession;
+import utils.ManifestUrlBuilder;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
@@ -52,9 +55,9 @@ public class PartnerMonitor {
 					// Create downloaders threads
 					System.out.println("### Create new thread for entry - " + entryId);
 					Timer timer = new Timer(entryId, true);
-					timer.schedule(new Downloader(entryId, true, config.getDestinationFolder()), 1);
-					timer = new Timer(entryId, true);
-					timer.schedule(new Downloader(entryId, false, config.getDestinationFolder()), 1);
+					timer.schedule(new Downloader(entryId, true, config.getDestinationFolder(), partnerId), 1);
+//					timer = new Timer(entryId, true);
+//					timer.schedule(new Downloader(entryId, false, config.getDestinationFolder()), 1);
 				}
 			}
 
@@ -97,29 +100,27 @@ public class PartnerMonitor {
 		private static final String PREFIX = "http://kalsegsec-a.akamaihd.net/dc-1/m/ny-live-publish1/kLive/smil:";
 		private static final String SUFFIX = "_all.smil/playlist.m3u8";
 		private final String downloadPath;// = "/root/output";
-		
+		private final int partnerId;
+
 		private String entryId;
 		private boolean useDvr;
 		
-		Downloader (String entryId, boolean useDvr, String destinationPath) {
+		Downloader (String entryId, boolean useDvr, String destinationPath, int partnerId) {
 			this.entryId = entryId;
 			this.useDvr = useDvr;
 			this.downloadPath = destinationPath;
+			this.partnerId = partnerId;
 		}
 
 		@Override
 		public void run() {
 			String manifestUrl = PREFIX + entryId + SUFFIX;
-			if(this.useDvr)
-				manifestUrl += "?DVR";
-			
 			String downloadDir = downloadPath + "/" + entryId;
-			if(this.useDvr)
-				downloadDir += "_DVR";
-						
-			HLSDownloader d = new HLSDownloader();
+
 			try {
-				d.downloadFiles(manifestUrl, downloadDir);
+				URI uri = ManifestUrlBuilder.buildManifestUrl(config.getServiceUrl(), this.entryId, String.valueOf(this.partnerId));
+				HLSDownloader d = new HLSDownloader(new DVRInputStreamEnhancer(), false);
+				d.downloadFiles(uri.toString(), downloadDir);
 			} catch (Exception e) {
 				System.out.println("Failed to download content");
 				e.printStackTrace();

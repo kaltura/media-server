@@ -1,17 +1,24 @@
 package downloaders.hls;
 
-import downloaders.StreamDownloader;
-import org.apache.commons.io.FileUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.log4j.Logger;
-import utils.GlobalContext;
-import utils.HttpUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.net.UnknownHostException;
+import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.log4j.Logger;
+
+import utils.GlobalContext;
+import utils.HttpUtils;
+import downloaders.StreamDownloader;
 
 /**
  * Created by asher.saban on 2/17/2015.
@@ -21,7 +28,18 @@ public class HLSDownloader implements StreamDownloader {
     private static final Logger log = Logger.getLogger(HLSDownloader.class);
     private static final long MANIFEST_DOWNLOAD_TIMEOUT_SEC = 120;
     private List<AbstractMap.SimpleEntry<HLSDownloaderWorker,Thread>> threadsList;
+    private PlaylistEnhancer enhancer;
+    private boolean runForever;
 
+    public HLSDownloader() {
+        this.enhancer = null;
+        this.runForever = false;
+    }
+
+    public HLSDownloader(PlaylistEnhancer enhancer, boolean runForever) {
+        this.enhancer = enhancer;
+        this.runForever = runForever;
+    }
 
     @Override
     public void shutdownDownloader() {
@@ -87,6 +105,10 @@ public class HLSDownloader implements StreamDownloader {
 
         //get streams urls:
         Set<String> streamsSet = getStreamsListsFromMasterPlaylist(masterPlaylistData);
+        if (enhancer != null) {
+            streamsSet = enhancer.enhanceStreamsSet(streamsSet);
+        }
+
         int numStreamFound = streamsSet.size();
 
         //TODO, put in constant. create global context tags in the future
@@ -96,10 +118,11 @@ public class HLSDownloader implements StreamDownloader {
         threadsList = new ArrayList<>(numStreamFound);
 
         //download streams:
-        int counter = 0;
         for (String stream : streamsSet) {
 
-            String streamDestination = filesDestination + "/flavor_" + counter;
+            String playlistFileName = stream.substring(stream.lastIndexOf("/")+1);
+
+            String streamDestination = filesDestination + "/" + playlistFileName;
             //write stream name to file:
             FileUtils.writeStringToFile(new File(streamDestination + "/stream.txt"), stream);
 
@@ -111,13 +134,11 @@ public class HLSDownloader implements StreamDownloader {
                 playlistUrl = baseUrl + "/" + stream;
             }
 
-            HLSDownloaderWorker worker = new HLSDownloaderWorker(playlistUrl, streamDestination);
-            Thread t = new Thread(worker);
+            HLSDownloaderWorker worker = new HLSDownloaderWorker(playlistUrl, streamDestination, runForever);
+            Thread t = new Thread(worker, stream);
             threadsList.add(new AbstractMap.SimpleEntry<>(worker, t));
             t.start();
-            counter++;
         }
-
     }
 
     private String getPlaylistData(String masterPlaylistUrl) throws Exception {
@@ -145,7 +166,11 @@ public class HLSDownloader implements StreamDownloader {
                     currentTime = System.currentTimeMillis();
                     Thread.sleep(5000);
 
+                } catch (UnknownHostException ex) {
+                	System.err.println("Host not found, no point in retrying. host name: " + ex.getMessage());
+                		break;
                 } catch (IOException | InterruptedException e) {
+                	System.err.println("Failed to download manifest: " + masterPlaylistUrl);
                     e.printStackTrace();
                 }
             }
@@ -157,4 +182,14 @@ public class HLSDownloader implements StreamDownloader {
             }
         }
     }
+    
+    @Override
+	public boolean isAlive() {
+		// While there is at least one thread alive - the HLS downloader is alive.
+		for (SimpleEntry<HLSDownloaderWorker, Thread> threadItr : threadsList) {
+			if(threadItr.getValue().isAlive())
+				return true;
+		}
+		return false;
+	}
 }

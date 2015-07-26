@@ -3,10 +3,14 @@ package downloaders.hls;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
+
 import utils.HttpUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,12 +20,19 @@ import java.util.regex.Pattern;
 class HLSDownloaderWorker implements Runnable {
 
 	private static final Logger log = Logger.getLogger(HLSDownloaderWorker.class);
+	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
 	private static final int DEFAULT_TS_DURATION = 10;
 	private final String url;
 	private final String destinationPath;
 	private int lastTsNumber;
 	private volatile boolean stopDownloading;
+	private boolean runForever = false;
 
+	public HLSDownloaderWorker(String url, String destinationPath, boolean runForever) {
+		this(url, destinationPath);
+		this.runForever = runForever;
+	}
+	
 	public HLSDownloaderWorker(String url, String destinationPath) {
 		this.url = url;
 		this.destinationPath = destinationPath;
@@ -38,8 +49,6 @@ class HLSDownloaderWorker implements Runnable {
 
 		//extract base url:
 		String baseUrl = url.substring(0, url.lastIndexOf("/"));
-		String playlistFileName = url.substring(url.lastIndexOf("/")+1);
-		String dest = destinationPath + "/" + playlistFileName;
 
 		int counter = 0;
 		while (true) {
@@ -59,7 +68,8 @@ class HLSDownloaderWorker implements Runnable {
 				content = HttpUtils.doGetRequest(httpClient, url);
 
 				//write to file
-				FileUtils.writeStringToFile(new File(dest + "/iter_" + counter),content);
+				String reportDate = dateFormat.format(new Date());
+				FileUtils.writeStringToFile(new File(destinationPath + "/iter_" + counter + "_" + reportDate),content);
 
 			} catch (IOException e) {
 				log.error("Get request failed.");
@@ -67,6 +77,14 @@ class HLSDownloaderWorker implements Runnable {
 				continue; //TODO
 			}
 
+            if(content == null) {
+            	if(canHandleNullContent()) {
+            		continue;
+            	} else {
+            		return;
+            	}
+            }
+			
 			long downloadTime = System.currentTimeMillis();
 			int tsDuration = 0;
 
@@ -97,7 +115,7 @@ class HLSDownloaderWorker implements Runnable {
 					String fileName = ts.getName();
 
 					//get the ts number:
-					int tsNumber = -1;
+					int tsNumber;
 					try {
 						tsNumber = getTsNumber(fileName);
 					} catch (Exception e) {
@@ -113,13 +131,7 @@ class HLSDownloaderWorker implements Runnable {
 
 					//download ts:
 					try {
-						HttpUtils.downloadFile(baseUrl + "/" + tsName, dest + "/" + fileName);
-//						if (validateSyncPoints(dest + "/" + fileName)) {
-//							new File(dest + "/" + fileName).delete();
-//						}
-//						else {
-//							System.out.println("Missing sync points: " + dest + "/" + fileName);
-//						}
+						HttpUtils.downloadFile(baseUrl + "/" + tsName, destinationPath + "/" + fileName);
 					} catch (IOException e) {
 						e.printStackTrace();
 						continue;
@@ -143,19 +155,19 @@ class HLSDownloaderWorker implements Runnable {
 		}
 	}
 
-	private boolean validateSyncPoints(String s) {
-		File f = new File(s);
-		try {
-			String tmp = FileUtils.readFileToString(f);
-			if (tmp.contains("KalturaSyncPoint")) {
-				log.debug(f.getAbsoluteFile() + " contains sync points");
-				return true;
+	private boolean canHandleNullContent() {
+		log.error("Get request failed. Closing session.");
+    	if(runForever) {
+    		try {
+				Thread.sleep(30000);
+			} catch (InterruptedException e) {
+				log.error("Failed to sleep.");
+				return false;
 			}
-			return false;
-		} catch (IOException e) {
-			log.error("failed to validate sync points in: " + f.getAbsolutePath());
-			return false;
-		}
+    		return true;
+    	}
+    	return false;
+		
 	}
 
 	private int getTsNumber(String tsName) throws Exception {
