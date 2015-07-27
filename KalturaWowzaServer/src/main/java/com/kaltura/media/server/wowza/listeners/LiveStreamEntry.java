@@ -344,7 +344,7 @@ public class LiveStreamEntry extends ModuleBase {
 			}
 
 			WMSProperties properties = getConnectionProperties(stream);
-			if (!properties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
+			if ((properties == null) || !properties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
 				return;
 			}
 
