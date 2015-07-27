@@ -900,8 +900,12 @@ public class LiveStreamEntry extends ModuleBase {
 		logger.debug("Connect: " + entryPoint);
 
 		String[] requestParts = entryPoint.split("\\?", 2);
-		if (requestParts.length < 2)
+		if (requestParts.length < 2) {
+			logger.error("Entry point is missing params [" + entryPoint + "]");
+			client.rejectConnection("Entry point is missing params [" + entryPoint + "]");
+			client.shutdownClient();
 			return null;
+		}
 
 		String queryString = requestParts[1];
 		if(queryString.indexOf("/") > 0){
