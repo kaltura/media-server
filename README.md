@@ -1,9 +1,9 @@
-Kaltura Wowza Media Server   
+Kaltura Media Server   
 ==========================
 ---
-The Kaltura Wowza Media Server is an application built to run over the Wowza Streaming Engine infrastructure. It is compiled with a Kaltura Java client, allowing it access to the Kaltura API. The application utilizes the WSE dynamic streaming capabilities, combined with the Kaltura API for purposes of authentication and tracking.  
-By default, the Kaltura Wowza application is called **kLive**.
-
+This project is a wrapper for media streaming servers that integrates to streaming servers with the [Kaltura Server](https://github.com/kaltura/server). 
+The Kaltura Media Server is an application built to run over the Streaming Engines (such as Wowza, AMS, Harmonic, Elemental, Red5, custom etc.) infrastructure. Currently the most deeply integrated engine is Wowza, it is compiled with a Kaltura Java client, allowing it access to the Kaltura API. The application utilizes the WSE dynamic streaming capabilities, combined with the Kaltura API for purposes of authentication and tracking.  
+By default, the Kaltura Streaming application is called **kLive**.
 ---
 
 Kaltura API Integration
@@ -12,7 +12,7 @@ Kaltura API Integration
 **API Usage**  
 The Kaltura media server can use API client in one of two configurable ways:
 1.	Opposite built-in partner (-5), which impersonates the handled partner for all API calls.
-2.	As an eCDN installation- in this case the Wowza Server is installed on the client's machine while the partner continues working opposite the SaaS installation (as opposed to on-prem installations). The Wowza server thus installed works only opposite the partnerId it belongs to and does not use impersonation.  
+2.	As an eCDN installation- in this case the streaming server (e.g. Wowza) is installed on the client's machine while the partner continues working opposite the SaaS installation (as opposed to on-prem installations). The streaming server thus installed works only opposite the partnerId it belongs to and does not use impersonation.  
 The KS is regenerated periodically according to the KS expiry time.  
 
 ---
@@ -81,3 +81,22 @@ IntelliJ users can skip the installation and import the gradle project with Inte
 * IntelliJ/Eclipse uses are advised to build from the IDE and not from command line
 * Mac and Linux users:
   * The task copyJarsToWowzaLibDir will fail if you don't have permissions to write to Wowza home directory
+  
+## Commercial Editions and Paid Support
+
+The Open Source Kaltura Platform is provided under the [AGPLv3 license](http://www.gnu.org/licenses/agpl-3.0.html) and with no
+commercial support or liability.  
+
+[Kaltura Inc.](http://corp.kaltura.com) also provides commercial solutions and services including pro-active platform monitoring,
+applications, SLA, 24/7 support and professional services. If you're looking for a commercially supported video platform  with
+integrations to commercial encoders, streaming servers, eCDN, DRM and more - Start a [Free Trial of the Kaltura.com Hosted
+Platform](http://corp.kaltura.com/free-trial) or learn more about [Kaltura' Commercial OnPrem
+Edition™](http://corp.kaltura.com/Deployment-Options/Kaltura-On-Prem-Edition). For existing RPM based users, Kaltura offers
+commercial upgrade options.
+
+
+## License and Copyright Information
+All code in this project is released under the [AGPLv3 license](http://www.gnu.org/licenses/agpl-3.0.html) unless a different license for a particular library is specified in the applicable library path. 
+
+Copyright © Kaltura Inc. All rights reserved.
+
