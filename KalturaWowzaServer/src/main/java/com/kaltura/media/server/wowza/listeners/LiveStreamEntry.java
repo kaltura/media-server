@@ -244,13 +244,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 					String streamSuffix = matcher.group(2);
 					KalturaLiveAsset liveAsset = liveStreamManager.getLiveAsset(entry.id, streamSuffix);
-					if (liveAsset == null) {
-						logger.error("Published stream stream name [" + streamName + "] does not match known asset");
-						IClient client = stream.getClient();
-						client.rejectConnection("Published stream stream name [" + streamName + "] does not match known asset");
-						client.shutdownClient();
-						return;
-					} else {
+					if (liveAsset != null) {
 						assetParamsId = liveAsset.flavorParamsId;
 					}
 				}
