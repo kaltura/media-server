@@ -244,13 +244,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 					String streamSuffix = matcher.group(2);
 					KalturaLiveAsset liveAsset = liveStreamManager.getLiveAsset(entry.id, streamSuffix);
-					if (liveAsset == null) {
-						logger.error("Published stream stream name [" + streamName + "] does not match known asset");
-						IClient client = stream.getClient();
-						client.rejectConnection("Published stream stream name [" + streamName + "] does not match known asset");
-						client.shutdownClient();
-						return;
-					} else {
+					if (liveAsset != null) {
 						assetParamsId = liveAsset.flavorParamsId;
 					}
 				}
@@ -344,7 +338,7 @@ public class LiveStreamEntry extends ModuleBase {
 			}
 
 			WMSProperties properties = getConnectionProperties(stream);
-			if (!properties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
+			if ((properties == null) || !properties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
 				return;
 			}
 
@@ -900,8 +894,12 @@ public class LiveStreamEntry extends ModuleBase {
 		logger.debug("Connect: " + entryPoint);
 
 		String[] requestParts = entryPoint.split("\\?", 2);
-		if (requestParts.length < 2)
+		if (requestParts.length < 2) {
+			logger.error("Entry point is missing params [" + entryPoint + "]");
+			client.rejectConnection("Entry point is missing params [" + entryPoint + "]");
+			client.shutdownClient();
 			return null;
+		}
 
 		String queryString = requestParts[1];
 		if(queryString.indexOf("/") > 0){

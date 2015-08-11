@@ -1,11 +1,5 @@
 package downloaders.hls;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.log4j.Logger;
-
-import utils.HttpUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -14,6 +8,12 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.log4j.Logger;
+
+import utils.HttpUtils;
+
 /**
  * Created by asher.saban on 2/17/2015.
  */
@@ -21,12 +21,14 @@ class HLSDownloaderWorker implements Runnable {
 
 	private static final Logger log = Logger.getLogger(HLSDownloaderWorker.class);
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+	private static final int MAX_FILES_IN_DIR = 1000;
 	private static final int DEFAULT_TS_DURATION = 10;
 	private final String url;
 	private final String destinationPath;
 	private int lastTsNumber;
 	private volatile boolean stopDownloading;
 	private boolean runForever = false;
+	private String tempPath;
 
 	public HLSDownloaderWorker(String url, String destinationPath, boolean runForever) {
 		this(url, destinationPath);
@@ -38,6 +40,7 @@ class HLSDownloaderWorker implements Runnable {
 		this.destinationPath = destinationPath;
 		this.lastTsNumber = -1;
 		this.stopDownloading = false;
+		this.tempPath = dateFormat.format(new Date());
 	}
 
 	public void stopDownload(){
@@ -60,6 +63,10 @@ class HLSDownloaderWorker implements Runnable {
 
 			counter++;
 			log.debug("iteration: " + counter);
+			
+			if(counter % MAX_FILES_IN_DIR == 0) {
+				this.tempPath = dateFormat.format(new Date());
+			}
 
 			//download m3u8:
 			CloseableHttpClient httpClient = HttpUtils.getHttpClient();
@@ -69,7 +76,7 @@ class HLSDownloaderWorker implements Runnable {
 
 				//write to file
 				String reportDate = dateFormat.format(new Date());
-				FileUtils.writeStringToFile(new File(destinationPath + "/iter_" + counter + "_" + reportDate),content);
+				FileUtils.writeStringToFile(new File(destinationPath + "/" + tempPath + "/iter_" + counter + "_" + reportDate),content);
 
 			} catch (IOException e) {
 				log.error("Get request failed.");
@@ -131,7 +138,7 @@ class HLSDownloaderWorker implements Runnable {
 
 					//download ts:
 					try {
-						HttpUtils.downloadFile(baseUrl + "/" + tsName, destinationPath + "/" + fileName);
+						HttpUtils.downloadFile(baseUrl + "/" + tsName, destinationPath + "/" + tempPath + "/" + fileName);
 					} catch (IOException e) {
 						e.printStackTrace();
 						continue;
