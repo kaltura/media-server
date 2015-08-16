@@ -1,5 +1,7 @@
 package tasks.systemmonitor;
 
+import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -38,12 +40,16 @@ public class SystemMonitor {
 	private KalturaClient client;
 	
 	public static void main(String[] args) throws Exception {
+		if (args.length != 1) {
+			System.out.println("Usage: [path to conf file]");
+			System.exit(1);
+		}
 		SystemMonitor monitor = new SystemMonitor();
-		monitor.execute();
+		monitor.execute(args[0]);
 	}
 	 
-	public void execute() throws Exception {
-		config = getTestConfiguration("batch-conf.json");
+	public void execute(String pathToConfFile) throws Exception {
+		config = ConfigurationReader.getTestConfigurations(new File(pathToConfFile));
 		int partnerId = Integer.valueOf(config.getPartnerId());
 		List<String> syncEntries = config.getSyncEntries();
 		
@@ -81,17 +87,6 @@ public class SystemMonitor {
 		String reportDate = dateFormat.format(new Date());
 		return config.getDestinationFolder() + "/" + entryId + "/" + reportDate;
 	}
-	
-	private TestConfig getTestConfiguration(String configFileName)
-			throws Exception {
-		// read configuration file:
-		URL u = getClass().getResource("/" + configFileName);
-		if (u == null) {
-			throw new Exception("Configuration file: " + configFileName
-					+ " not found.");
-		} 
-		return ConfigurationReader.getTestConfigurations(u.getPath());
-    }
 	
 	private Map<String, Integer> getEntries() throws KalturaApiException {
 		Map<String, Integer> result = new HashMap<String, Integer>();
