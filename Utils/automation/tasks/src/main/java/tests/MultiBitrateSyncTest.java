@@ -40,15 +40,6 @@ public class MultiBitrateSyncTest {
     private KalturaClient client;
     private KalturaLiveStreamEntry entry;
 
-    private TestConfig getTestConfiguration(String configFileName) throws Exception {
-        //read configuration file:
-        URL u = getClass().getResource("/" + configFileName);
-        if (u == null) {
-            throw new Exception("Configuration file: " + configFileName + " not found.");
-        }
-        return ConfigurationReader.getTestConfigurations(u.getPath());
-    }
-
     private void sleep(long seconds) {
         try {
             Thread.sleep(seconds * 1000);
@@ -59,7 +50,7 @@ public class MultiBitrateSyncTest {
 
     @BeforeClass
     public void initializeTest() throws Exception {
-        config = getTestConfiguration("test-conf.json");    //TODO
+        config = ConfigurationReader.getTestConfigurationFromResource("test-conf.json");    //TODO
 
         //create client:
         int partnerId = Integer.valueOf(config.getPartnerId());

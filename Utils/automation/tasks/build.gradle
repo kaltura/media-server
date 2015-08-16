@@ -114,3 +114,18 @@ task validate(type: JavaExec) {
 //    classpath = sourceSets.main.runtimeClasspath
 //}
 
+jar {
+    manifest {
+        attributes 'Main-Class': 'tasks.systemmonitor.SystemMonitor',
+                'Class-Path': configurations.runtime.files.collect {"$it.name"}.join(' ')
+    }
+}
+
+task copyJars(type: Copy, dependsOn: jar) {
+    def dest2 = "$buildDir/tmp/artifacts"
+
+    into dest2
+    from configurations.runtime.allArtifacts.files
+    from (configurations.runtime)
+}
+

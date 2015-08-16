@@ -13,6 +13,7 @@ import downloaders.hls.DVRInputStreamEnhancer;
 import kaltura.actions.StartSession;
 import utils.ManifestUrlBuilder;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.util.HashSet;
@@ -33,11 +34,11 @@ public class PartnerMonitor {
 	public void execute(String[] args) throws Exception {
 		//load the user defined conf file
 		if (args.length == 1) {
-			config = getTestConfiguration(args[0]);
+			config = ConfigurationReader.getTestConfigurations(new File(args[0]));
 		}
 		else {
 			//load the default conf file
-			config = getDefaultTestConfiguration("test-conf.json");
+			config = ConfigurationReader.getTestConfigurationFromResource("test-conf.json");
 		}
 
 		int partnerId = Integer.valueOf(config.getPartnerId());
@@ -65,19 +66,6 @@ public class PartnerMonitor {
 			Thread.sleep(60 * 1000);
 		}
 	}
-
-	private TestConfig getDefaultTestConfiguration(String configFileName) throws Exception {
-		URL u = getClass().getResource("/" + configFileName);
-		if (u == null) {
-			throw new Exception("Configuration file: " + configFileName
-					+ " not found.");
-		}
-		return getTestConfiguration(u.getPath());
-	}
-
-	private TestConfig getTestConfiguration(String configFilePath) throws Exception {
-		return ConfigurationReader.getTestConfigurations(configFilePath);
-    }
 	
 	private Set<String> getEntries() throws KalturaApiException {
 		Set<String> result = new HashSet<String>();
