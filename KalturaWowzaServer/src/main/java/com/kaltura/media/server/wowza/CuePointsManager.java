@@ -43,7 +43,7 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 	private static final String PUBLIC_METADATA = "onMetaData";
 	private final static int DEFAULT_SYNC_POINTS_INTERVAL_IN_MS = 8000;
 	private final static String KALTURA_SYNC_POINTS_INTERVAL_PROPERTY = "KalturaSyncPointsInterval";
-	private static final long START_SYNC_POINTS_DELAY = 15000;
+	private static final long START_SYNC_POINTS_DELAY = 0;
 
 	private final Map<String,Timer> streams;
 	private LiveStreamPacketizerListener liveStreamPacketizerListener;
@@ -299,12 +299,6 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 			}
 		};
 		try {
-
-			/*
-			 TODO, the START_SYNC_POINTS_DELAY is a workaround for a bug that was discovered when sending sync points
-			 immediately after the onPublish event - onPublish is called twice for each stream instead of once. the result
-			 is that some referrers are not cleared --> no unregister --> isLive for stream remains true.
-			*/
 			t.schedule(tt,START_SYNC_POINTS_DELAY, syncPointsInterval);
 		} catch (Exception e) {
 			logger.error("Error occurred while scheduling a timer task",e);
@@ -331,7 +325,6 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 		data.put(TIMESTAMP_KEY, time);
 
 		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
-		((MediaStream)stream).processSendDirectMessages();
 		logger.info("Sent sync-point: stream " + stream.getName() + "time: " + time + " offset: " + offset + "id: " + id);
 	}
 }
