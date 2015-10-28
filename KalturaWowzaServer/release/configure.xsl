@@ -612,7 +612,7 @@
 										<Property>
 											<Name>KalturaServerManagers</Name>
 											<!--list of managers to be loaded-->
-											<Value>com.kaltura.media.server.wowza.StatusManager, com.kaltura.media.server.wowza.LiveStreamManager, com.kaltura.media.server.wowza.PushPublishManager</Value>
+											<Value>com.kaltura.media.server.wowza.LiveStreamManager, com.kaltura.media.server.wowza.PushPublishManager</Value>
 										</Property>
 										<Property>
 											<Name>KalturaServerWebServices</Name>
