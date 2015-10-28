@@ -2,6 +2,7 @@ package tasks;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+
 import utils.ImageUtils;
 import utils.MultiBitrateResults;
 import utils.QRCodeReader;
@@ -107,7 +108,8 @@ public class TsFilesComparator {
     @SuppressWarnings("unchecked")
     public static boolean compareFiles(File folderPath, int numStreams) {
         boolean success = true;
-        Collection files = FileUtils.listFiles(folderPath, new String[]{"ts"}, true);
+        @SuppressWarnings("rawtypes")
+		Collection files = FileUtils.listFiles(folderPath, new String[]{"ts"}, true);
         List<File> sortedFiles = getSortedFilesList(files);
         List<MultiBitrateResults> results = buildTestResults(sortedFiles);
 
@@ -118,7 +120,7 @@ public class TsFilesComparator {
             log.info("ts with id: " + r.getTsNumber() + ", diff: " + diff + ", min: " + r.getMinValue() + ", max: " + r.getMaxValue() + " . num comparisons: " + r.getNumComparisons());
 
             //TODO, solve missing ts problem
-            boolean failOnMissingFiles = false;
+//            boolean failOnMissingFiles = false;
 //            String message = "missing ts files";
 //            if (r.getNumComparisons() < numStreams) {
 //                log.warn(message);

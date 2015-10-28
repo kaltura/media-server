@@ -1,8 +1,10 @@
 package tasks;
 
 import comparators.imagemagik.ImageMagikComparator;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+
 import utils.ImageUtils;
 
 import java.io.File;
@@ -23,7 +25,6 @@ public class TsComparator {
 	private static final Logger log = Logger.getLogger(TsComparator.class);
 	private static final int NUM_FAILED_TS_SEQUENCE = 3;
 	private static ExecutorService executor = Executors.newFixedThreadPool(20);
-	private static final Object errorMsgsLock = new Object();
 
 	private static File getFirstFrameFromFile(File ts) throws Exception {
 
@@ -143,7 +144,9 @@ public class TsComparator {
 
 	private static boolean compareFiles(File folderPath, File tempDiffFolder) {
 		log.info("getting files from folder: " + folderPath);
+		@SuppressWarnings("rawtypes")
 		Collection files = FileUtils.listFiles(folderPath, new String[]{"ts"}, true);
+		@SuppressWarnings("unchecked")
 		List<File> sortedFiles = getSortedFilesList(files);
 		log.info("got files from folder: " + sortedFiles.size());
 

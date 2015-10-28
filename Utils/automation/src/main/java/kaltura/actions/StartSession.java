@@ -23,11 +23,11 @@ public class StartSession {
     public KalturaClient execute() throws KalturaApiException {
 
             KalturaConfiguration config = new KalturaConfiguration();
-            config.setPartnerId(partnerId);
             config.setEndpoint(endPoint);
-            config.setAdminSecret(adminSecret);
 
             KalturaClient client = new KalturaClient(config);
+            client.setPartnerId(partnerId);
+            
             String secret = adminSecret;
             String userId = null;
             KalturaSessionType type = KalturaSessionType.ADMIN;

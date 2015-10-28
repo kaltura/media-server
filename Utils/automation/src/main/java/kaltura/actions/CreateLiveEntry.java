@@ -18,7 +18,6 @@ public class CreateLiveEntry {
     private String name;
     private boolean isDvr;
     private boolean isRecording;
-    private boolean isRandom;
     private int conversionProfileId;
 
     public CreateLiveEntry(KalturaClient client, String name, boolean isRandom, boolean isDvr, boolean isRecording, int conversionProfileId) {
@@ -38,7 +37,7 @@ public class CreateLiveEntry {
         liveStreamEntry.mediaType = KalturaMediaType.LIVE_STREAM_FLASH;
         liveStreamEntry.sourceType = KalturaSourceType.LIVE_STREAM;
         liveStreamEntry.dvrStatus = isDvr ? KalturaDVRStatus.ENABLED : KalturaDVRStatus.DISABLED;
-        liveStreamEntry.recordStatus = isRecording ? KalturaRecordStatus.ENABLED : KalturaRecordStatus.DISABLED;
+        liveStreamEntry.recordStatus = isRecording ? KalturaRecordStatus.APPENDED : KalturaRecordStatus.DISABLED;
         liveStreamEntry.conversionProfileId = conversionProfileId;
         KalturaSourceType sourceType = null;
         Object result = client.getLiveStreamService().add(liveStreamEntry, sourceType);

@@ -1,59 +1,174 @@
-subprojects {
-    apply plugin: 'java'
+apply plugin: 'java'
 
-    sourceCompatibility = 1.7
-    version = '1.0'
+sourceCompatibility = 1.7
+version = '1.0'
 
-    repositories {
-        mavenCentral()
-        maven {
-            //TODO replace to master
-            url "https://raw.github.com/kaltura/KalturaGeneratedAPIClientsJava/PLAT-2504/maven"
-        }
+repositories {
+    mavenCentral()
+    maven {
+        //TODO replace to master
+        url "https://raw.github.com/kaltura/KalturaGeneratedAPIClientsJava/PLAT-2504/maven"
     }
+}
 
-    compileJava {
-        options.compilerArgs << "-Xlint:unchecked"
+compileJava {
+    options.compilerArgs << "-Xlint:unchecked"
+}
+
+dependencies {
+	
+	//compile 'com.kaltura:KalturaClient:3.2.1'
+	compile 'com.kaltura:KalturaClientLib:3.2.1'
+	
+    compile 'log4j:log4j:1.2.17'
+    compile 'org.im4java:im4java:1.4.0'
+    compile 'org.testng:testng:6.8.21'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.5.1'
+    compile 'org.apache.httpcomponents:httpclient:4.3.6'
+    compile 'org.apache.commons:commons-io:1.3.2'
+	compile 'com.google.zxing:core:3.1.0'
+	compile 'com.google.zxing:javase:3.2.0'
+	testCompile 'org.testng:testng:6.8.21'
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+/**
+ * copy all artifacts to tmp dir
+ */
+task copyArtifacts(type: Copy) {
+    def dest = "$buildDir/tmp/artifacts"
+    into dest
+    from configurations.runtime
+
+    doFirst {
+        println "copying artifacts to " + dest
     }
+}
+build.dependsOn(copyArtifacts)
 
-    dependencies {
-        compile 'log4j:log4j:1.2.17'
-        testCompile group: 'junit', name: 'junit', version: '4.11'
+test {
+    // enable TestNG support (default is JUnit)
+    useTestNG()
+
+    // show standard out and standard error of the test JVM(s) on the console
+    testLogging.showStandardStreams = true
+
+    // listen to events in the test execution lifecycle
+    beforeTest { descriptor ->
+        logger.lifecycle("Running test: " + descriptor)
     }
-
-    /**
-     * copy all artifacts to tmp dir
-     */
-    task copyArtifacts(type: Copy) {
-        def dest = "$buildDir/tmp/artifacts"
-        into dest
-        from configurations.runtime
-
-        doFirst {
-            println "copying artifacts to " + dest
-        }
-    }
-    build.dependsOn(copyArtifacts)
-
-    test {
-        // enable TestNG support (default is JUnit)
-        useTestNG()
-
-        // show standard out and standard error of the test JVM(s) on the console
-        testLogging.showStandardStreams = true
-
-        // listen to events in the test execution lifecycle
-        beforeTest { descriptor ->
-            logger.lifecycle("Running test: " + descriptor)
-        }
-        // listen to standard out and standard error of the test JVM(s)
-        onOutput { descriptor, event ->
-            logger.lifecycle(event.message)
-        }
+    // listen to standard out and standard error of the test JVM(s)
+    onOutput { descriptor, event ->
+        logger.lifecycle(event.message)
     }
 }
 
 task wrapper(type: org.gradle.api.tasks.wrapper.Wrapper) {
     gradleVersion = '2.3'
 }
+
+
+task runTest(type: Test, dependsOn: build) {
+
+	outputs.upToDateWhen { false }
+
+	if (project.hasProperty('single')) {
+		println project.property("single")
+		filter {
+			//specific test class, wildcard for packages
+			println "adding filter: *${project.property('single')}*"
+			includeTestsMatching "*${project.property('single')}*"
+		}
+	}
+
+	useTestNG {
+		useDefaultListeners = true
+	}
+	// listen to events in the test execution lifecycle
+	beforeTest { descriptor ->
+		logger.lifecycle("Running test: " + descriptor)
+	}
+
+	// listen to standard out and standard error of the test JVM(s)
+	onOutput { descriptor, event ->
+		logger.lifecycle(event.message)
+	}
+	description = "Runs Integration Tests"
+	testClassesDir = file("$buildDir/classes/main/tests")
+	classpath += sourceSets.main.runtimeClasspath
+}
+
+task generateConfFile {
+
+	doFirst {
+		//read conf template:
+//        println ClassLoader.getSystemResource("/test-conf.json.template")
+//        def template = new File(ClassLoader.getSystemResource("test-conf.json.template").file).getText('UTF-8');
+		//TODO solve resources
+		def template = new File("$projectDir/src/main/resources/test-conf.json.template").getText('UTF-8');
+
+		def envVars = ['SERVICE_URL','PARTNER_ID', 'ARGS', 'TEST_DURATION', 'DESTINATION_FOLDER', 'DELETE_FILES', 'DVR', 'RECORDING', 'FFMPEG_EXECUTABLE','CONVERSION_PROFILE_ID','ADMIN_SECRET']
+		envVars.each {v ->
+			def val = System.env[v]
+			if (val != null){
+				val = val.replaceAll("\"","\\\\\"");    //escape quotation marks
+				println "setting @$v@ to $val"
+				template = template.replaceAll("@$v@", val)
+			}
+			else {
+				println "Env var '$v' was not set"
+			}
+		}
+		//write if to file
+		println "Generated Template:"
+		println template
+		def conf = new File("$projectDir/src/main/resources/test-conf.json")
+		conf.write template
+	}
+}
+
+task executeMain(type: JavaExec) {
+	doFirst {
+		if (project.hasProperty("mainClass")) {
+			main = mainClass
+		}
+	}
+	classpath = sourceSets.main.runtimeClasspath
+}
+
+task collect(type: JavaExec) {
+	doFirst {
+		if (project.hasProperty("confFilePath")) {
+			args = [confFilePath]
+		}
+	}
+	main = "tasks.PartnerMonitor"
+	classpath = sourceSets.main.runtimeClasspath
+}
+
+task validate(type: JavaExec) {
+	doFirst {
+		if (!project.hasProperty("sourceFolder") || !project.hasProperty("ffmpegPath") || !project.hasProperty("diffFolder")) {
+			throw new InvalidUserDataException("Usage: gradle validate -PsourceFolder=... -PffmpegPath=... -PdiffFolder=...")
+		}
+		else {
+			args = [sourceFolder,ffmpegPath,diffFolder]
+		}
+	}
+	main = "tasks.TsComparator"
+	classpath = sourceSets.main.runtimeClasspath
+}
+
+//task collect() {
+//    project.ext.set("userDefinedMainClass", "tasks.TestDriver")
+//    tasks.run.execute()
+//}
+//task collect(type: JavaExec) {
+//    main = "tasks.TestDriver"
+//    args = [myArgs]
+//    //TODO, default value for the conf.json file
+////    args = Eval.me(myArgs)
+////    args = project.property('myArgs')//""['localhost','8080']"["my arg", "my_2"]
+//    classpath = sourceSets.main.runtimeClasspath
+//}
 
