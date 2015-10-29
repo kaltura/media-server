@@ -12,14 +12,39 @@ import java.util.concurrent.*;
  */
 public class ProcessHandler {
 
-    private static final ExecutorService threadPool = Executors.newCachedThreadPool();
+    private static final String name = "ProcessHandler-" + StringUtils.generateRandomSuffix();
     private static final Logger log = Logger.getLogger(ProcessHandler.class);
 
+    static class StoppableFutureTask<V> extends FutureTask<V> implements StoppableRunner{
+
+		public StoppableFutureTask(Callable<V> callable) {
+			super(callable);
+		}
+
+		@Override
+		public boolean isAlive() {
+			return !isDone();
+		}
+
+		@Override
+		public void stop() {
+			cancel(false);
+		}
+
+		@Override
+		public int compareTo(StoppableRunner o) {
+			if(o == this)
+				return 0;
+			
+			return 1;
+		}
+    }
+    
     private static <T> T timedCall(Callable<T> c, long timeout, TimeUnit timeUnit)
             throws InterruptedException, ExecutionException, TimeoutException
     {
-        FutureTask<T> task = new FutureTask<>(c);
-        threadPool.execute(task);   //TODO or submit?
+    	StoppableFutureTask<T> task = new StoppableFutureTask<>(c);
+        ThreadManager.start(name, task);
         return task.get(timeout, timeUnit);
     }
 
@@ -35,13 +60,25 @@ public class ProcessHandler {
         final Process p = pb.start();
 
         //must continuously read input stream, otherwise the buffer will be full and the process will block.
-        threadPool.submit(new Runnable() {
+        ThreadManager.start(name, new StoppableRunner() {
+			private boolean isAlive = true;
+			
+			@Override
+			public boolean isAlive() {
+				return isAlive;
+			}
+			
+			@Override
+			public void stop() {
+				isAlive = false;
+			}
+
             @Override
             public void run() {
                 BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 String line;
                 try {
-                    while ((line = bri.readLine()) != null) {
+                    while (isAlive && (line = bri.readLine()) != null) {
 //                    while (bri.readLine() != null) {
                         log.info(line);   //todo
                     }
@@ -53,6 +90,14 @@ public class ProcessHandler {
                     } catch (IOException e) {}
                 }
             }
+
+        	@Override
+        	public int compareTo(StoppableRunner o) {
+        		if(o == this)
+        			return 0;
+        		
+        		return 1;
+        	}
         });
         return p;
     }
@@ -89,11 +134,6 @@ public class ProcessHandler {
     }
 
     public static void shutdown() {
-        threadPool.shutdown();
-        try {
-            threadPool.awaitTermination(10000, TimeUnit.NANOSECONDS);   //TODO magic number
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        ThreadManager.stop(name);
     }
 }

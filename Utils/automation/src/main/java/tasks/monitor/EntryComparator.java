@@ -1,4 +1,4 @@
-package tasks.systemmonitor;
+package tasks.monitor;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,8 +27,8 @@ public class EntryComparator implements Runnable {
 	 * @param statusWatcher whatever tells us to stop watching the directory.
 	 * @param entryId The entry we monitor
 	 */
-	public EntryComparator(TestConfig config, StatusWatcher statusWatcher, String entryId, String directoryPath) {
-		this.config = config;
+	public EntryComparator(StatusWatcher statusWatcher, String entryId, String directoryPath) {
+		this.config = TestConfig.get();
 		this.statusWatcher = statusWatcher;
 		this.entryId = entryId;
 		this.directoryPath = directoryPath;

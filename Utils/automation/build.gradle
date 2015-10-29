@@ -17,8 +17,8 @@ compileJava {
 
 dependencies {
 	
-	//compile 'com.kaltura:KalturaClient:3.2.1'
-	compile 'com.kaltura:KalturaClientLib:3.2.1'
+	compile 'com.kaltura:kalturaClient:3.2.1'
+//	compile 'com.kaltura:KalturaClientLib:3.3.0'
 	
     compile 'log4j:log4j:1.2.17'
     compile 'org.im4java:im4java:1.4.0'

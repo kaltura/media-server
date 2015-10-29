@@ -1,4 +1,4 @@
-package tasks.systemmonitor;
+package tasks.monitor;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -23,8 +23,8 @@ public class EntryDownloader implements StatusWatcher, Runnable {
 	private boolean isAlive = true;
 	private HLSDownloader hlsDownloader = null;
 	
-	public EntryDownloader (TestConfig config, Integer partnerId, String entryId, boolean runForever) {
-		this.config = config;
+	public EntryDownloader (Integer partnerId, String entryId, boolean runForever) {
+		this.config = TestConfig.get();
 		this.partnerId = ""+partnerId;
 		this.entryId = entryId;
 		this.runForever = runForever;

@@ -1,4 +1,4 @@
-package tasks.systemmonitor;
+package tasks.monitor;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;

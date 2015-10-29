@@ -1,7 +1,9 @@
 package encoders;
 
 import org.apache.log4j.Logger;
+
 import utils.ProcessHandler;
+import utils.StoppableRunner;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -10,7 +12,7 @@ import java.util.Set;
 /**
  * Created by asher.saban on 2/26/2015.
  */
-public class Encoder {
+public class Encoder implements StoppableRunner {
 
     private static final Logger log = Logger.getLogger(Encoder.class);
 
@@ -38,7 +40,7 @@ public class Encoder {
         this.args = args;
     }
 
-    public void startStream() throws IOException {
+    protected void startStream() throws IOException {
         final String command = pathToEncoder + " " + args;
         System.out.println("Invoking stream:");
         System.out.println(command);
@@ -47,16 +49,34 @@ public class Encoder {
         process = ProcessHandler.start(pb);
     }
 
-    public void stopStreaming() {
+    public void stop() {
         log.info("stopping streaming");
         ProcessHandler.destroy(process);
-    }
-
-    public boolean isRunning() {
-        return ProcessHandler.isRunning(process);
     }
 
     public String getName() {
         return name;
     }
+
+	@Override
+	public void run() {
+		try {
+			startStream();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public boolean isAlive() {
+		return ProcessHandler.isRunning(process);
+	}
+
+	@Override
+	public int compareTo(StoppableRunner o) {
+		if(o == this)
+			return 0;
+		
+		return 1;
+	}
 }

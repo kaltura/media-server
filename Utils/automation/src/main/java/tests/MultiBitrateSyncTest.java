@@ -2,7 +2,7 @@ package tests;
 
 import com.kaltura.client.KalturaClient;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
-import configurations.ConfigurationReader;
+
 import configurations.EncoderConfig;
 import configurations.EntryConfig;
 import configurations.TestConfig;
@@ -11,23 +11,25 @@ import downloaders.StreamDownloaderFactory;
 import encoders.Encoder;
 import kaltura.actions.CreateLiveEntry;
 import kaltura.actions.StartSession;
+
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
 import org.testng.Reporter;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
 import tasks.TsComparator;
 import utils.ImageUtils;
 import utils.ManifestUrlBuilder;
 import utils.ProcessHandler;
 import utils.StringUtils;
+import utils.ThreadManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 /**
 * Created by asher.saban on 2/25/2015.
 */
@@ -40,15 +42,6 @@ public class MultiBitrateSyncTest {
     private KalturaClient client;
     private KalturaLiveStreamEntry entry;
 
-    private TestConfig getTestConfiguration(String configFileName) throws Exception {
-        //read configuration file:
-        URL u = getClass().getResource("/" + configFileName);
-        if (u == null) {
-            throw new Exception("Configuration file: " + configFileName + " not found.");
-        }
-        return ConfigurationReader.getTestConfigurations(u.getPath());
-    }
-
     private void sleep(long seconds) {
         try {
             Thread.sleep(seconds * 1000);
@@ -59,7 +52,7 @@ public class MultiBitrateSyncTest {
 
     @BeforeClass
     public void initializeTest() throws Exception {
-        config = getTestConfiguration("test-conf.json");    //TODO
+        config = TestConfig.get();
 
         //create client:
         int partnerId = Integer.valueOf(config.getPartnerId());
@@ -99,11 +92,11 @@ public class MultiBitrateSyncTest {
     public void streamVideoAndSleep() throws IOException {
 
         comment("About to stream video");
-        encoder.startStream();
+        ThreadManager.start(encoder);
         comment("Sleeping");
         sleep(90);
         comment("Done sleeping. verifying encoder is running...");
-        Assert.assertTrue(encoder.isRunning());
+        Assert.assertTrue(encoder.isAlive());
 
     }
 
@@ -124,11 +117,8 @@ public class MultiBitrateSyncTest {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            comment("Shutting down downloader");
-            downloader.shutdownDownloader();
-
             comment("Stopping streaming");
-            encoder.stopStreaming();
+            encoder.stop();
         }
     }
 

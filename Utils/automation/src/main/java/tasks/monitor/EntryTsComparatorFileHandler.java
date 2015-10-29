@@ -1,4 +1,4 @@
-package tasks.systemmonitor;
+package tasks.monitor;
 
 import java.io.File;
 import java.nio.file.Path;

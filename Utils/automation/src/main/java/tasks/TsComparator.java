@@ -6,14 +6,13 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 import utils.ImageUtils;
+import utils.ThreadManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,7 +23,6 @@ public class TsComparator {
 
 	private static final Logger log = Logger.getLogger(TsComparator.class);
 	private static final int NUM_FAILED_TS_SEQUENCE = 3;
-	private static ExecutorService executor = Executors.newFixedThreadPool(20);
 
 	private static File getFirstFrameFromFile(File ts) throws Exception {
 
@@ -49,6 +47,7 @@ public class TsComparator {
 		//create a boolean array that will hold the result of that ts
 		final boolean[] results = new boolean[lastTsIndex - firstTsIndex + 1];
 		final Map<Integer, List<String>> errorMsgs = new ConcurrentHashMap<>();
+		final Set<Thread> threads = new ConcurrentSkipListSet<Thread>();
 
 		try {
 			File firstImage = getFirstFrameFromFile(first);
@@ -64,9 +63,10 @@ public class TsComparator {
 
 				if (firstNum == secondNum) {
 					final File finalFirstImage = firstImage;
-					executor.submit(new Runnable() {
+					ThreadManager.start(new Runnable() {
 						@Override
 						public void run() {
+							threads.add(Thread.currentThread());
 							//compare the pair of images
 							ImageMagikComparator imComparator = new ImageMagikComparator(10.0,tempDiffFolder.getAbsolutePath() + "/diff"+firstNum+".jpg");
 							if (!imComparator.isSimilar(finalFirstImage, secondImage)) {
@@ -79,9 +79,11 @@ public class TsComparator {
 				firstImage = secondImage;
 			}
 
-			executor.shutdown();
-			log.info("Waiting for all threads to finish. 5min timeout");
-			executor.awaitTermination(5, TimeUnit.MINUTES);
+			log.info("Waiting for all threads to finish.");
+			for(Thread thread : threads){
+				thread.join();
+			}
+
 			log.info("All threads finished, analyzing results");
 			return verifyResults(results, errorMsgs, firstTsIndex);
 

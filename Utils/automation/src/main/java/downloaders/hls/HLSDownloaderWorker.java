@@ -13,11 +13,12 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
 
 import utils.HttpUtils;
+import utils.StoppableRunner;
 
 /**
  * Created by asher.saban on 2/17/2015.
  */
-class HLSDownloaderWorker implements Runnable {
+class HLSDownloaderWorker implements StoppableRunner {
 
 	private static final Logger log = Logger.getLogger(HLSDownloaderWorker.class);
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
@@ -43,7 +44,7 @@ class HLSDownloaderWorker implements Runnable {
 		this.tempPath = dateFormat.format(new Date());
 	}
 
-	public void stopDownload(){
+	public void stop(){
 		this.stopDownloading = true;
 	}
 
@@ -193,5 +194,18 @@ class HLSDownloaderWorker implements Runnable {
 			log.error("#EXT-X-TARGETDURATION was not found in m3u8 file.");
 			return DEFAULT_TS_DURATION; //TODO throw exception?
 		}
+	}
+
+	@Override
+	public boolean isAlive() {
+		return !stopDownloading;
+	}
+
+	@Override
+	public int compareTo(StoppableRunner o) {
+		if(o == this)
+			return 0;
+		
+		return 1;
 	}
 }
