@@ -324,7 +324,10 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 		data.put(OFFSET_KEY, offset);
 		data.put(TIMESTAMP_KEY, time);
 
-		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
+		//This condition is due to huge duration time (invalid) in the first chunk after stop-start on FMLE.
+		if (stream.getPlayPackets().size() > 0) {
+			stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
+		}
 		logger.info("Sent sync-point: stream " + stream.getName() + "time: " + time + " offset: " + offset + "id: " + id);
 	}
 }
