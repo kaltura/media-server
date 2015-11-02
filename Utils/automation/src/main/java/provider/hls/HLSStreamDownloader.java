@@ -1,7 +1,8 @@
-package downloaders.hls;
+package provider.hls;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -12,72 +13,54 @@ import org.apache.commons.io.FileUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
 
+import provider.Provider;
 import utils.HttpUtils;
-import utils.StoppableRunner;
+import utils.ThreadManager;
+import event.ISegmentListener;
 
 /**
  * Created by asher.saban on 2/17/2015.
  */
-class HLSDownloaderWorker implements StoppableRunner {
+class HLSStreamDownloader extends Provider {
 
-	private static final Logger log = Logger.getLogger(HLSDownloaderWorker.class);
+	private static final Logger log = Logger.getLogger(HLSStreamDownloader.class);
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
-	private static final int MAX_FILES_IN_DIR = 1000;
 	private static final int DEFAULT_TS_DURATION = 10;
-	private final String url;
+	private final URI url;
 	private final String destinationPath;
+	private String domainHash;
 	private int lastTsNumber;
-	private volatile boolean stopDownloading;
 	private boolean runForever = false;
 	private String tempPath;
 
-	public HLSDownloaderWorker(String url, String destinationPath, boolean runForever) {
-		this(url, destinationPath);
-		this.runForever = runForever;
-	}
-	
-	public HLSDownloaderWorker(String url, String destinationPath) {
+	public HLSStreamDownloader(URI url, String destinationPath, String domainHash) {
 		this.url = url;
 		this.destinationPath = destinationPath;
+		this.domainHash = domainHash;
 		this.lastTsNumber = -1;
-		this.stopDownloading = false;
 		this.tempPath = dateFormat.format(new Date());
-	}
-
-	public void stop(){
-		this.stopDownloading = true;
 	}
 
 	@Override
 	public void run() {
-
-		//extract base url:
-		String baseUrl = url.substring(0, url.lastIndexOf("/"));
+		Thread.currentThread().setName(getClass().getSimpleName() + "-" + url);
+		log.info("Downloading stream: " + url);
 
 		int counter = 0;
-		while (true) {
-
-			if (stopDownloading) {
-				log.info("Shutting down downloader...");
-				return;
-			}
+		while (ThreadManager.shouldContinue()) {
 
 			counter++;
 			log.debug("iteration: " + counter);
 			
-			if(counter % MAX_FILES_IN_DIR == 0) {
-				this.tempPath = dateFormat.format(new Date());
-			}
-
 			//download m3u8:
 			CloseableHttpClient httpClient = HttpUtils.getHttpClient();
 			String content;
 			try {
-				content = HttpUtils.doGetRequest(httpClient, url);
+				content = HttpUtils.doGetRequest(httpClient, url.toString());
 
 				//write to file
 				String reportDate = dateFormat.format(new Date());
-				FileUtils.writeStringToFile(new File(destinationPath + "/" + tempPath + "/iter_" + counter + "_" + reportDate),content);
+				FileUtils.writeStringToFile(new File(destinationPath + "/" + tempPath + "/iter_" + counter + "_" + reportDate + ".m3u8"),content);
 
 			} catch (IOException e) {
 				log.error("Get request failed.");
@@ -101,6 +84,9 @@ class HLSDownloaderWorker implements StoppableRunner {
 			int numLines = lines.length;
 
 			for (int i = 0; i < numLines; i++) {
+				if(!ThreadManager.shouldContinue()){
+					return;
+				}
 				String line = lines[i];
 				if (line.startsWith("#EXT-X-TARGETDURATION:")) {
 					log.debug(line);
@@ -139,7 +125,9 @@ class HLSDownloaderWorker implements StoppableRunner {
 
 					//download ts:
 					try {
-						HttpUtils.downloadFile(baseUrl + "/" + tsName, destinationPath + "/" + tempPath + "/" + fileName);
+						onSegmentDownloadStart(lastTsNumber);
+						ts = HttpUtils.downloadFile(url.resolve(tsName).toString(), destinationPath + "/" + tempPath + "/" + fileName);
+						onSegmentDownloadComplete(lastTsNumber, ts);
 					} catch (IOException e) {
 						e.printStackTrace();
 						continue;
@@ -196,16 +184,23 @@ class HLSDownloaderWorker implements StoppableRunner {
 		}
 	}
 
-	@Override
-	public boolean isAlive() {
-		return !stopDownloading;
+	public void addSegmentListener(ISegmentListener listener) {
+		addListener(ISegmentListener.class, listener);
 	}
 
-	@Override
-	public int compareTo(StoppableRunner o) {
-		if(o == this)
-			return 0;
-		
-		return 1;
+	public void removeSegmentListener(ISegmentListener listener) {
+		removeListener(ISegmentListener.class, listener);
+	}
+
+	private void onSegmentDownloadComplete(int segmentNumber, File segment) {
+		for(ISegmentListener listener : getListeners(ISegmentListener.class)){
+			listener.onSegmentDownloadComplete(segmentNumber, domainHash, segment);
+		}
+	}
+
+	private void onSegmentDownloadStart(int segmentNumber) {
+		for(ISegmentListener listener : getListeners(ISegmentListener.class)){
+			listener.onSegmentDownloadStart(segmentNumber, domainHash);
+		}
 	}
 }

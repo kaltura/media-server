@@ -6,8 +6,6 @@ import com.kaltura.client.types.KalturaLiveStreamEntry;
 import configurations.EncoderConfig;
 import configurations.EntryConfig;
 import configurations.TestConfig;
-import downloaders.StreamDownloader;
-import downloaders.StreamDownloaderFactory;
 import encoders.Encoder;
 import kaltura.actions.CreateLiveEntry;
 import kaltura.actions.StartSession;
@@ -19,9 +17,8 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import provider.hls.HLSDownloader;
 import tasks.TsComparator;
-import utils.ImageUtils;
-import utils.ManifestUrlBuilder;
 import utils.ProcessHandler;
 import utils.StringUtils;
 import utils.ThreadManager;
@@ -38,7 +35,7 @@ public class MultiBitrateSyncTest {
     private TestConfig config;
     private String dest;
     private Encoder encoder;
-    private StreamDownloader downloader;
+    private HLSDownloader downloader;
     private KalturaClient client;
     private KalturaLiveStreamEntry entry;
 
@@ -77,11 +74,8 @@ public class MultiBitrateSyncTest {
 		System.out.println("FFMpeg command: " + ffmpegCommand);
         encoder = new Encoder(encoderConfig.getEncoderName(),encoderConfig.getPathToExecutable(),ffmpegCommand);
 
-        //initialize image utils
-        ImageUtils.initializeImageUtils(config.getPathToFfmpeg());
-
         //initialize stream downloader
-        downloader = StreamDownloaderFactory.getDownloader(config.getStreamType());
+        downloader = new HLSDownloader();
     }
 
     private void comment(String msg) {
@@ -100,10 +94,15 @@ public class MultiBitrateSyncTest {
 
     }
 
+    public URI getManifestUrl() throws URISyntaxException {
+        URI base = new URI(config.getServiceUrl());
+        return base.resolve(String.format("/p/%1$s/sp/%1$s00/playManifest/entryId/%2$s/format/applehttp", entry.partnerId, entry.id));
+    }
+    
     @Test(dependsOnMethods = "streamVideoAndSleep")
     public void downloadTsFiles() throws URISyntaxException {
         comment("Building manifest url");
-        URI uri = ManifestUrlBuilder.buildManifestUrl(config.getServiceUrl(), entry.id, config.getPartnerId());
+        URI uri = getManifestUrl();
 
         dest = config.getDestinationFolder() + "/" + StringUtils.generateRandomSuffix();
         int duration = config.getTestDuration();
@@ -112,7 +111,8 @@ public class MultiBitrateSyncTest {
         comment("Test duration:" + duration);
 
         try {
-            downloader.downloadFiles(uri.toString(), dest);
+        	downloader = new HLSDownloader(uri, dest);
+            downloader.downloadFiles();
             Thread.sleep(duration * 1000);
         } catch (Exception e) {
             e.printStackTrace();

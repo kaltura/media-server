@@ -54,7 +54,7 @@ public class ImageMagikComparator implements ImageComparator {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} catch (IM4JavaException e) {
-			// Nothing to do
+//			e.printStackTrace();
 		}
 	}
 

@@ -3,7 +3,6 @@ package encoders;
 import org.apache.log4j.Logger;
 
 import utils.ProcessHandler;
-import utils.StoppableRunner;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -12,7 +11,7 @@ import java.util.Set;
 /**
  * Created by asher.saban on 2/26/2015.
  */
-public class Encoder implements StoppableRunner {
+public class Encoder implements Runnable {
 
     private static final Logger log = Logger.getLogger(Encoder.class);
 
@@ -20,6 +19,8 @@ public class Encoder implements StoppableRunner {
     private String pathToEncoder;
     private String args;
     private Process process;
+
+	private boolean isAlive = false;
 
     private static final Set<String> encodersMap;
 
@@ -60,23 +61,16 @@ public class Encoder implements StoppableRunner {
 
 	@Override
 	public void run() {
+		isAlive  = true;
 		try {
 			startStream();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		isAlive = false;
 	}
-
-	@Override
-	public boolean isAlive() {
-		return ProcessHandler.isRunning(process);
-	}
-
-	@Override
-	public int compareTo(StoppableRunner o) {
-		if(o == this)
-			return 0;
-		
-		return 1;
+	
+	public boolean isAlive(){
+		return isAlive;
 	}
 }

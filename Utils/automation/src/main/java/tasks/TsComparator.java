@@ -164,7 +164,6 @@ public class TsComparator {
 		log.info("Creating temp diff folder if not exists: " + tempDiffFolder.getAbsolutePath());
 		FileUtils.forceMkdir(tempDiffFolder);
 
-		ImageUtils.initializeImageUtils(pathToFfmpeg);
 		return compareFiles(new File(folderPath),tempDiffFolder);
 
 	}

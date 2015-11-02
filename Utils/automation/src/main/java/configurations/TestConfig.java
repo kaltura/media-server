@@ -53,6 +53,12 @@ public class TestConfig {
     @JsonProperty("sync-entries")
     private List<String> syncEntries;
 
+    @JsonProperty("data-providers")
+    private List<DataProvider> dataProviders;
+
+    @JsonProperty("data-validators")
+	private List<DataValidator> dataValidators;
+
     private final Map<String , Object> otherProperties = new HashMap<>();
 
     private static TestConfig config = null;
@@ -146,5 +152,13 @@ public class TestConfig {
 
 	public Object getOtherProperty(String key) {
 		return otherProperties.get(key);
+	}
+
+	public List<DataProvider> getDataProviders() {
+		return dataProviders;
+	}
+
+	public List<DataValidator> getDataValidators() {
+		return dataValidators;
 	}
 }

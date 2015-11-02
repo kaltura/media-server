@@ -15,28 +15,10 @@ public class ProcessHandler {
     private static final String name = "ProcessHandler-" + StringUtils.generateRandomSuffix();
     private static final Logger log = Logger.getLogger(ProcessHandler.class);
 
-    static class StoppableFutureTask<V> extends FutureTask<V> implements StoppableRunner{
+    static class StoppableFutureTask<V> extends FutureTask<V> implements Runnable{
 
 		public StoppableFutureTask(Callable<V> callable) {
 			super(callable);
-		}
-
-		@Override
-		public boolean isAlive() {
-			return !isDone();
-		}
-
-		@Override
-		public void stop() {
-			cancel(false);
-		}
-
-		@Override
-		public int compareTo(StoppableRunner o) {
-			if(o == this)
-				return 0;
-			
-			return 1;
 		}
     }
     
@@ -60,25 +42,13 @@ public class ProcessHandler {
         final Process p = pb.start();
 
         //must continuously read input stream, otherwise the buffer will be full and the process will block.
-        ThreadManager.start(name, new StoppableRunner() {
-			private boolean isAlive = true;
-			
-			@Override
-			public boolean isAlive() {
-				return isAlive;
-			}
-			
-			@Override
-			public void stop() {
-				isAlive = false;
-			}
-
+        ThreadManager.start(name, new Runnable() {
             @Override
             public void run() {
                 BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 String line;
                 try {
-                    while (isAlive && (line = bri.readLine()) != null) {
+                    while (ThreadManager.shouldContinue() && (line = bri.readLine()) != null) {
 //                    while (bri.readLine() != null) {
                         log.info(line);   //todo
                     }
@@ -90,14 +60,6 @@ public class ProcessHandler {
                     } catch (IOException e) {}
                 }
             }
-
-        	@Override
-        	public int compareTo(StoppableRunner o) {
-        		if(o == this)
-        			return 0;
-        		
-        		return 1;
-        	}
         });
         return p;
     }

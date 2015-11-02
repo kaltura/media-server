@@ -54,7 +54,7 @@ public class HttpUtils {
         }
     }
 
-    public static void downloadFile(String url, String destinationPath) throws IOException {
+    public static File downloadFile(String url, String destinationPath) throws IOException {
         url = url.trim();
         destinationPath = destinationPath.trim();
 
@@ -65,5 +65,7 @@ public class HttpUtils {
         log.info("Destination: " + destinationPath);
         FileUtils.copyURLToFile(urlObj, f);
         log.info("File downloaded successfully");
+        
+        return f;
     }
 }
