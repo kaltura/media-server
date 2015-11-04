@@ -1,7 +1,8 @@
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import utils.HttpUtils;
+
+import com.kaltura.media.quality.utils.HttpUtils;
 
 import java.io.IOException;
 
@@ -11,7 +12,7 @@ import java.io.IOException;
 public class HttpUtilsTest {
 
     @Test
-    public static void requestShouldSucceed() throws IOException {
+    public static void requestShouldSucceed() throws Exception {
         CloseableHttpClient client = null;
         try {
             client = HttpUtils.getHttpClient();
@@ -29,7 +30,7 @@ public class HttpUtilsTest {
     }
 
     @Test
-    public static void requestShouldFail() throws IOException {
+    public static void requestShouldFail() throws Exception {
         CloseableHttpClient client = null;
         try {
             client = HttpUtils.getHttpClient();

@@ -6,9 +6,37 @@
   "stream-type": "hls",
   "path-to-ffmpeg": "@FFMPEG_EXECUTABLE@",
   "encoder": {
-    "name": "ffmpeg",
+    "type": "com.kaltura.media.quality.encoder.FFMPEG",
     "path-to-executable": "@FFMPEG_EXECUTABLE@",
-    "args": "@ARGS@"
+    "args": "-y -f dshow -i video=\"Kaltura Virtual Camera\" -f dshow -i audio=\"Kaltura Virtual Microphone\""
+    "outputs" : [{
+    	"type": "com.kaltura.media.quality.encoder.output.Record",
+    	"file-name": "input.mp4"
+    },{
+    	"type": "com.kaltura.media.quality.encoder.output.RTMP",
+    	"primary": true,
+    	"args": "-movflags frag_keyframe+empty_moov",
+    	"framerate": 30,
+    	"video-codec": "libx264",
+        "keyframe-interval": 3,
+        "preset": "ultrafast",
+        "audio-codec": "libmp3lame",
+        "resolution": "320x240",
+        "video-bitrate": 300,
+        "audio-bitrate": 96
+    },{
+    	"type": "com.kaltura.media.quality.encoder.output.RTMP",
+    	"primary": false,
+    	"args": "-movflags frag_keyframe+empty_moov",
+    	"framerate": 30,
+    	"video-codec": "libx264",
+        "keyframe-interval": 3,
+        "preset": "ultrafast",
+        "audio-codec": "libmp3lame",
+        "resolution": "320x240",
+        "video-bitrate": 300,
+        "audio-bitrate": 96
+    }]
   },
   "test-duration": @TEST_DURATION@,
   "destination-folder": "@DESTINATION_FOLDER@",
@@ -20,6 +48,12 @@
     "recording": @RECORDING@,
     "conversion-profile-id": @CONVERSION_PROFILE_ID@
   },
+  "data-providers" : [{
+	  "type" : "com.kaltura.media.quality.provider.hls.EntryDownloader"
+  }],
+  "data-validators" : [{
+	  "type" : "com.kaltura.media.quality.validator.RenditionsComparator"
+  }],
   "sync-entries": ["1_oorxcge2"]
 }
 
