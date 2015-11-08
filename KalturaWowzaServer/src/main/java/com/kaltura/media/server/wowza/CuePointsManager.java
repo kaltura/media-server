@@ -324,11 +324,7 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 		data.put(OFFSET_KEY, offset);
 		data.put(TIMESTAMP_KEY, time);
 
-		//This condition is due to huge duration time (invalid) in the first chunk after stop-start on FMLE.
-		//According to Wowza there's no reason calling sendDirect() before there are any packets on stream.
-		if (stream.getPlayPackets().size() > 0) {
-			stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
-		}
+		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
 		logger.info("Sent sync-point: stream " + stream.getName() + "time: " + time + " offset: " + offset + "id: " + id);
 	}
 }
