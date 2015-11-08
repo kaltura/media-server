@@ -325,7 +325,7 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 		data.put(TIMESTAMP_KEY, time);
 
 		//This condition is due to huge duration time (invalid) in the first chunk after stop-start on FMLE.
-		//According to Wowza there's no reason calling sendDirect() before there are any packets on stream.
+		//According to Wowza calling sendDirect() before stream contains any packets causes problems.
 		if (stream.getPlayPackets().size() > 0) {
 			stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
 		}
