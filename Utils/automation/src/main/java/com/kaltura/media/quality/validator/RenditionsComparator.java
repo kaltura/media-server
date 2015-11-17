@@ -7,9 +7,13 @@ import org.apache.log4j.Logger;
 
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media.quality.comparators.imagemagik.ImageMagikComparator;
-import com.kaltura.media.quality.event.IListener;
-import com.kaltura.media.quality.event.ISegmentsListener;
-import com.kaltura.media.quality.provider.Provider;
+import com.kaltura.media.quality.event.Event;
+import com.kaltura.media.quality.event.EventsManager;
+import com.kaltura.media.quality.event.SegmentErrorEvent;
+import com.kaltura.media.quality.event.listener.IListener;
+import com.kaltura.media.quality.event.listener.ISegmentsListener;
+import com.kaltura.media.quality.event.listener.ISegmentsResultsListener;
+import com.kaltura.media.quality.model.Segment;
 import com.kaltura.media.quality.utils.ImageUtils;
 import com.kaltura.media.quality.utils.ThreadManager;
 
@@ -22,31 +26,59 @@ public class RenditionsComparator extends Validator implements ISegmentsListener
 	
 	private KalturaLiveEntry entry;
 
+	class SegmentsResultsEvent extends Event<ISegmentsResultsListener>{
+
+		private Segment segment1;
+		private Segment segment2;
+		private double diff;
+
+		public SegmentsResultsEvent(Segment segment1, Segment segment2, double diff) {
+			super(ISegmentsResultsListener.class);
+			
+			this.segment1 = segment1;
+			this.segment2 = segment2;
+			this.diff = diff;
+		}
+
+		@Override
+		public void callListener(ISegmentsResultsListener listener) {
+			listener.onSegmentsResult(segment1.getEntryId(), segment1.getNumber(), segment1.getRendition().getBandwidth(), segment2.getRendition().getBandwidth(), diff);
+		}
+		
+	}
+	
 	class ValidationTask implements Runnable{
 
-		private int segmentNumber;
-		private List<File> segments;
+		private List<Segment> segments;
 		
-		public ValidationTask(int segmentNumber, List<File> segments) {
-			this.segmentNumber = segmentNumber;
+		public ValidationTask(List<Segment> segments) {
 			this.segments = segments;
 		}
 
 		@Override
 		public void run() {
-			File file1 = segments.get(0);
+			Segment segment1 = segments.get(0);
+			File file1 = segment1.getFile();
 			File file2;
 
 			Thread thread = Thread.currentThread();
 			thread.setPriority(Thread.MIN_PRIORITY);
 			thread.setName(getClass().getSimpleName() + "-" + file1.getAbsolutePath());
 			
-			File image1 = getFirstFrameFromFile(file1);
+			File image1;
+			try {
+				image1 = getFirstFrameFromFile(file1);
+			} catch (Exception e) {
+				log.error(e.getMessage(), e);
+				EventsManager.get().raiseEvent(new SegmentErrorEvent(segment1, e));
+				return;
+			}
 			File image2;
 
 			String outputFolder = file1.getParent();
 			String outputName;
 			String diffPath;
+			double diff;
 			
 			// Check 1-2, 2-3, 3-4, ...
 			for(int i = 1 ; i < segments.size(); ++i) {
@@ -55,16 +87,22 @@ public class RenditionsComparator extends Validator implements ISegmentsListener
 					break;
 				}
 				
-				file2 = segments.get(i);
-				image2 = getFirstFrameFromFile(file2);
+				Segment segment2 = segments.get(i);
+				file2 = segment2.getFile();
+				try {
+					image2 = getFirstFrameFromFile(file2);
+				} catch (Exception e) {
+					log.error(e.getMessage(), e);
+					EventsManager.get().raiseEvent(new SegmentErrorEvent(segment2, e));
+					continue;
+				}
 				outputName = file2.getParentFile().getParentFile().getName();
-				diffPath = outputFolder + "/diff_" + segmentNumber + "_" + outputName + ".jpg";
+				diffPath = outputFolder + "/diff_" + segment1.getNumber() + "_" + outputName + ".jpg";
 				
 				log.info("Comparison of entry [" + entry.id + "]" + file1 + " and " + file2);
-				ImageMagikComparator imComparator = new ImageMagikComparator(10.0, diffPath);
-				if ((image1 == null) || (image2 == null) || (!imComparator.isSimilar(image1, image2))) {
-					log.error("Comparison of " + file1 + " and " + file2 + " failed, image files: " + image1 + " , " + image2 + ", diff: " + diffPath);
-				}
+				ImageMagikComparator imComparator = new ImageMagikComparator(diffPath);
+				diff = imComparator.compare(image1, image2);
+				EventsManager.get().raiseEvent(new SegmentsResultsEvent(segment1, segment2, diff));
 				
 				file1 = file2;
 				image1 = image2;
@@ -73,31 +111,27 @@ public class RenditionsComparator extends Validator implements ISegmentsListener
 		
 	}
 	
-	public RenditionsComparator(KalturaLiveEntry entry, List<Provider> providers) {
+	public RenditionsComparator(KalturaLiveEntry entry) {
 		super();
 		
 		this.entry = entry;
-		for(Provider provider : providers){
-			provider.addListener(ISegmentsListener.class, this);
-		}
+		EventsManager.get().addListener(ISegmentsListener.class, this);
 	}
 	
-	private File getFirstFrameFromFile(File ts) {
-		try {
-			File dest = new File(ts.getAbsolutePath() + ".jpeg");
-			//	save first frame to file
-			ImageUtils.saveFirstFrame(ts, dest);
-			return dest;
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			log.error(e.getMessage(), e); 
-		}
-		return null;
+	private File getFirstFrameFromFile(File ts) throws Exception {
+		File dest = new File(ts.getAbsolutePath() + ".jpeg");
+		//	save first frame to file
+		ImageUtils.saveFirstFrame(ts, dest);
+		return dest;
 	}
 
 	@Override
-	public void onSegmentsDownloadComplete(int segmentNumber, List<File> segments) {
-		ThreadManager.start(new ValidationTask(segmentNumber, segments));
+	public void onSegmentsDownloadComplete(List<Segment> segments) {
+		if(!segments.get(0).getEntryId().equals(entry.id)){
+			return;
+		}
+
+		ThreadManager.start(new ValidationTask(segments));
 	}
 
 	@Override

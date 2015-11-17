@@ -34,14 +34,13 @@ public class HttpUtils {
         try {
             response = httpClient.execute(httpGet);
 
-            //TODO who's responsible for errors? client or this object
             if (response.getStatusLine().getStatusCode() != 200 && response.getStatusLine().getStatusCode() != 201) {
                 throw new Exception("get request failed. error code: " + response.getStatusLine().getStatusCode());
             }
 
-            HttpEntity entity1 = response.getEntity();
-            String body = EntityUtils.toString(entity1, "UTF-8");
-            EntityUtils.consume(entity1);
+            HttpEntity entity = response.getEntity();
+            String body = EntityUtils.toString(entity, "UTF-8");
+            EntityUtils.consume(entity);
             return body;
         } finally {
             try {

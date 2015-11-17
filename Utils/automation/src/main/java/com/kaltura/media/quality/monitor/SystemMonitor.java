@@ -1,11 +1,9 @@
 package com.kaltura.media.quality.monitor;
 
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,9 +19,11 @@ import com.kaltura.client.types.KalturaLiveStreamEntryFilter;
 import com.kaltura.client.types.KalturaLiveStreamListResponse;
 import com.kaltura.media.quality.configurations.DataProvider;
 import com.kaltura.media.quality.configurations.DataValidator;
+import com.kaltura.media.quality.configurations.LoggerConfig;
 import com.kaltura.media.quality.provider.Provider;
 import com.kaltura.media.quality.utils.ThreadManager;
 import com.kaltura.media.quality.validator.Validator;
+import com.kaltura.media.quality.validator.logger.ResultsLogger;
 
 /**
  * This class monitors the system:
@@ -49,6 +49,7 @@ public class SystemMonitor extends Monitor {
 		
 		Set<String> entries = new HashSet<String>();
 		Collection<KalturaLiveEntry> curEntries;
+		int maxNumberOfEntries = config.getMaxNumberOfEntries();
 
 		while(ThreadManager.shouldContinue()) {
 			log.debug("...");
@@ -57,22 +58,26 @@ public class SystemMonitor extends Monitor {
 				log.info("No live entries found");
 			}
 			for (KalturaLiveEntry entry : curEntries) {
-				if(!entries.contains(entry.id)) {
+				if(!entries.contains(entry.id) && entries.size() < maxNumberOfEntries) {
 					entries.add(entry.id);
 					
 					log.info("Create providers for entry - " + entry.id);					
-					List<Provider> providers = new ArrayList<Provider>();
 					for(DataProvider dataProvider : config.getDataProviders()){
 						Constructor<Provider> constructor = dataProvider.getType().getConstructor(KalturaLiveEntry.class, DataProvider.class);
 						Provider provider = constructor.newInstance(entry, dataProvider);
-						providers.add(provider);
 						provider.start();
 					}
 
 					log.info("Create validators for entry - " + entry.id);
 					for(DataValidator dataValidator : config.getDataValidators()){
-						Constructor<Validator> constructor = dataValidator.getType().getConstructor(KalturaLiveEntry.class, List.class);
-						constructor.newInstance(entry, providers);
+						Constructor<Validator> constructor = dataValidator.getType().getConstructor(KalturaLiveEntry.class);
+						constructor.newInstance(entry);
+					}
+
+					log.info("Create loggers for entry - " + entry.id);
+					for(LoggerConfig loggerConfig : config.getResultLoggers()){
+						Constructor<ResultsLogger> constructor = loggerConfig.getType().getConstructor(String.class, LoggerConfig.class);
+						constructor.newInstance(entry.id, loggerConfig);
 					}
 				}
 			}
@@ -81,6 +86,7 @@ public class SystemMonitor extends Monitor {
 		}
 		log.info("Stopping all threads");
 		ThreadManager.stop();
+		System.exit(0);
 	}
 	
 	protected Collection<KalturaLiveEntry> getEntries() throws KalturaApiException {

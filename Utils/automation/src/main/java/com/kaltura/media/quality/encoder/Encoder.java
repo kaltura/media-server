@@ -11,14 +11,15 @@ import org.apache.log4j.Logger;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.media.quality.configurations.EncoderConfig;
 import com.kaltura.media.quality.configurations.TestConfig;
-import com.kaltura.media.quality.event.EventTrigger;
-import com.kaltura.media.quality.event.IProcessCompleteListener;
+import com.kaltura.media.quality.event.Event;
+import com.kaltura.media.quality.event.EventsManager;
+import com.kaltura.media.quality.event.listener.IProcessCompleteListener;
 import com.kaltura.media.quality.utils.ThreadManager;
 
 /**
  * Created by asher.saban on 2/26/2015.
  */
-public abstract class Encoder extends EventTrigger {
+public abstract class Encoder extends EventsManager {
 
     private static final Logger log = Logger.getLogger(Encoder.class);
     protected static TestConfig config;
@@ -28,7 +29,22 @@ public abstract class Encoder extends EventTrigger {
 	protected EncoderConfig encoderConfig;
     private Process process;
 
-    
+	class ProcessCompleteEvent extends Event<IProcessCompleteListener>{
+
+		private int exitCode;
+		
+		public ProcessCompleteEvent(int exitCode) {
+			super(IProcessCompleteListener.class);
+			
+			this.exitCode = exitCode;
+		}
+
+		@Override
+		public void callListener(IProcessCompleteListener listener) {
+			listener.onProcessComplete(exitCode);
+		}
+	}
+	    
     public Encoder(String uniqueId, EncoderConfig encoderConfig) {
         this.uniqueId = uniqueId;
         this.encoderConfig = encoderConfig;
@@ -150,8 +166,6 @@ public abstract class Encoder extends EventTrigger {
 	}
 
 	private void onProcessComplete(int exitCode) {
-		for(IProcessCompleteListener listener : getListeners(IProcessCompleteListener.class)){
-			listener.onProcessComplete(exitCode);
-		}
+		raiseEvent(new ProcessCompleteEvent(exitCode));
 	}
 }

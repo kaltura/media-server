@@ -23,4 +23,21 @@ public class StringUtils {
 		BigInteger bigInt = new BigInteger(1,digest);
 		return bigInt.toString(16);
 	}
+
+	public static String join(Object[] list, String delimiter) {
+		if(delimiter == null)
+			delimiter = ",";
+		
+		String str = "";
+		boolean isFirst = true;
+		for(Object item : list){
+			if(!isFirst)
+				str += delimiter;
+			
+			str += item;
+			isFirst = false;
+		}
+		
+		return str;
+	}
 }

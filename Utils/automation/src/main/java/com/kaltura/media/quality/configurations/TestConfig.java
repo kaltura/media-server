@@ -32,6 +32,12 @@ public class TestConfig extends Config {
 
     @JsonProperty("path-to-ffmpeg")
     private String pathToFfmpeg;
+    
+    @JsonProperty("path-to-ffprobe")
+    private String pathToFfprobe;
+    
+    @JsonProperty("path-to-mediainfo")
+    private String pathToMediaInfo;
 
     @JsonProperty("destination-folder")
     private String destinationFolder;
@@ -56,6 +62,12 @@ public class TestConfig extends Config {
 
     @JsonProperty("data-validators")
 	private List<DataValidator> dataValidators = new ArrayList<DataValidator>();
+
+    @JsonProperty("result-loggers")
+	private List<LoggerConfig> resultLoggers = new ArrayList<LoggerConfig>();
+
+    @JsonProperty("max-number-of-entries")
+	private int maxNumberOfEntries = 2;
 
     private static TestConfig config = null;
     
@@ -108,6 +120,14 @@ public class TestConfig extends Config {
         return pathToFfmpeg;
     }
 
+	public String getPathToFfprobe() {
+		return pathToFfprobe;
+	}
+
+	public String getPathToMediaInfo() {
+		return pathToMediaInfo;
+	}
+
     public String getDestinationFolder() {
         return destinationFolder;
     }
@@ -146,5 +166,13 @@ public class TestConfig extends Config {
 
 	public List<DataValidator> getDataValidators() {
 		return dataValidators;
+	}
+
+	public List<LoggerConfig> getResultLoggers() {
+		return resultLoggers;
+	}
+
+	public int getMaxNumberOfEntries() {
+		return maxNumberOfEntries;
 	}
 }

@@ -7,5 +7,5 @@ import java.io.File;
  */
 public interface ImageComparator {
 
-	public boolean isSimilar(File image1, File image2);
+	public double compare(File image1, File image2);
 }

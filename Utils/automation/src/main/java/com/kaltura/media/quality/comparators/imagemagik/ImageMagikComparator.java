@@ -15,23 +15,16 @@ import java.io.IOException;
  */
 public class ImageMagikComparator implements ImageComparator {
 
-	private double precision;
 	private String diffImagePath;
 	private static final Logger log = Logger.getLogger(ImageMagikComparator.class);
 
-	public ImageMagikComparator(double precision,String diffImagePath) {
-		this.precision = precision;
+	public ImageMagikComparator(String diffImagePath) {
 		this.diffImagePath = diffImagePath;
 	}
 
 	@Override
-	public boolean isSimilar(File image1, File image2) {
-		double diff = compareImages(image1.getAbsolutePath(), image2.getAbsolutePath());
-		if (diff > precision) {
-			log.error("diff is " + diff);
-			return false;
-		}
-		return true;
+	public double compare(File image1, File image2) {
+		return compareImages(image1.getAbsolutePath(), image2.getAbsolutePath());
 	}
 
 	private double compareImages(String srcImagePath, String destImagePath) {

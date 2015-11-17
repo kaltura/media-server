@@ -1,15 +1,15 @@
 {
   "test-name": "test-1",
-  "service-url": "@SERVICE_URL@",
-  "partner-id": "@PARTNER_ID@",
-  "admin-secret": "@ADMIN_SECRET@",
+  "service-url": "http://www.kaltura.com",
+  "partner-id": 1676801,
+  "admin-secret": "5f8b98c59d2f4904ab9a1c2054d79055",
   "stream-type": "hls",
-  "path-to-ffmpeg": "@FFMPEG_EXECUTABLE@",
-  "path-to-ffprobe": "@FFPROBE_EXECUTABLE@",
-  "path-to-mediainfo" : "@MEDIAINFO_EXECUTABLE@",
+  "path-to-ffmpeg": "C:/Program Files/ImageMagick-6.9.2-Q16/ffmpeg.exe",
+  "path-to-ffprobe": "C:/opt/kaltura/bin/ffmpeg/bin/ffprobe.exe",
+  "path-to-mediainfo" : "C:/opt/kaltura/bin/mediainfo/MediaInfo.exe",
   "encoder": {
     "type": "com.kaltura.media.quality.encoder.FFMPEG",
-    "path-to-executable": "@FFMPEG_EXECUTABLE@",
+    "path-to-executable": "C:/Program Files/ImageMagick-6.9.2-Q16/ffmpeg.exe",
     "args": "-y -f dshow -i video=\"Kaltura Virtual Camera\" -f dshow -i audio=\"Kaltura Virtual Microphone\"",
     "outputs" : [{
     	"type": "com.kaltura.media.quality.encoder.output.Record",
@@ -41,7 +41,7 @@
     }]
   },
   "test-duration": 300,
-  "destination-folder": "@DESTINATION_FOLDER@",
+  "destination-folder": "C:/Temp/test",
   "delete-files": false,
   "entry-details": {
     "entry-name": "auto_test",

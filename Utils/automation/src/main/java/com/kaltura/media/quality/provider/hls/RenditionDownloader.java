@@ -3,6 +3,7 @@ package com.kaltura.media.quality.provider.hls;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -13,7 +14,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.log4j.Logger;
 
-import com.kaltura.media.quality.event.ISegmentListener;
+import com.kaltura.media.quality.event.Event;
+import com.kaltura.media.quality.event.EventsManager;
+import com.kaltura.media.quality.event.listener.ISegmentListener;
+import com.kaltura.media.quality.model.Rendition;
+import com.kaltura.media.quality.model.Segment;
 import com.kaltura.media.quality.provider.Provider;
 import com.kaltura.media.quality.utils.HttpUtils;
 import com.kaltura.media.quality.utils.ThreadManager;
@@ -25,18 +30,45 @@ class RenditionDownloader extends Provider {
 
 	private static final Logger log = Logger.getLogger(RenditionDownloader.class);
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
-	private static final int DEFAULT_TS_DURATION = 10;
 	private final URI url;
 	private final String destinationPath;
-	private String domainHash;
+	private Rendition rendition;
 	private int lastTsNumber;
 	private boolean runForever = false;
 	private String tempPath;
 
-	public RenditionDownloader(URI url, String destinationPath, String domainHash) {
+
+	class SegmentDownloadStartEvent extends Event<ISegmentListener>{
+		protected Segment segment;
+		
+		public SegmentDownloadStartEvent(Segment segment) {
+			super(ISegmentListener.class);
+
+			this.segment = segment;
+		}
+
+		@Override
+		public void callListener(ISegmentListener listener) {
+			listener.onSegmentDownloadStart(segment);
+		}
+	}
+	
+	class SegmentDownloadCompleteEvent extends SegmentDownloadStartEvent{
+		
+		public SegmentDownloadCompleteEvent(Segment segment) {
+			super(segment);
+		}
+
+		@Override
+		public void callListener(ISegmentListener listener) {
+			listener.onSegmentDownloadComplete(segment);
+		}
+	}
+	
+	public RenditionDownloader(URI url, String destinationPath, Rendition rendition) {
 		this.url = url;
 		this.destinationPath = destinationPath;
-		this.domainHash = domainHash;
+		this.rendition = rendition;
 		this.lastTsNumber = -1;
 		this.tempPath = dateFormat.format(new Date());
 	}
@@ -66,9 +98,8 @@ class RenditionDownloader extends Provider {
 				FileUtils.writeStringToFile(new File(destinationPath + "/" + tempPath + "/iter_" + counter + "_" + reportDate + ".m3u8"),content);
 
 			} catch (Exception e) {
-				log.error("Get request failed.");
-				log.error(e.getMessage(), e); 
-				continue; //TODO
+				log.error(e.getMessage()); 
+				continue; //TODO raise event
 			}
 
             if(content == null) {
@@ -80,7 +111,8 @@ class RenditionDownloader extends Provider {
             }
 			
 			long downloadTime = System.currentTimeMillis();
-			int tsDuration = 0;
+			long duration = 0;
+			double tsDuration = 0;
 
 			//get duration: search #EXT-X-TARGETDURATION
 			String[] lines = content.split("\n");
@@ -91,13 +123,13 @@ class RenditionDownloader extends Provider {
 					return;
 				}
 				String line = lines[i];
+				log.debug(line);
 				if (line.startsWith("#EXT-X-TARGETDURATION:")) {
-					log.debug(line);
-					tsDuration = parseStringToInt(line.substring("#EXT-X-TARGETDURATION:".length()).trim());
+					duration = Long.valueOf(line.substring("#EXT-X-TARGETDURATION:".length()).trim());
 				}
 				//a .ts file
 				else if (line.startsWith("#EXTINF:")) {
-					log.debug(line);
+					tsDuration = Double.valueOf(line.substring("#EXTINF:".length()).trim().replace(",", ""));
 					//extract ts file:
 					int j = i + 1;
 					while (j < lines.length && (lines[j].startsWith("#") || lines[j].equals("")) && !lines[j].trim().endsWith(".ts")) {
@@ -128,10 +160,12 @@ class RenditionDownloader extends Provider {
 
 					//download ts:
 					try {
-						onSegmentDownloadStart(lastTsNumber);
+						Segment segment = new Segment(lastTsNumber, tsDuration, rendition);
+						onSegmentDownloadStart(segment);
 						ts = HttpUtils.downloadFile(url.resolve(tsName).toString(), destinationPath + "/" + tempPath + "/" + fileName);
-						onSegmentDownloadComplete(lastTsNumber, ts);
-					} catch (IOException e) {
+						segment.setFile(ts);
+						onSegmentDownloadComplete(segment);
+					} catch (IOException | NoSuchAlgorithmException e) {
 						log.error(e.getMessage(), e); 
 						continue;
 					}
@@ -141,12 +175,12 @@ class RenditionDownloader extends Provider {
 
 			//sleep for at least the maximal duration of the .ts that is specified in the m3u8 file - #EXT-X-TARGETDURATION
 			long endDownloadTime = System.currentTimeMillis();
-			log.info("download took: " + (endDownloadTime - downloadTime) + " ms. max duration: " + tsDuration * 1000);
+			log.info("download took: " + (endDownloadTime - downloadTime) + " ms. max duration: " + duration * 1000);
 
-			if ((endDownloadTime - downloadTime) < (tsDuration * 1000)) {
+			if ((endDownloadTime - downloadTime) < (duration * 1000)) {
 				try {
-					log.info("sleeping for: " + ((tsDuration * 1000) - (endDownloadTime - downloadTime)));
-					Thread.sleep((tsDuration * 1000) - (endDownloadTime - downloadTime));
+					log.info("sleeping for: " + ((duration * 1000) - (endDownloadTime - downloadTime)));
+					Thread.sleep((duration * 1000) - (endDownloadTime - downloadTime));
 				} catch (InterruptedException e) {
 					log.error(e.getMessage(), e); 
 				}
@@ -178,32 +212,11 @@ class RenditionDownloader extends Provider {
 		throw new Exception("ts with name: " + tsName + " does not contain ts number");
 	}
 
-	private int parseStringToInt(String str) {
-		try {
-			return Integer.valueOf(str);
-		} catch (NumberFormatException e) {
-			log.error("#EXT-X-TARGETDURATION was not found in m3u8 file.");
-			return DEFAULT_TS_DURATION; //TODO throw exception?
-		}
+	private void onSegmentDownloadComplete(Segment segment) {
+		EventsManager.get().raiseEvent(new SegmentDownloadCompleteEvent(segment));
 	}
 
-	public void addSegmentListener(ISegmentListener listener) {
-		addListener(ISegmentListener.class, listener);
-	}
-
-	public void removeSegmentListener(ISegmentListener listener) {
-		removeListener(ISegmentListener.class, listener);
-	}
-
-	private void onSegmentDownloadComplete(int segmentNumber, File segment) {
-		for(ISegmentListener listener : getListeners(ISegmentListener.class)){
-			listener.onSegmentDownloadComplete(segmentNumber, domainHash, segment);
-		}
-	}
-
-	private void onSegmentDownloadStart(int segmentNumber) {
-		for(ISegmentListener listener : getListeners(ISegmentListener.class)){
-			listener.onSegmentDownloadStart(segmentNumber, domainHash);
-		}
+	private void onSegmentDownloadStart(Segment segment) {
+		EventsManager.get().raiseEvent(new SegmentDownloadStartEvent(segment));
 	}
 }

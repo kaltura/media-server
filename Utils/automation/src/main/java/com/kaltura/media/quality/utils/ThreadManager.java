@@ -1,10 +1,14 @@
 package com.kaltura.media.quality.utils;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -84,13 +88,24 @@ public class ThreadManager {
 	}
 
 	public static void stop(String poolName) {
+		stop(poolName, true);
+	}
+
+	public static void stop(String poolName, boolean mayInterruptIfRunning) {
 		if(!pools.containsKey(poolName)){
 			return;
 		}
 
 		List<FutureTask<String>> pool = pools.get(poolName);
 		for(FutureTask<String> worker : pool){
-			worker.cancel(true);
+			worker.cancel(mayInterruptIfRunning);
+		}
+
+		for(FutureTask<String> worker : pool){
+			try {
+				worker.get();
+			} catch (InterruptedException | ExecutionException | CancellationException e) {
+			}
 		}
 	}
 
@@ -124,5 +139,44 @@ public class ThreadManager {
 		}
 		
 		return false;
+	}
+
+	static public void printAllThreads(){
+		Thread[] threads = getAllThreads();
+		for(Thread thread : threads){
+			log.warn("Thread " + thread.getName() + " is still alive: \n" + getStackTraceMessage(thread));
+		}
+	}
+
+	static protected String getStackTraceMessage(Thread thread) {
+		String message = "";
+		
+        StackTraceElement[] trace = thread.getStackTrace();
+        for (StackTraceElement traceElement : trace)
+        	message += "\tat " + traceElement + "\n";
+        
+        return message;
+    }
+    
+	static protected ThreadGroup getRootThreadGroup( ) {
+	    ThreadGroup tg = Thread.currentThread( ).getThreadGroup( );
+	    ThreadGroup ptg;
+	    while ( (ptg = tg.getParent( )) != null )
+	        tg = ptg;
+	    return tg;
+	}
+	
+	static protected Thread[] getAllThreads( ) {
+	    final ThreadGroup root = getRootThreadGroup( );
+	    final ThreadMXBean thbean = ManagementFactory.getThreadMXBean( );
+	    int nAlloc = thbean.getThreadCount( );
+	    int n = 0;
+	    Thread[] threads;
+	    do {
+	        nAlloc *= 2;
+	        threads = new Thread[ nAlloc ];
+	        n = root.enumerate( threads, true );
+	    } while ( n == nAlloc );
+	    return java.util.Arrays.copyOf( threads, n );
 	}
 }

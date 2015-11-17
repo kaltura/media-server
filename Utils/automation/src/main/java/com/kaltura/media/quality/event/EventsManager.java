@@ -7,11 +7,19 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 
 
-import com.kaltura.media.quality.event.IListener;
 
-public class EventTrigger {
-	private static Map<Class<? extends IListener>, Set<? extends IListener>> listeners = new ConcurrentHashMap<Class<? extends IListener>, Set<? extends IListener>>();
 
+import com.kaltura.media.quality.event.listener.IListener;
+
+public class EventsManager {
+	private static EventsManager instance = new EventsManager();
+	
+	private Map<Class<? extends IListener>, Set<? extends IListener>> listeners = new ConcurrentHashMap<Class<? extends IListener>, Set<? extends IListener>>();
+
+	public static EventsManager get() {
+		return instance;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public <T extends IListener> void addListener(Class<T> clazz, T listener) {
 		Set<T> set;
@@ -32,6 +40,12 @@ public class EventTrigger {
 			if(set.contains(listener)){
 				set.remove(listener);
 			}
+		}
+	}
+
+	public <T extends IListener> void raiseEvent(Event<T> event) {
+		for(T listener : getListeners(event.getConsumerType())){
+			event.callListener(listener);
 		}
 	}
 

@@ -19,13 +19,16 @@ import org.apache.log4j.Logger;
 
 import com.kaltura.media.quality.configurations.DataProvider;
 import com.kaltura.media.quality.configurations.PlaylistEnhancerConfig;
-import com.kaltura.media.quality.event.IListener;
-import com.kaltura.media.quality.event.ISegmentListener;
-import com.kaltura.media.quality.event.ISegmentsListener;
+import com.kaltura.media.quality.event.Event;
+import com.kaltura.media.quality.event.EventsManager;
+import com.kaltura.media.quality.event.listener.IListener;
+import com.kaltura.media.quality.event.listener.ISegmentListener;
+import com.kaltura.media.quality.event.listener.ISegmentsListener;
+import com.kaltura.media.quality.model.Rendition;
+import com.kaltura.media.quality.model.Segment;
 import com.kaltura.media.quality.provider.Provider;
 import com.kaltura.media.quality.provider.hls.enhancer.PlaylistEnhancer;
 import com.kaltura.media.quality.utils.HttpUtils;
-import com.kaltura.media.quality.utils.StringUtils;
 import com.kaltura.media.quality.utils.ThreadManager;
 
 /**
@@ -40,12 +43,15 @@ public class Downloader extends Provider implements ISegmentListener {
 	
 	protected String downloadDir;
 	protected URI masterPlaylistUrl;
+	private String uniqueId;
+	
 	private Map<String, Integer> downloadersCount = new ConcurrentHashMap<String, Integer>();
 	private Map<String, Map<Integer, ExpectedSegment>> expectedSegments = new ConcurrentHashMap<String, Map<Integer, ExpectedSegment>>();
 
 	public Downloader(String uniqueId, URI playlistUrl, DataProvider providerConfig) {
 		super();
 		
+		this.uniqueId = uniqueId;
 		this.masterPlaylistUrl = playlistUrl;
 		this.downloadDir = config.getDestinationFolder() + "/" + uniqueId;
 
@@ -58,13 +64,15 @@ public class Downloader extends Provider implements ISegmentListener {
 				log.error(e.getMessage(), e); 
 			}
 		}
+		
+		EventsManager.get().addListener(ISegmentListener.class, this);
 	}
 
 	class ExpectedSegment{
 
 		private String domainHash;
 		private int expected = 0;
-		private List<File> segments = new ArrayList<File>();
+		private List<Segment> segments = new ArrayList<Segment>();
 		private long created = System.currentTimeMillis();
 		
 		public ExpectedSegment(String domainHash){
@@ -75,7 +83,7 @@ public class Downloader extends Provider implements ISegmentListener {
 			expected ++;			
 		}
 
-		public void addSegment(File segment) {
+		public void addSegment(Segment segment) {
 			segments.add(segment);
 		}
 
@@ -84,7 +92,7 @@ public class Downloader extends Provider implements ISegmentListener {
 			return compeleted >= expected && downloadersCount.containsKey(domainHash) && compeleted >= downloadersCount.get(domainHash);
 		}
 
-		public List<File> getSegments() {
+		public List<Segment> getSegments() {
 			return segments;
 		}
 
@@ -112,14 +120,32 @@ public class Downloader extends Provider implements ISegmentListener {
 		return getClass().getSimpleName() + "-" + masterPlaylistUrl;
 	}
 
-	private Set<String> getStreamsListsFromMasterPlaylist(String masterPlaylist) {
+	private Set<Rendition> getStreamsListsFromMasterPlaylist(String masterPlaylist) {
 		String[] lines = masterPlaylist.split("\n");
-		Set<String> streamsSet = new HashSet<>();
+		String[] lineParts;
+		String[] renditionInfo;
+		String[] renditionInfoParts;
+		Set<Rendition> renditions = new HashSet<>();
+		Rendition rendition;
 
 		for (int i = 0; i < lines.length; i++) {
 			String line = lines[i].trim();
 			if (line.startsWith("#EXT-X-STREAM-INF:")) {
-				// System.out.println(line);
+				rendition = new Rendition(uniqueId);
+				lineParts = line.split(":", 2);
+				renditionInfoParts = lineParts[1].split(",");
+				for(String renditionInfoItem : renditionInfoParts){
+					renditionInfo = renditionInfoItem.split("=", 2);
+					if(renditionInfo[0].equals("PROGRAM-ID")){
+						rendition.setProgramId(Integer.parseInt(renditionInfo[1]));
+					}
+					if(renditionInfo[0].equals("BANDWIDTH")){
+						rendition.setBandwidth(Integer.parseInt(renditionInfo[1]));
+					}
+					if(renditionInfo[0].equals("RESOLUTION")){
+						rendition.setResolution(renditionInfo[1]);
+					}
+				}
 				int j = i + 1;
 				String tempLine = lines[j].trim();
 				while (j < lines.length && (tempLine.startsWith("#") || tempLine.equals(""))) {
@@ -129,14 +155,12 @@ public class Downloader extends Provider implements ISegmentListener {
 				i = j; // TODO index out of bounds in case there is nothing
 						// after #EXT-X-STREAM-INF:
 
-				if (streamsSet.contains(tempLine)) {
-					continue;
-				}
+				rendition.setUrl(tempLine);
 				log.info("Adding stream: " + tempLine);
-				streamsSet.add(tempLine);
+				renditions.add(rendition);
 			}
 		}
-		return streamsSet;
+		return renditions;
 	}
 
 	public void downloadFiles() throws Exception {
@@ -152,25 +176,32 @@ public class Downloader extends Provider implements ISegmentListener {
 		log.info("Wrote master playlist to: " + playlistDestination);
 
 		// get streams urls:
-		Set<String> streamsSet = getStreamsListsFromMasterPlaylist(masterPlaylistData);
+		Set<Rendition> renditions = getStreamsListsFromMasterPlaylist(masterPlaylistData);
 		for(PlaylistEnhancer enhancer : enhancers) {
-			streamsSet = enhancer.enhanceStreamsSet(streamsSet);
+			renditions = enhancer.enhanceStreamsSet(renditions);
 		}
 
-		int numStreamFound = streamsSet.size();
+		int numStreamFound = renditions.size();
 		log.info("Got total of " + numStreamFound + " streams from master playlist");
 
+		String stream;
+		String domainHash;
+		String playlistFileName;
+		String streamDestination;
+		URI playlistUrl;
+		Integer domainDownloadersCount;
+		
 		// download streams:
-		for (String stream : streamsSet) {
+		for (Rendition rendition : renditions) {
 
-			String playlistFileName = stream.substring(stream.lastIndexOf("/") + 1);
-			URI streamUrl = new URI(stream).resolve("../../");
-			String domainHash = StringUtils.md5(streamUrl.toString());
-			String streamDestination = downloadDir + "/" + playlistFileName + "/" + domainHash;
+			stream = rendition.getUrl();
+			domainHash = rendition.getDomainHash();
+			playlistFileName = stream.substring(stream.lastIndexOf("/") + 1);
+			streamDestination = downloadDir + "/" + playlistFileName + "/" + domainHash;
+			
 			// write stream name to file:
 			FileUtils.writeStringToFile(new File(streamDestination + "/stream.txt"), stream);
 
-			URI playlistUrl;
 			// if stream is not a valid URL, concat it to the base URL
 			try {
 				playlistUrl = new URL(stream).toURI();
@@ -178,14 +209,13 @@ public class Downloader extends Provider implements ISegmentListener {
 				playlistUrl = masterPlaylistUrl.resolve(stream);
 			}
 
-			Integer domainDownloadersCount = 1;
+			domainDownloadersCount = 1;
 			if(downloadersCount.containsKey(domainHash)){
 				domainDownloadersCount = downloadersCount.get(domainHash);
 			}
 			downloadersCount.put(domainHash, domainDownloadersCount);
 			
-			RenditionDownloader worker = new RenditionDownloader(playlistUrl, streamDestination, domainHash);
-			worker.addSegmentListener(this);
+			RenditionDownloader worker = new RenditionDownloader(playlistUrl, streamDestination, rendition);
 			worker.start();
 		}
 	}
@@ -230,8 +260,14 @@ public class Downloader extends Provider implements ISegmentListener {
 	}
 	
 	@Override
-	public void onSegmentDownloadStart(int segmentNumber, String domainHash) {
+	public void onSegmentDownloadStart(Segment segment) {
+		if(!segment.getEntryId().equals(uniqueId)){
+			return;
+		}
+		
 		Map<Integer, ExpectedSegment> domainExpectedSegment;
+		String domainHash = segment.getRendition().getDomainHash();
+		
 		if(expectedSegments.containsKey(domainHash)){
 			domainExpectedSegment = expectedSegments.get(domainHash);
 		}
@@ -240,32 +276,38 @@ public class Downloader extends Provider implements ISegmentListener {
 			expectedSegments.put(domainHash, domainExpectedSegment);
 		}
 		
-		if(domainExpectedSegment.containsKey(segmentNumber)){
-			ExpectedSegment expectedSegment = domainExpectedSegment.get(segmentNumber);
+		if(domainExpectedSegment.containsKey(segment.getNumber())){
+			ExpectedSegment expectedSegment = domainExpectedSegment.get(segment.getNumber());
 			expectedSegment.increment();
 		}
 		else{
-			domainExpectedSegment.put(segmentNumber, new ExpectedSegment(domainHash));
+			domainExpectedSegment.put(segment.getNumber(), new ExpectedSegment(domainHash));
 		}
 	}
 	
 	@Override
-	public void onSegmentDownloadComplete(int segmentNumber, String domainHash, File segment) {
+	public void onSegmentDownloadComplete(Segment segment) {
+		if(!segment.getEntryId().equals(uniqueId)){
+			return;
+		}
+		
+		String domainHash = segment.getRendition().getDomainHash();
+		
 		if(!expectedSegments.containsKey(domainHash)){
 			return;
 		}
 		
 		Map<Integer, ExpectedSegment> domainExpectedSegment = expectedSegments.get(domainHash);
-		if(!domainExpectedSegment.containsKey(segmentNumber)){
+		if(!domainExpectedSegment.containsKey(segment.getNumber())){
 			return;
 		}
 
-		ExpectedSegment expectedSegment = domainExpectedSegment.get(segmentNumber);
+		ExpectedSegment expectedSegment = domainExpectedSegment.get(segment.getNumber());
 		expectedSegment.addSegment(segment);
 		
 		if(expectedSegment.complete()){
-			onSegmentsDownloadComplete(segmentNumber, expectedSegment.getSegments());
-			expectedSegments.remove(segmentNumber);
+			onSegmentsDownloadComplete(expectedSegment.getSegments());
+			expectedSegments.remove(segment.getNumber());
 		}
 		
 		cleanupOldSegments();
@@ -284,10 +326,24 @@ public class Downloader extends Provider implements ISegmentListener {
 		}
 	}
 
-	protected void onSegmentsDownloadComplete(int segmentNumber, List<File> segments) {
-		for(ISegmentsListener listener : getListeners(ISegmentsListener.class)){
-			listener.onSegmentsDownloadComplete(segmentNumber, segments);
+	class SegmentsDownloadCompleteEvent extends Event<ISegmentsListener>{
+		private List<Segment> segments;
+		
+		public SegmentsDownloadCompleteEvent(List<Segment> segments) {
+			super(ISegmentsListener.class);
+			
+			this.segments = segments;
 		}
+
+		@Override
+		public void callListener(ISegmentsListener listener) {
+			listener.onSegmentsDownloadComplete(segments);
+		}
+		
+	}
+	
+	protected void onSegmentsDownloadComplete(List<Segment> segments) {
+		EventsManager.get().raiseEvent(new SegmentsDownloadCompleteEvent(segments));
 	}
 
 	@Override

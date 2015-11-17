@@ -1,4 +1,4 @@
-package com.kaltura.media.quality.event;
+package com.kaltura.media.quality.event.listener;
 
 public interface IProcessCompleteListener extends IListener {
 

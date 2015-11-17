@@ -11,7 +11,8 @@ import com.kaltura.media.quality.comparators.ImageComparator;
 public class QRCodeComparator implements ImageComparator {
 
 	@Override
-	public boolean isSimilar(File image1, File image2) {
-		return false;
+	public double compare(File image1, File image2) {
+		// TODO
+		return 0;
 	}
 }
