@@ -1,29 +1,16 @@
 package com.kaltura.media.quality.validator.info;
 
 import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.openamf.AMFHeader;
-import org.openamf.AMFMessage;
-import org.openamf.io.AMFDeserializer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -34,10 +21,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kaltura.media.quality.configurations.TestConfig;
 import com.kaltura.media.quality.utils.ThreadManager;
-import com.wowza.wms.amf.AMF3Utils;
-import com.wowza.wms.amf.AMFDataContextDeserialize;
-import com.wowza.wms.amf.AMFDataObj;
-import com.wowza.wms.amf.AMFPacket;
 
 public class FFPROBE extends MediaInfoBase {
     private static final Logger log = Logger.getLogger(FFPROBE.class);
