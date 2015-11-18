@@ -26,18 +26,25 @@ import com.kaltura.media.quality.validator.info.MediaInfoBase.Info;
  */
 public class MediaInfoParser extends Provider implements ISegmentListener {
 
+	private static final long serialVersionUID = 7216484156914769694L;
 	private static final Logger log = Logger.getLogger(MediaInfoParser.class);
 
 	Queue<Segment> queue = new ConcurrentLinkedQueue<Segment>();
 	private String uniqueId;
 	private List<String> mediaParsers;
+	private boolean deffered;
 
+	public MediaInfoParser(){
+		super();
+	}
+	
 	@SuppressWarnings("unchecked")
 	public MediaInfoParser(String uniqueId, DataProvider providerConfig) {
 		super();
 
 		this.uniqueId = uniqueId;	
-		this.mediaParsers = (List<String>) providerConfig.getOtherProperty("mediaParsers");		
+		this.mediaParsers = (List<String>) providerConfig.getOtherProperty("mediaParsers");	
+		this.deffered = (boolean) providerConfig.getOtherProperty("deffered");	
 		EventsManager.get().addListener(ISegmentListener.class, this);
 	}
 
@@ -46,6 +53,7 @@ public class MediaInfoParser extends Provider implements ISegmentListener {
 	}
 
 	class SegmentInfoEvent extends Event<ISegmentInfoListener>{
+		private static final long serialVersionUID = -5302676610611403247L;
 		private Segment segment;
 		private List<Info> infos;
 		
@@ -57,10 +65,18 @@ public class MediaInfoParser extends Provider implements ISegmentListener {
 		}
 
 		@Override
-		public void callListener(ISegmentInfoListener listener) {
+		protected void callListener(ISegmentInfoListener listener) {
 			listener.onSegmentInfo(segment, infos);
 		}
-		
+
+		@Override
+		protected String getTitle() {
+			String title = uniqueId;
+			title += "-" + segment.getRendition().getDomainHash();
+			title += "-" + segment.getRendition().getBandwidth();
+			title += "-" + segment.getNumber();
+			return title;
+		}
 	}
 	
 	@Override
@@ -107,15 +123,30 @@ public class MediaInfoParser extends Provider implements ISegmentListener {
 	}
 
 	@Override
-	public void onSegmentDownloadStart(Segment segment) {
-	}
-
-	@Override
 	public void onSegmentDownloadComplete(Segment segment) {
 		if(!segment.getEntryId().equals(uniqueId)){
 			return;
 		}
 		
-		queue.offer(segment);
+		if(!isDeffered() && !EventsManager.isConsumingDefferedEvents()){
+			queue.offer(segment);
+			return;
+		}
+		
+		try {
+			handleSegment(segment);
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+	}
+
+	@Override
+	public boolean isDeffered() {
+		return deffered;
+	}
+
+	@Override
+	public String getTitle() {
+		return uniqueId;
 	}
 }

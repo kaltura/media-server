@@ -1,60 +1,204 @@
 package com.kaltura.media.quality.event;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+import org.apache.log4j.Logger;
 
-
-
-
+import com.kaltura.media.quality.configurations.TestConfig;
 import com.kaltura.media.quality.event.listener.IListener;
 
 public class EventsManager {
+	private static final Logger log = Logger.getLogger(EventsManager.class);
+	private static TestConfig config = null;
 	private static EventsManager instance = new EventsManager();
-	
+	private static boolean isConsumingDefferedEvents = false;
+
 	private Map<Class<? extends IListener>, Set<? extends IListener>> listeners = new ConcurrentHashMap<Class<? extends IListener>, Set<? extends IListener>>();
+
+	protected EventsManager() {
+		Runtime.getRuntime().addShutdownHook(new RegisterConsumers());
+	}
 
 	public static EventsManager get() {
 		return instance;
 	}
 	
+	class RegisterConsumers extends Thread{
+		@Override
+		public void run(){
+			for(Class<? extends IListener> clazz : listeners.keySet()){
+				Set<? extends IListener> set = listeners.get(clazz);
+				for(IListener listener : set){
+					if(listener.isDeffered()){
+						@SuppressWarnings({ "unchecked", "rawtypes" })
+						DefferedConsumer<?> defferedConsumer = new DefferedConsumer(clazz, listener);
+						defferedConsumer.save();
+					}
+				}
+			}
+		}
+	}
+	
+	public static class DefferedConsumer <T extends IListener> extends Persistable{
+		private static final long serialVersionUID = -1999891514822443915L;
+		private Class<T> clazz;
+		private T listener;
+
+		public DefferedConsumer(Class<T> clazz, T listener) {
+			this.clazz = clazz;
+			this.listener = listener;
+		}
+
+		@Override
+		protected String getPath() {
+			return getDefferedConsumersPath();
+		}
+
+		public void register() {
+			log.info("Registering listener [" + listener.getClass().getSimpleName() + "]: " + getTitle());
+			instance.addListener(clazz, listener);
+		}
+
+		@Override
+		protected String getExtension() {
+			return "listener";
+		}
+
+		@Override
+		protected String getTitle() {
+			return listener.getTitle();
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	public <T extends IListener> void addListener(Class<T> clazz, T listener) {
 		Set<T> set;
-		if(!listeners.containsKey(clazz)){
+		if (!listeners.containsKey(clazz)) {
 			set = new ConcurrentSkipListSet<T>();
 			listeners.put(clazz, set);
-		}
-		else{
+		} else {
 			set = (Set<T>) listeners.get(clazz);
 		}
 		set.add(listener);
 	}
 
 	public <T extends IListener> void removeListener(Class<T> clazz, IListener listener) {
-		if(listeners.containsKey(clazz)){
+		if (listeners.containsKey(clazz)) {
 			@SuppressWarnings("unchecked")
 			Set<T> set = (Set<T>) listeners.get(clazz);
-			if(set.contains(listener)){
+			if (set.contains(listener)) {
 				set.remove(listener);
 			}
 		}
 	}
 
 	public <T extends IListener> void raiseEvent(Event<T> event) {
-		for(T listener : getListeners(event.getConsumerType())){
-			event.callListener(listener);
+		boolean deffer = false;
+		for (T listener : getListeners(event.getConsumerType())) {
+			log.info("Consuming event [" + listener.getClass().getSimpleName() + "]: " + listener.getTitle());
+			deffer = deffer || event.consume(listener);
+		}
+		
+		if(deffer){
+			event.save();
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	protected <T extends IListener> Set<T> getListeners(Class<T> clazz) {
-		if(listeners.containsKey(clazz)){
+		if (listeners.containsKey(clazz)) {
 			return (Set<T>) listeners.get(clazz);
 		}
-		
+
 		return new ConcurrentSkipListSet<T>();
+	}
+
+	public static String getDefferedEventsPath() {
+		if(config == null){
+			config = TestConfig.get();
+		}
+		
+		String path = config.getDestinationFolder() + "/events";
+		File dir = new File(path);
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+		return dir.getAbsolutePath();
+	}
+
+	public static String getDefferedConsumersPath() {
+		if(config == null){
+			config = TestConfig.get();
+		}
+		
+		String path = config.getDestinationFolder() + "/consumers";
+		File dir = new File(path);
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+		return dir.getAbsolutePath();
+	}
+
+	public static <T extends Persistable> T unserialize(Class<T> clazz, File file) throws FileNotFoundException, IOException, ClassNotFoundException {
+		ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(file));
+		@SuppressWarnings("unchecked")
+		T persistable  = (T) objectInputStream.readObject();
+		objectInputStream.close();
+		
+		return persistable;
+	}
+
+	public static void registerDefferedConsumers() {
+		File dir = new File(getDefferedConsumersPath());
+		if (!dir.exists() || dir.listFiles() == null) {
+			log.info("No deffered consumers found");
+			return;
+		}
+
+		File[] children = dir.listFiles();
+		for (File file : children) {
+			try {
+				DefferedConsumer<?> defferedEvent  = unserialize(DefferedConsumer.class, file);
+				defferedEvent.register();
+//				file.delete();
+			} catch (IOException | ClassNotFoundException e) {
+				log.error(e.getMessage(), e);
+			}
+		}
+	}
+
+	public static void consumeDefferedEvents() {
+		isConsumingDefferedEvents = true;
+		registerDefferedConsumers();
+		
+		File dir = new File(getDefferedEventsPath());
+		if (!dir.exists() || dir.listFiles() == null) {
+			log.info("No deffered events found");
+			return;
+		}
+
+		File[] children = dir.listFiles();
+		for (File file : children) {
+			try {
+				Event<?> event = unserialize(Event.class, file);
+				log.info("Raising event [" + event.getClass().getSimpleName() + "]: " + event.getTitle());
+				instance.raiseEvent(event);
+//				file.delete();
+			} catch (IOException | ClassNotFoundException e) {
+				log.error(e.getMessage(), e);
+			}
+		}
+	}
+
+	public static boolean isConsumingDefferedEvents() {
+		return isConsumingDefferedEvents ;
 	}
 }

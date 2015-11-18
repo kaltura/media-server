@@ -30,7 +30,7 @@ public abstract class Encoder extends EventsManager {
     private Process process;
 
 	class ProcessCompleteEvent extends Event<IProcessCompleteListener>{
-
+		private static final long serialVersionUID = 1929172675272850989L;
 		private int exitCode;
 		
 		public ProcessCompleteEvent(int exitCode) {
@@ -40,8 +40,13 @@ public abstract class Encoder extends EventsManager {
 		}
 
 		@Override
-		public void callListener(IProcessCompleteListener listener) {
+		protected void callListener(IProcessCompleteListener listener) {
 			listener.onProcessComplete(exitCode);
+		}
+
+		@Override
+		protected String getTitle() {
+			return null;
 		}
 	}
 	    

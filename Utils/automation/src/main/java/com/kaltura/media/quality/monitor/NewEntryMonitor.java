@@ -32,6 +32,7 @@ public class NewEntryMonitor extends Monitor {
 		super(args);
 	}
 
+	@SuppressWarnings("serial")
 	@Override
 	protected void execute() throws Exception {
 		Thread thread = Thread.currentThread();
@@ -67,6 +68,16 @@ public class NewEntryMonitor extends Monitor {
 				}
 				return 1;
 			}
+
+			@Override
+			public boolean isDeffered() {
+				return false;
+			}
+
+			@Override
+			public String getTitle() {
+				return null;
+			}
 		});
 		
 		System.out.println("### Create providers for entry - " + entry.id);					
@@ -80,8 +91,8 @@ public class NewEntryMonitor extends Monitor {
 
 		System.out.println("### Create validators for entry - " + entry.id);
 		for(DataValidator dataValidator : config.getDataValidators()){
-			Constructor<Validator> constructor = dataValidator.getType().getConstructor(KalturaLiveEntry.class, List.class);
-			constructor.newInstance(entry, providers);
+			Constructor<Validator> constructor = dataValidator.getType().getConstructor(String.class, DataValidator.class);
+			constructor.newInstance(entry.id, dataValidator);
 		}
 
 		encoder.start();

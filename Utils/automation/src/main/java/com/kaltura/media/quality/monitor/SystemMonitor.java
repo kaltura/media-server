@@ -70,8 +70,8 @@ public class SystemMonitor extends Monitor {
 
 					log.info("Create validators for entry - " + entry.id);
 					for(DataValidator dataValidator : config.getDataValidators()){
-						Constructor<Validator> constructor = dataValidator.getType().getConstructor(KalturaLiveEntry.class);
-						constructor.newInstance(entry);
+						Constructor<Validator> constructor = dataValidator.getType().getConstructor(String.class, DataValidator.class);
+						constructor.newInstance(entry.id, dataValidator);
 					}
 
 					log.info("Create loggers for entry - " + entry.id);

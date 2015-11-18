@@ -1,5 +1,6 @@
 package com.kaltura.media.quality.model;
 
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -10,7 +11,8 @@ import org.apache.log4j.Logger;
 
 import com.kaltura.media.quality.utils.StringUtils;
 
-public class Rendition implements Cloneable {
+public class Rendition implements Cloneable, Serializable {
+	private static final long serialVersionUID = -8276747625640628048L;
 	private static final Logger log = Logger.getLogger(Rendition.class);
 
 	private String entryId;

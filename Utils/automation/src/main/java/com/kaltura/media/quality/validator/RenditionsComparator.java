@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media.quality.comparators.imagemagik.ImageMagikComparator;
+import com.kaltura.media.quality.configurations.DataValidator;
 import com.kaltura.media.quality.event.Event;
 import com.kaltura.media.quality.event.EventsManager;
 import com.kaltura.media.quality.event.SegmentErrorEvent;
@@ -21,13 +21,14 @@ import com.kaltura.media.quality.utils.ThreadManager;
  * Compares between segments from different renditions by comparing the first frame 
  */
 public class RenditionsComparator extends Validator implements ISegmentsListener {
-	
+	private static final long serialVersionUID = -8200877988082291537L;
 	private static final Logger log = Logger.getLogger(RenditionsComparator.class);
 	
-	private KalturaLiveEntry entry;
+	private String uniqueId;
+	private boolean deffered;
 
 	class SegmentsResultsEvent extends Event<ISegmentsResultsListener>{
-
+		private static final long serialVersionUID = -8330040440848338116L;
 		private Segment segment1;
 		private Segment segment2;
 		private double diff;
@@ -41,8 +42,18 @@ public class RenditionsComparator extends Validator implements ISegmentsListener
 		}
 
 		@Override
-		public void callListener(ISegmentsResultsListener listener) {
-			listener.onSegmentsResult(segment1.getEntryId(), segment1.getNumber(), segment1.getRendition().getBandwidth(), segment2.getRendition().getBandwidth(), diff);
+		protected void callListener(ISegmentsResultsListener listener) {
+			listener.onSegmentsResult(segment1, segment2, diff);
+		}
+
+		@Override
+		protected String getTitle() {
+			String title = segment1.getEntryId();
+			title += "-" + segment1.getRendition().getDomainHash();
+			title += "-" + segment1.getRendition().getBandwidth();
+			title += "-" + segment1.getNumber();
+			title += "-" + segment2.getNumber();
+			return title;
 		}
 		
 	}
@@ -57,64 +68,19 @@ public class RenditionsComparator extends Validator implements ISegmentsListener
 
 		@Override
 		public void run() {
-			Segment segment1 = segments.get(0);
-			File file1 = segment1.getFile();
-			File file2;
-
-			Thread thread = Thread.currentThread();
-			thread.setPriority(Thread.MIN_PRIORITY);
-			thread.setName(getClass().getSimpleName() + "-" + file1.getAbsolutePath());
-			
-			File image1;
-			try {
-				image1 = getFirstFrameFromFile(file1);
-			} catch (Exception e) {
-				log.error(e.getMessage(), e);
-				EventsManager.get().raiseEvent(new SegmentErrorEvent(segment1, e));
-				return;
-			}
-			File image2;
-
-			String outputFolder = file1.getParent();
-			String outputName;
-			String diffPath;
-			double diff;
-			
-			// Check 1-2, 2-3, 3-4, ...
-			for(int i = 1 ; i < segments.size(); ++i) {
-				
-				if(!ThreadManager.shouldContinue()){
-					break;
-				}
-				
-				Segment segment2 = segments.get(i);
-				file2 = segment2.getFile();
-				try {
-					image2 = getFirstFrameFromFile(file2);
-				} catch (Exception e) {
-					log.error(e.getMessage(), e);
-					EventsManager.get().raiseEvent(new SegmentErrorEvent(segment2, e));
-					continue;
-				}
-				outputName = file2.getParentFile().getParentFile().getName();
-				diffPath = outputFolder + "/diff_" + segment1.getNumber() + "_" + outputName + ".jpg";
-				
-				log.info("Comparison of entry [" + entry.id + "]" + file1 + " and " + file2);
-				ImageMagikComparator imComparator = new ImageMagikComparator(diffPath);
-				diff = imComparator.compare(image1, image2);
-				EventsManager.get().raiseEvent(new SegmentsResultsEvent(segment1, segment2, diff));
-				
-				file1 = file2;
-				image1 = image2;
-			}
+			handleSegments(segments);
 		}
-		
+	}
+
+	public RenditionsComparator() {
+		super();
 	}
 	
-	public RenditionsComparator(KalturaLiveEntry entry) {
-		super();
+	public RenditionsComparator(String uniqueId, DataValidator dataValidator) {
+		this();
 		
-		this.entry = entry;
+		this.uniqueId = uniqueId;
+		this.deffered = dataValidator.getDeffered();
 		EventsManager.get().addListener(ISegmentsListener.class, this);
 	}
 	
@@ -127,11 +93,69 @@ public class RenditionsComparator extends Validator implements ISegmentsListener
 
 	@Override
 	public void onSegmentsDownloadComplete(List<Segment> segments) {
-		if(!segments.get(0).getEntryId().equals(entry.id)){
+		if(!segments.get(0).getEntryId().equals(uniqueId)){
 			return;
 		}
 
-		ThreadManager.start(new ValidationTask(segments));
+		if(!isDeffered() && !EventsManager.isConsumingDefferedEvents()){
+			ThreadManager.start(new ValidationTask(segments));
+			return;
+		}
+		
+		handleSegments(segments);
+	}
+	
+	protected void handleSegments(List<Segment> segments){
+		Segment segment1 = segments.get(0);
+		File file1 = segment1.getFile();
+		File file2;
+
+		Thread thread = Thread.currentThread();
+		thread.setPriority(Thread.MIN_PRIORITY);
+		thread.setName(getClass().getSimpleName() + "-" + file1.getAbsolutePath());
+		
+		File image1;
+		try {
+			image1 = getFirstFrameFromFile(file1);
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			EventsManager.get().raiseEvent(new SegmentErrorEvent(segment1, e));
+			return;
+		}
+		File image2;
+
+		String outputFolder = file1.getParent();
+		String outputName;
+		String diffPath;
+		double diff;
+		
+		// Check 1-2, 2-3, 3-4, ...
+		for(int i = 1 ; i < segments.size(); ++i) {
+			
+			if(!ThreadManager.shouldContinue()){
+				break;
+			}
+			
+			Segment segment2 = segments.get(i);
+			file2 = segment2.getFile();
+			try {
+				image2 = getFirstFrameFromFile(file2);
+			} catch (Exception e) {
+				log.error(e.getMessage(), e);
+				EventsManager.get().raiseEvent(new SegmentErrorEvent(segment2, e));
+				continue;
+			}
+			outputName = file2.getParentFile().getParentFile().getName();
+			diffPath = outputFolder + "/diff_" + segment1.getNumber() + "_" + outputName + ".jpg";
+			
+			log.info("Comparison of entry [" + uniqueId + "]" + file1 + " and " + file2);
+			ImageMagikComparator imComparator = new ImageMagikComparator(diffPath);
+			diff = imComparator.compare(image1, image2);
+			EventsManager.get().raiseEvent(new SegmentsResultsEvent(segment1, segment2, diff));
+			
+			file1 = file2;
+			image1 = image2;
+		}
 	}
 
 	@Override
@@ -140,5 +164,15 @@ public class RenditionsComparator extends Validator implements ISegmentsListener
 			return 0;
 		}
 		return 1;
+	}
+
+	@Override
+	public boolean isDeffered() {
+		return deffered;
+	}
+
+	@Override
+	public String getTitle() {
+		return uniqueId;
 	}
 }

@@ -11,10 +11,15 @@ import com.kaltura.media.quality.configurations.DataProvider;
  */
 public class EntryDownloader extends Downloader {
 	
+	private static final long serialVersionUID = -1330759906974242260L;
 	private KalturaLiveEntry entry;
 	
 	protected String getThreadName() {
 		return getClass().getSimpleName() + "-" + entry.id;
+	}
+	
+	public EntryDownloader(){
+		super();
 	}
 	
 	public EntryDownloader (KalturaLiveEntry entry, DataProvider providerConfig) throws URISyntaxException {

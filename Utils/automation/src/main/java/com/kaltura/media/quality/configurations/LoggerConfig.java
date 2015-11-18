@@ -8,8 +8,15 @@ public class LoggerConfig extends TypedConfig<ResultsLogger> {
     @JsonProperty("name")
 	private String name;
 
+    @JsonProperty("deffered")
+	private boolean deffered;
+
 	public String getName() {
 		return name;
+	}
+
+	public boolean getDeffered() {
+		return deffered;
 	}
 
 }

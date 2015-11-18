@@ -14,8 +14,16 @@ import com.kaltura.media.quality.provider.LoadProvider;
 
 public class LoadLogger extends ResultsLogger implements ILoadListener {
 	
+	private static final long serialVersionUID = 922935592233713119L;
+	private boolean deffered;
+
+	public LoadLogger() {
+	}
+
 	public LoadLogger(String uniqueId, LoggerConfig loggerConfig) throws IOException {
 		super(uniqueId, loggerConfig.getName());
+
+		this.deffered = loggerConfig.getDeffered();
 		
 		EventsManager.get().addListener(ILoadListener.class, this);
 		LoadProvider.init();
@@ -73,5 +81,15 @@ public class LoadLogger extends ResultsLogger implements ILoadListener {
 	@Override
 	public void onLoadResult(Date time, double loadAverage, double cpu, double physicalMemory) {
 		write(new LoadResult(time, loadAverage, cpu, physicalMemory));
+	}
+
+	@Override
+	public boolean isDeffered() {
+		return deffered;
+	}
+
+	@Override
+	public String getTitle() {
+		return uniqueId;
 	}
 }

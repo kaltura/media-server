@@ -2,6 +2,7 @@ package com.kaltura.media.quality.provider.hls;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
@@ -26,8 +27,8 @@ import com.kaltura.media.quality.utils.ThreadManager;
 /**
  * Created by asher.saban on 2/17/2015.
  */
-class RenditionDownloader extends Provider {
-
+class RenditionDownloader extends Provider implements Serializable {
+	private static final long serialVersionUID = -8749958640311821000L;
 	private static final Logger log = Logger.getLogger(RenditionDownloader.class);
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
 	private final URI url;
@@ -37,31 +38,27 @@ class RenditionDownloader extends Provider {
 	private boolean runForever = false;
 	private String tempPath;
 
-
-	class SegmentDownloadStartEvent extends Event<ISegmentListener>{
+	class SegmentDownloadCompleteEvent extends Event<ISegmentListener>{
+		private static final long serialVersionUID = 2452191648704267709L;
 		protected Segment segment;
-		
-		public SegmentDownloadStartEvent(Segment segment) {
-			super(ISegmentListener.class);
 
+		public SegmentDownloadCompleteEvent(Segment segment) {
+			super(ISegmentListener.class);
 			this.segment = segment;
 		}
 
 		@Override
-		public void callListener(ISegmentListener listener) {
-			listener.onSegmentDownloadStart(segment);
-		}
-	}
-	
-	class SegmentDownloadCompleteEvent extends SegmentDownloadStartEvent{
-		
-		public SegmentDownloadCompleteEvent(Segment segment) {
-			super(segment);
+		protected void callListener(ISegmentListener listener) {
+			listener.onSegmentDownloadComplete(segment);
 		}
 
 		@Override
-		public void callListener(ISegmentListener listener) {
-			listener.onSegmentDownloadComplete(segment);
+		protected String getTitle() {
+			String title = segment.getEntryId();
+			title += "-" + segment.getRendition().getDomainHash();
+			title += "-" + segment.getRendition().getBandwidth();
+			title += "-" + segment.getNumber();
+			return title;
 		}
 	}
 	
@@ -161,7 +158,6 @@ class RenditionDownloader extends Provider {
 					//download ts:
 					try {
 						Segment segment = new Segment(lastTsNumber, tsDuration, rendition);
-						onSegmentDownloadStart(segment);
 						ts = HttpUtils.downloadFile(url.resolve(tsName).toString(), destinationPath + "/" + tempPath + "/" + fileName);
 						segment.setFile(ts);
 						onSegmentDownloadComplete(segment);
@@ -214,9 +210,5 @@ class RenditionDownloader extends Provider {
 
 	private void onSegmentDownloadComplete(Segment segment) {
 		EventsManager.get().raiseEvent(new SegmentDownloadCompleteEvent(segment));
-	}
-
-	private void onSegmentDownloadStart(Segment segment) {
-		EventsManager.get().raiseEvent(new SegmentDownloadStartEvent(segment));
 	}
 }

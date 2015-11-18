@@ -36,6 +36,7 @@ import com.kaltura.media.quality.utils.ThreadManager;
  */
 public class Downloader extends Provider implements ISegmentListener {
 
+	private static final long serialVersionUID = 5232197354276259655L;
 	private static final Logger log = Logger.getLogger(Downloader.class);
 	private static final long MANIFEST_DOWNLOAD_TIMEOUT_SEC = 120;
 
@@ -44,14 +45,20 @@ public class Downloader extends Provider implements ISegmentListener {
 	protected String downloadDir;
 	protected URI masterPlaylistUrl;
 	private String uniqueId;
+	private boolean deffered;
 	
-	private Map<String, Integer> downloadersCount = new ConcurrentHashMap<String, Integer>();
-	private Map<String, Map<Integer, ExpectedSegment>> expectedSegments = new ConcurrentHashMap<String, Map<Integer, ExpectedSegment>>();
+	private Map<String, Integer> downloadersCount = null;
+	private transient Map<String, Map<Integer, ExpectedSegment>> expectedSegments = null;
 
-	public Downloader(String uniqueId, URI playlistUrl, DataProvider providerConfig) {
+	public Downloader(){
 		super();
+	}
+	
+	public Downloader(String uniqueId, URI playlistUrl, DataProvider providerConfig) {
+		this();
 		
 		this.uniqueId = uniqueId;
+		this.deffered = (boolean) providerConfig.getOtherProperty("deffered");
 		this.masterPlaylistUrl = playlistUrl;
 		this.downloadDir = config.getDestinationFolder() + "/" + uniqueId;
 
@@ -71,16 +78,11 @@ public class Downloader extends Provider implements ISegmentListener {
 	class ExpectedSegment{
 
 		private String domainHash;
-		private int expected = 0;
 		private List<Segment> segments = new ArrayList<Segment>();
 		private long created = System.currentTimeMillis();
 		
 		public ExpectedSegment(String domainHash){
 			this.domainHash = domainHash;
-		}
-
-		public void increment() {
-			expected ++;			
 		}
 
 		public void addSegment(Segment segment) {
@@ -89,7 +91,7 @@ public class Downloader extends Provider implements ISegmentListener {
 
 		public boolean complete() {
 			int compeleted = segments.size();
-			return compeleted >= expected && downloadersCount.containsKey(domainHash) && compeleted >= downloadersCount.get(domainHash);
+			return downloadersCount.containsKey(domainHash) && compeleted >= downloadersCount.get(domainHash);
 		}
 
 		public List<Segment> getSegments() {
@@ -164,6 +166,8 @@ public class Downloader extends Provider implements ISegmentListener {
 	}
 
 	public void downloadFiles() throws Exception {
+		downloadersCount = new ConcurrentHashMap<String, Integer>();
+		
 		// get playlist data:
 		String masterPlaylistData = getPlaylistData();
 
@@ -212,6 +216,7 @@ public class Downloader extends Provider implements ISegmentListener {
 			domainDownloadersCount = 1;
 			if(downloadersCount.containsKey(domainHash)){
 				domainDownloadersCount = downloadersCount.get(domainHash);
+				domainDownloadersCount +=1;
 			}
 			downloadersCount.put(domainHash, domainDownloadersCount);
 			
@@ -260,14 +265,18 @@ public class Downloader extends Provider implements ISegmentListener {
 	}
 	
 	@Override
-	public void onSegmentDownloadStart(Segment segment) {
+	public void onSegmentDownloadComplete(Segment segment) {
 		if(!segment.getEntryId().equals(uniqueId)){
 			return;
 		}
 		
-		Map<Integer, ExpectedSegment> domainExpectedSegment;
-		String domainHash = segment.getRendition().getDomainHash();
+		if(expectedSegments == null){
+			expectedSegments = new ConcurrentHashMap<String, Map<Integer, ExpectedSegment>>();
+		}
 		
+		String domainHash = segment.getRendition().getDomainHash();
+
+		Map<Integer, ExpectedSegment> domainExpectedSegment;
 		if(expectedSegments.containsKey(domainHash)){
 			domainExpectedSegment = expectedSegments.get(domainHash);
 		}
@@ -275,34 +284,15 @@ public class Downloader extends Provider implements ISegmentListener {
 			domainExpectedSegment = new ConcurrentHashMap<Integer, ExpectedSegment>();
 			expectedSegments.put(domainHash, domainExpectedSegment);
 		}
-		
+
+		ExpectedSegment expectedSegment;
 		if(domainExpectedSegment.containsKey(segment.getNumber())){
-			ExpectedSegment expectedSegment = domainExpectedSegment.get(segment.getNumber());
-			expectedSegment.increment();
+			expectedSegment = domainExpectedSegment.get(segment.getNumber());
 		}
 		else{
-			domainExpectedSegment.put(segment.getNumber(), new ExpectedSegment(domainHash));
+			expectedSegment = new ExpectedSegment(domainHash);
+			domainExpectedSegment.put(segment.getNumber(), expectedSegment);
 		}
-	}
-	
-	@Override
-	public void onSegmentDownloadComplete(Segment segment) {
-		if(!segment.getEntryId().equals(uniqueId)){
-			return;
-		}
-		
-		String domainHash = segment.getRendition().getDomainHash();
-		
-		if(!expectedSegments.containsKey(domainHash)){
-			return;
-		}
-		
-		Map<Integer, ExpectedSegment> domainExpectedSegment = expectedSegments.get(domainHash);
-		if(!domainExpectedSegment.containsKey(segment.getNumber())){
-			return;
-		}
-
-		ExpectedSegment expectedSegment = domainExpectedSegment.get(segment.getNumber());
 		expectedSegment.addSegment(segment);
 		
 		if(expectedSegment.complete()){
@@ -327,6 +317,7 @@ public class Downloader extends Provider implements ISegmentListener {
 	}
 
 	class SegmentsDownloadCompleteEvent extends Event<ISegmentsListener>{
+		private static final long serialVersionUID = 8289169486072160080L;
 		private List<Segment> segments;
 		
 		public SegmentsDownloadCompleteEvent(List<Segment> segments) {
@@ -336,10 +327,19 @@ public class Downloader extends Provider implements ISegmentListener {
 		}
 
 		@Override
-		public void callListener(ISegmentsListener listener) {
+		protected void callListener(ISegmentsListener listener) {
 			listener.onSegmentsDownloadComplete(segments);
 		}
-		
+
+		@Override
+		protected String getTitle() {
+			Segment segment = segments.get(0);
+			String title = uniqueId;
+			title += "-" + segment.getRendition().getDomainHash();
+			title += "-" + segment.getRendition().getBandwidth();
+			title += "-" + segment.getNumber();
+			return title;
+		}
 	}
 	
 	protected void onSegmentsDownloadComplete(List<Segment> segments) {
@@ -352,5 +352,15 @@ public class Downloader extends Provider implements ISegmentListener {
 			return 0;
 		}
 		return 1;
+	}
+
+	@Override
+	public boolean isDeffered() {
+		return deffered;
+	}
+
+	@Override
+	public String getTitle() {
+		return uniqueId;
 	}
 }

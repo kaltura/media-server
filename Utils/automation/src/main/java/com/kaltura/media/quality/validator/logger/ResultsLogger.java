@@ -3,17 +3,20 @@ package com.kaltura.media.quality.validator.logger;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.apache.log4j.Logger;
 
 import com.kaltura.media.quality.configurations.TestConfig;
 import com.kaltura.media.quality.utils.StringUtils;
 
-public class ResultsLogger {
-    private static final Logger log = Logger.getLogger(ResultsLogger.class);
+public class ResultsLogger implements Serializable {
+	private static final long serialVersionUID = 63616128469985999L;
+	private static final Logger log = Logger.getLogger(ResultsLogger.class);
 
-	private FileWriter writer;
+	private transient FileWriter writer = null;
 	protected String uniqueId;
+	protected String name;
 
 	private int count;
 	
@@ -35,11 +38,12 @@ public class ResultsLogger {
 	
 	public ResultsLogger(String uniqueId, String name) throws IOException{
 		this.uniqueId = uniqueId;
-		
-		writer = new FileWriter(getFilepath(name));
-		Runtime.getRuntime().addShutdownHook(new Close());
+		this.name = name;
 	}
 	
+	public ResultsLogger() {
+	}
+
 	protected String getFilepath(String name) {
 		TestConfig config = TestConfig.get();
 		File dir = new File(config.getDestinationFolder() + "/" + uniqueId + "/logs");
@@ -51,6 +55,16 @@ public class ResultsLogger {
 	}
 	
 	protected void write(IResult result){
+		if(writer == null){
+			try {
+				writer = new FileWriter(getFilepath(name));
+			} catch (IOException e) {
+				log.error(e.getMessage(), e);
+				return;
+			}
+			Runtime.getRuntime().addShutdownHook(new Close());
+		}
+		
 		if(count == 0){
 			String line = "\"" + StringUtils.join(result.getHeaders(), "\",\"") + "\"\n";
 			try {
@@ -63,6 +77,7 @@ public class ResultsLogger {
 		String line = "\"" + StringUtils.join(result.getValues(), "\",\"") + "\"\n";
 		try {
 			writer.write(line);
+			writer.flush();
 			count++;
 		} catch (IOException e) {
 			log.error(e.getMessage(), e);

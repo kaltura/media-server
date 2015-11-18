@@ -432,13 +432,13 @@ public class FFPROBE extends MediaInfoBase {
 		private int streamIndex;
 	
 		@JsonProperty("pts")
-		private int pts;
+		private long pts;
 	
 		@JsonProperty("pts_time")
 		private double ptsTime;
 	
 		@JsonProperty("dts")
-		private int dts;
+		private long dts;
 	
 		@JsonProperty("dts_time")
 		private double dtsTime;
@@ -471,7 +471,7 @@ public class FFPROBE extends MediaInfoBase {
 			return streamIndex;
 		}
 	
-		public int getPts() {
+		public long getPts() {
 			return pts;
 		}
 	
@@ -479,7 +479,7 @@ public class FFPROBE extends MediaInfoBase {
 			return ptsTime;
 		}
 	
-		public int getDts() {
+		public long getDts() {
 			return dts;
 		}
 	

@@ -1,10 +1,11 @@
 package com.kaltura.media.quality.model;
 
 import java.io.File;
+import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
 
-public class Segment {
-
+public class Segment implements Serializable {
+	private static final long serialVersionUID = -320621756591515403L;
 	private int number;
 	private double duration;
 	private Rendition rendition;

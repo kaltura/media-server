@@ -18,6 +18,7 @@ public class LoadProvider extends Provider {
 
 	class LoadStatusEvent extends Event<ILoadListener>{
 
+		private static final long serialVersionUID = -4372120611277234264L;
 		private Date time;
 		private double loadAverage;
 		private double cpu;
@@ -33,8 +34,13 @@ public class LoadProvider extends Provider {
 		}
 
 		@Override
-		public void callListener(ILoadListener listener) {
+		protected void callListener(ILoadListener listener) {
 			listener.onLoadResult(time, loadAverage, cpu, physicalMemory);
+		}
+
+		@Override
+		protected String getTitle() {
+			return "" + time;
 		}
 	}
 	

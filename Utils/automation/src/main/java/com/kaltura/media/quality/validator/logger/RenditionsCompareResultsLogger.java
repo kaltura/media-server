@@ -6,33 +6,40 @@ import com.kaltura.media.quality.configurations.LoggerConfig;
 import com.kaltura.media.quality.event.EventsManager;
 import com.kaltura.media.quality.event.listener.IListener;
 import com.kaltura.media.quality.event.listener.ISegmentsResultsListener;
+import com.kaltura.media.quality.model.Segment;
 
 public class RenditionsCompareResultsLogger extends ResultsLogger implements ISegmentsResultsListener {
+	private static final long serialVersionUID = -8745677651202237364L;
+	private boolean deffered;
+
+	public RenditionsCompareResultsLogger() {
+		super();
+	}
 
 	public RenditionsCompareResultsLogger(String uniqueId, LoggerConfig loggerConfig) throws IOException {
 		super(uniqueId, loggerConfig.getName());
+		this.deffered = loggerConfig.getDeffered();
 		EventsManager.get().addListener(ISegmentsResultsListener.class, this);
 	}
 
 	class RenditionsCompareResult implements IResult{
-		private int segmentNumber;
-		private int bitrate1;
-		private int bitrate2;
+		private Segment segment1;
+		private Segment segment2;
 		private double diff;
 		
-		public RenditionsCompareResult(int segmentNumber, int bitrate1, int bitrate2, double diff) {
-			this.segmentNumber = segmentNumber;
-			this.bitrate1 = bitrate1;
-			this.bitrate2 = bitrate2;
+		public RenditionsCompareResult(Segment segment1, Segment segment2, double diff) {
+			this.segment1 = segment1;
+			this.segment2 = segment2;
 			this.diff = diff;
 		}
 
 		@Override
 		public Object[] getValues(){
 			return new Object[]{
-				segmentNumber,
-				bitrate1,
-				bitrate2,
+				segment1.getNumber(),
+				segment1.getRendition().getDomain(),
+				segment1.getRendition().getBandwidth(),
+				segment2.getRendition().getBandwidth(),
 				diff
 			};
 		}
@@ -40,11 +47,12 @@ public class RenditionsCompareResultsLogger extends ResultsLogger implements ISe
 		@Override
 		public String[] getHeaders() {
 			return new String[]{
-					"Segment Number",
-					"Bitrate 1",
-					"Bitrate 2",
-					"Diff"
-				};
+				"Segment Number",
+				"Domain",
+				"Bitrate 1",
+				"Bitrate 2",
+				"Diff"
+			};
 		}
 	}
 	
@@ -62,12 +70,22 @@ public class RenditionsCompareResultsLogger extends ResultsLogger implements ISe
 	}
 
 	@Override
-	public void onSegmentsResult(String entryId, int segmentNumber, int bitrate1, int bitrate2, double diff) {
-		if(!entryId.equals(uniqueId)){
+	public void onSegmentsResult(Segment segment1, Segment segment2, double diff) {
+		if(!segment1.getEntryId().equals(uniqueId)){
 			return;
 		}
 
-		RenditionsCompareResult result = new RenditionsCompareResult(segmentNumber, bitrate1, bitrate2, diff);
+		RenditionsCompareResult result = new RenditionsCompareResult(segment1, segment2, diff);
 		write(result);
+	}
+
+	@Override
+	public boolean isDeffered() {
+		return deffered;
+	}
+
+	@Override
+	public String getTitle() {
+		return uniqueId;
 	}
 }

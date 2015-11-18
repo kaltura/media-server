@@ -15,10 +15,16 @@ import com.kaltura.media.quality.validator.info.MediaInfo;
 import com.kaltura.media.quality.validator.info.MediaInfoBase.Info;
 
 public class MediaInfoResultsLogger extends ResultsLogger implements ISegmentInfoListener {
-    private static final Logger log = Logger.getLogger(MediaInfoResultsLogger.class);
+	private static final long serialVersionUID = -7063472147760417311L;
+	private static final Logger log = Logger.getLogger(MediaInfoResultsLogger.class);
+	private boolean deffered;
 
+	public MediaInfoResultsLogger(){
+	}
+	
 	public MediaInfoResultsLogger(String uniqueId, LoggerConfig loggerConfig) throws IOException {
 		super(uniqueId, loggerConfig.getName());
+		this.deffered = loggerConfig.getDeffered();	
 		EventsManager.get().addListener(ISegmentInfoListener.class, this);
 	}
 
@@ -170,5 +176,15 @@ public class MediaInfoResultsLogger extends ResultsLogger implements ISegmentInf
 			log.error("Error on segment file [" + segment.getFile().getAbsolutePath() + "]:" + e.getMessage(), e);
 			return;
 		}
+	}
+
+	@Override
+	public boolean isDeffered() {
+		return deffered;
+	}
+
+	@Override
+	public String getTitle() {
+		return uniqueId;
 	}
 }

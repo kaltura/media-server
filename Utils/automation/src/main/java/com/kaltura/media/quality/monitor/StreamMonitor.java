@@ -29,6 +29,7 @@ public class StreamMonitor extends Monitor {
 		super(args);
 	}
 
+	@SuppressWarnings("serial")
 	@Override
 	protected void execute() throws Exception {
 		Thread thread = Thread.currentThread();
@@ -57,6 +58,16 @@ public class StreamMonitor extends Monitor {
 				}
 				return 1;
 			}
+
+			@Override
+			public boolean isDeffered() {
+				return false;
+			}
+
+			@Override
+			public String getTitle() {
+				return null;
+			}
 		});
 		
 		System.out.println("### Create providers for stream - " + uniqueId);					
@@ -70,8 +81,8 @@ public class StreamMonitor extends Monitor {
 
 		System.out.println("### Create validators for stream - " + uniqueId);
 		for(DataValidator dataValidator : config.getDataValidators()){
-			Constructor<Validator> constructor = dataValidator.getType().getConstructor(String.class, List.class);
-			constructor.newInstance(uniqueId, providers);
+			Constructor<Validator> constructor = dataValidator.getType().getConstructor(String.class, DataValidator.class);
+			constructor.newInstance(uniqueId, dataValidator);
 		}
 
 		encoder.start();
