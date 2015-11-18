@@ -1,21 +1,46 @@
 package com.kaltura.media.quality.validator.info;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.openamf.AMFHeader;
+import org.openamf.AMFMessage;
+import org.openamf.io.AMFDeserializer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kaltura.media.quality.configurations.TestConfig;
 import com.kaltura.media.quality.utils.ThreadManager;
+import com.wowza.wms.amf.AMF3Utils;
+import com.wowza.wms.amf.AMFDataContextDeserialize;
+import com.wowza.wms.amf.AMFDataObj;
+import com.wowza.wms.amf.AMFPacket;
 
 public class FFPROBE extends MediaInfoBase {
+    private static final Logger log = Logger.getLogger(FFPROBE.class);
 
 	private String ffprobePath = null;
 
@@ -415,12 +440,175 @@ public class FFPROBE extends MediaInfoBase {
 			return probeScore;
 		}
 	}
+	
+	public static class PacketInfo{
+		@JsonProperty("codec_type")
+		private String codecType;
+	
+		@JsonProperty("stream_index")
+		private int streamIndex;
+	
+		@JsonProperty("pts")
+		private int pts;
+	
+		@JsonProperty("pts_time")
+		private double ptsTime;
+	
+		@JsonProperty("dts")
+		private int dts;
+	
+		@JsonProperty("dts_time")
+		private double dtsTime;
+	
+		@JsonProperty("duration")
+		private int duration;
+	
+		@JsonProperty("duration_time")
+		private double durationTime;
+	
+		@JsonProperty("size")
+		private int size;
+	
+		@JsonProperty("pos")
+		private int pos;
+	
+		@JsonProperty("flags")
+		private String flags;
+
+		@JsonProperty("data")
+		private String data;
+
+		private SyncPoint syncPoint;
+	
+		public String getCodecType() {
+			return codecType;
+		}
+	
+		public int getStreamIndex() {
+			return streamIndex;
+		}
+	
+		public int getPts() {
+			return pts;
+		}
+	
+		public double getPtsTime() {
+			return ptsTime;
+		}
+	
+		public int getDts() {
+			return dts;
+		}
+	
+		public double getDtsTime() {
+			return dtsTime;
+		}
+	
+		public int getDuration() {
+			return duration;
+		}
+	
+		public double getDurationTime() {
+			return durationTime;
+		}
+	
+		public int getSize() {
+			return size;
+		}
+	
+		public int getPos() {
+			return pos;
+		}
+	
+		public String getFlags() {
+			return flags;
+		}
+
+		public String getData() {
+			return data;
+		}
+
+		public void setData(String data) throws JsonParseException, JsonMappingException, IOException {
+			this.data = data;
+			
+			if(codecType == null || !codecType.equals("data")){
+				return;
+			}
+			
+			String str = "";
+			BigInteger bigInteger;
+			String[] bytes;
+			String[] lines = data.split("\n");
+			for(String line : lines){
+				if(line.length() > 0){
+					bytes = line.split(" ");
+					for(int index = 1; index <= 8; index++){
+						if(bytes[index].length() > 0){
+							bigInteger = new BigInteger(bytes[index].substring(0, 2), 16);
+							str += Character.toString ((char) bigInteger.byteValue());
+						}
+						if(bytes[index].length() > 2){
+							bigInteger = new BigInteger(bytes[index].substring(2, 4), 16);
+							str += Character.toString ((char) bigInteger.byteValue());
+						}
+					}
+				}
+			}
+
+			if(str.length() != size){
+				log.error("Unexpected size");
+				return;
+			}
+			
+			ByteArrayInputStream buffer = new ByteArrayInputStream(str.getBytes());
+			buffer.skip(5); // header size
+
+			byte[] abyte = new byte[4];
+			buffer.read(abyte, 0, 4);
+			String headerType = new String(abyte);
+			log.debug("Header type: " + headerType);
+			if(!headerType.equals("TEXT")){
+				return;
+			}
+				
+			buffer.skip(7); // size and encoding
+			
+			byte[] bbyte = new byte[buffer.available() - 1];
+			buffer.read(bbyte, 0, buffer.available() - 1);
+			String json = new String(bbyte);
+			log.debug("JSON: " + json);
+			
+	        ObjectMapper mapper = new ObjectMapper();
+	        this.syncPoint = mapper.readValue(json, SyncPoint.class);
+		}
+		
+		public SyncPoint getSyncPoint() {
+			return syncPoint;
+		}
+	}
+		
+	public static class SyncPoint{
+	    @JsonProperty("id")
+	    private String id;
+
+	    @JsonProperty("timestamp")
+	    private long timestamp;
+
+	    @JsonProperty("offset")
+	    private long offset;
+
+	    @JsonProperty("objectType")
+	    private String objectType;
+	}
 		
 	public static class FFPROBEInfo extends MediaInfoBase.Info{
 
 		public FFPROBEInfo(){
 			
 		}
+		
+	    @JsonProperty("packets")
+	    private List<PacketInfo> packets = new ArrayList<PacketInfo>();
 		
 	    @JsonProperty("streams")
 	    private List<IStreamInfo> streams = new ArrayList<IStreamInfo>();
@@ -461,6 +649,10 @@ public class FFPROBE extends MediaInfoBase {
 		public FormatInfo getFormat() {
 			return format;
 		}
+
+		public List<PacketInfo> getPackets() {
+			return packets;
+		}
 	}
 	
 	public FFPROBE(File file) throws Exception{
@@ -476,6 +668,8 @@ public class FFPROBE extends MediaInfoBase {
 			"json", 
 			"-show_format", 
 			"-show_streams", 
+			"-show_data", 
+			"-show_packets", 
 			file.getAbsolutePath()
 		};
 	}
@@ -501,9 +695,14 @@ public class FFPROBE extends MediaInfoBase {
 		TestConfig.init(new String[]{});
 		File file = new File(args[0]);
 		MediaInfoBase ffprobe = new FFPROBE(file);
-		MediaInfoBase.Info info = ffprobe.getInfo();
-		System.out.println(info);
+		FFPROBE.FFPROBEInfo info = (FFPROBEInfo) ffprobe.getInfo();
+		for(PacketInfo packet : info.getPackets()){
+			if(packet.getCodecType().equals("data")){
+				SyncPoint syncPoint = packet.getSyncPoint();
+				System.out.println(syncPoint);
+			}
+		}
+		
 		ThreadManager.stop();
-		ThreadManager.printAllThreads();
 	}
 }
