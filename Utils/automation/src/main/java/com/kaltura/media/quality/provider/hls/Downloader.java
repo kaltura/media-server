@@ -45,7 +45,7 @@ public class Downloader extends Provider implements ISegmentListener {
 	protected String downloadDir;
 	protected URI masterPlaylistUrl;
 	private String uniqueId;
-	private boolean deffered;
+	private boolean deffered = false;;
 	
 	private Map<String, Integer> downloadersCount = null;
 	private transient Map<String, Map<Integer, ExpectedSegment>> expectedSegments = null;
@@ -58,7 +58,9 @@ public class Downloader extends Provider implements ISegmentListener {
 		this();
 		
 		this.uniqueId = uniqueId;
-		this.deffered = (boolean) providerConfig.getOtherProperty("deffered");
+		if(providerConfig.hasOtherProperty("deffered")){
+			this.deffered = (boolean) providerConfig.getOtherProperty("deffered");
+		}
 		this.masterPlaylistUrl = playlistUrl;
 		this.downloadDir = config.getDestinationFolder() + "/" + uniqueId;
 
@@ -72,6 +74,11 @@ public class Downloader extends Provider implements ISegmentListener {
 			}
 		}
 		
+		register();
+	}
+
+	@Override
+	public void register() {
 		EventsManager.get().addListener(ISegmentListener.class, this);
 	}
 
@@ -99,6 +106,9 @@ public class Downloader extends Provider implements ISegmentListener {
 		}
 
 		public boolean expired() {
+			if(deffered){
+				return false;
+			}
 			return System.currentTimeMillis() > (created + (1000 * 600));
 		}
 		

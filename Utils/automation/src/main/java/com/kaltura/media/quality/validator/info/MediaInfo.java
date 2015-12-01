@@ -1,7 +1,11 @@
 package com.kaltura.media.quality.validator.info;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -15,10 +19,13 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.log4j.Logger;
+
 import com.kaltura.media.quality.configurations.TestConfig;
 import com.kaltura.media.quality.utils.ThreadManager;
 
 public class MediaInfo extends MediaInfoBase {
+	private static final Logger log = Logger.getLogger(MediaInfo.class);
 
 	private String mediaInfoPath = null;
 
@@ -875,7 +882,16 @@ public class MediaInfo extends MediaInfoBase {
 		if (mediaInfoPath == null) {
 			mediaInfoPath = TestConfig.get().getPathToMediaInfo();
 		}
-		return mediaInfoPath;
+		
+		Path path = Paths.get(mediaInfoPath);
+		if(Files.isSymbolicLink(path)){
+			try {
+				path = Files.readSymbolicLink(path);
+			} catch (IOException e) {
+				log.error(e.getMessage(), e);
+			}
+		}
+		return path.toString();
 	}
 
 	protected static double strToSeconds(String str) {

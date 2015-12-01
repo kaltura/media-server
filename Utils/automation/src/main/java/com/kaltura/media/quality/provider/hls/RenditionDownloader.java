@@ -17,6 +17,7 @@ import org.apache.log4j.Logger;
 
 import com.kaltura.media.quality.event.Event;
 import com.kaltura.media.quality.event.EventsManager;
+import com.kaltura.media.quality.event.listener.IListener;
 import com.kaltura.media.quality.event.listener.ISegmentListener;
 import com.kaltura.media.quality.model.Rendition;
 import com.kaltura.media.quality.model.Segment;
@@ -210,5 +211,29 @@ class RenditionDownloader extends Provider implements Serializable {
 
 	private void onSegmentDownloadComplete(Segment segment) {
 		EventsManager.get().raiseEvent(new SegmentDownloadCompleteEvent(segment));
+	}
+
+	@Override
+	public boolean isDeffered() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public int compareTo(IListener o) {
+		if(o == this){
+			return 0;
+		}
+		
+		return 1;
+	}
+
+	@Override
+	public void register() {
+	}
+
+	@Override
+	public String getTitle() {
+		return this.url.toString();
 	}
 }

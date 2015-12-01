@@ -4,12 +4,12 @@
   "partner-id": 1676801,
   "admin-secret": "5f8b98c59d2f4904ab9a1c2054d79055",
   "stream-type": "hls",
-  "path-to-ffmpeg": "C:/Program Files/ImageMagick-6.9.2-Q16/ffmpeg.exe",
-  "path-to-ffprobe": "C:/opt/kaltura/bin/ffmpeg/bin/ffprobe.exe",
-  "path-to-mediainfo" : "C:/opt/kaltura/bin/mediainfo/MediaInfo.exe",
+  "path-to-ffmpeg": "/opt/kaltura/bin/ffmpeg",
+  "path-to-ffprobe": "/opt/kaltura/bin/ffprobe",
+  "path-to-mediainfo" : "/opt/kaltura/bin/mediainfo",
   "encoder": {
     "type": "com.kaltura.media.quality.encoder.FFMPEG",
-    "path-to-executable": "C:/Program Files/ImageMagick-6.9.2-Q16/ffmpeg.exe",
+    "path-to-executable": "/opt/kaltura/bin/ffmpeg",
     "args": "-y -f dshow -i video=\"Kaltura Virtual Camera\" -f dshow -i audio=\"Kaltura Virtual Microphone\"",
     "outputs" : [{
     	"type": "com.kaltura.media.quality.encoder.output.Record",
@@ -40,8 +40,8 @@
         "audio-bitrate": 96
     }]
   },
-  "test-duration": 300,
-  "destination-folder": "C:/Temp/test",
+  "test-duration": 15,
+  "destination-folder": "/tmp/test",
   "delete-files": false,
   "entry-details": {
     "entry-name": "auto_test",
@@ -51,23 +51,36 @@
     // , "conversion-profile-id": @CONVERSION_PROFILE_ID@
   },
   "data-providers" : [{
-	  "type" : "com.kaltura.media.quality.provider.hls.EntryDownloader"
+	  "type" : "com.kaltura.media.quality.provider.hls.EntryDownloader",
+	  "deffered": true
   }, {
 	  "type" : "com.kaltura.media.quality.provider.MediaInfoParser",
+	  "deffered": true,
 	  "mediaParsers" : [
 	      "com.kaltura.media.quality.validator.info.FFPROBE",
 	      "com.kaltura.media.quality.validator.info.MediaInfo"
 	  ]
   }],
   "data-validators" : [{
-	  "type" : "com.kaltura.media.quality.validator.RenditionsComparator"
+	  "type" : "com.kaltura.media.quality.validator.RenditionsComparator",
+	  "deffered": true
+  },
+  {
+	  "type" : "com.kaltura.media.quality.validator.QRCodeComparator",
+	  "deffered": true
   }],
   "result-loggers" : [{
 	  "type" : "com.kaltura.media.quality.validator.logger.RenditionsCompareResultsLogger",
-	  "name" : "renditions.compare"
+	  "name" : "renditions.compare",
+	  "deffered": true
   }, {
 	  "type" : "com.kaltura.media.quality.validator.logger.MediaInfoResultsLogger",
-	  "name" : "segments.info"
+	  "name" : "segments.info",
+	  "deffered": true
+  }, {
+	  "type" : "com.kaltura.media.quality.validator.logger.QRCodeCompareResultsLogger",
+	  "name" : "qr.code.info",
+	  "deffered": true
   }],
   "sync-entries": ["1_oorxcge2"]
 }

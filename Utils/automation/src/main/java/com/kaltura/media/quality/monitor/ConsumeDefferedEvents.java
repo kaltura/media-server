@@ -22,8 +22,8 @@ public class ConsumeDefferedEvents extends Monitor {
 		Thread thread = Thread.currentThread();
 		thread.setPriority(Thread.MIN_PRIORITY);
 		thread.setName("main");
-		
+
+		ThreadManager.runForever();
 		EventsManager.consumeDefferedEvents();
-		ThreadManager.printAllThreads();
 	}
 }

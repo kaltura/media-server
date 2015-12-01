@@ -43,13 +43,21 @@ public class MediaInfoParser extends Provider implements ISegmentListener {
 		super();
 
 		this.uniqueId = uniqueId;	
-		this.mediaParsers = (List<String>) providerConfig.getOtherProperty("mediaParsers");	
-		this.deffered = (boolean) providerConfig.getOtherProperty("deffered");	
-		EventsManager.get().addListener(ISegmentListener.class, this);
+		this.mediaParsers = (List<String>) providerConfig.getOtherProperty("mediaParsers");
+		if(providerConfig.hasOtherProperty("deffered")){
+			this.deffered = (boolean) providerConfig.getOtherProperty("deffered");
+		}	
+		
+		register();
 	}
 
 	public MediaInfoParser (KalturaLiveEntry entry, DataProvider providerConfig) {
 		this(entry.id, providerConfig);
+	}
+
+	@Override
+	public void register() {
+		EventsManager.get().addListener(ISegmentListener.class, this);
 	}
 
 	class SegmentInfoEvent extends Event<ISegmentInfoListener>{

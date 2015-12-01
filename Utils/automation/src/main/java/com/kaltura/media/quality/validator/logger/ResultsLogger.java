@@ -8,9 +8,10 @@ import java.io.Serializable;
 import org.apache.log4j.Logger;
 
 import com.kaltura.media.quality.configurations.TestConfig;
+import com.kaltura.media.quality.event.listener.Listener;
 import com.kaltura.media.quality.utils.StringUtils;
 
-public class ResultsLogger implements Serializable {
+abstract public class ResultsLogger extends Listener implements Serializable {
 	private static final long serialVersionUID = 63616128469985999L;
 	private static final Logger log = Logger.getLogger(ResultsLogger.class);
 

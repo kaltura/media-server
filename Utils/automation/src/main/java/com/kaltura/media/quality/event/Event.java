@@ -42,7 +42,7 @@ public abstract class Event<T extends IListener> extends Persistable {
 
 	@Override
 	protected String getExtension() {
-		return "event";
+		return getClass().getSimpleName() + ".event";
 	}
     
 }

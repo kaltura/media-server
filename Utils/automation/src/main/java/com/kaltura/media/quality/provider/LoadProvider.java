@@ -7,6 +7,7 @@ import sun.management.ManagementFactoryHelper;
 
 import com.kaltura.media.quality.event.Event;
 import com.kaltura.media.quality.event.EventsManager;
+import com.kaltura.media.quality.event.listener.IListener;
 import com.kaltura.media.quality.event.listener.ILoadListener;
 import com.kaltura.media.quality.utils.ThreadManager;
 import com.sun.management.OperatingSystemMXBean;
@@ -14,6 +15,7 @@ import com.sun.management.OperatingSystemMXBean;
 
 public class LoadProvider extends Provider {
 
+	private static final long serialVersionUID = -2514958859459044247L;
 	private static LoadProvider instance = null;
 
 	class LoadStatusEvent extends Event<ILoadListener>{
@@ -74,6 +76,29 @@ public class LoadProvider extends Provider {
 			instance = new LoadProvider();
 			ThreadManager.start(instance);
 		}
+	}
+
+	@Override
+	public boolean isDeffered() {
+		return false;
+	}
+
+	@Override
+	public int compareTo(IListener o) {
+		if(o == this){
+			return 0;
+		}
+		
+		return 1;
+	}
+
+	@Override
+	public void register() {
+	}
+
+	@Override
+	public String getTitle() {
+		return null;
 	}
 
 }

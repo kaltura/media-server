@@ -25,8 +25,13 @@ public class LoadLogger extends ResultsLogger implements ILoadListener {
 
 		this.deffered = loggerConfig.getDeffered();
 		
-		EventsManager.get().addListener(ILoadListener.class, this);
+		register();
 		LoadProvider.init();
+	}
+
+	@Override
+	public void register() {
+		EventsManager.get().addListener(ILoadListener.class, this);
 	}
 
 	class LoadResult implements IResult{

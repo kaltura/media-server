@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -14,6 +15,7 @@ import org.apache.log4j.Logger;
 
 import com.kaltura.media.quality.configurations.TestConfig;
 import com.kaltura.media.quality.event.listener.IListener;
+import com.kaltura.media.quality.event.listener.Listener;
 
 public class EventsManager {
 	private static final Logger log = Logger.getLogger(EventsManager.class);
@@ -34,47 +36,16 @@ public class EventsManager {
 	class RegisterConsumers extends Thread{
 		@Override
 		public void run(){
+			Set<IListener> deffered = new TreeSet<IListener>();
 			for(Class<? extends IListener> clazz : listeners.keySet()){
 				Set<? extends IListener> set = listeners.get(clazz);
 				for(IListener listener : set){
-					if(listener.isDeffered()){
-						@SuppressWarnings({ "unchecked", "rawtypes" })
-						DefferedConsumer<?> defferedConsumer = new DefferedConsumer(clazz, listener);
-						defferedConsumer.save();
+					if(!isConsumingDefferedEvents && listener.isDeffered() && listener instanceof Listener && !deffered.contains(listener)){
+						deffered.add(listener);
+						((Listener) listener).save();
 					}
 				}
 			}
-		}
-	}
-	
-	public static class DefferedConsumer <T extends IListener> extends Persistable{
-		private static final long serialVersionUID = -1999891514822443915L;
-		private Class<T> clazz;
-		private T listener;
-
-		public DefferedConsumer(Class<T> clazz, T listener) {
-			this.clazz = clazz;
-			this.listener = listener;
-		}
-
-		@Override
-		protected String getPath() {
-			return getDefferedConsumersPath();
-		}
-
-		public void register() {
-			log.info("Registering listener [" + listener.getClass().getSimpleName() + "]: " + getTitle());
-			instance.addListener(clazz, listener);
-		}
-
-		@Override
-		protected String getExtension() {
-			return "listener";
-		}
-
-		@Override
-		protected String getTitle() {
-			return listener.getTitle();
 		}
 	}
 	
@@ -166,9 +137,9 @@ public class EventsManager {
 		File[] children = dir.listFiles();
 		for (File file : children) {
 			try {
-				DefferedConsumer<?> defferedEvent  = unserialize(DefferedConsumer.class, file);
-				defferedEvent.register();
-//				file.delete();
+				Listener defferedConsumer = unserialize(Listener.class, file);
+				defferedConsumer.register();
+				file.delete();
 			} catch (IOException | ClassNotFoundException e) {
 				log.error(e.getMessage(), e);
 			}
@@ -191,7 +162,7 @@ public class EventsManager {
 				Event<?> event = unserialize(Event.class, file);
 				log.info("Raising event [" + event.getClass().getSimpleName() + "]: " + event.getTitle());
 				instance.raiseEvent(event);
-//				file.delete();
+				file.delete();
 			} catch (IOException | ClassNotFoundException e) {
 				log.error(e.getMessage(), e);
 			}

@@ -6,8 +6,10 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
 import com.kaltura.media.quality.configurations.TestConfig;
+import com.kaltura.media.quality.event.listener.Listener;
 
-public abstract class Validator {
+public abstract class Validator extends Listener {
+	private static final long serialVersionUID = -3046459693888687294L;
 	private static List<ValidatorTask> openTasks = new ArrayList<ValidatorTask>();
 
 	protected static TestConfig config;

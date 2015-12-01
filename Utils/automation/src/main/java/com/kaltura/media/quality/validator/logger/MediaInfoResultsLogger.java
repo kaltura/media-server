@@ -25,6 +25,12 @@ public class MediaInfoResultsLogger extends ResultsLogger implements ISegmentInf
 	public MediaInfoResultsLogger(String uniqueId, LoggerConfig loggerConfig) throws IOException {
 		super(uniqueId, loggerConfig.getName());
 		this.deffered = loggerConfig.getDeffered();	
+		
+		register();
+	}
+
+	@Override
+	public void register() {
 		EventsManager.get().addListener(ISegmentInfoListener.class, this);
 	}
 

@@ -26,6 +26,7 @@ public class ThreadManager {
 	private static List<Future<String>> workers = Collections.synchronizedList(new ArrayList<Future<String>>());
 	private static long endTime; 
 	private static Boolean stopped = false; 
+	private static Boolean shouldRunForever = false;
 	
 	private static ExecutorService init(){
 		TestConfig config = TestConfig.get();
@@ -78,6 +79,11 @@ public class ThreadManager {
 	}
 
 	public static boolean shouldContinue() {
+		synchronized (shouldRunForever) {
+			if(shouldRunForever){
+				return true;
+			}
+		}
 		synchronized (stopped) {
 			return (!stopped) && (System.currentTimeMillis() < endTime);
 		}
@@ -126,21 +132,6 @@ public class ThreadManager {
 		}
 	}
 
-	public static boolean isAlive(String poolName) {
-		if(!pools.containsKey(poolName)){
-			return false;
-		}
-
-		List<FutureTask<String>> pool = pools.get(poolName);
-		for(FutureTask<String> worker : pool){
-			if(!worker.isDone()){
-				return true;
-			}
-		}
-		
-		return false;
-	}
-
 	static public void printAllThreads(){
 		Thread[] threads = getAllThreads();
 		for(Thread thread : threads){
@@ -178,5 +169,11 @@ public class ThreadManager {
 	        n = root.enumerate( threads, true );
 	    } while ( n == nAlloc );
 	    return java.util.Arrays.copyOf( threads, n );
+	}
+
+	public static void runForever() {
+		synchronized (shouldRunForever) {
+			shouldRunForever = true;
+		}
 	}
 }

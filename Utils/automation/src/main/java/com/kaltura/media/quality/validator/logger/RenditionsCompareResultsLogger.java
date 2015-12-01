@@ -19,6 +19,12 @@ public class RenditionsCompareResultsLogger extends ResultsLogger implements ISe
 	public RenditionsCompareResultsLogger(String uniqueId, LoggerConfig loggerConfig) throws IOException {
 		super(uniqueId, loggerConfig.getName());
 		this.deffered = loggerConfig.getDeffered();
+		
+		register();
+	}
+
+	@Override
+	public void register() {
 		EventsManager.get().addListener(ISegmentsResultsListener.class, this);
 	}
 

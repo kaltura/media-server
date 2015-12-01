@@ -11,6 +11,7 @@ import com.kaltura.media.quality.event.Event;
 import com.kaltura.media.quality.event.EventsManager;
 import com.kaltura.media.quality.event.SegmentErrorEvent;
 import com.kaltura.media.quality.event.listener.IListener;
+import com.kaltura.media.quality.event.listener.ISegmentFirstFrameImageListener;
 import com.kaltura.media.quality.event.listener.ISegmentsListener;
 import com.kaltura.media.quality.event.listener.ISegmentsResultsListener;
 import com.kaltura.media.quality.model.Segment;
@@ -72,6 +73,35 @@ public class RenditionsComparator extends Validator implements ISegmentsListener
 		}
 	}
 
+	class SegmentFirstFrameImageEvent extends Event<ISegmentFirstFrameImageListener> {
+		private static final long serialVersionUID = -1970944510668478236L;
+		private Segment segment;
+		private File frame;
+	
+		public SegmentFirstFrameImageEvent(Segment segment, File frame) {
+			super(ISegmentFirstFrameImageListener.class);
+			
+			this.segment = segment;
+			this.frame = frame;
+		}
+
+		@Override
+		protected void callListener(ISegmentFirstFrameImageListener listener) {
+			listener.onSegmentFirstFrameCapture(segment, frame);
+		}
+	
+		@Override
+		protected String getTitle() {
+			String title = segment.getEntryId();
+			title += "-" + segment.getRendition().getDomainHash();
+			title += "-" + segment.getRendition().getBandwidth();
+			title += "-" + segment.getNumber();
+			return title;
+		}
+	
+	}
+
+
 	public RenditionsComparator() {
 		super();
 	}
@@ -81,13 +111,24 @@ public class RenditionsComparator extends Validator implements ISegmentsListener
 		
 		this.uniqueId = uniqueId;
 		this.deffered = dataValidator.getDeffered();
+		
+		register();
+	}
+
+	@Override
+	public void register() {
 		EventsManager.get().addListener(ISegmentsListener.class, this);
 	}
 	
-	private File getFirstFrameFromFile(File ts) throws Exception {
+	private File getFirstFrameFromFile(Segment segment) throws Exception {
+		File ts = segment.getFile();
 		File dest = new File(ts.getAbsolutePath() + ".jpeg");
-		//	save first frame to file
-		ImageUtils.saveFirstFrame(ts, dest);
+		if(!dest.exists()){
+			//	save first frame to file
+			ImageUtils.saveFirstFrame(ts, dest);
+			EventsManager.get().raiseEvent(new SegmentFirstFrameImageEvent(segment, dest));
+		}
+		
 		return dest;
 	}
 
@@ -116,7 +157,7 @@ public class RenditionsComparator extends Validator implements ISegmentsListener
 		
 		File image1;
 		try {
-			image1 = getFirstFrameFromFile(file1);
+			image1 = getFirstFrameFromFile(segment1);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			EventsManager.get().raiseEvent(new SegmentErrorEvent(segment1, e));
@@ -139,7 +180,7 @@ public class RenditionsComparator extends Validator implements ISegmentsListener
 			Segment segment2 = segments.get(i);
 			file2 = segment2.getFile();
 			try {
-				image2 = getFirstFrameFromFile(file2);
+				image2 = getFirstFrameFromFile(segment2);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 				EventsManager.get().raiseEvent(new SegmentErrorEvent(segment2, e));

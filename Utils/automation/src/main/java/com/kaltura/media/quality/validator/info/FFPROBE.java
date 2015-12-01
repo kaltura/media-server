@@ -5,7 +5,12 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
@@ -20,6 +25,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kaltura.media.quality.configurations.TestConfig;
+import com.kaltura.media.quality.model.IFrame;
 import com.kaltura.media.quality.utils.ThreadManager;
 
 public class FFPROBE extends MediaInfoBase {
@@ -423,14 +429,179 @@ public class FFPROBE extends MediaInfoBase {
 			return probeScore;
 		}
 	}
-	
-	public static class PacketInfo{
-		@JsonProperty("codec_type")
-		private String codecType;
+
+	@JsonTypeInfo(use = JsonTypeInfo.Id.NAME,  include = JsonTypeInfo.As.PROPERTY, property = "type")
+	@JsonSubTypes({ 
+		@Type(value = FrameInfo.class, name = "frame"), 
+		@Type(value = PacketInfo.class, name = "packet") 
+	})
+	public static abstract class PacketBaseInfo{
+		@JsonProperty("type")
+		protected String type;
 	
 		@JsonProperty("stream_index")
-		private int streamIndex;
+		protected int streamIndex;
+		
+		public String getType() {
+			return type;
+		}
 	
+		public int getStreamIndex() {
+			return streamIndex;
+		}
+	}
+	
+	public static class FrameInfo extends PacketBaseInfo implements IFrame, Comparable<FrameInfo>{
+		@JsonProperty("media_type")
+		private String mediaType;
+
+		@JsonProperty("key_frame")
+		private int keyFrame;
+
+		@JsonProperty("pkt_pts")
+		private long pktPts;
+
+		@JsonProperty("pkt_pts_time")
+		private double pktPtsTime;
+
+		@JsonProperty("pkt_dts")
+		private long pktDts;
+
+		@JsonProperty("pkt_dts_time")
+		private double pktDtsTime;
+
+		@JsonProperty("best_effort_timestamp")
+		private long bestEffortTimestamp;
+
+		@JsonProperty("best_effort_timestamp_time")
+		private double bestEffortTimestampTime;
+
+		@JsonProperty("pkt_duration")
+		private int pktDuration;
+
+		@JsonProperty("pkt_duration_time")
+		private double pktDurationTime;
+
+		@JsonProperty("pkt_pos")
+		private int pktPos;
+
+		@JsonProperty("pkt_size")
+		private int pktSize;
+
+		@JsonProperty("sample_fmt")
+		private String sampleFormat;
+
+		@JsonProperty("nb_samples")
+		private int nbSamples;
+
+		@JsonProperty("channels")
+		private int channels;
+
+		@JsonProperty("channel_layout")
+		private String channelLayout;
+
+		public String getMediaType() {
+			return mediaType;
+		}
+
+		public int getKeyFrame() {
+			return keyFrame;
+		}
+
+		public long getPktPts() {
+			return pktPts;
+		}
+
+		public double getPktPtsTime() {
+			return pktPtsTime;
+		}
+
+		public long getPktDts() {
+			return pktDts;
+		}
+
+		public double getPktDtsTime() {
+			return pktDtsTime;
+		}
+
+		public long getBestEffortTimestamp() {
+			return bestEffortTimestamp;
+		}
+
+		public double getBestEffortTimestampTime() {
+			return bestEffortTimestampTime;
+		}
+
+		public int getPktDuration() {
+			return pktDuration;
+		}
+
+		public double getPktDurationTime() {
+			return pktDurationTime;
+		}
+
+		public int getPktPos() {
+			return pktPos;
+		}
+
+		public int getPktSize() {
+			return pktSize;
+		}
+
+		public String getSampleFormat() {
+			return sampleFormat;
+		}
+
+		public int getNbSamples() {
+			return nbSamples;
+		}
+
+		public int getChannels() {
+			return channels;
+		}
+
+		public String getChannelLayout() {
+			return channelLayout;
+		}
+
+		@Override
+		public double getPts() {
+			return getPktPtsTime();
+		}
+
+		@Override
+		public double getDts() {
+			return getPktDtsTime();
+		}
+
+		@Override
+		public double getDuration() {
+			return getPktDurationTime();
+		}
+
+		@Override
+		public int getPosition() {
+			return getPktPos();
+		}
+
+		@Override
+		public int getSize() {
+			return getPktSize();
+		}
+
+		@Override
+		public int compareTo(FrameInfo o) {
+			if(o == this){
+				return 0;
+			}
+			return 1;
+		}
+	}
+	
+	public static class PacketInfo extends PacketBaseInfo{
+		@JsonProperty("codec_type")
+		private String codecType;
+		
 		@JsonProperty("pts")
 		private long pts;
 	
@@ -465,10 +636,6 @@ public class FFPROBE extends MediaInfoBase {
 	
 		public String getCodecType() {
 			return codecType;
-		}
-	
-		public int getStreamIndex() {
-			return streamIndex;
 		}
 	
 		public long getPts() {
@@ -584,14 +751,190 @@ public class FFPROBE extends MediaInfoBase {
 	    private String objectType;
 	}
 		
+	public static class PacketsAndFrames implements List<PacketBaseInfo>{
+		private List<PacketInfo> packets = new ArrayList<PacketInfo>();
+		private SortedSet<FrameInfo> frames = new TreeSet<FrameInfo>();
+		private List<PacketBaseInfo> both = new ArrayList<PacketBaseInfo>();
+		
+		@Override
+		public int size() {
+			return both.size();
+		}
+		
+		@Override
+		public boolean isEmpty() {
+			return both.isEmpty();
+		}
+
+		@Override
+		public boolean contains(Object o) {
+			return both.contains(o);
+		}
+
+		@Override
+		public Iterator<PacketBaseInfo> iterator() {
+			return both.iterator();
+		}
+
+		@Override
+		public Object[] toArray() {
+			return both.toArray();
+		}
+
+		@Override
+		public <T> T[] toArray(T[] a) {
+			return (T[]) both.toArray(a);
+		}
+
+		@Override
+		public boolean add(PacketBaseInfo e) {
+			if(e instanceof PacketInfo){
+				packets.add((PacketInfo) e);
+			}
+			if(e instanceof FrameInfo){
+				frames.add((FrameInfo) e);
+			}
+			return both.add(e);
+		}
+
+		@Override
+		public boolean remove(Object o) {
+			if(o instanceof PacketInfo){
+				packets.remove((PacketInfo) o);
+			}
+			if(o instanceof FrameInfo){
+				frames.remove((FrameInfo) o);
+			}
+			return both.remove(o);
+		}
+
+		@Override
+		public boolean containsAll(Collection<?> c) {
+			return both.containsAll(c);
+		}
+
+		@Override
+		public boolean addAll(Collection<? extends PacketBaseInfo> c) {
+			for(PacketBaseInfo e : c){
+				if(e instanceof PacketInfo){
+					packets.add((PacketInfo) e);
+				}
+				if(e instanceof FrameInfo){
+					frames.add((FrameInfo) e);
+				}
+			}
+			return both.addAll(c);
+		}
+
+		@Override
+		public boolean addAll(int index, Collection<? extends PacketBaseInfo> c) {
+			for(PacketBaseInfo e : c){
+				if(e instanceof PacketInfo){
+					packets.add((PacketInfo) e);
+				}
+				if(e instanceof FrameInfo){
+					frames.add((FrameInfo) e);
+				}
+			}
+			return both.addAll(index, c);
+		}
+
+		@Override
+		public boolean removeAll(Collection<?> c) {
+			packets.removeAll(c);
+			frames.removeAll(c);
+			return both.removeAll(c);
+		}
+
+		@Override
+		public boolean retainAll(Collection<?> c) {
+			packets.retainAll(c);
+			frames.retainAll(c);
+			return both.retainAll(c);
+		}
+
+		@Override
+		public void clear() {
+			packets.clear();
+			frames.clear();
+			both.clear();
+		}
+
+		@Override
+		public PacketBaseInfo get(int index) {
+			return both.get(index);
+		}
+
+		@Override
+		public PacketBaseInfo set(int index, PacketBaseInfo element) {
+			return both.set(index, element);
+		}
+
+		@Override
+		public void add(int index, PacketBaseInfo element) {
+			if(element instanceof PacketInfo){
+				packets.add((PacketInfo) element);
+			}
+			if(element instanceof FrameInfo){
+				frames.add((FrameInfo) element);
+			}
+			both.add(index, element);
+		}
+
+		@Override
+		public PacketBaseInfo remove(int index) {
+			PacketBaseInfo element = both.remove(index);
+			if(element instanceof PacketInfo){
+				packets.remove((PacketInfo) element);
+			}
+			if(element instanceof FrameInfo){
+				frames.remove((FrameInfo) element);
+			}
+			return element;
+		}
+
+		@Override
+		public int indexOf(Object o) {
+			return both.indexOf(o);
+		}
+
+		@Override
+		public int lastIndexOf(Object o) {
+			return both.lastIndexOf(o);
+		}
+
+		@Override
+		public ListIterator<PacketBaseInfo> listIterator() {
+			return both.listIterator();
+		}
+
+		@Override
+		public ListIterator<PacketBaseInfo> listIterator(int index) {
+			return both.listIterator(index);
+		}
+
+		@Override
+		public List<PacketBaseInfo> subList(int fromIndex, int toIndex) {
+			return both.subList(fromIndex, toIndex);
+		}
+
+		public List<PacketInfo> getPackets() {
+			return packets;
+		}
+
+		public SortedSet<FrameInfo> getFrames() {
+			return frames;
+		}
+	}
+		
 	public static class FFPROBEInfo extends MediaInfoBase.Info{
 
 		public FFPROBEInfo(){
 			
 		}
 		
-	    @JsonProperty("packets")
-	    private List<PacketInfo> packets = new ArrayList<PacketInfo>();
+	    @JsonProperty("packets_and_frames")
+	    private PacketsAndFrames packetsAndFrames = new PacketsAndFrames();
 		
 	    @JsonProperty("streams")
 	    private List<IStreamInfo> streams = new ArrayList<IStreamInfo>();
@@ -634,7 +977,15 @@ public class FFPROBE extends MediaInfoBase {
 		}
 
 		public List<PacketInfo> getPackets() {
-			return packets;
+			return packetsAndFrames.getPackets();
+		}
+
+		public SortedSet<FrameInfo> getFrames() {
+			return packetsAndFrames.getFrames();
+		}
+
+		public FrameInfo getFirstFrame() {
+			return getFrames().first();
 		}
 	}
 	
@@ -652,7 +1003,8 @@ public class FFPROBE extends MediaInfoBase {
 			"-show_format", 
 			"-show_streams", 
 			"-show_data", 
-			"-show_packets", 
+			"-show_packets",
+			"-show_frames", 
 			file.getAbsolutePath()
 		};
 	}
@@ -671,7 +1023,9 @@ public class FFPROBE extends MediaInfoBase {
 		if(ffprobePath == null){
 			ffprobePath = TestConfig.get().getPathToFfprobe();
 		}
-		return ffprobePath;
+		
+		File file = new File(ffprobePath);
+		return file.getAbsolutePath();
 	}
 	
 	public static void main(String[] args) throws Exception{
@@ -679,12 +1033,9 @@ public class FFPROBE extends MediaInfoBase {
 		File file = new File(args[0]);
 		MediaInfoBase ffprobe = new FFPROBE(file);
 		FFPROBE.FFPROBEInfo info = (FFPROBEInfo) ffprobe.getInfo();
-		for(PacketInfo packet : info.getPackets()){
-			if(packet.getCodecType().equals("data")){
-				SyncPoint syncPoint = packet.getSyncPoint();
-				System.out.println(syncPoint);
-			}
-		}
+		System.out.println(info.getVideo().getStartTime());
+		System.out.println(info.getFirstFrame().getPktPts() / 90000);
+		System.out.println(info.getFirstFrame().getPktPtsTime());
 		
 		ThreadManager.stop();
 	}
