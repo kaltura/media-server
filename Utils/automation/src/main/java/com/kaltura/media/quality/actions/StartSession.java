@@ -1,6 +1,5 @@
 package com.kaltura.media.quality.actions;
 
-import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.KalturaClient;
 import com.kaltura.client.KalturaConfiguration;
 import com.kaltura.client.enums.KalturaSessionType;
@@ -20,21 +19,14 @@ public class StartSession {
         this.adminSecret = adminSecret;
     }
 
-    public KalturaClient execute() throws KalturaApiException {
+    public KalturaClient execute() throws Exception {
 
             KalturaConfiguration config = new KalturaConfiguration();
             config.setEndpoint(endPoint);
 
             KalturaClient client = new KalturaClient(config);
-            client.setPartnerId(partnerId);
-            
-            String secret = adminSecret;
-            String userId = null;
-            KalturaSessionType type = KalturaSessionType.ADMIN;
-            int expiry = Integer.MAX_VALUE;
-            String privileges = null;
-            Object result = client.getSessionService().start(secret, userId, type, partnerId, expiry, privileges);
-            client.setSessionId(result.toString());
+            String ks = client.generateSession(adminSecret, null, KalturaSessionType.ADMIN, partnerId);
+            client.setSessionId(ks);
             return client;
     }
 }

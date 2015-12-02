@@ -1,6 +1,5 @@
 package com.kaltura.media.quality.monitor;
 
-import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,13 +16,7 @@ import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.client.types.KalturaLiveStreamEntryFilter;
 import com.kaltura.client.types.KalturaLiveStreamListResponse;
-import com.kaltura.media.quality.configurations.DataProvider;
-import com.kaltura.media.quality.configurations.DataValidator;
-import com.kaltura.media.quality.configurations.LoggerConfig;
-import com.kaltura.media.quality.provider.Provider;
 import com.kaltura.media.quality.utils.ThreadManager;
-import com.kaltura.media.quality.validator.Validator;
-import com.kaltura.media.quality.validator.logger.ResultsLogger;
 
 /**
  * This class monitors the system:
@@ -60,25 +53,7 @@ public class SystemMonitor extends Monitor {
 			for (KalturaLiveEntry entry : curEntries) {
 				if(!entries.contains(entry.id) && entries.size() < maxNumberOfEntries) {
 					entries.add(entry.id);
-					
-					log.info("Create providers for entry - " + entry.id);					
-					for(DataProvider dataProvider : config.getDataProviders()){
-						Constructor<Provider> constructor = dataProvider.getType().getConstructor(KalturaLiveEntry.class, DataProvider.class);
-						Provider provider = constructor.newInstance(entry, dataProvider);
-						provider.start();
-					}
-
-					log.info("Create validators for entry - " + entry.id);
-					for(DataValidator dataValidator : config.getDataValidators()){
-						Constructor<Validator> constructor = dataValidator.getType().getConstructor(String.class, DataValidator.class);
-						constructor.newInstance(entry.id, dataValidator);
-					}
-
-					log.info("Create loggers for entry - " + entry.id);
-					for(LoggerConfig loggerConfig : config.getResultLoggers()){
-						Constructor<ResultsLogger> constructor = loggerConfig.getType().getConstructor(String.class, LoggerConfig.class);
-						constructor.newInstance(entry.id, loggerConfig);
-					}
+					handleStream(entry.id);
 				}
 			}
 			
@@ -89,7 +64,7 @@ public class SystemMonitor extends Monitor {
 		System.exit(0);
 	}
 	
-	protected Collection<KalturaLiveEntry> getEntries() throws KalturaApiException {
+	protected Collection<KalturaLiveEntry> getEntries() throws Exception {
 		Map<String, KalturaLiveEntry> result = new HashMap<String, KalturaLiveEntry>();
 		
 		KalturaLiveStreamEntryFilter filter = new KalturaLiveStreamEntryFilter();

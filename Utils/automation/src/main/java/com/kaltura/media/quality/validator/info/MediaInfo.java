@@ -637,11 +637,11 @@ public class MediaInfo extends MediaInfoBase {
 		}
 
 		public int getOverallBitrate() {
-			if(maximumBitrate == null){
+			if(overallBitrate == null){
 				return 0;
 			}
 				
-			String[] parts = maximumBitrate.split(" ");
+			String[] parts = overallBitrate.split(" ");
 			int bitrate = Integer.valueOf(parts[0]);
 			
 			if(parts.length > 0 && parts[1].toLowerCase().equals("kbps")){

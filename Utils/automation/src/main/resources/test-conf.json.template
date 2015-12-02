@@ -51,23 +51,39 @@
     // , "conversion-profile-id": @CONVERSION_PROFILE_ID@
   },
   "data-providers" : [{
-	  "type" : "com.kaltura.media.quality.provider.hls.EntryDownloader"
+	  "type" : "com.kaltura.media.quality.provider.hls.Downloader",
+	  "deffered": true,
+	  "url-builder": {
+		  "type" : "com.kaltura.media.quality.provider.url.EntryPlayManifestUrlBuilder"
+	  }
   }, {
 	  "type" : "com.kaltura.media.quality.provider.MediaInfoParser",
+	  "deffered": true,
 	  "mediaParsers" : [
 	      "com.kaltura.media.quality.validator.info.FFPROBE",
 	      "com.kaltura.media.quality.validator.info.MediaInfo"
 	  ]
   }],
   "data-validators" : [{
-	  "type" : "com.kaltura.media.quality.validator.RenditionsComparator"
+	  "type" : "com.kaltura.media.quality.validator.RenditionsComparator",
+	  "deffered": true
+  },
+  {
+	  "type" : "com.kaltura.media.quality.validator.QRCodeComparator",
+	  "deffered": true
   }],
   "result-loggers" : [{
 	  "type" : "com.kaltura.media.quality.validator.logger.RenditionsCompareResultsLogger",
-	  "name" : "renditions.compare"
+	  "name" : "renditions.compare",
+	  "deffered": true
   }, {
 	  "type" : "com.kaltura.media.quality.validator.logger.MediaInfoResultsLogger",
-	  "name" : "segments.info"
+	  "name" : "segments.info",
+	  "deffered": true
+  }, {
+	  "type" : "com.kaltura.media.quality.validator.logger.QRCodeCompareResultsLogger",
+	  "name" : "qr.code.info",
+	  "deffered": true
   }],
   "sync-entries": ["1_oorxcge2"]
 }

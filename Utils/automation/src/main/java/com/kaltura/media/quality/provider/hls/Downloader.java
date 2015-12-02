@@ -2,8 +2,10 @@ package com.kaltura.media.quality.provider.hls;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -28,6 +30,7 @@ import com.kaltura.media.quality.model.Rendition;
 import com.kaltura.media.quality.model.Segment;
 import com.kaltura.media.quality.provider.Provider;
 import com.kaltura.media.quality.provider.hls.enhancer.PlaylistEnhancer;
+import com.kaltura.media.quality.provider.url.UrlBuilder;
 import com.kaltura.media.quality.utils.HttpUtils;
 import com.kaltura.media.quality.utils.ThreadManager;
 
@@ -44,7 +47,7 @@ public class Downloader extends Provider implements ISegmentListener {
 	
 	protected String downloadDir;
 	protected URI masterPlaylistUrl;
-	private String uniqueId;
+	protected String uniqueId;
 	private boolean deffered = false;;
 	
 	private Map<String, Integer> downloadersCount = null;
@@ -54,14 +57,16 @@ public class Downloader extends Provider implements ISegmentListener {
 		super();
 	}
 	
-	public Downloader(String uniqueId, URI playlistUrl, DataProvider providerConfig) {
+	public Downloader(String uniqueId, DataProvider providerConfig) throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, URISyntaxException {
 		this();
 		
 		this.uniqueId = uniqueId;
 		if(providerConfig.hasOtherProperty("deffered")){
 			this.deffered = (boolean) providerConfig.getOtherProperty("deffered");
 		}
-		this.masterPlaylistUrl = playlistUrl;
+		
+		UrlBuilder urlBuilder = providerConfig.getUrlBuilder();
+		this.masterPlaylistUrl = urlBuilder.build(uniqueId);
 		this.downloadDir = config.getDestinationFolder() + "/" + uniqueId;
 
 		PlaylistEnhancer enhancer;
@@ -76,7 +81,7 @@ public class Downloader extends Provider implements ISegmentListener {
 		
 		register();
 	}
-
+	
 	@Override
 	public void register() {
 		EventsManager.get().addListener(ISegmentListener.class, this);
@@ -129,7 +134,7 @@ public class Downloader extends Provider implements ISegmentListener {
 	}
 	
 	protected String getThreadName() {
-		return getClass().getSimpleName() + "-" + masterPlaylistUrl;
+		return getClass().getSimpleName() + "-" + uniqueId;
 	}
 
 	private Set<Rendition> getStreamsListsFromMasterPlaylist(String masterPlaylist) {

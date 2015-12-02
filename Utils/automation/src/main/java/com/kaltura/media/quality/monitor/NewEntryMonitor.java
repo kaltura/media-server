@@ -1,24 +1,17 @@
 package com.kaltura.media.quality.monitor;
 
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 
 import com.kaltura.client.KalturaApiException;
-import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.media.quality.actions.CreateLiveEntry;
-import com.kaltura.media.quality.configurations.DataProvider;
-import com.kaltura.media.quality.configurations.DataValidator;
 import com.kaltura.media.quality.configurations.EncoderConfig;
 import com.kaltura.media.quality.encoder.Encoder;
 import com.kaltura.media.quality.event.listener.IListener;
 import com.kaltura.media.quality.event.listener.IProcessCompleteListener;
-import com.kaltura.media.quality.provider.Provider;
 import com.kaltura.media.quality.utils.ThreadManager;
-import com.kaltura.media.quality.validator.Validator;
 
 public class NewEntryMonitor extends Monitor {
 	private static final Logger log = Logger.getLogger(NewEntryMonitor.class);
@@ -80,20 +73,7 @@ public class NewEntryMonitor extends Monitor {
 			}
 		});
 		
-		System.out.println("### Create providers for entry - " + entry.id);					
-		List<Provider> providers = new ArrayList<Provider>();
-		for(DataProvider dataProvider : config.getDataProviders()){
-			Constructor<Provider> constructor = dataProvider.getType().getConstructor(KalturaLiveEntry.class, DataProvider.class);
-			Provider provider = constructor.newInstance(entry, dataProvider);
-			providers.add(provider);
-			provider.start();
-		}
-
-		System.out.println("### Create validators for entry - " + entry.id);
-		for(DataValidator dataValidator : config.getDataValidators()){
-			Constructor<Validator> constructor = dataValidator.getType().getConstructor(String.class, DataValidator.class);
-			constructor.newInstance(entry.id, dataValidator);
-		}
+		handleStream(entry.id);
 
 		encoder.start();
 

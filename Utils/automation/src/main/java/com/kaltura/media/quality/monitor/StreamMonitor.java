@@ -1,21 +1,15 @@
 package com.kaltura.media.quality.monitor;
 
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.kaltura.media.quality.configurations.DataProvider;
-import com.kaltura.media.quality.configurations.DataValidator;
 import com.kaltura.media.quality.configurations.EncoderConfig;
 import com.kaltura.media.quality.encoder.Encoder;
 import com.kaltura.media.quality.event.listener.IListener;
 import com.kaltura.media.quality.event.listener.IProcessCompleteListener;
-import com.kaltura.media.quality.provider.Provider;
 import com.kaltura.media.quality.utils.StringUtils;
 import com.kaltura.media.quality.utils.ThreadManager;
-import com.kaltura.media.quality.validator.Validator;
 
 public class StreamMonitor extends Monitor {
 	private static final Logger log = Logger.getLogger(StreamMonitor.class);
@@ -70,20 +64,7 @@ public class StreamMonitor extends Monitor {
 			}
 		});
 		
-		System.out.println("### Create providers for stream - " + uniqueId);					
-		List<Provider> providers = new ArrayList<Provider>();
-		for(DataProvider dataProvider : config.getDataProviders()){
-			Constructor<Provider> constructor = dataProvider.getType().getConstructor(String.class);
-			Provider provider = constructor.newInstance(uniqueId);
-			providers.add(provider);
-			provider.start();
-		}
-
-		System.out.println("### Create validators for stream - " + uniqueId);
-		for(DataValidator dataValidator : config.getDataValidators()){
-			Constructor<Validator> constructor = dataValidator.getType().getConstructor(String.class, DataValidator.class);
-			constructor.newInstance(uniqueId, dataValidator);
-		}
+		handleStream(uniqueId);
 
 		encoder.start();
 		

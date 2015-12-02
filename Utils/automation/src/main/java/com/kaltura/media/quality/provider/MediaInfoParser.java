@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.log4j.Logger;
 
-import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media.quality.configurations.DataProvider;
 import com.kaltura.media.quality.event.Event;
 import com.kaltura.media.quality.event.EventsManager;
@@ -49,10 +48,6 @@ public class MediaInfoParser extends Provider implements ISegmentListener {
 		}	
 		
 		register();
-	}
-
-	public MediaInfoParser (KalturaLiveEntry entry, DataProvider providerConfig) {
-		this(entry.id, providerConfig);
 	}
 
 	@Override
