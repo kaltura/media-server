@@ -2,4 +2,4 @@
 /.classpath
 /.project
 /.settings
-/src/main/resources/test-conf.json
+/src/main/resources/*.json
