@@ -9,7 +9,9 @@ import com.kaltura.media.quality.encoder.Encoder;
  * Created by asher.saban on 3/1/2015.
  */
 public class EncoderConfig extends TypedConfig<Encoder> {
-    @JsonProperty("path-to-executable")
+	private static final long serialVersionUID = -8920092449526954773L;
+
+	@JsonProperty("path-to-executable")
     private String pathToExecutable;
 
     @JsonProperty("args")

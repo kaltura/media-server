@@ -10,8 +10,9 @@ import com.kaltura.media.quality.provider.Provider;
 import com.kaltura.media.quality.provider.url.UrlBuilder;
 
 public class DataProvider extends TypedConfig<Provider> {
+	private static final long serialVersionUID = -8814014190582926166L;
 
-    @JsonProperty("playlist-enhancers")
+	@JsonProperty("playlist-enhancers")
 	private List<PlaylistEnhancerConfig> playlistEnhancers = new ArrayList<PlaylistEnhancerConfig>();
 
     @JsonProperty("url-builder")

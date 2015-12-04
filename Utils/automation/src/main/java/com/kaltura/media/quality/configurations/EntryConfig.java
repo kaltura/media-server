@@ -6,8 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Created by asher.saban on 3/1/2015.
  */
 public class EntryConfig extends Config {
+	private static final long serialVersionUID = 4000220616083680845L;
 
-    @JsonProperty("entry-name")
+	@JsonProperty("entry-name")
     private String entryName;
 
     @JsonProperty("is-random")

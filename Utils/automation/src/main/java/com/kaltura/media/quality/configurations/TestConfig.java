@@ -14,8 +14,9 @@ import java.util.List;
  * Created by asher.saban on 2/22/2015.
  */
 public class TestConfig extends Config {
+	private static final long serialVersionUID = 7547966920948609745L;
 
-    @JsonProperty("test-name")
+	@JsonProperty("test-name")
     private String testName;
 
     @JsonProperty("admin-secret")

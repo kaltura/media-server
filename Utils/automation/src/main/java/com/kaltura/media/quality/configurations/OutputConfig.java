@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kaltura.media.quality.encoder.output.Output;
 
 public class OutputConfig extends TypedConfig<Output> {
-    @JsonProperty("path-to-executable")
+	private static final long serialVersionUID = 1108949855670165144L;
+
+	@JsonProperty("path-to-executable")
     private String pathToExecutable;
 
     @JsonProperty("args")

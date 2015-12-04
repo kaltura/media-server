@@ -13,12 +13,12 @@ import java.io.IOException;
 /**
  * Created by asher.saban on 6/8/2015.
  */
-public class ImageMagikComparator implements ImageComparator {
+public class ImageMagikImageComparator implements ImageComparator {
 
 	private String diffImagePath;
-	private static final Logger log = Logger.getLogger(ImageMagikComparator.class);
+	private static final Logger log = Logger.getLogger(ImageMagikImageComparator.class);
 
-	public ImageMagikComparator(String diffImagePath) {
+	public ImageMagikImageComparator(String diffImagePath) {
 		this.diffImagePath = diffImagePath;
 	}
 
