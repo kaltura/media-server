@@ -70,6 +70,9 @@ public class TestConfig extends Config {
     @JsonProperty("max-number-of-entries")
 	private int maxNumberOfEntries = 2;
 
+    @JsonProperty("results-aggregators")
+	private List<AggregatorConfig> aggregators;
+
     private static TestConfig config = null;
     
     public static TestConfig init(String[] args) throws Exception{
@@ -175,5 +178,9 @@ public class TestConfig extends Config {
 
 	public int getMaxNumberOfEntries() {
 		return maxNumberOfEntries;
+	}
+
+	public List<AggregatorConfig> getAggregators() {
+		return aggregators;
 	}
 }

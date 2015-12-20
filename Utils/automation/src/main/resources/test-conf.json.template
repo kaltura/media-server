@@ -51,10 +51,19 @@
     // , "conversion-profile-id": @CONVERSION_PROFILE_ID@
   },
   "data-providers" : [{
+	  "name" : "Wowza",
 	  "type" : "com.kaltura.media.quality.provider.hls.Downloader",
 	  "deffered": true,
 	  "url-builder": {
 		  "type" : "com.kaltura.media.quality.provider.url.EntryPlayManifestUrlBuilder"
+	  }
+  }, {
+	  "name" : "NGINX",
+	  "type" : "com.kaltura.media.quality.provider.hls.Downloader",
+	  "deffered": true,
+	  "url-builder": {
+		  "type" : "com.kaltura.media.quality.provider.url.UrlBuilder",
+		  "url-template" : "http://dev-hudson10.dev.kaltura.com:88/hls/%s_1.m3u8"
 	  }
   }, {
 	  "type" : "com.kaltura.media.quality.provider.MediaInfoParser",
@@ -66,7 +75,20 @@
   }],
   "data-validators" : [{
 	  "type" : "com.kaltura.media.quality.validator.RenditionsComparator",
-	  "deffered": true
+	  "deffered": true,
+	  "comparators" : [{
+		  "type" : "com.kaltura.media.quality.comparators.imagemagik.ImageMagikSegmentsComparator"
+	  }, {
+		  "type" : "com.kaltura.media.quality.comparators.vqmt.QualitySegmentsComparator",
+		  "path-to-executable" : "C:/Program Files/MSU VQMT/msu_metric_64.exe",
+		  "metric" : "psnr",
+		  "color-component" : "YYUV"
+	  }, {
+		  "type" : "com.kaltura.media.quality.comparators.vqmt.QualitySegmentsComparator",
+		  "path-to-executable" : "C:/Program Files/MSU VQMT/msu_metric_64.exe",
+		  "metric" : "ssim_fast",
+		  "color-component" : "YYUV"
+	  }]
   },
   {
 	  "type" : "com.kaltura.media.quality.validator.QRCodeComparator",
@@ -84,6 +106,20 @@
 	  "type" : "com.kaltura.media.quality.validator.logger.QRCodeCompareResultsLogger",
 	  "name" : "qr.code.info",
 	  "deffered": true
+  }],
+  "results-aggregators" : [{
+	  "type" : "com.kaltura.media.quality.aggregators.SegmentsAggregator",
+	  "path" : "segments.info.csv"
+  }, {
+	  "type" : "com.kaltura.media.quality.aggregators.RenditionsCompareAggregator",
+	  "path" : "renditions.compare.csv"
+  }, {
+	  "type" : "com.kaltura.media.quality.aggregators.QrCodeCompareAggregator",
+	  "path" : "qr.code.info.csv"
+  }, {
+	  "type" : "com.kaltura.media.quality.aggregators.QualitySegmentsCompareAggregator",
+	  "skip-headers" : false,
+	  "path" : "*/*/*.csv"
   }],
   "sync-entries": ["1_oorxcge2"]
 }

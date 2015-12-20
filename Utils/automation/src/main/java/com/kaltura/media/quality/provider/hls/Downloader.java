@@ -3,11 +3,8 @@ package com.kaltura.media.quality.provider.hls;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -16,7 +13,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
 import com.kaltura.media.quality.configurations.DataProvider;
@@ -32,12 +32,13 @@ import com.kaltura.media.quality.provider.Provider;
 import com.kaltura.media.quality.provider.hls.enhancer.PlaylistEnhancer;
 import com.kaltura.media.quality.provider.url.UrlBuilder;
 import com.kaltura.media.quality.utils.HttpUtils;
+import com.kaltura.media.quality.utils.HttpUtils.HttpResponseHandler;
 import com.kaltura.media.quality.utils.ThreadManager;
 
 /**
  * Downloads all renditions manifests and start new rendition downloader for each of them
  */
-public class Downloader extends Provider implements ISegmentListener {
+public class Downloader extends Provider implements ISegmentListener, HttpResponseHandler {
 
 	private static final long serialVersionUID = 5232197354276259655L;
 	private static final Logger log = Logger.getLogger(Downloader.class);
@@ -51,7 +52,8 @@ public class Downloader extends Provider implements ISegmentListener {
 	private boolean deffered = false;;
 	
 	private Map<String, Integer> downloadersCount = null;
-	private transient Map<String, Map<Integer, ExpectedSegment>> expectedSegments = null;
+	private transient Map<String, Map<Long, ExpectedSegment>> expectedSegments = null;
+	private String name;
 
 	public Downloader(){
 		super();
@@ -59,7 +61,8 @@ public class Downloader extends Provider implements ISegmentListener {
 	
 	public Downloader(String uniqueId, DataProvider providerConfig) throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, URISyntaxException {
 		this();
-		
+
+		this.name = providerConfig.getName();
 		this.uniqueId = uniqueId;
 		if(providerConfig.hasOtherProperty("deffered")){
 			this.deffered = (boolean) providerConfig.getOtherProperty("deffered");
@@ -67,12 +70,13 @@ public class Downloader extends Provider implements ISegmentListener {
 		
 		UrlBuilder urlBuilder = providerConfig.getUrlBuilder();
 		this.masterPlaylistUrl = urlBuilder.build(uniqueId);
-		this.downloadDir = config.getDestinationFolder() + "/" + uniqueId;
+		this.downloadDir = config.getDestinationFolder() + "/content/" + uniqueId;
 
 		PlaylistEnhancer enhancer;
 		for(PlaylistEnhancerConfig enhancerConfig : providerConfig.getPlaylistEnhancers()){
 			try {
 				enhancer = enhancerConfig.getType().newInstance();
+				enhancer.setName(name);
 				enhancers.add(enhancer);
 			} catch (InstantiationException | IllegalAccessException e) {
 				log.error(e.getMessage(), e); 
@@ -126,7 +130,7 @@ public class Downloader extends Provider implements ISegmentListener {
 		thread.setName(getThreadName());
 		
 		try {
-			downloadFiles();
+			getPlaylistData(masterPlaylistUrl);
 		} catch (Exception e) {
 			System.out.println("Failed to download content");
 			log.error(e.getMessage(), e);
@@ -137,13 +141,14 @@ public class Downloader extends Provider implements ISegmentListener {
 		return getClass().getSimpleName() + "-" + uniqueId;
 	}
 
-	private Set<Rendition> getStreamsListsFromMasterPlaylist(String masterPlaylist) {
+	private Set<Rendition> getStreamsListsFromMasterPlaylist(URI url, String masterPlaylist) {
 		String[] lines = masterPlaylist.split("\n");
 		String[] lineParts;
 		String[] renditionInfo;
 		String[] renditionInfoParts;
 		Set<Rendition> renditions = new HashSet<>();
 		Rendition rendition;
+		int bandwidth;
 
 		for (int i = 0; i < lines.length; i++) {
 			String line = lines[i].trim();
@@ -157,7 +162,9 @@ public class Downloader extends Provider implements ISegmentListener {
 						rendition.setProgramId(Integer.parseInt(renditionInfo[1]));
 					}
 					if(renditionInfo[0].equals("BANDWIDTH")){
-						rendition.setBandwidth(Integer.parseInt(renditionInfo[1]));
+						bandwidth = Integer.parseInt(renditionInfo[1]);
+						bandwidth -= bandwidth % 100000;
+						rendition.setBandwidth(bandwidth);
 					}
 					if(renditionInfo[0].equals("RESOLUTION")){
 						rendition.setResolution(renditionInfo[1]);
@@ -172,7 +179,7 @@ public class Downloader extends Provider implements ISegmentListener {
 				i = j; // TODO index out of bounds in case there is nothing
 						// after #EXT-X-STREAM-INF:
 
-				rendition.setUrl(tempLine);
+				rendition.setUrl(url.resolve(tempLine), name);
 				log.info("Adding stream: " + tempLine);
 				renditions.add(rendition);
 			}
@@ -180,22 +187,64 @@ public class Downloader extends Provider implements ISegmentListener {
 		return renditions;
 	}
 
-	public void downloadFiles() throws Exception {
-		downloadersCount = new ConcurrentHashMap<String, Integer>();
-		
-		// get playlist data:
-		String masterPlaylistData = getPlaylistData();
+	private void getPlaylistData(URI url) {
 
-		log.debug("Master playlist");
-		log.debug(masterPlaylistData);
+		log.info("Downloading playlist from URL: " + url + " . timeout in seconds: " + MANIFEST_DOWNLOAD_TIMEOUT_SEC);
+
+		CloseableHttpClient client = HttpUtils.getHttpClient();
+		try {
+			HttpUtils.doPostRequest(client, url, this);
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+	}
+
+	@Override
+	public void handleHttpResponse(URI url, CloseableHttpResponse response) {
+		if(ThreadManager.shouldContinue()){
+	        if (response.getStatusLine().getStatusCode() == 301 || response.getStatusLine().getStatusCode() == 302) {
+	        	String redirectUrl = response.getFirstHeader("Location").getValue();
+	        	getPlaylistData(url.resolve(redirectUrl));
+	        	return;
+	        }
+	
+	        if (response.getStatusLine().getStatusCode() != 200 && response.getStatusLine().getStatusCode() != 201) {
+				log.info("Failed to download playlist. waiting additional 5 seconds");
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					log.error(e.getMessage(), e);
+					return;
+				}
+				getPlaylistData(url);
+	        }
+		}
+
+        HttpEntity entity = response.getEntity();
+		try {
+			String body = EntityUtils.toString(entity, "UTF-8");
+	        EntityUtils.consume(entity);
+	        handlePlaylistData(url, body);	
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}	
+	}
+
+	public void handlePlaylistData(URI url, String masterPlaylistData) throws Exception {
+		downloadersCount = new ConcurrentHashMap<String, Integer>();
+		log.debug("Master playlist:\n" + masterPlaylistData);
 
 		// save playlist to disk
-		String playlistDestination = downloadDir + "/playlist.m3u8";
+		String playlistName = name;
+		String playlistDestination = downloadDir + "/" + playlistName + "/index.m3u8";
 		FileUtils.writeStringToFile(new File(playlistDestination), masterPlaylistData);
 		log.info("Wrote master playlist to: " + playlistDestination);
 
+		String playlistUrlDestination = downloadDir + "/" + playlistName + "/url.m3u8";
+		FileUtils.writeStringToFile(new File(playlistUrlDestination), url.toString());
+
 		// get streams urls:
-		Set<Rendition> renditions = getStreamsListsFromMasterPlaylist(masterPlaylistData);
+		Set<Rendition> renditions = getStreamsListsFromMasterPlaylist(url, masterPlaylistData);
 		for(PlaylistEnhancer enhancer : enhancers) {
 			renditions = enhancer.enhanceStreamsSet(renditions);
 		}
@@ -205,7 +254,6 @@ public class Downloader extends Provider implements ISegmentListener {
 
 		String stream;
 		String domainHash;
-		String playlistFileName;
 		String streamDestination;
 		URI playlistUrl;
 		Integer domainDownloadersCount;
@@ -215,18 +263,13 @@ public class Downloader extends Provider implements ISegmentListener {
 
 			stream = rendition.getUrl();
 			domainHash = rendition.getDomainHash();
-			playlistFileName = stream.substring(stream.lastIndexOf("/") + 1);
-			streamDestination = downloadDir + "/" + playlistFileName + "/" + domainHash;
+			streamDestination = downloadDir + "/" + playlistName + "/" + rendition.getBandwidth();
 			
 			// write stream name to file:
-			FileUtils.writeStringToFile(new File(streamDestination + "/stream.txt"), stream);
+			FileUtils.writeStringToFile(new File(streamDestination + "/rendition_url.txt"), stream);
 
 			// if stream is not a valid URL, concat it to the base URL
-			try {
-				playlistUrl = new URL(stream).toURI();
-			} catch (MalformedURLException e) {
-				playlistUrl = masterPlaylistUrl.resolve(stream);
-			}
+			playlistUrl = url.resolve(stream);
 
 			domainDownloadersCount = 1;
 			if(downloadersCount.containsKey(domainHash)){
@@ -239,45 +282,6 @@ public class Downloader extends Provider implements ISegmentListener {
 			worker.start();
 		}
 	}
-
-	private String getPlaylistData() throws Exception {
-
-		log.info("Downloading playlist from URL: " + masterPlaylistUrl + " . timeout in seconds: " + MANIFEST_DOWNLOAD_TIMEOUT_SEC);
-
-		CloseableHttpClient client = null;
-		try {
-			client = HttpUtils.getHttpClient();
-			String masterPlaylistData;
-			while (ThreadManager.shouldContinue()) {
-				try {
-					masterPlaylistData = HttpUtils.doGetRequest(client, masterPlaylistUrl.toString());
-					if (masterPlaylistData != null) {
-						log.info("Downloaded playlist manifest");
-						return masterPlaylistData;
-					}
-
-					// wait 5 seconds before next download attempt
-					log.info("Failed to download playlist. waiting additional 5 seconds");
-					Thread.sleep(5000);
-
-				} catch (UnknownHostException ex) {
-					System.err.println("Host not found, no point in retrying. host name: " + ex.getMessage());
-					break;
-				} catch (IOException e) {
-					System.err.println("Failed to download manifest: " + masterPlaylistUrl);
-					log.error(e.getMessage(), e); 
-				} catch (InterruptedException e) {
-					break;
-				}
-			}
-			throw new Exception("Failed to download playlist manifest");
-
-		} finally {
-			if (client != null) {
-				client.close();
-			}
-		}
-	}
 	
 	@Override
 	public void onSegmentDownloadComplete(Segment segment) {
@@ -286,17 +290,17 @@ public class Downloader extends Provider implements ISegmentListener {
 		}
 		
 		if(expectedSegments == null){
-			expectedSegments = new ConcurrentHashMap<String, Map<Integer, ExpectedSegment>>();
+			expectedSegments = new ConcurrentHashMap<String, Map<Long, ExpectedSegment>>();
 		}
 		
 		String domainHash = segment.getRendition().getDomainHash();
 
-		Map<Integer, ExpectedSegment> domainExpectedSegment;
+		Map<Long, ExpectedSegment> domainExpectedSegment;
 		if(expectedSegments.containsKey(domainHash)){
 			domainExpectedSegment = expectedSegments.get(domainHash);
 		}
 		else{
-			domainExpectedSegment = new ConcurrentHashMap<Integer, ExpectedSegment>();
+			domainExpectedSegment = new ConcurrentHashMap<Long, ExpectedSegment>();
 			expectedSegments.put(domainHash, domainExpectedSegment);
 		}
 
@@ -320,8 +324,8 @@ public class Downloader extends Provider implements ISegmentListener {
 
 	private void cleanupOldSegments() {
 		ExpectedSegment expectedSegment;
-		for(Map<Integer, ExpectedSegment> domainExpectedSegment : expectedSegments.values()){
-			for(int segmentNumber : domainExpectedSegment.keySet()){
+		for(Map<Long, ExpectedSegment> domainExpectedSegment : expectedSegments.values()){
+			for(long segmentNumber : domainExpectedSegment.keySet()){
 				expectedSegment = domainExpectedSegment.get(segmentNumber);
 				if(expectedSegment.expired()){
 					log.error("Segment [" + segmentNumber + "] not all renditions downloaded");

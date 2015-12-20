@@ -19,7 +19,7 @@ public class Record extends Output {
     public String getFfmpegCommandArguments(int index) throws Exception{
     	String command = super.getFfmpegCommandArguments(index);
 
-    	String dirPath = config.getDestinationFolder() + "/" + uniqueId + "/";
+    	String dirPath = config.getDestinationFolder() + "/content/" + uniqueId + "/";
     	File dir = new File(dirPath);
     	if(!dir.exists()){
     		dir.mkdirs();

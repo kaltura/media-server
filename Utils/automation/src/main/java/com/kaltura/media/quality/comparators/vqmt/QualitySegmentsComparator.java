@@ -32,19 +32,10 @@ public class QualitySegmentsComparator implements SegmentsComparator {
 	}
 
 	private String getBaseDir(Segment segment) {
-		return TestConfig.get().getDestinationFolder() + "/" + segment.getEntryId();
+		return TestConfig.get().getDestinationFolder() + "/content/" + segment.getEntryId();
 	}
 
-	private File getDiffDir(Segment segment) {
-		File file = new File(getBaseDir(segment) + "/diff");
-		if(!file.exists()){
-			file.mkdirs();
-		}
-		
-		return file;
-	}
-
-	private String[] getCommandLine(List<Segment> segments) throws Exception {
+	private List<String> getCommandLine(List<Segment> segments) throws Exception {
 		// "C:\Program Files\MSU VQMT\msu_metric_64.exe" -metr ALL -cc ALL -sc 1 -cod "C:\tmp\test\1_77ff6g8b\logs" -ct 0 -fpd 0 -sv 1 -f "C:\tmp\test\1_77ff6g8b\chunklist_b1017600.m3u8\0\2015_12_02_17_05_54\media-uq1nblfbr_b1017600_540.ts" -f "C:\tmp\test\1_77ff6g8b\chunklist_b987136.m3u8\0\2015_12_02_17_05_54\media-utkecmdne_b987136_540.ts" -f "C:\tmp\test\1_77ff6g8b\chunklist_b987136.m3u8\0\2015_12_02_17_05_54\media-utkecmdne_b987136_540.ts"
 		if(!comparatorConfig.hasOtherProperty("path-to-executable")){
 			throw new Exception("Path to MSU VQMT executable configuratio is missing");
@@ -98,6 +89,12 @@ public class QualitySegmentsComparator implements SegmentsComparator {
 		// 1 - save visualization file, 0 - no vis. file
 		commandLine.add("-sv");
 		commandLine.add("0");
+		
+		return commandLine;
+	}
+	
+	public void execute(List<Segment> segments) throws Exception {
+		List<String> cmd = getCommandLine(segments);
 
 		// assume that highest bitrate is the source 
 		Segment source = null;
@@ -107,49 +104,47 @@ public class QualitySegmentsComparator implements SegmentsComparator {
 			}
 		}
 
-		// files to compare (the first one is assumed as original, colorspace is applicable for raw files only)
-		commandLine.add("-f");
-		commandLine.add("\"" + source.getFile().getAbsolutePath() + "\"");
-		
+		List<String> commandLine;
 		for(Segment segment : segments){
-			if(segment != source){
-				commandLine.add("-f");
-				commandLine.add("\"" + segment.getFile().getAbsolutePath() + "\"");
+			if(segment == source){
+				continue;
 			}
-		}
+			
+			commandLine = new ArrayList<String>(cmd);
+			
+			// files to compare (the first one is assumed as original, colorspace is applicable for raw files only)
+			commandLine.add("-f");
+			commandLine.add("\"" + source.getFile().getAbsolutePath() + "\"");
 		
-		return commandLine.toArray(new String[]{});
-	}
-	
-	public void execute(List<Segment> segments) throws Exception {
-		String[] cmd = getCommandLine(segments);
-		String cmdString = StringUtils.join(cmd, " ");
+			commandLine.add("-f");
+			commandLine.add("\"" + segment.getFile().getAbsolutePath() + "\"");
 
-		log.info("Executing command: " + cmdString);
+			String cmdString = StringUtils.join(commandLine, " ");
+			log.info("Executing command: " + cmdString);
 
-		ProcessBuilder processBuilder = new ProcessBuilder(cmd);
-		processBuilder.directory(getDiffDir(segments.get(0)));
-		File stdOut = File.createTempFile("stdout", ".log");
-		processBuilder.redirectErrorStream(true);
-		processBuilder.redirectOutput(Redirect.appendTo(stdOut));
-		process = processBuilder.start();
+			ProcessBuilder processBuilder = new ProcessBuilder(commandLine);
+			File stdOut = File.createTempFile("stdout", ".log");
+			processBuilder.redirectErrorStream(true);
+			processBuilder.redirectOutput(Redirect.appendTo(stdOut));
+			process = processBuilder.start();
 
-		int exitValue = process.waitFor();
-		log.debug("Exit code [" + exitValue + "]");
+			int exitValue = process.waitFor();
+			log.debug("Exit code [" + exitValue + "]");
 
-		BufferedReader reader = new BufferedReader(new FileReader(stdOut));
-		StringBuilder stringBuilder = new StringBuilder();
-		String line = null;
-		while ((line = reader.readLine()) != null) {
-			stringBuilder.append(line);
-			stringBuilder.append("\n");
-		}
-		reader.close();
-		String output = stringBuilder.toString();
-		log.debug("##### Process Output Messages #####\n" + output);
+			BufferedReader reader = new BufferedReader(new FileReader(stdOut));
+			StringBuilder stringBuilder = new StringBuilder();
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				stringBuilder.append(line);
+				stringBuilder.append("\n");
+			}
+			reader.close();
+			String output = stringBuilder.toString();
+			log.debug("##### Process Output Messages #####\n" + output);
 
-		if (exitValue != 0) {
-			throw new Exception("Exec failed with exit code [" + exitValue + "]: " + cmdString);
+			if (exitValue != 0) {
+				throw new Exception("Exec failed with exit code [" + exitValue + "]: " + cmdString);
+			}
 		}
 	}
 	

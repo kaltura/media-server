@@ -67,7 +67,7 @@ public abstract class Encoder extends EventsManager {
     protected abstract String getCommandLineArguments() throws Exception;
 
 	protected File getLogFile() {
-		String logPath = config.getDestinationFolder() + "/" + uniqueId + "/logs";
+		String logPath = config.getDestinationFolder() + "/content/" + uniqueId + "/logs";
 		File dir = new File(logPath);
 		if(!dir.exists()){
 			dir.mkdirs();

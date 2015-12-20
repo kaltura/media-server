@@ -5,11 +5,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.NoSuchAlgorithmException;
 
 import org.apache.log4j.Logger;
-
-import com.kaltura.media.quality.utils.StringUtils;
 
 public class Rendition implements Cloneable, Serializable {
 	private static final long serialVersionUID = -8276747625640628048L;
@@ -71,33 +68,32 @@ public class Rendition implements Cloneable, Serializable {
 		return url;
 	}
 
-	public void setUrl(String url) {
-		this.url = url;
+	public void setUrl(String url, String name) {
+		try {
+			setUrl(new URI(url), name);
+		} catch (URISyntaxException e) {
+			log.error("Invalid URI: " + url, e);
+		}
+	}
+
+	public void setUrl(URI url, String name) {
+		this.url = url.toString();
 
 		URL streamUrl;
 		try {
-			streamUrl = new URI(url).resolve("../../").toURL();
+			streamUrl = url.resolve("../../").toURL();
 			domain = streamUrl.getHost();
 			if (streamUrl.getPath().startsWith("/dc-")) {
 				domain = streamUrl.getPath().substring(4, 5);
 				domainHash = domain;
 				return;
 			}
-		} catch (MalformedURLException | URISyntaxException e) {
-			log.error("Invalid URI: " + url);
-
-			try {
-				streamUrl = new URL(url);
-				domain = streamUrl.getHost();
-			} catch (MalformedURLException ex) {
-				log.error("Invalid URL: " + url);
-			}
+		} catch (MalformedURLException e) {
+			log.error("Invalid URI: " + url, e);
+			domain = url.getHost();
 		}
-
-		try {
-			domainHash = StringUtils.md5(domain);
-		} catch (NoSuchAlgorithmException e) {
-		}
+		
+		domainHash = name;
 	}
 
 	public String getDomain() {

@@ -30,6 +30,8 @@ dependencies {
 	compile 'com.google.zxing:javase:3.2.0'
 	compile 'org.openamf:openamf:1.12'
 	
+	compile 'org.jfree:jfreechart:1.0.19'
+	
 	testCompile 'org.testng:testng:6.8.21'
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }

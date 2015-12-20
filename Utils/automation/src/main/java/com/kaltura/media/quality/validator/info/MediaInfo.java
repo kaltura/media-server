@@ -57,6 +57,8 @@ public class MediaInfo extends MediaInfoBase {
 		
 		private int maximumBitrate;
 		
+		private int nominalBitrate;
+		
 		private int width;
 		
 		private int height;
@@ -89,6 +91,7 @@ public class MediaInfo extends MediaInfoBase {
         	this.duration = streamInfoAdapted.getDuration();
         	this.bitrateMode = streamInfoAdapted.getBitrateMode();
         	this.maximumBitrate = streamInfoAdapted.getMaximumBitrate();
+        	this.nominalBitrate = streamInfoAdapted.getNominalBitrate();
         	this.width = streamInfoAdapted.getWidth();
         	this.height = streamInfoAdapted.getHeight();
         	this.displayAspectRatio = streamInfoAdapted.getDisplayAspectRatio();
@@ -167,6 +170,10 @@ public class MediaInfo extends MediaInfoBase {
 			return maximumBitrate;
 		}
 
+		public int getNominalBitrate() {
+			return nominalBitrate;
+		}
+
 		public String getDisplayAspectRatio() {
 			return displayAspectRatio;
 		}
@@ -201,6 +208,14 @@ public class MediaInfo extends MediaInfoBase {
 
 		public int getId() {
 			return id;
+		}
+
+		public int getBitrate() {
+			if(getNominalBitrate() > 0){
+				return getNominalBitrate();
+			}
+			
+			return getMaximumBitrate();
 		}
 	}
 
@@ -384,6 +399,9 @@ public class MediaInfo extends MediaInfoBase {
 		@XmlElement(name = "Maximum_bit_rate")
 		private String maximumBitrate;
 		
+		@XmlElement(name = "Nominal_bit_rate")
+		private String nominalBitrate;
+		
 		@XmlElement(name = "Width")
 		private String width;
 		
@@ -541,9 +559,37 @@ public class MediaInfo extends MediaInfoBase {
 			
 			String[] parts = maximumBitrate.split(" ");
 			int bitrate = Integer.valueOf(parts[0]);
+
+			if(parts.length == 3 && parts[1].matches("^\\d+$") && parts[2].toLowerCase().equals("kbps")){
+				bitrate *= 1024 * 1024;
+				bitrate += Integer.parseInt(parts[1]) * 1000;
+			}
+			else if(parts.length == 2 && parts[1].toLowerCase().equals("kbps")){
+				bitrate *= 1024;
+			}
+			else if(parts.length == 1){
+				bitrate *= 1024 * 1024;
+			}
+			return bitrate;
+		}
+
+		public int getNominalBitrate() {
+			if(nominalBitrate == null){
+				return 0;
+			}
 			
-			if(parts.length > 0 && parts[1].toLowerCase().equals("kbps")){
-				bitrate *= 1000;
+			String[] parts = nominalBitrate.split(" ");
+			int bitrate = Integer.valueOf(parts[0]);
+
+			if(parts.length == 3 && parts[1].matches("^\\d+$") && parts[2].toLowerCase().equals("kbps")){
+				bitrate *= 1024 * 1024;
+				bitrate += Integer.parseInt(parts[1]) * 1000;
+			}
+			else if(parts.length == 2 && parts[1].toLowerCase().equals("kbps")){
+				bitrate *= 1024;
+			}
+			else if(parts.length == 1){
+				bitrate *= 1024 * 1024;
 			}
 			return bitrate;
 		}
@@ -643,9 +689,16 @@ public class MediaInfo extends MediaInfoBase {
 				
 			String[] parts = overallBitrate.split(" ");
 			int bitrate = Integer.valueOf(parts[0]);
-			
-			if(parts.length > 0 && parts[1].toLowerCase().equals("kbps")){
-				bitrate *= 1000;
+
+			if(parts.length == 3 && parts[1].matches("^\\d+$") && parts[2].toLowerCase().equals("kbps")){
+				bitrate *= 1024 * 1024;
+				bitrate += Integer.parseInt(parts[1]) * 1024;
+			}
+			else if(parts.length == 2 && parts[1].toLowerCase().equals("kbps")){
+				bitrate *= 1024;
+			}
+			else if(parts.length == 1){
+				bitrate *= 1024 * 1024;
 			}
 			return bitrate;
 		}

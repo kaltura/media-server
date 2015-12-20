@@ -66,9 +66,10 @@ public class MediaInfoResultsLogger extends ResultsLogger implements ISegmentInf
 			int mediaInfoWidthDiff = segment.getRendition().getWidth() - mediaInfoInfo.getVideo().getWidth();
 			int mediaInfoHeightDiff = segment.getRendition().getHeight() - mediaInfoInfo.getVideo().getHeight();
 			int mediaInfoBitrateDiff = segment.getRendition().getBandwidth() - mediaInfoInfo.getBitrate();
-			int mediaInfoVideoMaxBitrateDiff = segment.getRendition().getBandwidth() - mediaInfoInfo.getVideo().getMaximumBitrate();
+			int mediaInfoVideoMaxBitrateDiff = segment.getRendition().getBandwidth() - mediaInfoInfo.getVideo().getBitrate();
 			
 			return new Object[]{
+				segment.getFile().getAbsolutePath(),
 				segment.getRendition().getDomainHash(),
 				segment.getRendition().getBandwidth(),
 				segment.getRendition().getResolution(),
@@ -105,6 +106,7 @@ public class MediaInfoResultsLogger extends ResultsLogger implements ISegmentInf
 		@Override
 		public String[] getHeaders() {
 			return new String[]{
+				"File Path",
 				"Domain Hash",
 				"Rendition Bitrate",
 				"Rendition Resolution",

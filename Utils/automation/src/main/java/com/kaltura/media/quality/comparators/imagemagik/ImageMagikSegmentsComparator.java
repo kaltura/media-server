@@ -16,9 +16,6 @@ import com.kaltura.media.quality.utils.ThreadManager;
 import java.io.File;
 import java.util.List;
 
-/**
- * Created by asher.saban on 6/8/2015.
- */
 public class ImageMagikSegmentsComparator implements SegmentsComparator {
 	private static final Logger log = Logger.getLogger(ImageMagikSegmentsComparator.class);
 
@@ -98,55 +95,61 @@ public class ImageMagikSegmentsComparator implements SegmentsComparator {
 	
 	@Override
 	public void compare(List<Segment> segments) {
-		Segment segment1 = segments.get(0);
-		File file1 = segment1.getFile();
-		File file2;
+		Segment sourceSegment = null;
+		for(Segment segment: segments){
+			if(sourceSegment == null || sourceSegment.getRendition().getBandwidth() < segment.getRendition().getBandwidth()){
+				sourceSegment = segment;
+			}	
+		}
+		File sourceFile = sourceSegment.getFile();
+		File compareFile;
 
 		Thread thread = Thread.currentThread();
 		thread.setPriority(Thread.MIN_PRIORITY);
-		thread.setName(getClass().getSimpleName() + "-" + file1.getAbsolutePath());
+		thread.setName(getClass().getSimpleName() + "-" + sourceFile.getAbsolutePath());
 		
-		File image1;
+		File sourceImage;
 		try {
-			image1 = getFirstFrameFromFile(segment1);
+			sourceImage = getFirstFrameFromFile(sourceSegment);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
-			EventsManager.get().raiseEvent(new SegmentErrorEvent(segment1, e));
+			EventsManager.get().raiseEvent(new SegmentErrorEvent(sourceSegment, e));
 			return;
 		}
-		File image2;
+		File compareImage;
 
-		String outputFolder = file1.getParent();
+		String outputFolder = sourceFile.getParent();
 		String outputName;
 		String diffPath;
 		double diff;
 		
 		// Check 1-2, 2-3, 3-4, ...
-		for(int i = 1 ; i < segments.size(); ++i) {
+		for(Segment compareSegment: segments){
 			
 			if(!ThreadManager.shouldContinue()){
 				break;
 			}
 			
-			Segment segment2 = segments.get(i);
-			file2 = segment2.getFile();
-			try {
-				image2 = getFirstFrameFromFile(segment2);
-			} catch (Exception e) {
-				log.error(e.getMessage(), e);
-				EventsManager.get().raiseEvent(new SegmentErrorEvent(segment2, e));
+			if(compareSegment == sourceSegment){
+				EventsManager.get().raiseEvent(new SegmentsResultsEvent(sourceSegment, compareSegment, 0));
 				continue;
 			}
-			outputName = file2.getParentFile().getParentFile().getName();
-			diffPath = outputFolder + "/diff_" + segment1.getNumber() + "_" + outputName + ".jpg";
 			
-			log.info("Comparison of entry [" + segment1.getEntryId() + "]" + file1 + " and " + file2);
+			compareFile = compareSegment.getFile();
+			try {
+				compareImage = getFirstFrameFromFile(compareSegment);
+			} catch (Exception e) {
+				log.error(e.getMessage(), e);
+				EventsManager.get().raiseEvent(new SegmentErrorEvent(compareSegment, e));
+				continue;
+			}
+			outputName = compareFile.getParentFile().getParentFile().getName();
+			diffPath = outputFolder + "/diff_" + sourceSegment.getNumber() + "_" + outputName + ".jpg";
+			
+			log.info("Comparison of entry [" + sourceSegment.getEntryId() + "]" + sourceFile + " and " + compareFile);
 			ImageMagikImageComparator imComparator = new ImageMagikImageComparator(diffPath);
-			diff = imComparator.compare(image1, image2);
-			EventsManager.get().raiseEvent(new SegmentsResultsEvent(segment1, segment2, diff));
-			
-			file1 = file2;
-			image1 = image2;
+			diff = imComparator.compare(sourceImage, compareImage);
+			EventsManager.get().raiseEvent(new SegmentsResultsEvent(sourceSegment, compareSegment, diff));
 		}
 	}
 }

@@ -1,6 +1,6 @@
-package com.kaltura.media.quality.monitor;
+package com.kaltura.media.quality.event;
 
-import com.kaltura.media.quality.event.EventsManager;
+import com.kaltura.media.quality.monitor.Monitor;
 import com.kaltura.media.quality.utils.ThreadManager;
 
 /**

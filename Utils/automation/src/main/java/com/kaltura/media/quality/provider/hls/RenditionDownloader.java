@@ -35,7 +35,7 @@ class RenditionDownloader extends Provider implements Serializable {
 	private final URI url;
 	private final String destinationPath;
 	private Rendition rendition;
-	private int lastTsNumber;
+	private long lastTsNumber;
 	private boolean runForever = false;
 	private String tempPath;
 
@@ -142,7 +142,7 @@ class RenditionDownloader extends Provider implements Serializable {
 					String fileName = ts.getName();
 
 					//get the ts number:
-					int tsNumber;
+					long tsNumber;
 					try {
 						tsNumber = getTsNumber(fileName);
 					} catch (Exception e) {
@@ -200,11 +200,11 @@ class RenditionDownloader extends Provider implements Serializable {
 		
 	}
 
-	private int getTsNumber(String tsName) throws Exception {
-		Pattern pattern = Pattern.compile("\\D(\\d+)\\.ts");
+	private long getTsNumber(String tsName) throws Exception {
+		Pattern pattern = Pattern.compile("(\\d+)\\.ts");
 		Matcher matcher = pattern.matcher(tsName);
 		if (matcher.find()) {
-			return Integer.valueOf(matcher.group(1));
+			return Long.valueOf(matcher.group(1));
 		}
 		throw new Exception("ts with name: " + tsName + " does not contain ts number");
 	}

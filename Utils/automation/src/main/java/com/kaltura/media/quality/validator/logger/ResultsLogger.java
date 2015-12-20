@@ -47,7 +47,7 @@ abstract public class ResultsLogger extends Listener implements Serializable {
 
 	protected String getFilepath(String name) {
 		TestConfig config = TestConfig.get();
-		File dir = new File(config.getDestinationFolder() + "/" + uniqueId + "/logs");
+		File dir = new File(config.getDestinationFolder() + "/content/" + uniqueId + "/logs");
 		if(!dir.exists()){
 			dir.mkdirs();
 		}

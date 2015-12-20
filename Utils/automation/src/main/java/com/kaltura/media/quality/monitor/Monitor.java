@@ -38,7 +38,7 @@ abstract public class Monitor {
 
 	protected String createDefaultDownloadDir(String entryId) {
 		String reportDate = DATE_FORMAT.format(new Date());
-		return TestConfig.get().getDestinationFolder() + "/" + entryId + "/" + reportDate;
+		return TestConfig.get().getDestinationFolder() + "/content/" + entryId + "/" + reportDate;
 	}
 	
 	protected void handleStream(String uniqueId) throws Exception {

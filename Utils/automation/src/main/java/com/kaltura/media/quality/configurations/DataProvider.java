@@ -12,6 +12,9 @@ import com.kaltura.media.quality.provider.url.UrlBuilder;
 public class DataProvider extends TypedConfig<Provider> {
 	private static final long serialVersionUID = -8814014190582926166L;
 
+	@JsonProperty("name")
+	private String name;
+
 	@JsonProperty("playlist-enhancers")
 	private List<PlaylistEnhancerConfig> playlistEnhancers = new ArrayList<PlaylistEnhancerConfig>();
 
@@ -25,5 +28,9 @@ public class DataProvider extends TypedConfig<Provider> {
 	public UrlBuilder getUrlBuilder() throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		Constructor<UrlBuilder> constructor = urlBuilderConfig.getType().getConstructor(UrlBuilderConfig.class);
 		return constructor.newInstance(urlBuilderConfig);
+	}
+
+	public String getName() {
+		return name;
 	}
 }

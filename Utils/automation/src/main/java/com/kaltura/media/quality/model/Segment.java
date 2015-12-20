@@ -6,12 +6,12 @@ import java.security.NoSuchAlgorithmException;
 
 public class Segment implements Serializable {
 	private static final long serialVersionUID = -320621756591515403L;
-	private int number;
+	private long number;
 	private double duration;
 	private Rendition rendition;
 	private File file;
 
-	public Segment(int number, double duration, Rendition rendition) throws NoSuchAlgorithmException {
+	public Segment(long number, double duration, Rendition rendition) throws NoSuchAlgorithmException {
 		this.number = number;
 		this.duration = duration;
 		this.rendition = rendition;
@@ -21,7 +21,7 @@ public class Segment implements Serializable {
 		return file;
 	}
 
-	public int getNumber() {
+	public long getNumber() {
 		return number;
 	}
 

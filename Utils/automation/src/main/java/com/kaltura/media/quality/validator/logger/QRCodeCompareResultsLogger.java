@@ -49,7 +49,7 @@ public class QRCodeCompareResultsLogger extends ResultsLogger implements IQRCode
 			
 			return new Object[]{
 				segment.getNumber(),
-				segment.getRendition().getDomain(),
+				segment.getRendition().getDomainHash(),
 				segment.getRendition().getBandwidth(),
 				frame.getDts(),
 				frame.getPts(),

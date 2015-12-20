@@ -43,7 +43,7 @@ public class RenditionsCompareResultsLogger extends ResultsLogger implements ISe
 		public Object[] getValues(){
 			return new Object[]{
 				segment1.getNumber(),
-				segment1.getRendition().getDomain(),
+				segment1.getRendition().getDomainHash(),
 				segment1.getRendition().getBandwidth(),
 				segment2.getRendition().getBandwidth(),
 				diff

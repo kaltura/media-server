@@ -10,4 +10,6 @@ import com.kaltura.media.quality.model.Rendition;
 public interface PlaylistEnhancer {
 
 	public Set<Rendition> enhanceStreamsSet(Set<Rendition> streams);
+
+	public void setName(String name);
 }
