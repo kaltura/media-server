@@ -506,6 +506,62 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				return;
 			}
 		}
+
+		onEntryPublished(entryId, liveEntryCache, serverIndex, applicationName);
+	}
+
+	protected void onEntryPublished(String entryId, LiveEntryCache liveEntryCache, final KalturaMediaServerIndex serverIndex, String applicationName) {
+
+		if (liveEntryCache == null || liveEntryCache.getLiveEntry() == null) {
+			logger.debug("liveEntryCache is null. or getLiveEntry is null");
+			return;
+		}
+		//update the entry cache object with the correct currentBroadcastStartTime
+		//lock the entry cache object to ensure only one thread writes the start value
+		synchronized (liveEntryCache) {
+
+			logger.debug("onEntryPublished - entryId: " + entryId);
+			KalturaLiveEntry liveEntry = liveEntryCache.getLiveEntry();
+
+			//entry cache is already updated
+			logger.debug("currentBroadcastStartTime = " + liveEntry.currentBroadcastStartTime);
+			if (liveEntry.currentBroadcastStartTime > 0d) {
+				return;
+			}
+
+			//currentBC time in entryCache is <= 0 -> get the real BC time from the server
+			KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
+			try {
+				KalturaLiveStreamEntry updatedEntry = impersonateClient.getLiveStreamService().get(entryId);
+
+				logger.debug("got updatedEntry from the server. currentBroadcastStartTime = " + updatedEntry.currentBroadcastStartTime);
+				//stream has already started - update the entry cache with the start time value
+				if (updatedEntry.currentBroadcastStartTime > 0d) {
+					logger.debug("currentBroadcastStartTime already set in server - updating liveEntryCache: " + liveEntry.currentBroadcastStartTime);
+					updateEntryCache(updatedEntry);
+					return;
+				}
+
+				//this stream is the first one to broadcast, update the server
+				liveEntry.currentBroadcastStartTime = new Date().getTime() / 1000.0;
+				logger.debug("currentBroadcastStartTime is not updated in server. updating to value - " + liveEntry.currentBroadcastStartTime);
+				boolean isPrimary = KalturaMediaServerIndex.PRIMARY.equals(serverIndex);
+
+				//if the current Wowza is the primary one, update the server
+				if (isPrimary) {
+					KalturaLiveEntry updatedLiveEntry = liveEntry.getClass().newInstance();
+					updatedLiveEntry.currentBroadcastStartTime = liveEntry.currentBroadcastStartTime;
+					impersonateClient.getLiveStreamService().update(liveEntry.id, (KalturaLiveStreamEntry) updatedLiveEntry);
+					logger.debug("server updated with currentBroadcastStartTime = " + updatedLiveEntry.currentBroadcastStartTime);
+				} else {
+					logger.debug("current Wowza is not primary. skipping server update.");
+				}
+			} catch (KalturaApiException e) {
+				logger.error("failed to update entry [" + liveEntry.id + "]", e);
+			} catch (InstantiationException | IllegalAccessException e) {
+				logger.error("failed to instantiate updatedLiveEntry", e);
+			}
+		}
 	}
 
 	public boolean isEntryRegistered(String entryId) {
