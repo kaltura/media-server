@@ -16,6 +16,9 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.HTTPStreamerCupertinoLiveStreamPacketizerChunkIdContext;
+import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.IHTTPStreamerCupertinoLiveStreamPacketizerChunkIdHandler;
+import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
 import org.apache.log4j.Logger;
 
 import com.kaltura.client.KalturaApiException;
@@ -71,6 +74,8 @@ import com.wowza.wms.transcoder.model.LiveStreamTranscoderActionNotifyBase;
 import com.wowza.wms.transcoder.model.TranscoderStreamNameGroup;
 import com.wowza.wms.transcoder.model.TranscoderStreamNameGroupMember;
 import com.wowza.wms.vhost.IVHost;
+import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.LiveStreamPacketizerCupertino;
+import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizer;
 
 public class LiveStreamEntry extends ModuleBase {
 
@@ -87,6 +92,8 @@ public class LiveStreamEntry extends ModuleBase {
 	protected final static String CLIENT_PROPERTY_CODEC_TYPE = "codecType";
 	protected final static String STREAM_PROPERTY_SUFFIX = "suffix";
 	protected final static String APPLICATION_MANAGERS_PROPERTY_NAME = "ApplicationManagers";
+    private final static String READY_FOR_PLAYBACK_MINIMUM_CHUNK_COUNT = "readyForPlaybackMinimumChunkCount";
+    private final static int DEFAULT_MINIMUM_CHUNKS = 2;
 
 	protected final static int INVALID_SERVER_INDEX = -1;
 
@@ -94,6 +101,7 @@ public class LiveStreamEntry extends ModuleBase {
 	
 	private static ExecutorService executor = Executors.newCachedThreadPool();
 
+    private LiveStreamPacketizerListener2 liveStreamPacketizerListener = new LiveStreamPacketizerListener2();
 	private String applicationName;
 	private LiveStreamManager liveStreamManager;
 	private DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
@@ -103,6 +111,7 @@ public class LiveStreamEntry extends ModuleBase {
 	private ZombieStreamsWatcher zombieManager = new ZombieStreamsWatcher();
 	private IApplicationInstance appInstance;
 	private Map<String, Map<String, Stream>> restreams = new HashMap<String, Map<String, Stream>>();
+    private int readyForPlaybackMinimumChunkCount;
 
 	@SuppressWarnings("serial")
 	private class ClientConnectException extends Exception{
@@ -192,6 +201,11 @@ public class LiveStreamEntry extends ModuleBase {
 
 	class LiveStreamListener extends MediaStreamActionNotifyBase implements ILiveManager.ILiveEntryReferrer {
 
+        public IApplicationInstance appInstance;
+
+        public LiveStreamListener(IApplicationInstance appInstance) {
+            this.appInstance = appInstance;
+        }
 		@Override
 		public void onCodecInfoVideo(IMediaStream stream, MediaCodecInfoVideo videoCodec) {
 			super.onCodecInfoVideo(stream, videoCodec);
@@ -204,6 +218,8 @@ public class LiveStreamEntry extends ModuleBase {
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
 			logger.debug("Stream [" + streamName + "]");
+            String entryId = "";
+            KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.PRIMARY;
 
 			WMSProperties properties = getConnectionProperties(stream);
 			int assetParamsId = Integer.MIN_VALUE;
@@ -211,8 +227,8 @@ public class LiveStreamEntry extends ModuleBase {
 
 				logger.debug("Client IP: " + getStreamIp(stream));
 
-				String entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
-				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+				entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
+				serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 				liveManager.addReferrer(entryId, this);
@@ -259,7 +275,7 @@ public class LiveStreamEntry extends ModuleBase {
 					return;
 				}
 
-				String entryId = matcher.group(1);
+				entryId = matcher.group(1);
 
 				synchronized (restreams) {
 					if(restreams.containsKey(entryId)){
@@ -284,11 +300,26 @@ public class LiveStreamEntry extends ModuleBase {
 				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 				liveManager.addReferrer(entryId, this);
 
-				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+				serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, liveStreamManager.get(entryId), serverIndex, applicationName, stream, assetParamsId);
 				KalturaEventsManager.raiseEvent(event);
 			}
+            // check if the stream contains chunks ready for playing, if so raise the READY_FOR_PLAYBACK immediately
+            if (stream != null) {
+                try {
+                    ILiveStreamPacketizer packetizer = stream.getLiveStreamPacketizer("cupertinostreamingpacketizer");
+                    if (packetizer != null) {
+                        LiveStreamPacketizerCupertino cupertino = (LiveStreamPacketizerCupertino) packetizer;
+                        ChunkIdHandler myHandler = (ChunkIdHandler) cupertino.getChunkIdHandler();
+                        logger.info("Packetizer exist for stream: [" + stream.getName() + "]. Check amount of chunks" );
+                        myHandler.checkChunksForPlayback();
+                    }
+                }
+                catch(Exception err) {
+                    logger.error(err);
+                }
+            }
 		}
 
 		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
@@ -800,16 +831,15 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	public void onStreamCreate(IMediaStream stream) {
-		logger.debug("LiveStreamEntry::onStreamCreate");
-		stream.addClientListener(new LiveStreamListener());
+		logger.debug("LiveStreamEntry: onStreamCreate - [" + stream.getName() + "]");
+		stream.addClientListener(new LiveStreamListener(this.appInstance));
 		stream.addLivePacketListener(packetListener);
 		
 		stream.addClientListener(zombieManager);
 		stream.addLivePacketListener(zombieManager);
 	}
 
-	public void onStreamDestroy(IMediaStream stream)
-	{
+	public void onStreamDestroy(IMediaStream stream) {
 		stream.removeLivePacketListener(packetListener);
 		stream.removeLivePacketListener(zombieManager);
 		stream.removeClientListener(zombieManager);
@@ -981,10 +1011,13 @@ public class LiveStreamEntry extends ModuleBase {
 				logger.error("An error occurred: " + e.getMessage());
 			}
 		}
-
+        appInstance.addLiveStreamPacketizerListener(liveStreamPacketizerListener);
 		appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
 		appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
 		appInstance.setLiveStreamTranscoderControl(new TranscoderControl());
+        // Set the minimum chunks required for sending isLive to player
+        readyForPlaybackMinimumChunkCount = appInstance.getProperties().getPropertyInt(READY_FOR_PLAYBACK_MINIMUM_CHUNK_COUNT, DEFAULT_MINIMUM_CHUNKS);
+        logger.info("Application started. Minimum chunks for sending isLive to Player: " + readyForPlaybackMinimumChunkCount);
 
 		setLiveStreamManager();
 
@@ -1017,4 +1050,68 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 
 	}
+
+    class ChunkIdHandler implements IHTTPStreamerCupertinoLiveStreamPacketizerChunkIdHandler
+    {
+        private LiveStreamPacketizerCupertino packetizerCupertino;
+        private boolean eventLunched = false;
+
+        public ChunkIdHandler(LiveStreamPacketizerCupertino packetizer) {
+            this.packetizerCupertino = packetizer;
+        }
+
+        public void init(LiveStreamPacketizerCupertino var) {}
+
+        public long onAssignChunkId(HTTPStreamerCupertinoLiveStreamPacketizerChunkIdContext dummyVar) {
+            if (!eventLunched) {
+                checkChunksForPlayback();
+            }
+            return dummyVar.getChunkIndex();
+        }
+
+        public void checkChunksForPlayback() {
+            try {
+                int chunkCount = this.packetizerCupertino.getChunkCount();
+                logger.info("Stream contains [" + chunkCount + "] chuncks");
+                if (chunkCount >= readyForPlaybackMinimumChunkCount) {
+                    logger.info("Raising STREAM_READY_FOR_PLAYBACK event");
+                    raiseReadyForPlaybackEvent();
+                }
+            } catch (Exception err) {
+                logger.error(err);
+            }
+        }
+
+        private void raiseReadyForPlaybackEvent() {
+            IMediaStream mediaStream = this.packetizerCupertino.getAndSetStartStream(null);
+            WMSProperties clientProperties = mediaStream.getProperties();
+            KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+            String entryId = getEntryIdFromStreamName(mediaStream.getName());
+            KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_READY_FOR_PLAYBACK, liveStreamManager.get(entryId), serverIndex, applicationName, mediaStream);
+            KalturaEventsManager.raiseEvent(event);
+            eventLunched = true;
+        }
+    }
+
+    class LiveStreamPacketizerListener2 implements ILiveStreamPacketizerActionNotify {
+
+        public LiveStreamPacketizerListener2() {
+            logger.debug("creating new LiveStreamPacketizerListener2 object");
+        }
+
+        public void onLiveStreamPacketizerInit(ILiveStreamPacketizer var1, String var2) {}
+
+        public void onLiveStreamPacketizerCreate(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {
+            logger.debug("onLiveStreamPacketizerCreate. stream: [" + streamName + "], packetizer: [" + liveStreamPacketizer.getLiveStreamPacketizerId() + "]");
+            if (!(liveStreamPacketizer instanceof LiveStreamPacketizerCupertino))
+                return;
+
+            logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
+            ((LiveStreamPacketizerCupertino)liveStreamPacketizer).setChunkIdHandler(new ChunkIdHandler((LiveStreamPacketizerCupertino)liveStreamPacketizer));
+        }
+
+        public void onLiveStreamPacketizerDestroy(ILiveStreamPacketizer liveStreamPacketizer) {
+            logger.debug("Destroying liveStreamPacketizer " + liveStreamPacketizer.getLiveStreamPacketizerId());
+        }
+    }
 }
