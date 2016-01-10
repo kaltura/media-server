@@ -182,7 +182,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		}
 
 		public synchronized void setReadyForPlayback() {
-			// TO DO: Should we close this flag when UnRegister is called???
 			if (readyForPlayback) {
 				logger.debug("Attention - READY_FOR_PLAYBACK already raised");
 				return;
@@ -207,7 +206,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			};
 
 			timer = new Timer("register-" + liveEntry.id, true);
-			// TO DO: Decide the time gap between each call to setMediaServerTask
 			timer.schedule(setMediaServerTask, 0);
 			logger.debug("Scheduled initial timer [" + liveEntry.id + "]");
 
@@ -232,7 +230,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				timer.purge();
 				timer = null;
 			}
-			// TO DO: Think maybe move these flags for an event checking if we still have chunks. Beucase
 			registered = false;
 			readyForPlayback = false;
 

@@ -1058,7 +1058,6 @@ public class LiveStreamEntry extends ModuleBase {
     class ChunkIdHandler implements IHTTPStreamerCupertinoLiveStreamPacketizerChunkIdHandler
     {
         private LiveStreamPacketizerCupertino packetizerCupertino;
-        // TO DO: Think how to open/re-open that flag after onUnPublish zv
         private boolean eventLunched = false;
 
         public ChunkIdHandler(LiveStreamPacketizerCupertino packetizer) {
@@ -1098,7 +1097,6 @@ public class LiveStreamEntry extends ModuleBase {
         }
     }
 
-    // TO DO: Think of a better name for this class
     class LiveStreamPacketizerListener2 implements ILiveStreamPacketizerActionNotify {
 
         public LiveStreamPacketizerListener2() {
