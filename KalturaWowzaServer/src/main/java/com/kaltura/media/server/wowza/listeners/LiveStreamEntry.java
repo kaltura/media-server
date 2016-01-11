@@ -313,12 +313,14 @@ public class LiveStreamEntry extends ModuleBase {
 			if (stream != null) {
 				try {
 					ILiveStreamPacketizer packetizer = stream.getLiveStreamPacketizer("cupertinostreamingpacketizer");
-					if (packetizer != null) {
-						LiveStreamPacketizerCupertino cupertino = (LiveStreamPacketizerCupertino) packetizer;
-						ChunkIdHandler myHandler = (ChunkIdHandler) cupertino.getChunkIdHandler();
-						logger.info("Packetizer exist for stream: [" + stream.getName() + "]. Check amount of chunks" );
-						myHandler.checkChunksForPlayback();
+					if (packetizer == null) {
+						logger.debug("Packetizer not created yet created");
+						return;
 					}
+					LiveStreamPacketizerCupertino cupertino = (LiveStreamPacketizerCupertino) packetizer;
+					ChunkIdHandler myHandler = (ChunkIdHandler) cupertino.getChunkIdHandler();
+					logger.info("Packetizer exist for stream: [" + stream.getName() + "]. Check amount of chunks" );
+					myHandler.checkChunksForPlayback();
 				}
 				catch(Exception err) {
 					logger.error(err);
@@ -1087,13 +1089,18 @@ public class LiveStreamEntry extends ModuleBase {
         }
 
         private void raiseReadyForPlaybackEvent() {
-            IMediaStream mediaStream = this.packetizerCupertino.getAndSetStartStream(null);
-            WMSProperties clientProperties = mediaStream.getProperties();
-            KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
-            String entryId = getEntryIdFromStreamName(mediaStream.getName());
-            KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_READY_FOR_PLAYBACK, liveStreamManager.get(entryId), serverIndex, applicationName, mediaStream);
-            KalturaEventsManager.raiseEvent(event);
-            eventLunched = true;
+			try {
+				IMediaStream mediaStream = this.packetizerCupertino.getAndSetStartStream(null);
+				WMSProperties clientProperties = mediaStream.getProperties();
+				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+				String entryId = getEntryIdFromStreamName(mediaStream.getName());
+				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_READY_FOR_PLAYBACK, liveStreamManager.get(entryId), serverIndex, applicationName, mediaStream);
+				KalturaEventsManager.raiseEvent(event);
+				eventLunched = true;
+			}
+			catch (Exception err) {
+				logger.error(err);
+			}
         }
     }
 

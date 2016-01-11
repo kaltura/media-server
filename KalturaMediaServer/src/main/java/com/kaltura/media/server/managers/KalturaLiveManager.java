@@ -178,12 +178,8 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		}
 
 		public synchronized void setEntryIsLive() {
-			if (readyForPlayback) {
-				logger.debug("Attention - READY_FOR_PLAYBACK already raised");
-				return;
-			}
-			if (!entryRegistered) {
-				logger.error("setReadyForPlayback called but stream is unregistered");
+			if (!isReadyForPlayback()) {
+				logger.info("setEntryIsLive was called - IsLive is already on");
 				return ;
 			}
 			TimerTask setMediaServerTask = new TimerTask() {
@@ -203,7 +199,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		
 		public synchronized void register(KalturaMediaServerIndex serverIndex, String appName) {
 			logger.debug("Register [" + liveEntry.id + "]");
-			if(entryRegistered)
+			if(isEntryRegistered())
 				return;
 
 			index = serverIndex;
@@ -241,13 +237,13 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			unsetEntryMediaServer(liveEntry, tmpIndex);
 		}
 
-		public boolean isRegistered() {
+		public boolean isEntryRegistered() {
 			return entryRegistered;
 		}
 
 		public boolean isReadyForPlayback() {
 			// Might only need readyForPlayback because otherwise we won't play anyhow
-			return isRegistered() && readyForPlayback;
+			return isEntryRegistered() && readyForPlayback;
 		}
 
 		public void setLiveEntry(KalturaLiveEntry liveEntry) {
@@ -507,13 +503,10 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	protected  void onStreamReadyForPlayback(String entryId, final KalturaMediaServerIndex serverIndex) {
 		logger.debug("onStreamReadyForPlayback [" + entryId + "]");
 
-		LiveEntryCache liveEntryCache = null;
-
 		synchronized (entries) {
 
 			if (entries.containsKey(entryId)) {
-				liveEntryCache = entries.get(entryId);
-				liveEntryCache.setEntryIsLive();
+				entries.get(entryId).setEntryIsLive();
 			} else {
 				logger.error("entry [" + entryId + "] not found in entries array");
 			}
@@ -598,7 +591,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		synchronized (entries) {
 			LiveEntryCache liveEntryCache = entries.get(entryId);
 			if (liveEntryCache != null)
-				entryRegistered = liveEntryCache.isRegistered();
+				entryRegistered = liveEntryCache.isEntryRegistered();
 		}
 
 		return entryRegistered;
