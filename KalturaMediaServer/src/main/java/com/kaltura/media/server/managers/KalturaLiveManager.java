@@ -89,7 +89,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 	protected class LiveEntryCache {
 		private KalturaLiveEntry liveEntry;
-		private boolean registered = false;
+		private boolean entryRegistered = false;
 		private KalturaMediaServerIndex index = null;
 		private ArrayList<KalturaConversionProfileAssetParams> conversionProfileAssetParams;
 		private Map<Integer, KalturaLiveAsset> liveAssets = new HashMap<Integer, KalturaLiveAsset>();
@@ -125,11 +125,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				}
 				return removed;
 			}
-		}
-
-		public LiveEntryCache(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex, String applicationName) {
-			// Check if this constructor is even relevant? Might be possible to delete?
-			register(serverIndex, applicationName);
 		}
 
 		public LiveEntryCache(KalturaLiveEntry liveEntry) {
@@ -182,12 +177,12 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			impersonateClient = null;
 		}
 
-		public synchronized void setReadyForPlayback() {
+		public synchronized void setEntryIsLive() {
 			if (readyForPlayback) {
 				logger.debug("Attention - READY_FOR_PLAYBACK already raised");
 				return;
 			}
-			if (!registered) {
+			if (!entryRegistered) {
 				logger.error("setReadyForPlayback called but stream is unregistered");
 				return ;
 			}
@@ -195,14 +190,9 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 				@Override
 				public void run() {
-
-					if (registered) {
-						logger.info("Initial timer task running [" + liveEntry.id + "] - PLAYABLE");
-						setEntryMediaServer(liveEntry, index, KalturaLiveEntryStatus.PLAYABLE);
-						readyForPlayback = true;
-					} else {
-						logger.error("setReadyForPlayback task called but stream is unregistered");
-					}
+					logger.info("Initial timer task running [" + liveEntry.id + "] - PLAYABLE");
+					setEntryMediaServer(liveEntry, index, KalturaLiveEntryStatus.PLAYABLE);
+					readyForPlayback = true;
 				}
 			};
 
@@ -213,7 +203,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		
 		public synchronized void register(KalturaMediaServerIndex serverIndex, String appName) {
 			logger.debug("Register [" + liveEntry.id + "]");
-			if(registered)
+			if(entryRegistered)
 				return;
 
 			index = serverIndex;
@@ -232,7 +222,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			timer.schedule(setMediaServerTaskBroadcasting, 0);
 			logger.debug("Scheduled initial timer [" + liveEntry.id + "]");
 
-			registered = true;
+			entryRegistered = true;
 		}
 
 		public synchronized void unregister() {
@@ -245,19 +235,19 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				timer.purge();
 				timer = null;
 			}
-			registered = false;
+			entryRegistered = false;
 			readyForPlayback = false;
 
 			unsetEntryMediaServer(liveEntry, tmpIndex);
 		}
 
 		public boolean isRegistered() {
-			return registered;
+			return entryRegistered;
 		}
 
 		public boolean isReadyForPlayback() {
-
-			return registered && readyForPlayback;
+			// Might only need readyForPlayback because otherwise we won't play anyhow
+			return isRegistered() && readyForPlayback;
 		}
 
 		public void setLiveEntry(KalturaLiveEntry liveEntry) {
@@ -523,7 +513,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 			if (entries.containsKey(entryId)) {
 				liveEntryCache = entries.get(entryId);
-				liveEntryCache.setReadyForPlayback();
+				liveEntryCache.setEntryIsLive();
 			} else {
 				logger.error("entry [" + entryId + "] not found in entries array");
 			}
@@ -604,14 +594,14 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	}
 
 	public boolean isEntryRegistered(String entryId) {
-		boolean registered = false;
+		boolean entryRegistered = false;
 		synchronized (entries) {
 			LiveEntryCache liveEntryCache = entries.get(entryId);
 			if (liveEntryCache != null)
-				registered = liveEntryCache.isRegistered();
+				entryRegistered = liveEntryCache.isRegistered();
 		}
 
-		return registered;
+		return entryRegistered;
 	}
 
 	public void init() throws KalturaManagerException {

@@ -218,8 +218,8 @@ public class LiveStreamEntry extends ModuleBase {
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
 			logger.debug("Stream [" + streamName + "]");
-            String entryId = "";
-            KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.PRIMARY;
+            String entryId;
+            KalturaMediaServerIndex serverIndex;
 
 			WMSProperties properties = getConnectionProperties(stream);
 			int assetParamsId = Integer.MIN_VALUE;
@@ -306,20 +306,24 @@ public class LiveStreamEntry extends ModuleBase {
 				KalturaEventsManager.raiseEvent(event);
 			}
             // check if the stream contains chunks ready for playing, if so raise the READY_FOR_PLAYBACK immediately
-            if (stream != null) {
-                try {
-                    ILiveStreamPacketizer packetizer = stream.getLiveStreamPacketizer("cupertinostreamingpacketizer");
-                    if (packetizer != null) {
-                        LiveStreamPacketizerCupertino cupertino = (LiveStreamPacketizerCupertino) packetizer;
-                        ChunkIdHandler myHandler = (ChunkIdHandler) cupertino.getChunkIdHandler();
-                        logger.info("Packetizer exist for stream: [" + stream.getName() + "]. Check amount of chunks" );
-                        myHandler.checkChunksForPlayback();
-                    }
-                }
-                catch(Exception err) {
-                    logger.error(err);
-                }
-            }
+            checkIfStreamCanPlay(stream);
+		}
+
+		private void checkIfStreamCanPlay(IMediaStream stream) {
+			if (stream != null) {
+				try {
+					ILiveStreamPacketizer packetizer = stream.getLiveStreamPacketizer("cupertinostreamingpacketizer");
+					if (packetizer != null) {
+						LiveStreamPacketizerCupertino cupertino = (LiveStreamPacketizerCupertino) packetizer;
+						ChunkIdHandler myHandler = (ChunkIdHandler) cupertino.getChunkIdHandler();
+						logger.info("Packetizer exist for stream: [" + stream.getName() + "]. Check amount of chunks" );
+						myHandler.checkChunksForPlayback();
+					}
+				}
+				catch(Exception err) {
+					logger.error(err);
+				}
+			}
 		}
 
 		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
@@ -1102,6 +1106,7 @@ public class LiveStreamEntry extends ModuleBase {
         public void onLiveStreamPacketizerInit(ILiveStreamPacketizer var1, String var2) {}
 
         public void onLiveStreamPacketizerCreate(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {
+			// Print the packetizer's type not the ID!
             logger.debug("onLiveStreamPacketizerCreate. stream: [" + streamName + "], packetizer: [" + liveStreamPacketizer.getLiveStreamPacketizerId() + "]");
             if (!(liveStreamPacketizer instanceof LiveStreamPacketizerCupertino))
                 return;
