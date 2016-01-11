@@ -1,0 +1,15 @@
+
+{
+  "KalturaService": {
+      "serverAddress": "http://www.kaltura.com",
+      "userId": "ron.yadgar@kaltura.com",
+      "adminSecret": "355795aa9e37e496cfb078681b8a4351",
+      "partnerId": 2049911
+  },
+  "Test": {
+    "maxTimeToBeLive": 40,
+    "maxTimeToBeOffline": 10
+  },
+  "Tests": {
+  }
+}

@@ -1,0 +1,19 @@
+{
+    "appenders": [
+        {
+            "type": "console",
+            "category": "console"
+        },
+        {
+            "type": "file",
+            "filename": "Test.log",
+            "maxLogSize": 1024000,
+            "backups": 3
+        }
+    ],
+
+    "replaceConsole": true,
+    "levels": {
+        "[all]": "debug"
+    }
+}
