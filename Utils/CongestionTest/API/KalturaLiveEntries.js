@@ -111,7 +111,7 @@ KalturaLiveEntries.prototype.parseMasterM3U8=function(masterUrl) {
             url: masterUrl
         }, function (error, response, result) {
 
-            var re = /BANDWIDTH=([^,]*),*RESOLUTION=(.*).*\n(.*.m3u8)/gm;
+            var re = /BANDWIDTH=([^,]*),.*RESOLUTION=(.*).*\n(.*.m3u8)/gm;
 
             var res = [];
             var m;
@@ -128,8 +128,11 @@ KalturaLiveEntries.prototype.parseMasterM3U8=function(masterUrl) {
                 });
             }
 
-
-            resolve(res);
+            if (res.length>0) {
+                resolve(res);
+            } else {
+                reject("Empty master manifest");
+            }
         });
     });
 }
@@ -141,42 +144,44 @@ KalturaLiveEntries.prototype.parseChunkListM3U8=function(chunksUrl) {
             url: chunksUrl
         }, function (error, response, result) {
 
-            var re = /EXTINF:(.*)\n(.*.ts)/gm;
+            try {
+                var re = /EXTINF:([\d.]*),\n(.*.ts)/gm;
 
-            var res = [];
-            var m;
+                var res = [];
+                var m;
 
-            while ((m = re.exec(result)) !== null) {
-                if (m.index === re.lastIndex) {
-                    re.lastIndex++;
+                while ((m = re.exec(result)) !== null) {
+                    if (m.index === re.lastIndex) {
+                        re.lastIndex++;
+                    }
+
+                    res.push({
+                        duration: parseFloat(m[1]),
+                        ts: url.resolve(chunksUrl, m[2])
+                    });
                 }
 
-                res.push({
-                    duration: m[1],
-                    ts: url.resolve(chunksUrl, m[2])
-                });
+
+                resolve(res);
+            } catch(err) {
+                reject(err);
             }
-
-
-            resolve(res);
         });
     });
 }
 
 KalturaLiveEntries.prototype.getTS=function(chunkUrl) {
     return $q.Promise( function(resolve,reject) {
-        request.head
-        ({
+        request.head({
             url: chunkUrl
         }, function (error, response, result) {
-            if (error)
-            {
-                console.log("err1: "+err);
+            if (error || response.statusCode!==200 ||
+                parseInt(response.headers["content-length"])===0) {
                 reject(error);
                 return;
             }
-            resolve(response.headers);
+            resolve(true);
         });
-    })
+    });
 }
 var ks=module.exports.KalturaLiveEntries=new KalturaLiveEntries();

@@ -18,15 +18,27 @@
   "sourceFileNames": [
     "/Users/guyjacubovski/123.mp4"
   ],
+  /*
+  "entires": [
+    { "id": "1",
+      "rtmpUrl":"rtmp://localhost:1935/live/abc123_%i",
+      "m3u8Url":"http://localhost:1935/live/abc123_1/playlist.m3u8"
+    }
+  ],
+*/
   "entires": ["1_vlu0wh35","1_ieude8tq","1_y4h3n7gb","1_kqopu2qm","1_occ3ebye","1_q8lsxm7i","1_r9ja1zma"],
   "test": {
     "fixedEntries": {
       "count": 1,
-      "duration":100
+      "duration":10,
+      "minDelay": 10,
+      "maxDelay": 10
     },
     "changingEntries": {
       "count": 0,
-      "duration":100
+      "duration": 100,
+      "minDelay": 10,
+      "maxDelay": 100
     }
   }
 }

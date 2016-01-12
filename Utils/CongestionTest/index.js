@@ -48,9 +48,9 @@ kle.getEntries(false).then(function(res) {
 var logger = require('./logger')("main");
 
 
-var streamEntry=function(entryId,delay,duration) {
+var streamEntry=function(entryId,minDelay,maxDelay,duration) {
 
-    var delay = 1+Math.random()*delay;
+    var delay = minDelay + Math.random()*(maxDelay-minDelay);
 
     logger.info("Going to start ",entryId," in ",delay,' seconds');
     return q.delay(delay*1000).then(function() {
@@ -62,6 +62,7 @@ var streamEntry=function(entryId,delay,duration) {
         }).then(function () {
             return entryTestInstance.stop();
         }).then(function () {
+            logger.info("Test of entry ",entryId," was success!")
             return q.resolve(true);
         }).catch(function (err) {
             //test failed
@@ -69,14 +70,14 @@ var streamEntry=function(entryId,delay,duration) {
             return q.resolve(false);
         });
     }).then(function(result) {
-        return streamEntry(entryId,delay,duration);
+        return streamEntry(entryId,minDelay,maxDelay,duration);
     });
 };
 
 var fixedEntries=config.entires.slice(0,config.test.fixedEntries.count);
 fixedEntries.forEach(function(entryId){
 
-    streamEntry(entryId, 5, config.test.fixedEntries.duration);
+    streamEntry(entryId, config.test.fixedEntries.minDelay,config.test.fixedEntries.maxDelay, config.test.fixedEntries.duration);
 });
 
 
@@ -84,7 +85,7 @@ var changingEntries=config.entires.slice(config.test.fixedEntries.count,config.t
 
 changingEntries.forEach(function(entryId){
 
-    streamEntry(entryId, config.test.changingEntries.duration, config.test.changingEntries.duration);
+    streamEntry(entryId, config.test.fixedEntries.minDelay,config.test.fixedEntries.maxDelay,  config.test.changingEntries.duration);
 });
 
 

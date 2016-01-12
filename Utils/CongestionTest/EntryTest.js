@@ -6,18 +6,19 @@ var _ = require('underscore');
 var modulelogger = require('./logger')(module);
 var loggerDecorator = require('./config/log-decorator');
 var config = require('config');
+var request = require('request');
 
-var MaxRetrty=100;
-var IntervalRetry=1000;
 
 function EntryTest(entryId) {
 
     // private variables
     var that = this;
 
+
+    var id= _.isObject(entryId) ? entryId.id : entryId;
     var task=null;
     var logger = loggerDecorator(modulelogger, messageDecoration);
-    logger.info("Generate new instance for ",entryId);
+    logger.info("Generate new instance for ",id);
 
 
 
@@ -48,8 +49,18 @@ function EntryTest(entryId) {
     }
 
     function waitForLiveState(expectedState,timeOut) {
+
+
         return retryPromise(function () {
-            logger.debug("calling getMasterManifest on entryId"+entryId);
+            logger.debug("calling getMasterManifest on entryId",entryId);
+
+            //case of d
+            if (_.isObject(entryId)) {
+
+                return kle.parseMasterM3U8(entryId.m3u8Url).then(function(flavors) {
+                    return q.resolve(entryId.m3u8Url);
+                });
+            }
             return getMasterManifest(entryId).then(function (masterClipList) {
 
                 logger.debug("getMasterManifest returned "+masterClipList);
@@ -99,10 +110,13 @@ function EntryTest(entryId) {
     }
 
     function messageDecoration(msg) {
-        return "[" + entryId + "] "  + msg;
-    };
+        return "[" + id + "] " + msg;
+    }
 
     function GetRTMPurl(){
+        if (_.isObject(entryId)) {
+            return q.resolve(entryId.rtmpUrl);
+        }
         return  kle.getEntry(entryId)
             .then(function(entry) {
               return q.resolve(entry.primaryBroadcastingUrl+"/"+entry.streamName);
@@ -137,7 +151,7 @@ function EntryTest(entryId) {
                 logger.info("Got url: ",url);
 
                 var rtmpUrl=url.substring(0,url.length-2)+"1";
-                task=new FFMpegTask(entryId, [ "-re","-i",config.sourceFileNames[0],"-c:v","copy","-c:a","libmp3lame","-f","flv","-rtmp_live","1",rtmpUrl]);
+                task=new FFMpegTask(id, [ "-re","-i",config.sourceFileNames[0],"-c:v","copy","-c:a","libmp3lame","-f","flv","-rtmp_live","1",rtmpUrl]);
                 logger.info("Starting FFMpeg streaming for ", url);
                 return task.start();
             })
