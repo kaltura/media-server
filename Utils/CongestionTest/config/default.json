@@ -6,10 +6,27 @@
       "adminSecret": "355795aa9e37e496cfb078681b8a4351",
       "partnerId": 2049911
   },
-  "Test": {
-    "maxTimeToBeLive": 40,
-    "maxTimeToBeOffline": 10
+  "entryTest": {
+    "poolInterval": 5000,
+    "maxTimeToBeLive": 120,//2minutes
+    "maxTimeToBeOffline": 10//10 seconds
   },
-  "Tests": {
+  "rtmpReplace": {
+    //"ny-publish": "il-wowza-68.dev",
+    //"pa-publish": ""
+  },
+  "sourceFileNames": [
+    "/Users/guyjacubovski/123.mp4"
+  ],
+  "entires": ["1_vlu0wh35","1_ieude8tq","1_y4h3n7gb","1_kqopu2qm","1_occ3ebye","1_q8lsxm7i","1_r9ja1zma"],
+  "test": {
+    "fixedEntries": {
+      "count": 1,
+      "duration":100
+    },
+    "changingEntries": {
+      "count": 0,
+      "duration":100
+    }
   }
 }

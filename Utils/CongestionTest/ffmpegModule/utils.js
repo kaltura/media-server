@@ -69,7 +69,7 @@ exports.emitLines=function(stream) {
     })
     stream.on('end', function () {
         if (backlog) {
-            stream.emit('line', backlog)
+            stream.emit('line', backlog);
         }
     });
 }

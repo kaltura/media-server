@@ -7,9 +7,9 @@ var Q=require('q');
 
 
 
-function FFMpegTask(params) {
+function FFMpegTask(id,params) {
 
-    this._logger = LoggerEx("FFMpegTask", "1");
+    this._logger = LoggerEx("FFMpegTask", id);
     //this._ffmpeg = __dirname + "/../../bin/ffmpeg";
     this._ffmpeg = __dirname + "/../ffmpeg";
     this._process=null;
@@ -60,7 +60,7 @@ FFMpegTask.prototype.start=function() {
                 var isFirst=( _this._progressInfo.frames===0);
                 _this._progressInfo=newProgressInfo;
                 if (isFirst) {
-                    def.resolve();
+                    def.resolve(true);
                 }
             }
         }
@@ -78,7 +78,7 @@ FFMpegTask.prototype.start=function() {
         _this._process=null;
         var isFirst=( _this._progressInfo.frames===0);
         if (isFirst) {
-            def.reject("failed to start");
+            def.reject("failed to start ffmpeg");
         }
     }
 

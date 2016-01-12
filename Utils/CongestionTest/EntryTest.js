@@ -1,11 +1,12 @@
 
 var FFMpegTask=require('./ffmpegModule/FFMpegTask.js').FFMpegTask;
-var fileName="/Users/ronyadgar/Downloads/123.mp4";
 var kle = require('./API/KalturaLiveEntries.js').KalturaLiveEntries;
 var q = require('q');
 var _ = require('underscore');
 var modulelogger = require('./logger')(module);
 var loggerDecorator = require('./config/log-decorator');
+var config = require('config');
+
 var MaxRetrty=100;
 var IntervalRetry=1000;
 
@@ -46,7 +47,7 @@ function EntryTest(entryId) {
             });
     }
 
-    function waitForLiveState(expectedState) {
+    function waitForLiveState(expectedState,timeOut) {
         return retryPromise(function () {
             logger.debug("calling getMasterManifest on entryId"+entryId);
             return getMasterManifest(entryId).then(function (masterClipList) {
@@ -57,7 +58,7 @@ function EntryTest(entryId) {
                         return q.resolve(masterClipList);
                     }
                     else {  //try agin in some interval
-                        return q.reject()
+                        return q.reject();
                     }
                 } else {
 
@@ -65,62 +66,85 @@ function EntryTest(entryId) {
                         return q.reject();
                     }
                     else {  //try agin in some interval
-                        return q.resolve()
+                        return q.resolve();
                     }
                 }
             });
-        }, IntervalRetry, MaxRetrty);
+        }, config.entryTest.poolInterval, (1000*timeOut)/config.entryTest.poolInterval);
     }
 
     function getAllChuncksHeader(flavor)
     {
         return kle.parseChunkListM3U8(flavor)
             .then(function (res) {
+
+                _.each(res,function(chunk){
+                    if (chunk.duration<=0) {
+                        logger.error("Incorrect duration for chunk ",chunk.duration);
+                    }
+                });
                 var Chunk=res[0];
+                logger.info("getting ts  ",Chunk.ts);
+
                 return kle.getTS(Chunk.ts)
-                    .then(function(msg){
+                    .then(function(headers){
                             logger.info("successfully downloaded " +Chunk.ts);
                             return q.resolve();
-                        }
-                        ,
-                        function(err){
-                            logger.error("err: Failed to download "+Chunk.ts+" : "+ err.message);
-                            return q.reject();
                         })
-            })
+                    .catch(function(err) {
+                            logger.error("err: Failed to download "+Chunk.ts+" : "+ err.message);
+                            return q.reject(err);
+                        });
+            });
     }
 
     function messageDecoration(msg) {
-        return "[" + entryId + "]"  + msg;
+        return "[" + entryId + "] "  + msg;
     };
 
     function GetRTMPurl(){
         return  kle.getEntry(entryId)
             .then(function(entry) {
-              return q.resolve(entry.primaryBroadcastingUrl+"/"+entry.streamName)
+              return q.resolve(entry.primaryBroadcastingUrl+"/"+entry.streamName);
             })
             .then(function(path){
-                var str= path.replace('ny-publish','il-wowza-68.dev');
-                str=str.substring(0,str.length-2)+"1";
+
+                var str=path;
+                _.each(config.rtmpReplace,function(value,key) {
+                    str=str.replace(key,value);
+                });
+
                 return q.resolve(str);
-            })
+            });
     }
 
+    var stopffmpegTask=function() {
+
+        if (task) {
+            logger.info("stopping FFMPEG");
+            task.stop();
+            logger.info("FFMPEG stopped");
+            task=null;
+        }
+    }
     // public functions
     that.start=function() {
         var startTime=new Date();
+        logger.info("Getting rtmp url: ");
        return GetRTMPurl()
            .then(
-            function(url_res){
-                url=url_res;
-                task=new FFMpegTask( [ "-re","-i",fileName,"-c:v","copy","-c:a","libmp3lame","-f","flv","-rtmp_live","1",url]);
+            function(url){
+                logger.info("Got url: ",url);
+
+                var rtmpUrl=url.substring(0,url.length-2)+"1";
+                task=new FFMpegTask(entryId, [ "-re","-i",config.sourceFileNames[0],"-c:v","copy","-c:a","libmp3lame","-f","flv","-rtmp_live","1",rtmpUrl]);
                 logger.info("Starting FFMpeg streaming for ", url);
                 return task.start();
             })
             .then(function() {
                 var finishTime = new Date();
                 logger.info("FFMpeg started, Operation took "+ (finishTime - startTime) + " ms");
-                return waitForLiveState(true);
+                return waitForLiveState(true,config.entryTest.maxTimeToBeLive);
             })
             .then(function(url){
                 var finishTime = new Date();
@@ -140,18 +164,17 @@ function EntryTest(entryId) {
                 logger.info("Tested all chunks succssefully");
                 return q.resolve();
             }).catch(function(err) {
-               logger.error("ERROR: "+err.message);
-               return q.reject();
-           })
+               logger.error("Test Failed!!! ",JSON.stringify(err));
+
+               stopffmpegTask();
+               return q.reject(err);
+           });
     }
 
     that.stop=function() {
-        if (task) {
-            task.stop();
-            logger.info("stopping FFMPEG");
-        }
+        stopffmpegTask();
         var startTime = new Date();
-        return waitForLiveState(false)
+        return waitForLiveState(false,config.entryTest.maxTimeToBeOffline)
             .then(function() {
 
                 var finishTime = new Date();
@@ -159,7 +182,7 @@ function EntryTest(entryId) {
                 return q.resolve();
                 });
 
-    }
+    };
 
 
 }
