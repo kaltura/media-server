@@ -20,9 +20,12 @@ WowzaTestInfo.prototype.getRtmpUrl=function() {
 }
 
 
-WowzaTestInfo.prototype.getMasterManifest=function() {
+WowzaTestInfo.prototype.getMasterManifest=function(logger,expectedState) {
     var _this=this;
-    return kle.parseMasterM3U8(_this._info.m3u8Url).then(function(flavors) {
+    if (expectedState===false) {
+        return q.resolve();
+    }
+    return kle.parseMasterM3U8(logger,_this._info.m3u8Url,false).then(function(flavors) {
         return q.resolve(_this._info.m3u8Url);
     });
 }
@@ -38,7 +41,7 @@ KalturaTestInfo.prototype.getRtmpUrl=function() {
 
     return  kle.getEntry(this.id)
         .then(function(entry) {
-            return q.resolve([entry.primaryBroadcastingUrl+"/"+entry.streamName]);
+            return q.resolve([entry.primaryBroadcastingUrl + "/" + entry.streamName]);
         })
         .then(function(urls){
 
@@ -55,7 +58,7 @@ KalturaTestInfo.prototype.getRtmpUrl=function() {
 }
 
 
-KalturaTestInfo.prototype.getMasterManifest=function() {
+KalturaTestInfo.prototype.getMasterManifest=function(logger,expectedState) {
      return  kle.getEntry(this.id)
         .then(function(entry) {
             var hlsconfig = _.filter(entry.liveStreamConfigurations, function (config) {

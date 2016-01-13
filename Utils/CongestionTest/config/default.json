@@ -40,12 +40,12 @@
       "rtmpUrls":["rtmp://localhost:1935/live/4/abc123_1"],
       "m3u8Url":"http://localhost:1935/live/4/abc123_1/playlist.m3u8"
     }
-  ],
-*/
+  ],*/
+
  "entires": ["1_vlu0wh35","1_ieude8tq","1_y4h3n7gb","1_kqopu2qm","1_occ3ebye","1_q8lsxm7i","1_r9ja1zma"],
   "test": {
     "fixedEntries": {
-      "count": 1,
+      "count": 4,
       "duration":10,
       "minDelay": 1,
       "maxDelay": 1

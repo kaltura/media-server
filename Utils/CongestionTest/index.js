@@ -65,10 +65,10 @@ var streamEntry=function(testInfo,minDelay,maxDelay,duration) {
 
         logger.info("Starting",id);
         return entryTestInstance.start().then(function () {
-            logger.info("Entry ",id," stated succsefully, waiting ",duration," seconds")
+            logger.info("Entry",id,"strated succsefully, waiting ",duration," seconds")
             return q.delay(duration * 1000);
         }).then(function () {
-            logger.info("Entry ",id," stopping ");
+            logger.info("Entry",id,"stopping");
             return entryTestInstance.stop();
         }).then(function () {
             logger.info("Test of entry ",id," was success!")

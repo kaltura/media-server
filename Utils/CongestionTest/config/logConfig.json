@@ -13,6 +13,7 @@
 
     "replaceConsole": true,
     "levels": {
-        "[all]": "info"
+        "[all]": "info",
+        "FFMpegTask": "error"
     }
 }

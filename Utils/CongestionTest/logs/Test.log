@@ -2185,3 +2185,636 @@
 [2016-01-13 09:36:38.630] [INFO] EntryTest - [1_vlu0wh35] FFMPEG stopped
 [2016-01-13 09:36:38.630] [INFO] MainTest - Test of entry  1_vlu0wh35  failed!
 [2016-01-13 09:36:38.634] [WARN] FFMpegTask - [1_vlu0wh35] [FFMPEG] exited with error:  1
+[2016-01-13 13:55:23.458] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 13:55:24.466] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 13:55:24.467] [INFO] MainTest - Starting 1
+[2016-01-13 13:55:24.467] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 13:55:24.468] [INFO] EntryTest - [1] Got url:  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 13:55:24.468] [INFO] EntryTest - [1] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 13:55:25.192] [INFO] EntryTest - [1] FFMpeg started, Operation took 725 ms
+[2016-01-13 13:55:25.192] [INFO] EntryTest - [1] waiting for live stream to be  true
+[2016-01-13 13:55:25.210] [INFO] EntryTest - [1] Received Url  http://localhost:1935/live/1/abc123_1/playlist.m3u8  from wowza, Operation took  743  ms
+[2016-01-13 13:55:25.211] [INFO] EntryTest - [1] Testing  http://localhost:1935/live/1/abc123_1/playlist.m3u8
+[2016-01-13 13:55:25.220] [INFO] EntryTest - [1] Got master manifest succssefully [{"bitrate":"250000","m3u8":"http://localhost:1935/live/1/abc123_1/chunklist_w1326465553.m3u8"}]
+[2016-01-13 13:55:25.221] [INFO] EntryTest - [1] About to get manifest from flavor  250000  url:  http://localhost:1935/live/1/abc123_1/chunklist_w1326465553.m3u8
+[2016-01-13 13:55:33.443] [ERROR] EntryTest - [1] err: empty chunk list   http://localhost:1935/live/1/abc123_1/chunklist_w1326465553.m3u8
+[2016-01-13 13:55:33.443] [INFO] EntryTest - [1] Retrying...
+[2016-01-13 13:55:34.456] [INFO] EntryTest - [1] Got master manifest succssefully [{"bitrate":"250000","m3u8":"http://localhost:1935/live/1/abc123_1/chunklist_w602884982.m3u8"}]
+[2016-01-13 13:55:34.456] [INFO] EntryTest - [1] About to get manifest from flavor  250000  url:  http://localhost:1935/live/1/abc123_1/chunklist_w602884982.m3u8
+[2016-01-13 13:55:37.393] [INFO] EntryTest - [1] getting ts   http://localhost:1935/live/1/abc123_1/media_w602884982_1.ts
+[2016-01-13 13:55:37.399] [INFO] EntryTest - [1] successfully downloaded http://localhost:1935/live/1/abc123_1/media_w602884982_1.ts
+[2016-01-13 13:55:37.399] [INFO] EntryTest - [1] Tested all chunks succssefully
+[2016-01-13 13:55:37.400] [INFO] MainTest - Entry  1  stated succsefully, waiting  10  seconds
+[2016-01-13 13:55:47.402] [INFO] MainTest - Entry  1  stopping 
+[2016-01-13 13:55:47.403] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 13:55:47.403] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 13:55:47.403] [INFO] EntryTest - [1] waiting for live stream to be  false
+[2016-01-13 13:56:02.434] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 13:56:41.798] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 13:56:42.803] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 13:56:42.803] [INFO] MainTest - Starting 1
+[2016-01-13 13:56:42.804] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 13:56:42.804] [INFO] EntryTest - [1] Got url:  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 13:56:42.805] [INFO] EntryTest - [1] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 13:56:43.370] [INFO] EntryTest - [1] FFMpeg started, Operation took 566 ms
+[2016-01-13 13:56:43.370] [INFO] EntryTest - [1] waiting for live stream to be  true
+[2016-01-13 13:56:43.381] [INFO] EntryTest - [1] Received Url  http://localhost:1935/live/1/abc123_1/playlist.m3u8  from wowza, Operation took  577  ms
+[2016-01-13 13:56:43.381] [INFO] EntryTest - [1] Testing  http://localhost:1935/live/1/abc123_1/playlist.m3u8
+[2016-01-13 13:56:43.389] [INFO] EntryTest - [1] Got master manifest succssefully [{"bitrate":"250000","m3u8":"http://localhost:1935/live/1/abc123_1/chunklist_w260872824.m3u8"}]
+[2016-01-13 13:56:43.389] [INFO] EntryTest - [1] About to get manifest from flavor  250000  url:  http://localhost:1935/live/1/abc123_1/chunklist_w260872824.m3u8
+[2016-01-13 13:56:51.613] [WARN] EntryTest - [1] err: empty chunk list   http://localhost:1935/live/1/abc123_1/chunklist_w260872824.m3u8
+[2016-01-13 13:56:51.614] [INFO] EntryTest - [1] Retrying testHls...
+[2016-01-13 13:56:52.630] [INFO] EntryTest - [1] Got master manifest succssefully [{"bitrate":"250000","m3u8":"http://localhost:1935/live/1/abc123_1/chunklist_w366734146.m3u8"}]
+[2016-01-13 13:56:52.630] [INFO] EntryTest - [1] About to get manifest from flavor  250000  url:  http://localhost:1935/live/1/abc123_1/chunklist_w366734146.m3u8
+[2016-01-13 13:56:55.583] [INFO] EntryTest - [1] getting ts   http://localhost:1935/live/1/abc123_1/media_w366734146_1.ts
+[2016-01-13 13:56:55.589] [INFO] EntryTest - [1] successfully downloaded http://localhost:1935/live/1/abc123_1/media_w366734146_1.ts
+[2016-01-13 13:56:55.590] [INFO] EntryTest - [1] Tested all chunks succssefully
+[2016-01-13 13:56:55.590] [INFO] MainTest - Entry  1  stated succsefully, waiting  10  seconds
+[2016-01-13 13:57:05.591] [INFO] MainTest - Entry  1  stopping 
+[2016-01-13 13:57:05.592] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 13:57:05.592] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 13:57:05.593] [INFO] EntryTest - [1] waiting for live stream to be  false
+[2016-01-13 13:57:20.629] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 13:57:26.050] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 13:57:27.059] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 13:57:27.059] [INFO] MainTest - Starting 1
+[2016-01-13 13:57:27.059] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 13:57:27.060] [INFO] EntryTest - [1] Got url:  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 13:57:27.060] [INFO] EntryTest - [1] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 13:57:27.616] [INFO] EntryTest - [1] FFMpeg started, Operation took 557 ms
+[2016-01-13 13:57:27.617] [INFO] EntryTest - [1] waiting for live stream to be  true
+[2016-01-13 13:57:27.630] [INFO] EntryTest - [1] Received Url  http://localhost:1935/live/1/abc123_1/playlist.m3u8  from wowza, Operation took  571  ms
+[2016-01-13 13:57:27.630] [INFO] EntryTest - [1] Testing  http://localhost:1935/live/1/abc123_1/playlist.m3u8
+[2016-01-13 13:57:27.637] [INFO] EntryTest - [1] Got master manifest succssefully [{"bitrate":"1048956","m3u8":"http://localhost:1935/live/1/abc123_1/chunklist_w1222854120.m3u8"}]
+[2016-01-13 13:57:27.638] [INFO] EntryTest - [1] About to get manifest from flavor  1048956  url:  http://localhost:1935/live/1/abc123_1/chunklist_w1222854120.m3u8
+[2016-01-13 13:57:35.859] [WARN] EntryTest - [1] err: empty chunk list   http://localhost:1935/live/1/abc123_1/chunklist_w1222854120.m3u8
+[2016-01-13 13:57:35.860] [INFO] EntryTest - [1] Retrying testHls...
+[2016-01-13 13:57:36.872] [INFO] EntryTest - [1] Got master manifest succssefully [{"bitrate":"1048956","m3u8":"http://localhost:1935/live/1/abc123_1/chunklist_w1924027187.m3u8"}]
+[2016-01-13 13:57:36.873] [INFO] EntryTest - [1] About to get manifest from flavor  1048956  url:  http://localhost:1935/live/1/abc123_1/chunklist_w1924027187.m3u8
+[2016-01-13 13:57:39.812] [INFO] EntryTest - [1] getting ts   http://localhost:1935/live/1/abc123_1/media_w1924027187_4.ts
+[2016-01-13 13:57:39.818] [INFO] EntryTest - [1] successfully downloaded http://localhost:1935/live/1/abc123_1/media_w1924027187_4.ts
+[2016-01-13 13:57:39.818] [INFO] EntryTest - [1] Tested all chunks succssefully
+[2016-01-13 13:57:39.818] [INFO] MainTest - Entry 1 strated succsefully, waiting  10  seconds
+[2016-01-13 13:57:49.821] [INFO] MainTest - Entry 1 stopping
+[2016-01-13 13:57:49.821] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 13:57:49.822] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 13:57:49.822] [INFO] EntryTest - [1] waiting for live stream to be  false
+[2016-01-13 13:58:04.854] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 14:02:42.709] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 14:02:43.713] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 14:02:43.714] [INFO] MainTest - Starting 1
+[2016-01-13 14:02:43.714] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 14:02:43.714] [INFO] EntryTest - [1] Got url:  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 14:02:43.715] [INFO] EntryTest - [1] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 14:02:44.282] [INFO] EntryTest - [1] FFMpeg started, Operation took 568 ms
+[2016-01-13 14:02:44.283] [INFO] EntryTest - [1] waiting for live stream to be  true
+[2016-01-13 14:02:44.301] [INFO] EntryTest - [1] Received Url  http://localhost:1935/live/1/abc123_1/playlist.m3u8  from wowza, Operation took  587  ms
+[2016-01-13 14:02:44.301] [INFO] EntryTest - [1] Testing  http://localhost:1935/live/1/abc123_1/playlist.m3u8
+[2016-01-13 14:02:44.312] [INFO] EntryTest - [1] Got master manifest succssefully [{"bitrate":"250000","m3u8":"http://localhost:1935/live/1/abc123_1/chunklist_w385482004.m3u8"}]
+[2016-01-13 14:02:44.313] [INFO] EntryTest - [1] About to get manifest from flavor  250000  url:  http://localhost:1935/live/1/abc123_1/chunklist_w385482004.m3u8
+[2016-01-13 14:02:52.474] [WARN] EntryTest - [1] err: empty chunk list   http://localhost:1935/live/1/abc123_1/chunklist_w385482004.m3u8
+[2016-01-13 14:02:52.475] [INFO] EntryTest - [1] Retrying testHls...
+[2016-01-13 14:02:53.487] [INFO] EntryTest - [1] Got master manifest succssefully [{"bitrate":"250000","m3u8":"http://localhost:1935/live/1/abc123_1/chunklist_w1214017412.m3u8"}]
+[2016-01-13 14:02:53.487] [INFO] EntryTest - [1] About to get manifest from flavor  250000  url:  http://localhost:1935/live/1/abc123_1/chunklist_w1214017412.m3u8
+[2016-01-13 14:02:56.668] [INFO] EntryTest - [1] getting ts   http://localhost:1935/live/1/abc123_1/media_w1214017412_1.ts
+[2016-01-13 14:02:56.675] [INFO] EntryTest - [1] successfully downloaded http://localhost:1935/live/1/abc123_1/media_w1214017412_1.ts
+[2016-01-13 14:02:56.675] [INFO] EntryTest - [1] Tested all chunks succssefully
+[2016-01-13 14:02:56.675] [INFO] MainTest - Entry 1 strated succsefully, waiting  10  seconds
+[2016-01-13 14:03:06.678] [INFO] MainTest - Entry 1 stopping
+[2016-01-13 14:03:06.679] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 14:03:06.679] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 14:03:06.679] [INFO] EntryTest - [1] waiting for live stream to be  false
+[2016-01-13 14:03:08.784] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 14:03:08.786] [INFO] MainTest - Going to start  2  in  1  seconds
+[2016-01-13 14:03:08.787] [INFO] MainTest - Going to start  3  in  1  seconds
+[2016-01-13 14:03:08.787] [INFO] MainTest - Going to start  4  in  1  seconds
+[2016-01-13 14:03:09.791] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 14:03:09.791] [INFO] MainTest - Starting 1
+[2016-01-13 14:03:09.791] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 14:03:09.792] [INFO] EntryTest - [2] Generate new instance for  2
+[2016-01-13 14:03:09.792] [INFO] MainTest - Starting 2
+[2016-01-13 14:03:09.792] [INFO] EntryTest - [2] Getting rtmp url...
+[2016-01-13 14:03:09.793] [INFO] EntryTest - [3] Generate new instance for  3
+[2016-01-13 14:03:09.793] [INFO] MainTest - Starting 3
+[2016-01-13 14:03:09.793] [INFO] EntryTest - [3] Getting rtmp url...
+[2016-01-13 14:03:09.793] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 14:03:09.793] [INFO] MainTest - Starting 4
+[2016-01-13 14:03:09.794] [INFO] EntryTest - [4] Getting rtmp url...
+[2016-01-13 14:03:09.794] [INFO] EntryTest - [1] Got url:  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 14:03:09.795] [INFO] EntryTest - [1] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 14:03:09.800] [INFO] EntryTest - [2] Got url:  [ 'rtmp://localhost:1935/live/2/abc123_1' ]
+[2016-01-13 14:03:09.800] [INFO] EntryTest - [2] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/2/abc123_1' ]
+[2016-01-13 14:03:09.803] [INFO] EntryTest - [3] Got url:  [ 'rtmp://localhost:1935/live/3/abc123_1' ]
+[2016-01-13 14:03:09.803] [INFO] EntryTest - [3] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/3/abc123_1' ]
+[2016-01-13 14:03:09.806] [INFO] EntryTest - [4] Got url:  [ 'rtmp://localhost:1935/live/4/abc123_1' ]
+[2016-01-13 14:03:09.807] [INFO] EntryTest - [4] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/4/abc123_1' ]
+[2016-01-13 14:03:10.422] [INFO] EntryTest - [1] FFMpeg started, Operation took 631 ms
+[2016-01-13 14:03:10.423] [INFO] EntryTest - [1] waiting for live stream to be  true
+[2016-01-13 14:03:10.434] [INFO] EntryTest - [1] Received Url  http://localhost:1935/live/1/abc123_1/playlist.m3u8  from wowza, Operation took  643  ms
+[2016-01-13 14:03:10.435] [INFO] EntryTest - [1] Testing  http://localhost:1935/live/1/abc123_1/playlist.m3u8
+[2016-01-13 14:03:10.442] [INFO] EntryTest - [1] Got master manifest succssefully [{"bitrate":"1048956","m3u8":"http://localhost:1935/live/1/abc123_1/chunklist_w443745379.m3u8"}]
+[2016-01-13 14:03:10.443] [INFO] EntryTest - [1] About to get manifest from flavor  1048956  url:  http://localhost:1935/live/1/abc123_1/chunklist_w443745379.m3u8
+[2016-01-13 14:03:10.444] [INFO] EntryTest - [2] FFMpeg started, Operation took 652 ms
+[2016-01-13 14:03:10.444] [INFO] EntryTest - [2] waiting for live stream to be  true
+[2016-01-13 14:03:10.460] [INFO] EntryTest - [2] Received Url  http://localhost:1935/live/2/abc123_1/playlist.m3u8  from wowza, Operation took  668  ms
+[2016-01-13 14:03:10.461] [INFO] EntryTest - [2] Testing  http://localhost:1935/live/2/abc123_1/playlist.m3u8
+[2016-01-13 14:03:10.464] [INFO] EntryTest - [3] FFMpeg started, Operation took 671 ms
+[2016-01-13 14:03:10.464] [INFO] EntryTest - [3] waiting for live stream to be  true
+[2016-01-13 14:03:10.465] [INFO] EntryTest - [4] FFMpeg started, Operation took 671 ms
+[2016-01-13 14:03:10.466] [INFO] EntryTest - [4] waiting for live stream to be  true
+[2016-01-13 14:03:10.467] [INFO] EntryTest - [2] Got master manifest succssefully []
+[2016-01-13 14:03:10.468] [INFO] EntryTest - [2] Tested all chunks succssefully
+[2016-01-13 14:03:10.468] [INFO] MainTest - Entry 2 strated succsefully, waiting  10  seconds
+[2016-01-13 14:03:10.480] [INFO] EntryTest - [3] Received Url  http://localhost:1935/live/3/abc123_1/playlist.m3u8  from wowza, Operation took  687  ms
+[2016-01-13 14:03:10.480] [INFO] EntryTest - [3] Testing  http://localhost:1935/live/3/abc123_1/playlist.m3u8
+[2016-01-13 14:03:10.482] [INFO] EntryTest - [4] Received Url  http://localhost:1935/live/4/abc123_1/playlist.m3u8  from wowza, Operation took  688  ms
+[2016-01-13 14:03:10.482] [INFO] EntryTest - [4] Testing  http://localhost:1935/live/4/abc123_1/playlist.m3u8
+[2016-01-13 14:03:10.489] [INFO] EntryTest - [3] Got master manifest succssefully []
+[2016-01-13 14:03:10.489] [INFO] EntryTest - [3] Tested all chunks succssefully
+[2016-01-13 14:03:10.490] [INFO] MainTest - Entry 3 strated succsefully, waiting  10  seconds
+[2016-01-13 14:03:10.493] [INFO] EntryTest - [4] Got master manifest succssefully []
+[2016-01-13 14:03:10.494] [INFO] EntryTest - [4] Tested all chunks succssefully
+[2016-01-13 14:03:10.494] [INFO] MainTest - Entry 4 strated succsefully, waiting  10  seconds
+[2016-01-13 14:03:18.650] [WARN] EntryTest - [1] err: empty chunk list   http://localhost:1935/live/1/abc123_1/chunklist_w443745379.m3u8
+[2016-01-13 14:03:18.651] [INFO] EntryTest - [1] Retrying testHls...
+[2016-01-13 14:03:19.665] [INFO] EntryTest - [1] Got master manifest succssefully [{"bitrate":"1048956","m3u8":"http://localhost:1935/live/1/abc123_1/chunklist_w1316658585.m3u8"}]
+[2016-01-13 14:03:19.666] [INFO] EntryTest - [1] About to get manifest from flavor  1048956  url:  http://localhost:1935/live/1/abc123_1/chunklist_w1316658585.m3u8
+[2016-01-13 14:03:20.469] [INFO] MainTest - Entry 2 stopping
+[2016-01-13 14:03:20.470] [INFO] EntryTest - [2] stopping FFMPEG
+[2016-01-13 14:03:20.470] [INFO] EntryTest - [2] FFMPEG stopped
+[2016-01-13 14:03:20.470] [INFO] EntryTest - [2] waiting for live stream to be  false
+[2016-01-13 14:03:20.498] [INFO] MainTest - Entry 3 stopping
+[2016-01-13 14:03:20.498] [INFO] EntryTest - [3] stopping FFMPEG
+[2016-01-13 14:03:20.499] [INFO] EntryTest - [3] FFMPEG stopped
+[2016-01-13 14:03:20.499] [INFO] EntryTest - [3] waiting for live stream to be  false
+[2016-01-13 14:03:20.500] [INFO] MainTest - Entry 4 stopping
+[2016-01-13 14:03:20.500] [INFO] EntryTest - [4] stopping FFMPEG
+[2016-01-13 14:03:20.500] [INFO] EntryTest - [4] FFMPEG stopped
+[2016-01-13 14:03:20.500] [INFO] EntryTest - [4] waiting for live stream to be  false
+[2016-01-13 14:03:22.831] [INFO] EntryTest - [1] getting ts   http://localhost:1935/live/1/abc123_1/media_w1316658585_4.ts
+[2016-01-13 14:03:22.837] [INFO] EntryTest - [1] successfully downloaded http://localhost:1935/live/1/abc123_1/media_w1316658585_4.ts
+[2016-01-13 14:03:22.838] [INFO] EntryTest - [1] Tested all chunks succssefully
+[2016-01-13 14:03:22.838] [INFO] MainTest - Entry 1 strated succsefully, waiting  10  seconds
+[2016-01-13 14:03:32.839] [INFO] MainTest - Entry 1 stopping
+[2016-01-13 14:03:32.839] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 14:03:32.839] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 14:03:32.840] [INFO] EntryTest - [1] waiting for live stream to be  false
+[2016-01-13 14:03:35.515] [INFO] MainTest - Test of entry  2  failed!
+[2016-01-13 14:03:35.541] [INFO] MainTest - Test of entry  3  failed!
+[2016-01-13 14:03:35.541] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 14:03:47.869] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 14:04:08.679] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 14:04:08.681] [INFO] MainTest - Going to start  2  in  1  seconds
+[2016-01-13 14:04:08.681] [INFO] MainTest - Going to start  3  in  1  seconds
+[2016-01-13 14:04:08.681] [INFO] MainTest - Going to start  4  in  1  seconds
+[2016-01-13 14:04:09.686] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 14:04:09.687] [INFO] MainTest - Starting 1
+[2016-01-13 14:04:09.687] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 14:04:09.687] [INFO] EntryTest - [2] Generate new instance for  2
+[2016-01-13 14:04:09.687] [INFO] MainTest - Starting 2
+[2016-01-13 14:04:09.687] [INFO] EntryTest - [2] Getting rtmp url...
+[2016-01-13 14:04:09.688] [INFO] EntryTest - [3] Generate new instance for  3
+[2016-01-13 14:04:09.688] [INFO] MainTest - Starting 3
+[2016-01-13 14:04:09.688] [INFO] EntryTest - [3] Getting rtmp url...
+[2016-01-13 14:04:09.688] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 14:04:09.688] [INFO] MainTest - Starting 4
+[2016-01-13 14:04:09.689] [INFO] EntryTest - [4] Getting rtmp url...
+[2016-01-13 14:04:09.689] [INFO] EntryTest - [1] Got url:  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 14:04:09.690] [INFO] EntryTest - [1] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 14:04:09.695] [INFO] EntryTest - [2] Got url:  [ 'rtmp://localhost:1935/live/2/abc123_1' ]
+[2016-01-13 14:04:09.695] [INFO] EntryTest - [2] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/2/abc123_1' ]
+[2016-01-13 14:04:09.698] [INFO] EntryTest - [3] Got url:  [ 'rtmp://localhost:1935/live/3/abc123_1' ]
+[2016-01-13 14:04:09.699] [INFO] EntryTest - [3] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/3/abc123_1' ]
+[2016-01-13 14:04:09.701] [INFO] EntryTest - [4] Got url:  [ 'rtmp://localhost:1935/live/4/abc123_1' ]
+[2016-01-13 14:04:09.702] [INFO] EntryTest - [4] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/4/abc123_1' ]
+[2016-01-13 14:04:10.286] [INFO] EntryTest - [2] FFMpeg started, Operation took 599 ms
+[2016-01-13 14:04:10.287] [INFO] EntryTest - [2] waiting for live stream to be  true
+[2016-01-13 14:04:10.291] [INFO] EntryTest - [1] FFMpeg started, Operation took 604 ms
+[2016-01-13 14:04:10.291] [INFO] EntryTest - [1] waiting for live stream to be  true
+[2016-01-13 14:04:10.299] [INFO] EntryTest - [2] Received Url  http://localhost:1935/live/2/abc123_1/playlist.m3u8  from wowza, Operation took  612  ms
+[2016-01-13 14:04:10.299] [INFO] EntryTest - [2] Testing  http://localhost:1935/live/2/abc123_1/playlist.m3u8
+[2016-01-13 14:04:10.302] [INFO] EntryTest - [1] Received Url  http://localhost:1935/live/1/abc123_1/playlist.m3u8  from wowza, Operation took  614  ms
+[2016-01-13 14:04:10.302] [INFO] EntryTest - [1] Testing  http://localhost:1935/live/1/abc123_1/playlist.m3u8
+[2016-01-13 14:04:10.302] [INFO] EntryTest - [4] FFMpeg started, Operation took 613 ms
+[2016-01-13 14:04:10.302] [INFO] EntryTest - [4] waiting for live stream to be  true
+[2016-01-13 14:04:10.303] [INFO] EntryTest - [3] FFMpeg started, Operation took 615 ms
+[2016-01-13 14:04:10.303] [INFO] EntryTest - [3] waiting for live stream to be  true
+[2016-01-13 14:04:10.306] [INFO] EntryTest - [2] Got master manifest succssefully [{"bitrate":"250000","m3u8":"http://localhost:1935/live/2/abc123_1/chunklist_w741134869.m3u8"}]
+[2016-01-13 14:04:10.307] [INFO] EntryTest - [2] About to get manifest from flavor  250000  url:  http://localhost:1935/live/2/abc123_1/chunklist_w741134869.m3u8
+[2016-01-13 14:04:10.311] [INFO] EntryTest - [3] Received Url  http://localhost:1935/live/3/abc123_1/playlist.m3u8  from wowza, Operation took  623  ms
+[2016-01-13 14:04:10.312] [INFO] EntryTest - [3] Testing  http://localhost:1935/live/3/abc123_1/playlist.m3u8
+[2016-01-13 14:04:10.313] [INFO] EntryTest - [1] Got master manifest succssefully [{"bitrate":"1048956","m3u8":"http://localhost:1935/live/1/abc123_1/chunklist_w1932066167.m3u8"}]
+[2016-01-13 14:04:10.313] [INFO] EntryTest - [1] About to get manifest from flavor  1048956  url:  http://localhost:1935/live/1/abc123_1/chunklist_w1932066167.m3u8
+[2016-01-13 14:04:10.314] [INFO] EntryTest - [4] Received Url  http://localhost:1935/live/4/abc123_1/playlist.m3u8  from wowza, Operation took  625  ms
+[2016-01-13 14:04:10.314] [INFO] EntryTest - [4] Testing  http://localhost:1935/live/4/abc123_1/playlist.m3u8
+[2016-01-13 14:04:10.317] [INFO] EntryTest - [3] Got master manifest succssefully []
+[2016-01-13 14:04:10.318] [INFO] EntryTest - [3] Tested all chunks succssefully
+[2016-01-13 14:04:10.318] [INFO] MainTest - Entry 3 strated succsefully, waiting  10  seconds
+[2016-01-13 14:04:10.319] [INFO] EntryTest - [4] Got master manifest succssefully []
+[2016-01-13 14:04:10.320] [INFO] EntryTest - [4] Tested all chunks succssefully
+[2016-01-13 14:04:10.320] [INFO] MainTest - Entry 4 strated succsefully, waiting  10  seconds
+[2016-01-13 14:04:18.512] [WARN] EntryTest - [1] err: empty chunk list   http://localhost:1935/live/1/abc123_1/chunklist_w1932066167.m3u8
+[2016-01-13 14:04:18.513] [INFO] EntryTest - [1] Retrying testHls...
+[2016-01-13 14:04:18.514] [WARN] EntryTest - [2] err: empty chunk list   http://localhost:1935/live/2/abc123_1/chunklist_w741134869.m3u8
+[2016-01-13 14:04:18.515] [INFO] EntryTest - [2] Retrying testHls...
+[2016-01-13 14:04:19.526] [INFO] EntryTest - [2] Got master manifest succssefully []
+[2016-01-13 14:04:19.526] [INFO] EntryTest - [2] Tested all chunks succssefully
+[2016-01-13 14:04:19.527] [INFO] MainTest - Entry 2 strated succsefully, waiting  10  seconds
+[2016-01-13 14:04:19.528] [INFO] EntryTest - [1] Got master manifest succssefully []
+[2016-01-13 14:04:19.528] [INFO] EntryTest - [1] Tested all chunks succssefully
+[2016-01-13 14:04:19.529] [INFO] MainTest - Entry 1 strated succsefully, waiting  10  seconds
+[2016-01-13 14:04:20.322] [INFO] MainTest - Entry 3 stopping
+[2016-01-13 14:04:20.323] [INFO] EntryTest - [3] stopping FFMPEG
+[2016-01-13 14:04:20.323] [INFO] EntryTest - [3] FFMPEG stopped
+[2016-01-13 14:04:20.323] [INFO] EntryTest - [3] waiting for live stream to be  false
+[2016-01-13 14:04:20.324] [INFO] MainTest - Entry 4 stopping
+[2016-01-13 14:04:20.324] [INFO] EntryTest - [4] stopping FFMPEG
+[2016-01-13 14:04:20.324] [INFO] EntryTest - [4] FFMPEG stopped
+[2016-01-13 14:04:20.324] [INFO] EntryTest - [4] waiting for live stream to be  false
+[2016-01-13 14:04:29.528] [INFO] MainTest - Entry 2 stopping
+[2016-01-13 14:04:29.529] [INFO] EntryTest - [2] stopping FFMPEG
+[2016-01-13 14:04:29.529] [INFO] EntryTest - [2] FFMPEG stopped
+[2016-01-13 14:04:29.529] [INFO] EntryTest - [2] waiting for live stream to be  false
+[2016-01-13 14:04:29.531] [INFO] MainTest - Entry 1 stopping
+[2016-01-13 14:04:29.531] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 14:04:29.531] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 14:04:29.532] [INFO] EntryTest - [1] waiting for live stream to be  false
+[2016-01-13 14:04:35.345] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 14:04:35.366] [INFO] MainTest - Test of entry  3  failed!
+[2016-01-13 14:04:44.557] [INFO] MainTest - Test of entry  2  failed!
+[2016-01-13 14:04:44.557] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 14:07:21.746] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 14:07:21.748] [INFO] MainTest - Going to start  2  in  1  seconds
+[2016-01-13 14:07:21.748] [INFO] MainTest - Going to start  3  in  1  seconds
+[2016-01-13 14:07:21.748] [INFO] MainTest - Going to start  4  in  1  seconds
+[2016-01-13 14:07:22.753] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 14:07:22.753] [INFO] MainTest - Starting 1
+[2016-01-13 14:07:22.754] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 14:07:22.754] [INFO] EntryTest - [2] Generate new instance for  2
+[2016-01-13 14:07:22.754] [INFO] MainTest - Starting 2
+[2016-01-13 14:07:22.754] [INFO] EntryTest - [2] Getting rtmp url...
+[2016-01-13 14:07:22.755] [INFO] EntryTest - [3] Generate new instance for  3
+[2016-01-13 14:07:22.755] [INFO] MainTest - Starting 3
+[2016-01-13 14:07:22.755] [INFO] EntryTest - [3] Getting rtmp url...
+[2016-01-13 14:07:22.756] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 14:07:22.756] [INFO] MainTest - Starting 4
+[2016-01-13 14:07:22.756] [INFO] EntryTest - [4] Getting rtmp url...
+[2016-01-13 14:07:22.756] [INFO] EntryTest - [1] Got url:  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 14:07:22.757] [INFO] EntryTest - [1] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 14:07:22.762] [INFO] EntryTest - [2] Got url:  [ 'rtmp://localhost:1935/live/2/abc123_1' ]
+[2016-01-13 14:07:22.763] [INFO] EntryTest - [2] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/2/abc123_1' ]
+[2016-01-13 14:07:22.765] [INFO] EntryTest - [3] Got url:  [ 'rtmp://localhost:1935/live/3/abc123_1' ]
+[2016-01-13 14:07:22.766] [INFO] EntryTest - [3] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/3/abc123_1' ]
+[2016-01-13 14:07:22.768] [INFO] EntryTest - [4] Got url:  [ 'rtmp://localhost:1935/live/4/abc123_1' ]
+[2016-01-13 14:07:22.769] [INFO] EntryTest - [4] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/4/abc123_1' ]
+[2016-01-13 14:07:23.429] [INFO] EntryTest - [2] FFMpeg started, Operation took 675 ms
+[2016-01-13 14:07:23.429] [INFO] EntryTest - [2] waiting for live stream to be  true
+[2016-01-13 14:07:23.432] [INFO] EntryTest - [4] FFMpeg started, Operation took 676 ms
+[2016-01-13 14:07:23.432] [INFO] EntryTest - [4] waiting for live stream to be  true
+[2016-01-13 14:07:23.437] [INFO] EntryTest - [1] FFMpeg started, Operation took 683 ms
+[2016-01-13 14:07:23.437] [INFO] EntryTest - [1] waiting for live stream to be  true
+[2016-01-13 14:07:23.439] [INFO] EntryTest - [3] FFMpeg started, Operation took 684 ms
+[2016-01-13 14:07:23.440] [INFO] EntryTest - [3] waiting for live stream to be  true
+[2016-01-13 14:07:23.454] [INFO] EntryTest - [4] Received Url  http://localhost:1935/live/4/abc123_1/playlist.m3u8  from wowza, Operation took  698  ms
+[2016-01-13 14:07:23.454] [INFO] EntryTest - [4] Testing  http://localhost:1935/live/4/abc123_1/playlist.m3u8
+[2016-01-13 14:07:23.456] [INFO] EntryTest - [2] Received Url  http://localhost:1935/live/2/abc123_1/playlist.m3u8  from wowza, Operation took  702  ms
+[2016-01-13 14:07:23.456] [INFO] EntryTest - [2] Testing  http://localhost:1935/live/2/abc123_1/playlist.m3u8
+[2016-01-13 14:07:23.458] [INFO] EntryTest - [3] Received Url  http://localhost:1935/live/3/abc123_1/playlist.m3u8  from wowza, Operation took  703  ms
+[2016-01-13 14:07:23.458] [INFO] EntryTest - [3] Testing  http://localhost:1935/live/3/abc123_1/playlist.m3u8
+[2016-01-13 14:07:23.460] [INFO] EntryTest - [1] Received Url  http://localhost:1935/live/1/abc123_1/playlist.m3u8  from wowza, Operation took  706  ms
+[2016-01-13 14:07:23.460] [INFO] EntryTest - [1] Testing  http://localhost:1935/live/1/abc123_1/playlist.m3u8
+[2016-01-13 14:07:23.472] [INFO] EntryTest - [4] Got master manifest succssefully [{"bitrate":"250000","m3u8":"http://localhost:1935/live/4/abc123_1/chunklist_w1385999849.m3u8"}]
+[2016-01-13 14:07:23.472] [INFO] EntryTest - [4] About to get manifest from flavor  250000  url:  http://localhost:1935/live/4/abc123_1/chunklist_w1385999849.m3u8
+[2016-01-13 14:07:23.481] [INFO] EntryTest - [3] Got master manifest succssefully [{"bitrate":"250000","m3u8":"http://localhost:1935/live/3/abc123_1/chunklist_w1100680576.m3u8"}]
+[2016-01-13 14:07:23.482] [INFO] EntryTest - [3] About to get manifest from flavor  250000  url:  http://localhost:1935/live/3/abc123_1/chunklist_w1100680576.m3u8
+[2016-01-13 14:07:23.483] [INFO] EntryTest - [1] Got master manifest succssefully []
+[2016-01-13 14:07:23.483] [INFO] EntryTest - [1] Tested all chunks succssefully
+[2016-01-13 14:07:23.483] [INFO] MainTest - Entry 1 strated succsefully, waiting  10  seconds
+[2016-01-13 14:07:23.484] [INFO] EntryTest - [2] Got master manifest succssefully []
+[2016-01-13 14:07:23.485] [INFO] EntryTest - [2] Tested all chunks succssefully
+[2016-01-13 14:07:23.485] [INFO] MainTest - Entry 2 strated succsefully, waiting  10  seconds
+[2016-01-13 14:07:31.650] [WARN] EntryTest - [3] err: empty chunk list   http://localhost:1935/live/3/abc123_1/chunklist_w1100680576.m3u8
+[2016-01-13 14:07:31.651] [INFO] EntryTest - [3] Retrying testHls...
+[2016-01-13 14:07:31.652] [WARN] EntryTest - [4] err: empty chunk list   http://localhost:1935/live/4/abc123_1/chunklist_w1385999849.m3u8
+[2016-01-13 14:07:31.653] [INFO] EntryTest - [4] Retrying testHls...
+[2016-01-13 14:07:32.685] [INFO] EntryTest - [4] Got master manifest succssefully []
+[2016-01-13 14:07:32.685] [INFO] EntryTest - [4] Tested all chunks succssefully
+[2016-01-13 14:07:32.685] [INFO] MainTest - Entry 4 strated succsefully, waiting  10  seconds
+[2016-01-13 14:07:32.686] [INFO] EntryTest - [3] Got master manifest succssefully []
+[2016-01-13 14:07:32.687] [INFO] EntryTest - [3] Tested all chunks succssefully
+[2016-01-13 14:07:32.687] [INFO] MainTest - Entry 3 strated succsefully, waiting  10  seconds
+[2016-01-13 14:07:33.485] [INFO] MainTest - Entry 1 stopping
+[2016-01-13 14:07:33.485] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 14:07:33.485] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 14:07:33.485] [INFO] EntryTest - [1] waiting for live stream to be  false
+[2016-01-13 14:07:33.485] [INFO] EntryTest - [1] Live stopped from API, Operation took 0 ms
+[2016-01-13 14:07:33.486] [INFO] MainTest - Test of entry  1  was success!
+[2016-01-13 14:07:33.487] [INFO] MainTest - Entry 2 stopping
+[2016-01-13 14:07:33.487] [INFO] EntryTest - [2] stopping FFMPEG
+[2016-01-13 14:07:33.487] [INFO] EntryTest - [2] FFMPEG stopped
+[2016-01-13 14:07:33.488] [INFO] EntryTest - [2] waiting for live stream to be  false
+[2016-01-13 14:07:33.488] [INFO] EntryTest - [2] Live stopped from API, Operation took 1 ms
+[2016-01-13 14:07:33.488] [INFO] MainTest - Test of entry  2  was success!
+[2016-01-13 14:07:42.691] [INFO] MainTest - Entry 4 stopping
+[2016-01-13 14:07:42.691] [INFO] EntryTest - [4] stopping FFMPEG
+[2016-01-13 14:07:42.692] [INFO] EntryTest - [4] FFMPEG stopped
+[2016-01-13 14:07:42.692] [INFO] EntryTest - [4] waiting for live stream to be  false
+[2016-01-13 14:07:42.692] [INFO] MainTest - Entry 3 stopping
+[2016-01-13 14:07:42.692] [INFO] EntryTest - [3] stopping FFMPEG
+[2016-01-13 14:07:42.693] [INFO] EntryTest - [3] FFMPEG stopped
+[2016-01-13 14:07:42.693] [INFO] EntryTest - [3] waiting for live stream to be  false
+[2016-01-13 14:07:42.693] [INFO] EntryTest - [4] Live stopped from API, Operation took 1 ms
+[2016-01-13 14:07:42.694] [INFO] EntryTest - [3] Live stopped from API, Operation took 1 ms
+[2016-01-13 14:07:42.694] [INFO] MainTest - Test of entry  4  was success!
+[2016-01-13 14:07:42.694] [INFO] MainTest - Test of entry  3  was success!
+[2016-01-13 14:08:06.749] [INFO] MainTest - Going to start  1_vlu0wh35  in  1  seconds
+[2016-01-13 14:08:06.751] [INFO] MainTest - Going to start  1_ieude8tq  in  1  seconds
+[2016-01-13 14:08:06.752] [INFO] MainTest - Going to start  1_y4h3n7gb  in  1  seconds
+[2016-01-13 14:08:06.752] [INFO] MainTest - Going to start  1_kqopu2qm  in  1  seconds
+[2016-01-13 14:08:07.753] [INFO] EntryTest - [1_vlu0wh35] Generate new instance for  1_vlu0wh35
+[2016-01-13 14:08:07.753] [INFO] MainTest - Starting 1_vlu0wh35
+[2016-01-13 14:08:07.753] [INFO] EntryTest - [1_vlu0wh35] Getting rtmp url...
+[2016-01-13 14:08:07.755] [INFO] EntryTest - [1_ieude8tq] Generate new instance for  1_ieude8tq
+[2016-01-13 14:08:07.755] [INFO] MainTest - Starting 1_ieude8tq
+[2016-01-13 14:08:07.755] [INFO] EntryTest - [1_ieude8tq] Getting rtmp url...
+[2016-01-13 14:08:07.756] [INFO] EntryTest - [1_y4h3n7gb] Generate new instance for  1_y4h3n7gb
+[2016-01-13 14:08:07.756] [INFO] MainTest - Starting 1_y4h3n7gb
+[2016-01-13 14:08:07.756] [INFO] EntryTest - [1_y4h3n7gb] Getting rtmp url...
+[2016-01-13 14:08:07.756] [INFO] EntryTest - [1_kqopu2qm] Generate new instance for  1_kqopu2qm
+[2016-01-13 14:08:07.757] [INFO] MainTest - Starting 1_kqopu2qm
+[2016-01-13 14:08:07.757] [INFO] EntryTest - [1_kqopu2qm] Getting rtmp url...
+[2016-01-13 14:08:08.490] [INFO] console - loggedin with user 'ron.yadgar@kaltura.com' in with ks=djJ8MjA0OTkxMXytWgoy2NrrFEQAJW11vGAq-3mJUHgqA9QQjWzSMogRcoqBS6pTlHeThl7f4rK2px-DHX8R3UYwtce0wfyp6reYIaag-PIjyQ5YpQ0wMh-vRULlaSubN8gnSAUbI_qg-d4=
+[2016-01-13 14:08:08.847] [ERROR] EntryTest - [1_kqopu2qm] Test Failed!!!  {}
+[2016-01-13 14:08:08.848] [INFO] MainTest - Test of entry  1_kqopu2qm  failed!
+[2016-01-13 14:08:08.857] [ERROR] EntryTest - [1_y4h3n7gb] Test Failed!!!  {}
+[2016-01-13 14:08:08.858] [INFO] MainTest - Test of entry  1_y4h3n7gb  failed!
+[2016-01-13 14:08:08.860] [ERROR] EntryTest - [1_vlu0wh35] Test Failed!!!  {}
+[2016-01-13 14:08:08.860] [INFO] MainTest - Test of entry  1_vlu0wh35  failed!
+[2016-01-13 14:08:08.879] [ERROR] EntryTest - [1_ieude8tq] Test Failed!!!  {}
+[2016-01-13 14:08:08.880] [INFO] MainTest - Test of entry  1_ieude8tq  failed!
+[2016-01-13 14:08:57.767] [INFO] MainTest - Going to start  1_vlu0wh35  in  1  seconds
+[2016-01-13 14:08:57.769] [INFO] MainTest - Going to start  1_ieude8tq  in  1  seconds
+[2016-01-13 14:08:57.769] [INFO] MainTest - Going to start  1_y4h3n7gb  in  1  seconds
+[2016-01-13 14:08:57.769] [INFO] MainTest - Going to start  1_kqopu2qm  in  1  seconds
+[2016-01-13 14:08:58.772] [INFO] EntryTest - [1_vlu0wh35] Generate new instance for  1_vlu0wh35
+[2016-01-13 14:08:58.772] [INFO] MainTest - Starting 1_vlu0wh35
+[2016-01-13 14:08:58.772] [INFO] EntryTest - [1_vlu0wh35] Getting rtmp url...
+[2016-01-13 14:08:58.774] [INFO] EntryTest - [1_ieude8tq] Generate new instance for  1_ieude8tq
+[2016-01-13 14:08:58.774] [INFO] MainTest - Starting 1_ieude8tq
+[2016-01-13 14:08:58.775] [INFO] EntryTest - [1_ieude8tq] Getting rtmp url...
+[2016-01-13 14:08:58.775] [INFO] EntryTest - [1_y4h3n7gb] Generate new instance for  1_y4h3n7gb
+[2016-01-13 14:08:58.775] [INFO] MainTest - Starting 1_y4h3n7gb
+[2016-01-13 14:08:58.775] [INFO] EntryTest - [1_y4h3n7gb] Getting rtmp url...
+[2016-01-13 14:08:58.775] [INFO] EntryTest - [1_kqopu2qm] Generate new instance for  1_kqopu2qm
+[2016-01-13 14:08:58.775] [INFO] MainTest - Starting 1_kqopu2qm
+[2016-01-13 14:08:58.776] [INFO] EntryTest - [1_kqopu2qm] Getting rtmp url...
+[2016-01-13 14:08:59.094] [INFO] console - loggedin with user 'ron.yadgar@kaltura.com' in with ks=djJ8MjA0OTkxMXwHh5JwNglL-7eatYNerRMLbJkh4-OTGISXlqrAyD_kaOWuqWBLQpWtRLhe74QoX174wgRnKcBbkt33lslqTvxx2ZqW1vV9evym4TNn-SlYvfh18D7yObo20xN1f60uf00=
+[2016-01-13 14:08:59.404] [INFO] EntryTest - [1_kqopu2qm] Got url:  [ 'rtmp://ny-publish.kaltura.com:1935/kLive/?p=2049911&e=1_kqopu2qm&i=0&t=abbfffba/1_kqopu2qm_0' ]
+[2016-01-13 14:08:59.405] [INFO] EntryTest - [1_kqopu2qm] Starting FFMpeg streaming for  [ 'rtmp://ny-publish.kaltura.com:1935/kLive/?p=2049911&e=1_kqopu2qm&i=0&t=abbfffba/1_kqopu2qm_0' ]
+[2016-01-13 14:08:59.410] [INFO] EntryTest - [1_vlu0wh35] Got url:  [ 'rtmp://ny-publish.kaltura.com:1935/kLive/?p=2049911&e=1_vlu0wh35&i=0&t=dba92f46/1_vlu0wh35_0' ]
+[2016-01-13 14:08:59.411] [INFO] EntryTest - [1_vlu0wh35] Starting FFMpeg streaming for  [ 'rtmp://ny-publish.kaltura.com:1935/kLive/?p=2049911&e=1_vlu0wh35&i=0&t=dba92f46/1_vlu0wh35_0' ]
+[2016-01-13 14:08:59.422] [INFO] EntryTest - [1_ieude8tq] Got url:  [ 'rtmp://ny-publish.kaltura.com:1935/kLive/?p=2049911&e=1_ieude8tq&i=0&t=a3e5144d/1_ieude8tq_0' ]
+[2016-01-13 14:08:59.422] [INFO] EntryTest - [1_ieude8tq] Starting FFMpeg streaming for  [ 'rtmp://ny-publish.kaltura.com:1935/kLive/?p=2049911&e=1_ieude8tq&i=0&t=a3e5144d/1_ieude8tq_0' ]
+[2016-01-13 14:08:59.426] [INFO] EntryTest - [1_y4h3n7gb] Got url:  [ 'rtmp://ny-publish.kaltura.com:1935/kLive/?p=2049911&e=1_y4h3n7gb&i=0&t=2fdf6472/1_y4h3n7gb_0' ]
+[2016-01-13 14:08:59.428] [INFO] EntryTest - [1_y4h3n7gb] Starting FFMpeg streaming for  [ 'rtmp://ny-publish.kaltura.com:1935/kLive/?p=2049911&e=1_y4h3n7gb&i=0&t=2fdf6472/1_y4h3n7gb_0' ]
+[2016-01-13 14:09:01.341] [INFO] EntryTest - [1_y4h3n7gb] FFMpeg started, Operation took 2566 ms
+[2016-01-13 14:09:01.341] [INFO] EntryTest - [1_y4h3n7gb] waiting for live stream to be  true
+[2016-01-13 14:09:01.421] [INFO] EntryTest - [1_vlu0wh35] FFMpeg started, Operation took 2649 ms
+[2016-01-13 14:09:01.422] [INFO] EntryTest - [1_vlu0wh35] waiting for live stream to be  true
+[2016-01-13 14:09:01.523] [INFO] EntryTest - [1_kqopu2qm] FFMpeg started, Operation took 2747 ms
+[2016-01-13 14:09:01.524] [INFO] EntryTest - [1_kqopu2qm] waiting for live stream to be  true
+[2016-01-13 14:09:01.601] [INFO] EntryTest - [1_ieude8tq] FFMpeg started, Operation took 2826 ms
+[2016-01-13 14:09:01.601] [INFO] EntryTest - [1_ieude8tq] waiting for live stream to be  true
+[2016-01-13 14:10:01.210] [INFO] EntryTest - [1_y4h3n7gb] Received Url  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/smil:1_y4h3n7gb_all.smil/playlist.m3u8  from wowza, Operation took  62435  ms
+[2016-01-13 14:10:01.210] [INFO] EntryTest - [1_y4h3n7gb] Testing  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/smil:1_y4h3n7gb_all.smil/playlist.m3u8
+[2016-01-13 14:10:01.577] [INFO] EntryTest - [1_y4h3n7gb] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8"}]
+[2016-01-13 14:10:01.578] [INFO] EntryTest - [1_y4h3n7gb] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:02.023] [WARN] EntryTest - [1_y4h3n7gb] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:02.023] [INFO] EntryTest - [1_y4h3n7gb] Retrying testHls...
+[2016-01-13 14:10:03.041] [INFO] EntryTest - [1_y4h3n7gb] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8"}]
+[2016-01-13 14:10:03.041] [INFO] EntryTest - [1_y4h3n7gb] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:03.057] [WARN] EntryTest - [1_y4h3n7gb] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:03.057] [INFO] EntryTest - [1_y4h3n7gb] Retrying testHls...
+[2016-01-13 14:10:04.077] [INFO] EntryTest - [1_y4h3n7gb] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8"}]
+[2016-01-13 14:10:04.078] [INFO] EntryTest - [1_y4h3n7gb] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:04.093] [WARN] EntryTest - [1_y4h3n7gb] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:04.094] [INFO] EntryTest - [1_y4h3n7gb] Retrying testHls...
+[2016-01-13 14:10:05.115] [INFO] EntryTest - [1_y4h3n7gb] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8"}]
+[2016-01-13 14:10:05.115] [INFO] EntryTest - [1_y4h3n7gb] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:05.130] [WARN] EntryTest - [1_y4h3n7gb] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:05.130] [INFO] EntryTest - [1_y4h3n7gb] Retrying testHls...
+[2016-01-13 14:10:05.714] [INFO] EntryTest - [1_vlu0wh35] Received Url  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/smil:1_vlu0wh35_all.smil/playlist.m3u8  from wowza, Operation took  66942  ms
+[2016-01-13 14:10:05.714] [INFO] EntryTest - [1_vlu0wh35] Testing  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/smil:1_vlu0wh35_all.smil/playlist.m3u8
+[2016-01-13 14:10:05.821] [INFO] EntryTest - [1_kqopu2qm] Received Url  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/smil:1_kqopu2qm_all.smil/playlist.m3u8  from wowza, Operation took  67045  ms
+[2016-01-13 14:10:05.822] [INFO] EntryTest - [1_kqopu2qm] Testing  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/smil:1_kqopu2qm_all.smil/playlist.m3u8
+[2016-01-13 14:10:05.858] [INFO] EntryTest - [1_ieude8tq] Received Url  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/smil:1_ieude8tq_all.smil/playlist.m3u8  from wowza, Operation took  67083  ms
+[2016-01-13 14:10:05.858] [INFO] EntryTest - [1_ieude8tq] Testing  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/smil:1_ieude8tq_all.smil/playlist.m3u8
+[2016-01-13 14:10:05.907] [INFO] EntryTest - [1_vlu0wh35] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8"},{"bitrate":"475136","resolution":"480","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8"},{"bitrate":"679936","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8"},{"bitrate":"987136","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8"}]
+[2016-01-13 14:10:05.907] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8
+[2016-01-13 14:10:05.907] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  475136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8
+[2016-01-13 14:10:05.908] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  679936  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8
+[2016-01-13 14:10:05.908] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  987136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8
+[2016-01-13 14:10:06.027] [INFO] EntryTest - [1_kqopu2qm] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8"}]
+[2016-01-13 14:10:06.027] [INFO] EntryTest - [1_kqopu2qm] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8
+[2016-01-13 14:10:06.080] [INFO] EntryTest - [1_ieude8tq] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/manifest.m3u8"},{"bitrate":"475136","resolution":"480","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8"},{"bitrate":"679936","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8"},{"bitrate":"987136","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8"}]
+[2016-01-13 14:10:06.081] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/manifest.m3u8
+[2016-01-13 14:10:06.082] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  475136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8
+[2016-01-13 14:10:06.084] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  679936  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8
+[2016-01-13 14:10:06.085] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  987136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8
+[2016-01-13 14:10:06.155] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8
+[2016-01-13 14:10:06.155] [INFO] EntryTest - [1_vlu0wh35] Retrying testHls...
+[2016-01-13 14:10:06.168] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8
+[2016-01-13 14:10:06.170] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8
+[2016-01-13 14:10:06.212] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8
+[2016-01-13 14:10:06.287] [WARN] EntryTest - [1_kqopu2qm] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8
+[2016-01-13 14:10:06.288] [INFO] EntryTest - [1_kqopu2qm] Retrying testHls...
+[2016-01-13 14:10:06.361] [INFO] EntryTest - [1_y4h3n7gb] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8"}]
+[2016-01-13 14:10:06.362] [INFO] EntryTest - [1_y4h3n7gb] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:06.397] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8
+[2016-01-13 14:10:06.398] [INFO] EntryTest - [1_ieude8tq] Retrying testHls...
+[2016-01-13 14:10:06.402] [WARN] EntryTest - [1_y4h3n7gb] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:06.403] [INFO] EntryTest - [1_y4h3n7gb] Retrying testHls...
+[2016-01-13 14:10:06.449] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8
+[2016-01-13 14:10:06.450] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8
+[2016-01-13 14:10:07.170] [INFO] EntryTest - [1_vlu0wh35] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8"},{"bitrate":"475136","resolution":"480","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8"},{"bitrate":"679936","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8"},{"bitrate":"987136","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8"}]
+[2016-01-13 14:10:07.171] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8
+[2016-01-13 14:10:07.171] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  475136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8
+[2016-01-13 14:10:07.172] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  679936  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8
+[2016-01-13 14:10:07.173] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  987136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8
+[2016-01-13 14:10:07.188] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8
+[2016-01-13 14:10:07.189] [INFO] EntryTest - [1_vlu0wh35] Retrying testHls...
+[2016-01-13 14:10:07.189] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8
+[2016-01-13 14:10:07.190] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8
+[2016-01-13 14:10:07.191] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8
+[2016-01-13 14:10:07.300] [INFO] EntryTest - [1_kqopu2qm] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8"}]
+[2016-01-13 14:10:07.301] [INFO] EntryTest - [1_kqopu2qm] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8
+[2016-01-13 14:10:07.312] [WARN] EntryTest - [1_kqopu2qm] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8
+[2016-01-13 14:10:07.313] [INFO] EntryTest - [1_kqopu2qm] Retrying testHls...
+[2016-01-13 14:10:07.414] [INFO] EntryTest - [1_ieude8tq] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/manifest.m3u8"},{"bitrate":"475136","resolution":"480","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8"},{"bitrate":"679936","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8"},{"bitrate":"987136","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8"}]
+[2016-01-13 14:10:07.414] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/manifest.m3u8
+[2016-01-13 14:10:07.415] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  475136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8
+[2016-01-13 14:10:07.416] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  679936  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8
+[2016-01-13 14:10:07.416] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  987136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8
+[2016-01-13 14:10:07.418] [INFO] EntryTest - [1_y4h3n7gb] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8"}]
+[2016-01-13 14:10:07.418] [INFO] EntryTest - [1_y4h3n7gb] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:07.431] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8
+[2016-01-13 14:10:07.432] [INFO] EntryTest - [1_ieude8tq] Retrying testHls...
+[2016-01-13 14:10:07.433] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8
+[2016-01-13 14:10:07.434] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8
+[2016-01-13 14:10:07.437] [WARN] EntryTest - [1_y4h3n7gb] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:07.438] [INFO] EntryTest - [1_y4h3n7gb] Retrying testHls...
+[2016-01-13 14:10:07.611] [INFO] EntryTest - [1_ieude8tq] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/media-u8ji9q4bt_b996571_1.ts
+[2016-01-13 14:10:07.777] [INFO] EntryTest - [1_ieude8tq] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/media-u8ji9q4bt_b996571_1.ts
+[2016-01-13 14:10:08.240] [INFO] EntryTest - [1_vlu0wh35] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8"},{"bitrate":"475136","resolution":"480","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8"},{"bitrate":"679936","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8"},{"bitrate":"987136","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8"}]
+[2016-01-13 14:10:08.240] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8
+[2016-01-13 14:10:08.240] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  475136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8
+[2016-01-13 14:10:08.240] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  679936  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8
+[2016-01-13 14:10:08.241] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  987136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8
+[2016-01-13 14:10:08.271] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8
+[2016-01-13 14:10:08.271] [INFO] EntryTest - [1_vlu0wh35] Retrying testHls...
+[2016-01-13 14:10:08.272] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8
+[2016-01-13 14:10:08.273] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8
+[2016-01-13 14:10:08.277] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8
+[2016-01-13 14:10:08.337] [INFO] EntryTest - [1_kqopu2qm] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8"}]
+[2016-01-13 14:10:08.338] [INFO] EntryTest - [1_kqopu2qm] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8
+[2016-01-13 14:10:08.371] [WARN] EntryTest - [1_kqopu2qm] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8
+[2016-01-13 14:10:08.371] [INFO] EntryTest - [1_kqopu2qm] Retrying testHls...
+[2016-01-13 14:10:08.504] [INFO] EntryTest - [1_ieude8tq] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/manifest.m3u8"},{"bitrate":"475136","resolution":"480","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8"},{"bitrate":"679936","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8"},{"bitrate":"987136","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8"}]
+[2016-01-13 14:10:08.505] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/manifest.m3u8
+[2016-01-13 14:10:08.505] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  475136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8
+[2016-01-13 14:10:08.505] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  679936  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8
+[2016-01-13 14:10:08.506] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  987136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8
+[2016-01-13 14:10:08.515] [INFO] EntryTest - [1_y4h3n7gb] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8"}]
+[2016-01-13 14:10:08.516] [INFO] EntryTest - [1_y4h3n7gb] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:08.540] [INFO] EntryTest - [1_ieude8tq] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/media-u8ji9q4bt_b996571_1.ts
+[2016-01-13 14:10:08.541] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8
+[2016-01-13 14:10:08.541] [INFO] EntryTest - [1_ieude8tq] Retrying testHls...
+[2016-01-13 14:10:08.542] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8
+[2016-01-13 14:10:08.542] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8
+[2016-01-13 14:10:08.547] [WARN] EntryTest - [1_y4h3n7gb] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:08.548] [INFO] EntryTest - [1_y4h3n7gb] Retrying testHls...
+[2016-01-13 14:10:08.695] [INFO] EntryTest - [1_ieude8tq] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/media-u8ji9q4bt_b996571_1.ts
+[2016-01-13 14:10:09.290] [INFO] EntryTest - [1_vlu0wh35] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8"},{"bitrate":"475136","resolution":"480","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8"},{"bitrate":"679936","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8"},{"bitrate":"987136","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8"}]
+[2016-01-13 14:10:09.291] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8
+[2016-01-13 14:10:09.291] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  475136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8
+[2016-01-13 14:10:09.292] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  679936  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8
+[2016-01-13 14:10:09.292] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  987136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8
+[2016-01-13 14:10:09.306] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8
+[2016-01-13 14:10:09.307] [INFO] EntryTest - [1_vlu0wh35] Retrying testHls...
+[2016-01-13 14:10:09.307] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8
+[2016-01-13 14:10:09.308] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8
+[2016-01-13 14:10:09.308] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8
+[2016-01-13 14:10:09.387] [INFO] EntryTest - [1_kqopu2qm] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8"}]
+[2016-01-13 14:10:09.387] [INFO] EntryTest - [1_kqopu2qm] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8
+[2016-01-13 14:10:09.400] [WARN] EntryTest - [1_kqopu2qm] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8
+[2016-01-13 14:10:09.400] [INFO] EntryTest - [1_kqopu2qm] Retrying testHls...
+[2016-01-13 14:10:09.556] [INFO] EntryTest - [1_ieude8tq] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/manifest.m3u8"},{"bitrate":"475136","resolution":"480","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8"},{"bitrate":"679936","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8"},{"bitrate":"987136","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8"}]
+[2016-01-13 14:10:09.557] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/manifest.m3u8
+[2016-01-13 14:10:09.558] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  475136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8
+[2016-01-13 14:10:09.558] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  679936  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8
+[2016-01-13 14:10:09.559] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  987136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8
+[2016-01-13 14:10:09.561] [INFO] EntryTest - [1_y4h3n7gb] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8"}]
+[2016-01-13 14:10:09.562] [INFO] EntryTest - [1_y4h3n7gb] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:09.575] [INFO] EntryTest - [1_ieude8tq] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/media-u8ji9q4bt_b996571_1.ts
+[2016-01-13 14:10:09.576] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8
+[2016-01-13 14:10:09.576] [INFO] EntryTest - [1_ieude8tq] Retrying testHls...
+[2016-01-13 14:10:09.577] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8
+[2016-01-13 14:10:09.578] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8
+[2016-01-13 14:10:09.580] [WARN] EntryTest - [1_y4h3n7gb] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:09.580] [INFO] EntryTest - [1_y4h3n7gb] Retrying testHls...
+[2016-01-13 14:10:09.727] [INFO] EntryTest - [1_ieude8tq] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/media-u8ji9q4bt_b996571_1.ts
+[2016-01-13 14:10:10.392] [INFO] EntryTest - [1_vlu0wh35] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8"},{"bitrate":"475136","resolution":"480","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8"},{"bitrate":"679936","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8"},{"bitrate":"987136","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8"}]
+[2016-01-13 14:10:10.392] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8
+[2016-01-13 14:10:10.393] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  475136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8
+[2016-01-13 14:10:10.393] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  679936  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8
+[2016-01-13 14:10:10.393] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  987136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8
+[2016-01-13 14:10:10.419] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8
+[2016-01-13 14:10:10.420] [INFO] EntryTest - [1_vlu0wh35] Retrying testHls...
+[2016-01-13 14:10:10.420] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8
+[2016-01-13 14:10:10.421] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8
+[2016-01-13 14:10:10.422] [WARN] EntryTest - [1_vlu0wh35] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8
+[2016-01-13 14:10:10.491] [INFO] EntryTest - [1_kqopu2qm] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8"}]
+[2016-01-13 14:10:10.492] [INFO] EntryTest - [1_kqopu2qm] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8
+[2016-01-13 14:10:10.509] [WARN] EntryTest - [1_kqopu2qm] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8
+[2016-01-13 14:10:10.510] [INFO] EntryTest - [1_kqopu2qm] Retrying testHls...
+[2016-01-13 14:10:10.668] [INFO] EntryTest - [1_ieude8tq] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/manifest.m3u8"},{"bitrate":"475136","resolution":"480","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8"},{"bitrate":"679936","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8"},{"bitrate":"987136","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8"}]
+[2016-01-13 14:10:10.668] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/manifest.m3u8
+[2016-01-13 14:10:10.669] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  475136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8
+[2016-01-13 14:10:10.669] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  679936  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8
+[2016-01-13 14:10:10.669] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  987136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8
+[2016-01-13 14:10:10.671] [INFO] EntryTest - [1_y4h3n7gb] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8"}]
+[2016-01-13 14:10:10.671] [INFO] EntryTest - [1_y4h3n7gb] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:10.689] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8
+[2016-01-13 14:10:10.689] [INFO] EntryTest - [1_ieude8tq] Retrying testHls...
+[2016-01-13 14:10:10.692] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8
+[2016-01-13 14:10:10.694] [INFO] EntryTest - [1_ieude8tq] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/media-u8ji9q4bt_b996571_1.ts
+[2016-01-13 14:10:10.699] [WARN] EntryTest - [1_ieude8tq] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8
+[2016-01-13 14:10:10.702] [WARN] EntryTest - [1_y4h3n7gb] err: empty chunk list   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:10.703] [INFO] EntryTest - [1_y4h3n7gb] Retrying testHls...
+[2016-01-13 14:10:10.866] [INFO] EntryTest - [1_ieude8tq] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/media-u8ji9q4bt_b996571_1.ts
+[2016-01-13 14:10:11.436] [INFO] EntryTest - [1_vlu0wh35] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8"},{"bitrate":"475136","resolution":"480","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8"},{"bitrate":"679936","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8"},{"bitrate":"987136","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8"}]
+[2016-01-13 14:10:11.437] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/manifest.m3u8
+[2016-01-13 14:10:11.437] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  475136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/manifest.m3u8
+[2016-01-13 14:10:11.437] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  679936  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/manifest.m3u8
+[2016-01-13 14:10:11.438] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor  987136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/manifest.m3u8
+[2016-01-13 14:10:11.525] [INFO] EntryTest - [1_vlu0wh35] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/media-ufco8qk0j_b987136_1.ts
+[2016-01-13 14:10:11.527] [INFO] EntryTest - [1_vlu0wh35] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/media-uwh9t9zfc_b679936_1.ts
+[2016-01-13 14:10:11.529] [INFO] EntryTest - [1_vlu0wh35] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/media-u3nymoxaj_b996571_1.ts
+[2016-01-13 14:10:11.530] [INFO] EntryTest - [1_vlu0wh35] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/media-uv0v3hg4u_b475136_1.ts
+[2016-01-13 14:10:11.531] [INFO] EntryTest - [1_kqopu2qm] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8"}]
+[2016-01-13 14:10:11.531] [INFO] EntryTest - [1_kqopu2qm] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/manifest.m3u8
+[2016-01-13 14:10:11.678] [INFO] EntryTest - [1_vlu0wh35] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/media-ufco8qk0j_b987136_1.ts
+[2016-01-13 14:10:11.681] [INFO] EntryTest - [1_vlu0wh35] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/media-uwh9t9zfc_b679936_1.ts
+[2016-01-13 14:10:11.685] [INFO] EntryTest - [1_vlu0wh35] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/media-uv0v3hg4u_b475136_1.ts
+[2016-01-13 14:10:11.704] [INFO] EntryTest - [1_ieude8tq] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/manifest.m3u8"},{"bitrate":"475136","resolution":"480","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8"},{"bitrate":"679936","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8"},{"bitrate":"987136","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8"}]
+[2016-01-13 14:10:11.704] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/manifest.m3u8
+[2016-01-13 14:10:11.705] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  475136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/manifest.m3u8
+[2016-01-13 14:10:11.705] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  679936  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/manifest.m3u8
+[2016-01-13 14:10:11.705] [INFO] EntryTest - [1_ieude8tq] About to get manifest from flavor  987136  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/manifest.m3u8
+[2016-01-13 14:10:11.720] [INFO] EntryTest - [1_y4h3n7gb] Got master manifest succssefully [{"bitrate":"996571","resolution":"640","m3u8":"http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8"}]
+[2016-01-13 14:10:11.721] [INFO] EntryTest - [1_y4h3n7gb] About to get manifest from flavor  996571  url:  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/manifest.m3u8
+[2016-01-13 14:10:11.722] [INFO] EntryTest - [1_ieude8tq] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/media-u8ji9q4bt_b996571_1.ts
+[2016-01-13 14:10:11.750] [INFO] EntryTest - [1_kqopu2qm] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/media-u1h75a51z_b996571_1.ts
+[2016-01-13 14:10:11.762] [INFO] EntryTest - [1_vlu0wh35] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/media-u3nymoxaj_b996571_1.ts
+[2016-01-13 14:10:11.763] [INFO] EntryTest - [1_vlu0wh35] Tested all chunks succssefully
+[2016-01-13 14:10:11.763] [INFO] MainTest - Entry 1_vlu0wh35 strated succsefully, waiting  10  seconds
+[2016-01-13 14:10:11.793] [INFO] EntryTest - [1_ieude8tq] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/media-u82azo1gt_b475136_1.ts
+[2016-01-13 14:10:11.794] [INFO] EntryTest - [1_ieude8tq] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/media-u5vdqv2b9_b679936_1.ts
+[2016-01-13 14:10:11.828] [INFO] EntryTest - [1_ieude8tq] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/media-uscjdjqy6_b987136_1.ts
+[2016-01-13 14:10:11.948] [INFO] EntryTest - [1_ieude8tq] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/996571/media-u8ji9q4bt_b996571_1.ts
+[2016-01-13 14:10:11.949] [INFO] EntryTest - [1_kqopu2qm] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_kqopu2qm/996571/media-u1h75a51z_b996571_1.ts
+[2016-01-13 14:10:11.950] [INFO] EntryTest - [1_kqopu2qm] Tested all chunks succssefully
+[2016-01-13 14:10:11.951] [INFO] MainTest - Entry 1_kqopu2qm strated succsefully, waiting  10  seconds
+[2016-01-13 14:10:11.980] [INFO] EntryTest - [1_ieude8tq] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/475136/media-u82azo1gt_b475136_1.ts
+[2016-01-13 14:10:12.011] [INFO] EntryTest - [1_y4h3n7gb] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/media-ulhalkbo5_b996571_1.ts
+[2016-01-13 14:10:12.098] [INFO] EntryTest - [1_ieude8tq] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/679936/media-u5vdqv2b9_b679936_1.ts
+[2016-01-13 14:10:12.103] [INFO] EntryTest - [1_ieude8tq] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_ieude8tq/987136/media-uscjdjqy6_b987136_1.ts
+[2016-01-13 14:10:12.104] [INFO] EntryTest - [1_ieude8tq] Tested all chunks succssefully
+[2016-01-13 14:10:12.104] [INFO] MainTest - Entry 1_ieude8tq strated succsefully, waiting  10  seconds
+[2016-01-13 14:10:12.176] [INFO] EntryTest - [1_y4h3n7gb] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_y4h3n7gb/996571/media-ulhalkbo5_b996571_1.ts
+[2016-01-13 14:10:12.176] [INFO] EntryTest - [1_y4h3n7gb] Tested all chunks succssefully
+[2016-01-13 14:10:12.176] [INFO] MainTest - Entry 1_y4h3n7gb strated succsefully, waiting  10  seconds
+[2016-01-13 14:10:21.765] [INFO] MainTest - Entry 1_vlu0wh35 stopping
+[2016-01-13 14:10:21.765] [INFO] EntryTest - [1_vlu0wh35] stopping FFMPEG
+[2016-01-13 14:10:21.766] [INFO] EntryTest - [1_vlu0wh35] FFMPEG stopped
+[2016-01-13 14:10:21.766] [INFO] EntryTest - [1_vlu0wh35] waiting for live stream to be  false
+[2016-01-13 14:10:21.952] [INFO] MainTest - Entry 1_kqopu2qm stopping
+[2016-01-13 14:10:21.952] [INFO] EntryTest - [1_kqopu2qm] stopping FFMPEG
+[2016-01-13 14:10:21.952] [INFO] EntryTest - [1_kqopu2qm] FFMPEG stopped
+[2016-01-13 14:10:21.952] [INFO] EntryTest - [1_kqopu2qm] waiting for live stream to be  false
+[2016-01-13 14:10:22.106] [INFO] MainTest - Entry 1_ieude8tq stopping
+[2016-01-13 14:10:22.106] [INFO] EntryTest - [1_ieude8tq] stopping FFMPEG
+[2016-01-13 14:10:22.106] [INFO] EntryTest - [1_ieude8tq] FFMPEG stopped
+[2016-01-13 14:10:22.106] [INFO] EntryTest - [1_ieude8tq] waiting for live stream to be  false
+[2016-01-13 14:10:22.137] [INFO] EntryTest - [1_vlu0wh35] Live stopped from API, Operation took 371 ms
+[2016-01-13 14:10:22.137] [INFO] MainTest - Test of entry  1_vlu0wh35  was success!
+[2016-01-13 14:10:22.178] [INFO] MainTest - Entry 1_y4h3n7gb stopping
+[2016-01-13 14:10:22.178] [INFO] EntryTest - [1_y4h3n7gb] stopping FFMPEG
+[2016-01-13 14:10:22.178] [INFO] EntryTest - [1_y4h3n7gb] FFMPEG stopped
+[2016-01-13 14:10:22.178] [INFO] EntryTest - [1_y4h3n7gb] waiting for live stream to be  false
+[2016-01-13 14:10:27.664] [INFO] EntryTest - [1_kqopu2qm] Live stopped from API, Operation took 5712 ms
+[2016-01-13 14:10:27.664] [INFO] MainTest - Test of entry  1_kqopu2qm  was success!
+[2016-01-13 14:10:27.835] [INFO] EntryTest - [1_ieude8tq] Live stopped from API, Operation took 5729 ms
+[2016-01-13 14:10:27.835] [INFO] MainTest - Test of entry  1_ieude8tq  was success!
+[2016-01-13 14:10:27.981] [INFO] EntryTest - [1_y4h3n7gb] Live stopped from API, Operation took 5803 ms
+[2016-01-13 14:10:27.981] [INFO] MainTest - Test of entry  1_y4h3n7gb  was success!

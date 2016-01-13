@@ -40,12 +40,12 @@ function EntryTest(testInfo) {
     function waitForLiveState(expectedState,timeOut) {
 
 
-        logger.info("waiting for live stream to be active");
+        logger.info("waiting for live stream to be ",expectedState);
         return retryPromise(function () {
             logger.debug("calling getMasterManifest");
 
 
-            return testInfo.getMasterManifest().then(function (masterClipList) {
+            return testInfo.getMasterManifest(logger,expectedState).then(function (masterClipList) {
 
                 logger.debug("getMasterManifest returned "+masterClipList);
                 if (expectedState) {
@@ -68,11 +68,16 @@ function EntryTest(testInfo) {
         }, config.entryTest.poolInterval, (1000*timeOut)/config.entryTest.poolInterval);
     }
 
-    function getAllChuncksHeader(flavor)
+    function getAllChuncksHeader(flavorUrl)
     {
-        return kle.parseChunkListM3U8(flavor)
+        return kle.parseChunkListM3U8(logger,flavorUrl)
             .then(function (res) {
 
+                if (res.length===0) {
+
+                    logger.warn("err: empty chunk list  ",flavorUrl);
+                    return q.reject("empty chunk list  "+flavorUrl);
+                }
                 _.each(res,function(chunk){
                     if (chunk.duration<=0) {
                         logger.error("Incorrect duration for chunk ",chunk.duration);
@@ -93,10 +98,36 @@ function EntryTest(testInfo) {
             });
     }
 
+    function testHls(masterM3U8) {
+        logger.info("Testing ",masterM3U8);
 
-    function GetRTMPurl(){
-        return testInfo.getRtmpUrl();
+        return retryPromise(function () {
+
+            var finishTime = new Date();
+            return kle.parseMasterM3U8(logger,masterM3U8,false)
+                .then(function(res){
+                    logger.info("Got master manifest succssefully",JSON.stringify(res));
+                    var promises=_.map(res,function(flavor) {
+                        logger.info("About to get manifest from flavor ",flavor.bitrate,' url: ',flavor.m3u8);
+                        return getAllChuncksHeader(flavor.m3u8);
+                });
+
+                return q.all(promises).catch(function(e) {
+                    logger.info("Retrying testHls...");
+
+                    return q.reject(e);
+                    });
+            });
+
+
+        }, 1000, 10);
+
+
+
     }
+
+
+
 
     var stopffmpegTask=function() {
 
@@ -111,7 +142,7 @@ function EntryTest(testInfo) {
     that.start=function() {
         var startTime=new Date();
         logger.info("Getting rtmp url...");
-       return GetRTMPurl()
+       return testInfo.getRtmpUrl()
            .then(
             function(urls){
                 logger.info("Got url: ",urls);
@@ -127,17 +158,8 @@ function EntryTest(testInfo) {
             })
             .then(function(url){
                 var finishTime = new Date();
-                logger.info("Recive Url ",url," from Wowza, Operation took ", (finishTime - startTime) , " ms");
-                return kle.parseMasterM3U8(url);
-            })
-            .then(function(res){
-                logger.info("Get master manifest succssefully");
-                var promises=_.map(res,function(flavor) {
-                    logger.info("About to get manifest from flavor "+flavor.bitrate);
-                    return getAllChuncksHeader(flavor.m3u8);
-                });
-
-                return q.all(promises);
+                logger.info("Received Url ",url," from wowza, Operation took ", (finishTime - startTime) , " ms");
+                return testHls(url);
             })
             .then(function(){
                 logger.info("Tested all chunks succssefully");
