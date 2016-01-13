@@ -16,6 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.kaltura.client.enums.KalturaLiveEntryStatus;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.HTTPStreamerCupertinoLiveStreamPacketizerChunkIdContext;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.IHTTPStreamerCupertinoLiveStreamPacketizerChunkIdHandler;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
@@ -93,7 +94,7 @@ public class LiveStreamEntry extends ModuleBase {
 	protected final static String STREAM_PROPERTY_SUFFIX = "suffix";
 	protected final static String APPLICATION_MANAGERS_PROPERTY_NAME = "ApplicationManagers";
     private final static String READY_FOR_PLAYBACK_MINIMUM_CHUNK_COUNT = "readyForPlaybackMinimumChunkCount";
-    private final static int DEFAULT_MINIMUM_CHUNKS = 2;
+    private final static int DEFAULT_MINIMUM_CHUNKS = 3;
 
 	protected final static int INVALID_SERVER_INDEX = -1;
 
@@ -305,11 +306,11 @@ public class LiveStreamEntry extends ModuleBase {
 				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, liveStreamManager.get(entryId), serverIndex, applicationName, stream, assetParamsId);
 				KalturaEventsManager.raiseEvent(event);
 			}
-            // check if the stream contains chunks ready for playing, if so raise the READY_FOR_PLAYBACK immediately
-            checkIfStreamCanPlay(stream);
+            // Check if packetizer already exists, if so reset flag in order for READY_FOR_PLAYBACK to be lunched
+			checkIfPacketierExists(stream);
 		}
 
-		private void checkIfStreamCanPlay(IMediaStream stream) {
+		private void checkIfPacketierExists(IMediaStream stream) {
 			if (stream != null) {
 				try {
 					ILiveStreamPacketizer packetizer = stream.getLiveStreamPacketizer("cupertinostreamingpacketizer");
@@ -319,12 +320,15 @@ public class LiveStreamEntry extends ModuleBase {
 					}
 					LiveStreamPacketizerCupertino cupertino = (LiveStreamPacketizerCupertino) packetizer;
 					ChunkIdHandler myHandler = (ChunkIdHandler) cupertino.getChunkIdHandler();
-					logger.info("Packetizer exist for stream: [" + stream.getName() + "]. Check amount of chunks" );
-					myHandler.checkChunksForPlayback();
+					logger.info("Packetizer exist for stream: [" + stream.getName() + "]. Reset flag for READY_FOR_PLAYBACK event" );
+					myHandler.resetEventLunched();
 				}
 				catch(Exception err) {
 					logger.error(err);
 				}
+			}
+			else {
+				logger.error("onPublish was called but stream is null");
 			}
 		}
 
@@ -1060,20 +1064,28 @@ public class LiveStreamEntry extends ModuleBase {
     class ChunkIdHandler implements IHTTPStreamerCupertinoLiveStreamPacketizerChunkIdHandler
     {
         private LiveStreamPacketizerCupertino packetizerCupertino;
-        private boolean eventLunched = false;
+		private String streamName;
+        private boolean eventLunched;
 
-        public ChunkIdHandler(LiveStreamPacketizerCupertino packetizer) {
+        public ChunkIdHandler(LiveStreamPacketizerCupertino packetizer, String stream) {
             this.packetizerCupertino = packetizer;
+			this.streamName = stream;
+			this.eventLunched = false;
         }
 
         public void init(LiveStreamPacketizerCupertino var) {}
 
-        public long onAssignChunkId(HTTPStreamerCupertinoLiveStreamPacketizerChunkIdContext dummyVar) {
-            if (!eventLunched) {
+        public long onAssignChunkId(HTTPStreamerCupertinoLiveStreamPacketizerChunkIdContext context) {
+			logger.info("ATTENTION - Stream: [" + streamName + "] has Chunk Index: [" + context.getChunkIndex() + "]");
+			if (!eventLunched) {
                 checkChunksForPlayback();
             }
-            return dummyVar.getChunkIndex();
+            return context.getChunkIndex();
         }
+
+		public void resetEventLunched() {
+			eventLunched = false;
+		}
 
         public void checkChunksForPlayback() {
             try {
@@ -1113,13 +1125,12 @@ public class LiveStreamEntry extends ModuleBase {
         public void onLiveStreamPacketizerInit(ILiveStreamPacketizer var1, String var2) {}
 
         public void onLiveStreamPacketizerCreate(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {
-			// Print the packetizer's type not the ID!
-            logger.debug("onLiveStreamPacketizerCreate. stream: [" + streamName + "], packetizer: [" + liveStreamPacketizer.getLiveStreamPacketizerId() + "]");
-            if (!(liveStreamPacketizer instanceof LiveStreamPacketizerCupertino))
+            logger.info("Packetizer [" + liveStreamPacketizer.getClass().getSimpleName() + "] created, for stream: [" + streamName + "]");
+			if (!(liveStreamPacketizer instanceof LiveStreamPacketizerCupertino))
                 return;
 
-            logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
-            ((LiveStreamPacketizerCupertino)liveStreamPacketizer).setChunkIdHandler(new ChunkIdHandler((LiveStreamPacketizerCupertino)liveStreamPacketizer));
+            logger.info("Stream [" + streamName + "] - creating ChunkIdHandler object ");
+            ((LiveStreamPacketizerCupertino)liveStreamPacketizer).setChunkIdHandler(new ChunkIdHandler((LiveStreamPacketizerCupertino)liveStreamPacketizer, streamName));
         }
 
         public void onLiveStreamPacketizerDestroy(ILiveStreamPacketizer liveStreamPacketizer) {

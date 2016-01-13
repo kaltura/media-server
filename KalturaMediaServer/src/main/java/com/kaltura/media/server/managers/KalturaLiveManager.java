@@ -178,9 +178,9 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		}
 
 		public synchronized void setEntryIsLive() {
-			if (!isReadyForPlayback()) {
+			if (isReadyForPlayback()) {
 				logger.info("setEntryIsLive was called - IsLive is already on");
-				return ;
+				return;
 			}
 			TimerTask setMediaServerTask = new TimerTask() {
 
@@ -242,7 +242,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		}
 
 		public boolean isReadyForPlayback() {
-			// Might only need readyForPlayback because otherwise we won't play anyhow
 			return isEntryRegistered() && readyForPlayback;
 		}
 
