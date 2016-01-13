@@ -3,35 +3,24 @@ var FFMpegTask=require('./ffmpegModule/FFMpegTask.js').FFMpegTask;
 var kle = require('./API/KalturaLiveEntries.js').KalturaLiveEntries;
 var q = require('q');
 var _ = require('underscore');
-var modulelogger = require('./logger')(module);
-var loggerDecorator = require('./config/log-decorator');
+var LoggerEx = require('./utils').LoggerEx;
 var config = require('config');
 var request = require('request');
 
 
-function EntryTest(entryId) {
+function EntryTest(testInfo) {
 
     // private variables
     var that = this;
 
 
-    var id= _.isObject(entryId) ? entryId.id : entryId;
+    var id= testInfo.id;
     var task=null;
-    var logger = loggerDecorator(modulelogger, messageDecoration);
+    var logger = LoggerEx("EntryTest", id);
+
     logger.info("Generate new instance for ",id);
 
 
-
-    function getMasterManifest(entryId){    //take into consideration the case that IsLive() is failed
-        return  kle.getEntry(entryId)
-            .then(function(entry) {
-                var hlsconfig = _.filter(entry.liveStreamConfigurations, function (config) {
-                    return config.protocol === "hls";
-                })[0];
-
-                return  q.resolve(hlsconfig.url);
-            });
-    }
 
     function retryPromise(fn,intervalRetry,maxRetries) {
         logger.debug("retryPromise");
@@ -51,17 +40,12 @@ function EntryTest(entryId) {
     function waitForLiveState(expectedState,timeOut) {
 
 
+        logger.info("waiting for live stream to be active");
         return retryPromise(function () {
-            logger.debug("calling getMasterManifest on entryId",entryId);
+            logger.debug("calling getMasterManifest");
 
-            //case of d
-            if (_.isObject(entryId)) {
 
-                return kle.parseMasterM3U8(entryId.m3u8Url).then(function(flavors) {
-                    return q.resolve(entryId.m3u8Url);
-                });
-            }
-            return getMasterManifest(entryId).then(function (masterClipList) {
+            return testInfo.getMasterManifest().then(function (masterClipList) {
 
                 logger.debug("getMasterManifest returned "+masterClipList);
                 if (expectedState) {
@@ -109,27 +93,9 @@ function EntryTest(entryId) {
             });
     }
 
-    function messageDecoration(msg) {
-        return "[" + id + "] " + msg;
-    }
 
     function GetRTMPurl(){
-        if (_.isObject(entryId)) {
-            return q.resolve(entryId.rtmpUrl);
-        }
-        return  kle.getEntry(entryId)
-            .then(function(entry) {
-              return q.resolve(entry.primaryBroadcastingUrl+"/"+entry.streamName);
-            })
-            .then(function(path){
-
-                var str=path;
-                _.each(config.rtmpReplace,function(value,key) {
-                    str=str.replace(key,value);
-                });
-
-                return q.resolve(str);
-            });
+        return testInfo.getRtmpUrl();
     }
 
     var stopffmpegTask=function() {
@@ -144,15 +110,14 @@ function EntryTest(entryId) {
     // public functions
     that.start=function() {
         var startTime=new Date();
-        logger.info("Getting rtmp url: ");
+        logger.info("Getting rtmp url...");
        return GetRTMPurl()
            .then(
-            function(url){
-                logger.info("Got url: ",url);
+            function(urls){
+                logger.info("Got url: ",urls);
 
-                var rtmpUrl=url.substring(0,url.length-2)+"1";
-                task=new FFMpegTask(id, [ "-re","-i",config.sourceFileNames[0],"-c:v","copy","-c:a","libmp3lame","-f","flv","-rtmp_live","1",rtmpUrl]);
-                logger.info("Starting FFMpeg streaming for ", url);
+                task=new FFMpegTask(id, [ "-re","-i",config.sourceFileNames[0],"-c:v","copy","-c:a","libmp3lame","-f","flv","-rtmp_live","1",urls[0]]);
+                logger.info("Starting FFMpeg streaming for ", urls);
                 return task.start();
             })
             .then(function() {
@@ -162,7 +127,7 @@ function EntryTest(entryId) {
             })
             .then(function(url){
                 var finishTime = new Date();
-                logger.info("Recive Url from Wowza, Operation took ", (finishTime - startTime) , " ms");
+                logger.info("Recive Url ",url," from Wowza, Operation took ", (finishTime - startTime) , " ms");
                 return kle.parseMasterM3U8(url);
             })
             .then(function(res){

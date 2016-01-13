@@ -3,8 +3,10 @@ var fs = require('fs');
 var path = require('path');
 var Url = require('url');
 var log4js = require('log4js');
+var mkdirp = require('mkdirp');
 
-
+mkdirp.sync("./logs");
+log4js.configure('config/logConfig.json', {});
 
 
 exports.LoggerEx = function(loggerName,id) {
@@ -28,6 +30,7 @@ exports.LoggerEx = function(loggerName,id) {
         modify("debug");
         modify("warn");
         modify("info");
+        modify("error");
 
         loggerEx.logger = logger;
 

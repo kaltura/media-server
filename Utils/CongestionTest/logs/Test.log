@@ -1,0 +1,2187 @@
+[2016-01-13 08:18:06.171] [INFO] MainTest - a
+[2016-01-13 08:18:22.472] [INFO] MainTest - a
+[2016-01-13 08:18:32.918] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:18:32.919] [INFO] MainTest - Going to start  2  in  10  seconds
+[2016-01-13 08:18:32.920] [INFO] MainTest - Going to start  3  in  10  seconds
+[2016-01-13 08:18:32.920] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:18:32.920] [WARN] console - []
+[2016-01-13 08:18:42.921] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:18:42.922] [INFO] MainTest - Starting 1
+[2016-01-13 08:18:42.922] [INFO] EntryTest - [1] Getting rtmp url: 
+[2016-01-13 08:18:42.922] [INFO] EntryTest - [2] Generate new instance for  2
+[2016-01-13 08:18:42.922] [INFO] MainTest - Starting 2
+[2016-01-13 08:18:42.923] [INFO] EntryTest - [2] Getting rtmp url: 
+[2016-01-13 08:18:42.923] [INFO] EntryTest - [3] Generate new instance for  3
+[2016-01-13 08:18:42.923] [INFO] MainTest - Starting 3
+[2016-01-13 08:18:42.923] [INFO] EntryTest - [3] Getting rtmp url: 
+[2016-01-13 08:18:42.923] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:18:42.923] [INFO] MainTest - Starting 4
+[2016-01-13 08:18:42.923] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:18:42.923] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:18:42.923] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:18:42.936] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=57976)
+[2016-01-13 08:18:42.936] [INFO] EntryTest - [2] Got url:  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:18:42.937] [INFO] EntryTest - [2] Starting FFMpeg streaming for  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:18:42.940] [INFO] FFMpegTask - [2] Spawned a new ffmpeg process (pid=57977)
+[2016-01-13 08:18:42.941] [INFO] EntryTest - [3] Got url:  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:18:42.941] [INFO] EntryTest - [3] Starting FFMpeg streaming for  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:18:42.944] [INFO] FFMpegTask - [3] Spawned a new ffmpeg process (pid=57978)
+[2016-01-13 08:18:42.944] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:18:42.944] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:18:42.947] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=57979)
+[2016-01-13 08:18:43.898] [INFO] EntryTest - [4] FFMpeg started, Operation took 975 ms
+[2016-01-13 08:18:43.921] [INFO] EntryTest - [1] FFMpeg started, Operation took 999 ms
+[2016-01-13 08:18:43.924] [INFO] EntryTest - [3] FFMpeg started, Operation took 1001 ms
+[2016-01-13 08:18:43.925] [INFO] EntryTest - [2] FFMpeg started, Operation took 1003 ms
+[2016-01-13 08:19:09.015] [INFO] EntryTest - [4] Recive Url from Wowza, Operation took  26092  ms
+[2016-01-13 08:19:09.024] [INFO] EntryTest - [4] Get master manifest succssefully
+[2016-01-13 08:19:09.024] [INFO] EntryTest - [4] About to get manifest from flavor 1048956
+[2016-01-13 08:19:09.032] [INFO] EntryTest - [4] getting ts   http://localhost:1935/live/4/abc123_1/media_w956720254_1.ts
+[2016-01-13 08:19:09.034] [INFO] EntryTest - [3] Recive Url from Wowza, Operation took  26111  ms
+[2016-01-13 08:19:09.043] [INFO] MainTest - Test of entry  3  failed!
+[2016-01-13 08:19:09.043] [INFO] MainTest - Going to start  3  in  10  seconds
+[2016-01-13 08:19:09.044] [INFO] EntryTest - [4] successfully downloaded http://localhost:1935/live/4/abc123_1/media_w956720254_1.ts
+[2016-01-13 08:19:09.044] [INFO] EntryTest - [4] Tested all chunks succssefully
+[2016-01-13 08:19:09.045] [INFO] MainTest - Entry  4  stated succsefully, waiting  10  seconds
+[2016-01-13 08:19:19.044] [INFO] EntryTest - [3] Generate new instance for  3
+[2016-01-13 08:19:19.045] [INFO] MainTest - Starting 3
+[2016-01-13 08:19:19.045] [INFO] EntryTest - [3] Getting rtmp url: 
+[2016-01-13 08:19:19.045] [INFO] EntryTest - [3] Got url:  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:19:19.046] [INFO] EntryTest - [3] Starting FFMpeg streaming for  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:19:19.049] [INFO] FFMpegTask - [3] Spawned a new ffmpeg process (pid=57981)
+[2016-01-13 08:19:19.050] [INFO] MainTest - Entry  4  stopping 
+[2016-01-13 08:19:19.051] [INFO] EntryTest - [4] stopping FFMPEG
+[2016-01-13 08:19:19.051] [INFO] FFMpegTask - [4] stopping
+[2016-01-13 08:19:19.051] [INFO] FFMpegTask - [4] stopping process  57979
+[2016-01-13 08:19:19.051] [INFO] EntryTest - [4] FFMPEG stopped
+[2016-01-13 08:19:19.072] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  255
+[2016-01-13 08:19:19.080] [INFO] EntryTest - [2] Recive Url from Wowza, Operation took  36158  ms
+[2016-01-13 08:19:19.081] [INFO] EntryTest - [4] Live stopped from API, Operation took 30 ms
+[2016-01-13 08:19:19.081] [INFO] MainTest - Test of entry  4  was success!
+[2016-01-13 08:19:19.081] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:19:19.095] [INFO] MainTest - Test of entry  2  failed!
+[2016-01-13 08:19:19.095] [INFO] MainTest - Going to start  2  in  10  seconds
+[2016-01-13 08:19:19.165] [WARN] FFMpegTask - [3] [FFMPEG] exited with error:  1
+[2016-01-13 08:19:19.165] [INFO] MainTest - Test of entry  3  failed!
+[2016-01-13 08:19:19.166] [INFO] MainTest - Going to start  3  in  10  seconds
+[2016-01-13 08:19:29.082] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:19:29.082] [INFO] MainTest - Starting 4
+[2016-01-13 08:19:29.082] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:19:29.082] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:19:29.083] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:19:29.085] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=57982)
+[2016-01-13 08:19:29.096] [INFO] EntryTest - [2] Generate new instance for  2
+[2016-01-13 08:19:29.096] [INFO] MainTest - Starting 2
+[2016-01-13 08:19:29.096] [INFO] EntryTest - [2] Getting rtmp url: 
+[2016-01-13 08:19:29.097] [INFO] EntryTest - [2] Got url:  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:19:29.097] [INFO] EntryTest - [2] Starting FFMpeg streaming for  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:19:29.099] [INFO] FFMpegTask - [2] Spawned a new ffmpeg process (pid=57983)
+[2016-01-13 08:19:29.157] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:19:29.158] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:19:29.158] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:19:29.167] [INFO] EntryTest - [3] Generate new instance for  3
+[2016-01-13 08:19:29.168] [INFO] MainTest - Starting 3
+[2016-01-13 08:19:29.168] [INFO] EntryTest - [3] Getting rtmp url: 
+[2016-01-13 08:19:29.168] [INFO] EntryTest - [3] Got url:  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:19:29.168] [INFO] EntryTest - [3] Starting FFMpeg streaming for  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:19:29.170] [INFO] FFMpegTask - [3] Spawned a new ffmpeg process (pid=57984)
+[2016-01-13 08:19:29.177] [WARN] FFMpegTask - [2] [FFMPEG] exited with error:  1
+[2016-01-13 08:19:29.178] [INFO] MainTest - Test of entry  2  failed!
+[2016-01-13 08:19:29.179] [INFO] MainTest - Going to start  2  in  10  seconds
+[2016-01-13 08:19:29.225] [WARN] FFMpegTask - [3] [FFMPEG] exited with error:  1
+[2016-01-13 08:19:29.226] [INFO] MainTest - Test of entry  3  failed!
+[2016-01-13 08:19:29.226] [INFO] MainTest - Going to start  3  in  10  seconds
+[2016-01-13 08:19:39.159] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:19:39.160] [INFO] MainTest - Starting 4
+[2016-01-13 08:19:39.160] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:19:39.160] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:19:39.160] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:19:39.163] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=57985)
+[2016-01-13 08:19:39.180] [INFO] EntryTest - [2] Generate new instance for  2
+[2016-01-13 08:19:39.180] [INFO] MainTest - Starting 2
+[2016-01-13 08:19:39.180] [INFO] EntryTest - [2] Getting rtmp url: 
+[2016-01-13 08:19:39.180] [INFO] EntryTest - [2] Got url:  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:19:39.180] [INFO] EntryTest - [2] Starting FFMpeg streaming for  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:19:39.182] [INFO] FFMpegTask - [2] Spawned a new ffmpeg process (pid=57986)
+[2016-01-13 08:19:39.231] [INFO] EntryTest - [3] Generate new instance for  3
+[2016-01-13 08:19:39.232] [INFO] MainTest - Starting 3
+[2016-01-13 08:19:39.232] [INFO] EntryTest - [3] Getting rtmp url: 
+[2016-01-13 08:19:39.232] [INFO] EntryTest - [3] Got url:  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:19:39.232] [INFO] EntryTest - [3] Starting FFMpeg streaming for  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:19:39.236] [INFO] FFMpegTask - [3] Spawned a new ffmpeg process (pid=57987)
+[2016-01-13 08:19:39.781] [INFO] EntryTest - [4] FFMpeg started, Operation took 621 ms
+[2016-01-13 08:19:39.833] [INFO] EntryTest - [2] FFMpeg started, Operation took 653 ms
+[2016-01-13 08:19:39.850] [INFO] EntryTest - [3] FFMpeg started, Operation took 618 ms
+[2016-01-13 08:19:44.844] [INFO] EntryTest - [2] Recive Url from Wowza, Operation took  5664  ms
+[2016-01-13 08:19:44.850] [INFO] EntryTest - [2] Get master manifest succssefully
+[2016-01-13 08:19:44.850] [INFO] EntryTest - [2] About to get manifest from flavor 1061155
+[2016-01-13 08:19:44.855] [INFO] EntryTest - [2] getting ts   http://localhost:1935/live/2/abc123_1/media_w781665840_3.ts
+[2016-01-13 08:19:44.861] [INFO] EntryTest - [2] successfully downloaded http://localhost:1935/live/2/abc123_1/media_w781665840_3.ts
+[2016-01-13 08:19:44.862] [INFO] EntryTest - [2] Tested all chunks succssefully
+[2016-01-13 08:19:44.862] [INFO] MainTest - Entry  2  stated succsefully, waiting  10  seconds
+[2016-01-13 08:19:54.865] [INFO] MainTest - Entry  2  stopping 
+[2016-01-13 08:19:54.865] [INFO] EntryTest - [2] stopping FFMPEG
+[2016-01-13 08:19:54.866] [INFO] FFMpegTask - [2] stopping
+[2016-01-13 08:19:54.866] [INFO] FFMpegTask - [2] stopping process  57986
+[2016-01-13 08:19:54.866] [INFO] EntryTest - [2] FFMPEG stopped
+[2016-01-13 08:19:54.879] [WARN] FFMpegTask - [2] [FFMPEG] exited with error:  255
+[2016-01-13 08:20:01.395] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:20:01.398] [INFO] MainTest - Going to start  2  in  10  seconds
+[2016-01-13 08:20:01.398] [INFO] MainTest - Going to start  3  in  10  seconds
+[2016-01-13 08:20:01.398] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:20:11.402] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:20:11.402] [INFO] MainTest - Starting 1
+[2016-01-13 08:20:11.402] [INFO] EntryTest - [1] Getting rtmp url: 
+[2016-01-13 08:20:11.402] [INFO] EntryTest - [2] Generate new instance for  2
+[2016-01-13 08:20:11.403] [INFO] MainTest - Starting 2
+[2016-01-13 08:20:11.403] [INFO] EntryTest - [2] Getting rtmp url: 
+[2016-01-13 08:20:11.403] [INFO] EntryTest - [3] Generate new instance for  3
+[2016-01-13 08:20:11.403] [INFO] MainTest - Starting 3
+[2016-01-13 08:20:11.403] [INFO] EntryTest - [3] Getting rtmp url: 
+[2016-01-13 08:20:11.403] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:20:11.403] [INFO] MainTest - Starting 4
+[2016-01-13 08:20:11.403] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:20:11.404] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:20:11.404] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:20:11.408] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=57994)
+[2016-01-13 08:20:11.408] [INFO] EntryTest - [2] Got url:  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:20:11.408] [INFO] EntryTest - [2] Starting FFMpeg streaming for  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:20:11.411] [INFO] FFMpegTask - [2] Spawned a new ffmpeg process (pid=57995)
+[2016-01-13 08:20:11.412] [INFO] EntryTest - [3] Got url:  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:20:11.412] [INFO] EntryTest - [3] Starting FFMpeg streaming for  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:20:11.414] [INFO] FFMpegTask - [3] Spawned a new ffmpeg process (pid=57996)
+[2016-01-13 08:20:11.415] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:20:11.415] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:20:11.423] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=57997)
+[2016-01-13 08:20:12.006] [INFO] EntryTest - [4] FFMpeg started, Operation took 603 ms
+[2016-01-13 08:20:12.012] [INFO] EntryTest - [2] FFMpeg started, Operation took 609 ms
+[2016-01-13 08:20:12.016] [INFO] EntryTest - [3] FFMpeg started, Operation took 613 ms
+[2016-01-13 08:20:12.017] [INFO] EntryTest - [1] FFMpeg started, Operation took 615 ms
+[2016-01-13 08:20:12.027] [INFO] EntryTest - [4] Recive Url  http://localhost:1935/live/4/abc123_1/playlist.m3u8  from Wowza, Operation took  624  ms
+[2016-01-13 08:20:12.035] [INFO] EntryTest - [4] Get master manifest succssefully
+[2016-01-13 08:20:12.036] [INFO] EntryTest - [4] About to get manifest from flavor 1061155
+[2016-01-13 08:20:12.042] [INFO] EntryTest - [4] getting ts   http://localhost:1935/live/4/abc123_1/media_w1944670629_5.ts
+[2016-01-13 08:20:12.046] [INFO] EntryTest - [4] successfully downloaded http://localhost:1935/live/4/abc123_1/media_w1944670629_5.ts
+[2016-01-13 08:20:12.047] [INFO] EntryTest - [4] Tested all chunks succssefully
+[2016-01-13 08:20:12.047] [INFO] MainTest - Entry  4  stated succsefully, waiting  10  seconds
+[2016-01-13 08:20:22.048] [INFO] MainTest - Entry  4  stopping 
+[2016-01-13 08:20:22.048] [INFO] EntryTest - [4] stopping FFMPEG
+[2016-01-13 08:20:22.048] [INFO] FFMpegTask - [4] stopping
+[2016-01-13 08:20:22.048] [INFO] FFMpegTask - [4] stopping process  57997
+[2016-01-13 08:20:22.048] [INFO] EntryTest - [4] FFMPEG stopped
+[2016-01-13 08:20:22.063] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  255
+[2016-01-13 08:20:27.068] [INFO] EntryTest - [1] Recive Url  http://localhost:1935/live/1/abc123_1/playlist.m3u8  from Wowza, Operation took  15666  ms
+[2016-01-13 08:20:27.069] [INFO] EntryTest - [4] Live stopped from API, Operation took 5021 ms
+[2016-01-13 08:20:27.069] [INFO] MainTest - Test of entry  4  was success!
+[2016-01-13 08:20:27.069] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:20:27.077] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:20:27.077] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:20:37.070] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:20:37.073] [INFO] MainTest - Starting 4
+[2016-01-13 08:20:37.073] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:20:37.073] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:20:37.073] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:20:37.076] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58000)
+[2016-01-13 08:20:37.078] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:20:37.079] [INFO] MainTest - Starting 1
+[2016-01-13 08:20:37.079] [INFO] EntryTest - [1] Getting rtmp url: 
+[2016-01-13 08:20:37.104] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:20:37.104] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:20:37.114] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58001)
+[2016-01-13 08:20:37.680] [INFO] EntryTest - [4] FFMpeg started, Operation took 607 ms
+[2016-01-13 08:20:37.688] [INFO] EntryTest - [4] Recive Url  http://localhost:1935/live/4/abc123_1/playlist.m3u8  from Wowza, Operation took  614  ms
+[2016-01-13 08:20:37.693] [INFO] EntryTest - [4] Get master manifest succssefully
+[2016-01-13 08:20:37.694] [INFO] EntryTest - [4] About to get manifest from flavor 1061155
+[2016-01-13 08:20:37.699] [INFO] EntryTest - [4] getting ts   http://localhost:1935/live/4/abc123_1/media_w1476024254_5.ts
+[2016-01-13 08:20:37.700] [INFO] EntryTest - [1] FFMpeg started, Operation took 621 ms
+[2016-01-13 08:20:37.703] [INFO] EntryTest - [4] successfully downloaded http://localhost:1935/live/4/abc123_1/media_w1476024254_5.ts
+[2016-01-13 08:20:37.704] [INFO] EntryTest - [4] Tested all chunks succssefully
+[2016-01-13 08:20:37.704] [INFO] MainTest - Entry  4  stated succsefully, waiting  10  seconds
+[2016-01-13 08:20:37.704] [INFO] EntryTest - [1] Recive Url  http://localhost:1935/live/1/abc123_1/playlist.m3u8  from Wowza, Operation took  625  ms
+[2016-01-13 08:20:37.708] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:20:37.708] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:20:47.708] [INFO] MainTest - Entry  4  stopping 
+[2016-01-13 08:20:47.708] [INFO] EntryTest - [4] stopping FFMPEG
+[2016-01-13 08:20:47.708] [INFO] FFMpegTask - [4] stopping
+[2016-01-13 08:20:47.708] [INFO] FFMpegTask - [4] stopping process  58000
+[2016-01-13 08:20:47.709] [INFO] EntryTest - [4] FFMPEG stopped
+[2016-01-13 08:20:47.709] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:20:47.710] [INFO] MainTest - Starting 1
+[2016-01-13 08:20:47.710] [INFO] EntryTest - [1] Getting rtmp url: 
+[2016-01-13 08:20:47.710] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:20:47.711] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:20:47.714] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58002)
+[2016-01-13 08:20:47.728] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  255
+[2016-01-13 08:20:48.278] [INFO] EntryTest - [1] FFMpeg started, Operation took 568 ms
+[2016-01-13 08:20:53.294] [INFO] EntryTest - [1] Recive Url  http://localhost:1935/live/1/abc123_1/playlist.m3u8  from Wowza, Operation took  5584  ms
+[2016-01-13 08:20:53.299] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:20:53.300] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:21:02.741] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:21:02.741] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:21:03.302] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:21:03.303] [INFO] MainTest - Starting 1
+[2016-01-13 08:21:03.303] [INFO] EntryTest - [1] Getting rtmp url: 
+[2016-01-13 08:21:03.303] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:21:03.303] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:21:03.306] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58004)
+[2016-01-13 08:21:03.887] [INFO] EntryTest - [1] FFMpeg started, Operation took 584 ms
+[2016-01-13 08:21:03.897] [INFO] EntryTest - [1] Recive Url  http://localhost:1935/live/1/abc123_1/playlist.m3u8  from Wowza, Operation took  594  ms
+[2016-01-13 08:21:03.904] [INFO] EntryTest - [1] Get master manifest succssefully
+[2016-01-13 08:21:03.904] [INFO] EntryTest - [1] About to get manifest from flavor 1048956
+[2016-01-13 08:21:03.915] [INFO] EntryTest - [1] getting ts   http://localhost:1935/live/1/abc123_1/media_w1532660003_1.ts
+[2016-01-13 08:21:03.923] [INFO] EntryTest - [1] successfully downloaded http://localhost:1935/live/1/abc123_1/media_w1532660003_1.ts
+[2016-01-13 08:21:03.923] [INFO] EntryTest - [1] Tested all chunks succssefully
+[2016-01-13 08:21:03.923] [INFO] MainTest - Entry  1  stated succsefully, waiting  10  seconds
+[2016-01-13 08:21:12.744] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:21:12.745] [INFO] MainTest - Starting 4
+[2016-01-13 08:21:12.745] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:21:12.745] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:21:12.745] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:21:12.748] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58007)
+[2016-01-13 08:21:12.810] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:21:12.810] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:21:12.811] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:21:13.928] [INFO] MainTest - Entry  1  stopping 
+[2016-01-13 08:21:13.928] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 08:21:13.928] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 08:21:13.928] [INFO] FFMpegTask - [1] stopping process  58004
+[2016-01-13 08:21:13.929] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 08:21:13.949] [WARN] FFMpegTask - [1] [FFMPEG] exited with error:  255
+[2016-01-13 08:21:17.226] [INFO] EntryTest - [3] Recive Url  http://localhost:1935/live/3/abc123_1/playlist.m3u8  from Wowza, Operation took  65823  ms
+[2016-01-13 08:21:17.230] [INFO] MainTest - Test of entry  3  failed!
+[2016-01-13 08:21:17.230] [INFO] MainTest - Going to start  3  in  10  seconds
+[2016-01-13 08:21:22.236] [INFO] EntryTest - [2] Recive Url  http://localhost:1935/live/2/abc123_1/playlist.m3u8  from Wowza, Operation took  70833  ms
+[2016-01-13 08:21:22.242] [INFO] MainTest - Test of entry  2  failed!
+[2016-01-13 08:21:22.242] [INFO] MainTest - Going to start  2  in  10  seconds
+[2016-01-13 08:21:22.814] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:21:22.815] [INFO] MainTest - Starting 4
+[2016-01-13 08:21:22.815] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:21:22.815] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:21:22.816] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:21:22.818] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58008)
+[2016-01-13 08:21:22.874] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:21:22.874] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:21:22.874] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:21:27.231] [INFO] EntryTest - [3] Generate new instance for  3
+[2016-01-13 08:21:27.231] [INFO] MainTest - Starting 3
+[2016-01-13 08:21:27.231] [INFO] EntryTest - [3] Getting rtmp url: 
+[2016-01-13 08:21:27.231] [INFO] EntryTest - [3] Got url:  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:21:27.231] [INFO] EntryTest - [3] Starting FFMpeg streaming for  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:21:27.233] [INFO] FFMpegTask - [3] Spawned a new ffmpeg process (pid=58010)
+[2016-01-13 08:21:27.284] [WARN] FFMpegTask - [3] [FFMPEG] exited with error:  1
+[2016-01-13 08:21:27.285] [INFO] MainTest - Test of entry  3  failed!
+[2016-01-13 08:21:27.285] [INFO] MainTest - Going to start  3  in  10  seconds
+[2016-01-13 08:21:28.954] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:21:28.954] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:21:32.245] [INFO] EntryTest - [2] Generate new instance for  2
+[2016-01-13 08:21:32.245] [INFO] MainTest - Starting 2
+[2016-01-13 08:21:32.245] [INFO] EntryTest - [2] Getting rtmp url: 
+[2016-01-13 08:21:32.246] [INFO] EntryTest - [2] Got url:  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:21:32.246] [INFO] EntryTest - [2] Starting FFMpeg streaming for  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:21:32.247] [INFO] FFMpegTask - [2] Spawned a new ffmpeg process (pid=58012)
+[2016-01-13 08:21:32.825] [INFO] EntryTest - [2] FFMpeg started, Operation took 580 ms
+[2016-01-13 08:21:32.837] [INFO] EntryTest - [2] Recive Url  http://localhost:1935/live/2/abc123_1/playlist.m3u8  from Wowza, Operation took  592  ms
+[2016-01-13 08:21:32.842] [INFO] MainTest - Test of entry  2  failed!
+[2016-01-13 08:21:32.843] [INFO] MainTest - Going to start  2  in  10  seconds
+[2016-01-13 08:21:32.878] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:21:32.878] [INFO] MainTest - Starting 4
+[2016-01-13 08:21:32.879] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:21:32.879] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:21:32.879] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:21:32.881] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58013)
+[2016-01-13 08:21:32.934] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:21:32.935] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:21:32.935] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:21:37.286] [INFO] EntryTest - [3] Generate new instance for  3
+[2016-01-13 08:21:37.286] [INFO] MainTest - Starting 3
+[2016-01-13 08:21:37.286] [INFO] EntryTest - [3] Getting rtmp url: 
+[2016-01-13 08:21:37.286] [INFO] EntryTest - [3] Got url:  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:21:37.286] [INFO] EntryTest - [3] Starting FFMpeg streaming for  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:21:37.289] [INFO] FFMpegTask - [3] Spawned a new ffmpeg process (pid=58014)
+[2016-01-13 08:21:37.356] [WARN] FFMpegTask - [3] [FFMPEG] exited with error:  1
+[2016-01-13 08:21:37.357] [INFO] MainTest - Test of entry  3  failed!
+[2016-01-13 08:21:37.357] [INFO] MainTest - Going to start  3  in  10  seconds
+[2016-01-13 08:21:38.957] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:21:38.957] [INFO] MainTest - Starting 1
+[2016-01-13 08:21:38.957] [INFO] EntryTest - [1] Getting rtmp url: 
+[2016-01-13 08:21:38.957] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:21:38.957] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:21:38.960] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58015)
+[2016-01-13 08:21:39.042] [WARN] FFMpegTask - [1] [FFMPEG] exited with error:  1
+[2016-01-13 08:21:39.043] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:21:39.043] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:21:42.845] [INFO] EntryTest - [2] Generate new instance for  2
+[2016-01-13 08:21:42.845] [INFO] MainTest - Starting 2
+[2016-01-13 08:21:42.845] [INFO] EntryTest - [2] Getting rtmp url: 
+[2016-01-13 08:21:42.846] [INFO] EntryTest - [2] Got url:  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:21:42.846] [INFO] EntryTest - [2] Starting FFMpeg streaming for  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:21:42.850] [INFO] FFMpegTask - [2] Spawned a new ffmpeg process (pid=58016)
+[2016-01-13 08:21:42.936] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:21:42.936] [INFO] MainTest - Starting 4
+[2016-01-13 08:21:42.937] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:21:42.937] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:21:42.937] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:21:42.941] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58017)
+[2016-01-13 08:21:43.056] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:21:43.057] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:21:43.057] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:21:43.486] [INFO] EntryTest - [2] FFMpeg started, Operation took 641 ms
+[2016-01-13 08:21:47.359] [INFO] EntryTest - [3] Generate new instance for  3
+[2016-01-13 08:21:47.359] [INFO] MainTest - Starting 3
+[2016-01-13 08:21:47.359] [INFO] EntryTest - [3] Getting rtmp url: 
+[2016-01-13 08:21:47.359] [INFO] EntryTest - [3] Got url:  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:21:47.359] [INFO] EntryTest - [3] Starting FFMpeg streaming for  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:21:47.361] [INFO] FFMpegTask - [3] Spawned a new ffmpeg process (pid=58019)
+[2016-01-13 08:21:47.935] [INFO] EntryTest - [3] FFMpeg started, Operation took 576 ms
+[2016-01-13 08:21:47.939] [INFO] EntryTest - [3] Recive Url  http://localhost:1935/live/3/abc123_1/playlist.m3u8  from Wowza, Operation took  580  ms
+[2016-01-13 08:21:47.945] [INFO] MainTest - Test of entry  3  failed!
+[2016-01-13 08:21:47.945] [INFO] MainTest - Going to start  3  in  10  seconds
+[2016-01-13 08:21:49.045] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:21:49.045] [INFO] MainTest - Starting 1
+[2016-01-13 08:21:49.046] [INFO] EntryTest - [1] Getting rtmp url: 
+[2016-01-13 08:21:49.046] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:21:49.047] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:21:49.050] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58021)
+[2016-01-13 08:21:49.121] [WARN] FFMpegTask - [1] [FFMPEG] exited with error:  1
+[2016-01-13 08:21:49.122] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:21:49.122] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:21:53.059] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:21:53.059] [INFO] MainTest - Starting 4
+[2016-01-13 08:21:53.059] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:21:53.059] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:21:53.060] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:21:53.062] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58022)
+[2016-01-13 08:21:53.142] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:21:53.143] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:21:53.143] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:21:57.945] [INFO] EntryTest - [3] Generate new instance for  3
+[2016-01-13 08:21:57.945] [INFO] MainTest - Starting 3
+[2016-01-13 08:21:57.945] [INFO] EntryTest - [3] Getting rtmp url: 
+[2016-01-13 08:21:57.946] [INFO] EntryTest - [3] Got url:  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:21:57.946] [INFO] EntryTest - [3] Starting FFMpeg streaming for  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:21:57.948] [INFO] FFMpegTask - [3] Spawned a new ffmpeg process (pid=58023)
+[2016-01-13 08:21:58.562] [INFO] EntryTest - [3] FFMpeg started, Operation took 617 ms
+[2016-01-13 08:21:59.122] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:21:59.123] [INFO] MainTest - Starting 1
+[2016-01-13 08:21:59.123] [INFO] EntryTest - [1] Getting rtmp url: 
+[2016-01-13 08:21:59.123] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:21:59.123] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:21:59.125] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58024)
+[2016-01-13 08:21:59.181] [WARN] FFMpegTask - [1] [FFMPEG] exited with error:  1
+[2016-01-13 08:21:59.182] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:21:59.182] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:22:03.149] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:22:03.149] [INFO] MainTest - Starting 4
+[2016-01-13 08:22:03.149] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:22:03.150] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:22:03.150] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:22:03.153] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58026)
+[2016-01-13 08:22:03.216] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:22:03.217] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:22:03.217] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:22:09.184] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:22:09.185] [INFO] MainTest - Starting 1
+[2016-01-13 08:22:09.185] [INFO] EntryTest - [1] Getting rtmp url: 
+[2016-01-13 08:22:09.185] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:22:09.185] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:22:09.187] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58028)
+[2016-01-13 08:22:09.242] [WARN] FFMpegTask - [1] [FFMPEG] exited with error:  1
+[2016-01-13 08:22:09.243] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:22:09.243] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:22:13.217] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:22:13.218] [INFO] MainTest - Starting 4
+[2016-01-13 08:22:13.218] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:22:13.218] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:22:13.218] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:22:13.220] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58029)
+[2016-01-13 08:22:13.271] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:22:13.271] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:22:13.272] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:22:19.244] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:22:19.244] [INFO] MainTest - Starting 1
+[2016-01-13 08:22:19.244] [INFO] EntryTest - [1] Getting rtmp url: 
+[2016-01-13 08:22:19.244] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:22:19.244] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:22:19.247] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58030)
+[2016-01-13 08:22:19.309] [WARN] FFMpegTask - [1] [FFMPEG] exited with error:  1
+[2016-01-13 08:22:19.310] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:22:19.310] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:22:23.273] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:22:23.273] [INFO] MainTest - Starting 4
+[2016-01-13 08:22:23.273] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:22:23.273] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:22:23.273] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:22:23.276] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58031)
+[2016-01-13 08:22:23.324] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:22:23.325] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:22:23.325] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:22:29.311] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:22:29.311] [INFO] MainTest - Starting 1
+[2016-01-13 08:22:29.312] [INFO] EntryTest - [1] Getting rtmp url: 
+[2016-01-13 08:22:29.312] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:22:29.312] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:22:29.314] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58032)
+[2016-01-13 08:22:29.379] [WARN] FFMpegTask - [1] [FFMPEG] exited with error:  1
+[2016-01-13 08:22:29.380] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:22:29.380] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:22:33.329] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:22:33.330] [INFO] MainTest - Starting 4
+[2016-01-13 08:22:33.330] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:22:33.330] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:22:33.330] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:22:33.333] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58034)
+[2016-01-13 08:22:33.378] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:22:33.379] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:22:33.379] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:22:39.386] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:22:39.387] [INFO] MainTest - Starting 1
+[2016-01-13 08:22:39.387] [INFO] EntryTest - [1] Getting rtmp url: 
+[2016-01-13 08:22:39.390] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:22:39.390] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:22:39.396] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58036)
+[2016-01-13 08:22:39.961] [INFO] EntryTest - [1] FFMpeg started, Operation took 574 ms
+[2016-01-13 08:22:43.383] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:22:43.383] [INFO] MainTest - Starting 4
+[2016-01-13 08:22:43.383] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:22:43.383] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:22:43.384] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:22:43.385] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58037)
+[2016-01-13 08:22:43.444] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:22:43.444] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:22:43.444] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:22:53.448] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:22:53.448] [INFO] MainTest - Starting 4
+[2016-01-13 08:22:53.448] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:22:53.448] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:22:53.449] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:22:53.451] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58038)
+[2016-01-13 08:22:53.500] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:22:53.501] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:22:53.501] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:23:03.504] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:23:03.504] [INFO] MainTest - Starting 4
+[2016-01-13 08:23:03.504] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:23:03.505] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:23:03.505] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:23:03.508] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58039)
+[2016-01-13 08:23:03.600] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:23:03.600] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:23:03.600] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:23:13.604] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:23:13.604] [INFO] MainTest - Starting 4
+[2016-01-13 08:23:13.605] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:23:13.605] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:23:13.605] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:23:13.607] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58041)
+[2016-01-13 08:23:13.688] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:23:13.689] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:23:13.689] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:23:23.690] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:23:23.690] [INFO] MainTest - Starting 4
+[2016-01-13 08:23:23.690] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:23:23.690] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:23:23.690] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:23:23.693] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58045)
+[2016-01-13 08:23:23.740] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:23:23.740] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:23:23.740] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:23:33.744] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:23:33.744] [INFO] MainTest - Starting 4
+[2016-01-13 08:23:33.745] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:23:33.745] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:23:33.745] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:23:33.748] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58046)
+[2016-01-13 08:23:33.867] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:23:33.869] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:23:33.869] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:23:43.870] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:23:43.870] [INFO] MainTest - Starting 4
+[2016-01-13 08:23:43.870] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:23:43.870] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:23:43.870] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:23:43.874] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58048)
+[2016-01-13 08:23:43.950] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:23:43.951] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:23:43.951] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:23:48.722] [INFO] MainTest - Test of entry  2  failed!
+[2016-01-13 08:23:48.722] [INFO] MainTest - Going to start  2  in  10  seconds
+[2016-01-13 08:23:53.953] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:23:53.953] [INFO] MainTest - Starting 4
+[2016-01-13 08:23:53.954] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:23:53.954] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:23:53.954] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:23:53.956] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58049)
+[2016-01-13 08:23:54.006] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:23:54.007] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:23:54.007] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:23:58.722] [INFO] EntryTest - [2] Generate new instance for  2
+[2016-01-13 08:23:58.722] [INFO] MainTest - Starting 2
+[2016-01-13 08:23:58.722] [INFO] EntryTest - [2] Getting rtmp url: 
+[2016-01-13 08:23:58.722] [INFO] EntryTest - [2] Got url:  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:23:58.723] [INFO] EntryTest - [2] Starting FFMpeg streaming for  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:23:58.725] [INFO] FFMpegTask - [2] Spawned a new ffmpeg process (pid=58050)
+[2016-01-13 08:23:58.796] [WARN] FFMpegTask - [2] [FFMPEG] exited with error:  1
+[2016-01-13 08:23:58.797] [INFO] MainTest - Test of entry  2  failed!
+[2016-01-13 08:23:58.797] [INFO] MainTest - Going to start  2  in  10  seconds
+[2016-01-13 08:24:03.755] [INFO] MainTest - Test of entry  3  failed!
+[2016-01-13 08:24:03.755] [INFO] MainTest - Going to start  3  in  10  seconds
+[2016-01-13 08:24:04.010] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:24:04.011] [INFO] MainTest - Starting 4
+[2016-01-13 08:24:04.011] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:24:04.011] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:24:04.011] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:24:04.013] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58053)
+[2016-01-13 08:24:04.083] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:24:04.084] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:24:04.084] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:24:08.800] [INFO] EntryTest - [2] Generate new instance for  2
+[2016-01-13 08:24:08.801] [INFO] MainTest - Starting 2
+[2016-01-13 08:24:08.801] [INFO] EntryTest - [2] Getting rtmp url: 
+[2016-01-13 08:24:08.801] [INFO] EntryTest - [2] Got url:  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:24:08.801] [INFO] EntryTest - [2] Starting FFMpeg streaming for  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:24:08.804] [INFO] FFMpegTask - [2] Spawned a new ffmpeg process (pid=58055)
+[2016-01-13 08:24:08.869] [WARN] FFMpegTask - [2] [FFMPEG] exited with error:  1
+[2016-01-13 08:24:08.870] [INFO] MainTest - Test of entry  2  failed!
+[2016-01-13 08:24:08.870] [INFO] MainTest - Going to start  2  in  10  seconds
+[2016-01-13 08:24:13.759] [INFO] EntryTest - [3] Generate new instance for  3
+[2016-01-13 08:24:13.759] [INFO] MainTest - Starting 3
+[2016-01-13 08:24:13.760] [INFO] EntryTest - [3] Getting rtmp url: 
+[2016-01-13 08:24:13.760] [INFO] EntryTest - [3] Got url:  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:24:13.760] [INFO] EntryTest - [3] Starting FFMpeg streaming for  rtmp://localhost:1935/live/3/abc123_%i
+[2016-01-13 08:24:13.762] [INFO] FFMpegTask - [3] Spawned a new ffmpeg process (pid=58056)
+[2016-01-13 08:24:13.823] [WARN] FFMpegTask - [3] [FFMPEG] exited with error:  1
+[2016-01-13 08:24:13.824] [INFO] MainTest - Test of entry  3  failed!
+[2016-01-13 08:24:13.824] [INFO] MainTest - Going to start  3  in  10  seconds
+[2016-01-13 08:24:14.089] [INFO] EntryTest - [4] Generate new instance for  4
+[2016-01-13 08:24:14.090] [INFO] MainTest - Starting 4
+[2016-01-13 08:24:14.090] [INFO] EntryTest - [4] Getting rtmp url: 
+[2016-01-13 08:24:14.090] [INFO] EntryTest - [4] Got url:  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:24:14.090] [INFO] EntryTest - [4] Starting FFMpeg streaming for  rtmp://localhost:1935/live/4/abc123_%i
+[2016-01-13 08:24:14.093] [INFO] FFMpegTask - [4] Spawned a new ffmpeg process (pid=58057)
+[2016-01-13 08:24:14.172] [WARN] FFMpegTask - [4] [FFMPEG] exited with error:  1
+[2016-01-13 08:24:14.173] [INFO] MainTest - Test of entry  4  failed!
+[2016-01-13 08:24:14.173] [INFO] MainTest - Going to start  4  in  10  seconds
+[2016-01-13 08:24:18.873] [INFO] EntryTest - [2] Generate new instance for  2
+[2016-01-13 08:24:18.874] [INFO] MainTest - Starting 2
+[2016-01-13 08:24:18.874] [INFO] EntryTest - [2] Getting rtmp url: 
+[2016-01-13 08:24:18.874] [INFO] EntryTest - [2] Got url:  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:24:18.874] [INFO] EntryTest - [2] Starting FFMpeg streaming for  rtmp://localhost:1935/live/2/abc123_%i
+[2016-01-13 08:24:18.876] [INFO] FFMpegTask - [2] Spawned a new ffmpeg process (pid=58059)
+[2016-01-13 08:24:18.923] [WARN] FFMpegTask - [2] [FFMPEG] exited with error:  1
+[2016-01-13 08:24:18.923] [INFO] MainTest - Test of entry  2  failed!
+[2016-01-13 08:24:18.923] [INFO] MainTest - Going to start  2  in  10  seconds
+[2016-01-13 08:24:22.692] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:24:32.700] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:24:32.700] [INFO] MainTest - Starting 1
+[2016-01-13 08:24:32.700] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:24:32.701] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:24:32.703] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:24:32.703] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:24:42.703] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:24:42.703] [INFO] MainTest - Starting 1
+[2016-01-13 08:24:42.703] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:24:42.704] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:24:42.705] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:24:42.706] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:24:52.707] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:24:52.707] [INFO] MainTest - Starting 1
+[2016-01-13 08:24:52.707] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:24:52.708] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:24:52.709] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:24:52.709] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:25:02.711] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:25:02.711] [INFO] MainTest - Starting 1
+[2016-01-13 08:25:02.711] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:25:02.711] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:25:02.713] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:25:02.713] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:25:12.717] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:25:12.718] [INFO] MainTest - Starting 1
+[2016-01-13 08:25:12.718] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:25:12.718] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:25:12.719] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:25:12.719] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:35:17.669] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:35:17.670] [INFO] MainTest - Starting 1
+[2016-01-13 08:35:17.670] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:35:17.670] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:35:17.671] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:35:17.672] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:35:27.673] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:35:27.673] [INFO] MainTest - Starting 1
+[2016-01-13 08:35:27.673] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:35:27.673] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:35:27.675] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:35:27.675] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:35:37.676] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:35:37.676] [INFO] MainTest - Starting 1
+[2016-01-13 08:35:37.676] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:35:37.677] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:35:37.678] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:35:37.678] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:35:47.679] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:35:47.679] [INFO] MainTest - Starting 1
+[2016-01-13 08:35:47.680] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:35:47.680] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:35:47.680] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:35:47.680] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:35:57.683] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:35:57.684] [INFO] MainTest - Starting 1
+[2016-01-13 08:35:57.684] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:35:57.684] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:35:57.686] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:35:57.686] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:36:07.687] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:36:07.687] [INFO] MainTest - Starting 1
+[2016-01-13 08:36:07.688] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:36:07.688] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:36:07.689] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:36:07.689] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:36:17.689] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:36:17.690] [INFO] MainTest - Starting 1
+[2016-01-13 08:36:17.690] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:36:17.691] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:36:17.692] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:36:17.692] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:36:27.693] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:36:27.693] [INFO] MainTest - Starting 1
+[2016-01-13 08:36:27.694] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:36:27.694] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:36:27.696] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:36:27.696] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:36:37.698] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:36:37.698] [INFO] MainTest - Starting 1
+[2016-01-13 08:36:37.698] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:36:37.700] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:36:37.701] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:36:37.701] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:36:47.703] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:36:47.703] [INFO] MainTest - Starting 1
+[2016-01-13 08:36:47.703] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:36:47.704] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:36:47.706] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:36:47.706] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:36:57.708] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:36:57.708] [INFO] MainTest - Starting 1
+[2016-01-13 08:36:57.708] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:36:57.710] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:36:57.711] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:36:57.711] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:37:07.711] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:37:07.711] [INFO] MainTest - Starting 1
+[2016-01-13 08:37:07.711] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:37:07.712] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:37:07.715] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:37:07.715] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:37:17.717] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:37:17.717] [INFO] MainTest - Starting 1
+[2016-01-13 08:37:17.718] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:37:17.718] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:37:17.720] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:37:17.720] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:37:27.721] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:37:27.722] [INFO] MainTest - Starting 1
+[2016-01-13 08:37:27.722] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:37:27.723] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:37:27.724] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:37:27.725] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:37:37.725] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:37:37.726] [INFO] MainTest - Starting 1
+[2016-01-13 08:37:37.726] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:37:37.726] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:37:37.727] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:37:37.727] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:37:47.728] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:37:47.728] [INFO] MainTest - Starting 1
+[2016-01-13 08:37:47.729] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:37:47.729] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:37:47.730] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:37:47.730] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:37:57.731] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:37:57.765] [INFO] MainTest - Starting 1
+[2016-01-13 08:37:57.765] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:37:57.766] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:37:57.766] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:37:57.766] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:38:07.772] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:38:07.772] [INFO] MainTest - Starting 1
+[2016-01-13 08:38:07.772] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:38:07.772] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:38:07.773] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:38:07.773] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:38:17.776] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:38:17.777] [INFO] MainTest - Starting 1
+[2016-01-13 08:38:17.777] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:38:17.777] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:38:17.778] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:38:17.778] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:38:27.778] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:38:27.779] [INFO] MainTest - Starting 1
+[2016-01-13 08:38:27.779] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:38:27.779] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:38:27.780] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:38:27.780] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:38:37.782] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:38:37.783] [INFO] MainTest - Starting 1
+[2016-01-13 08:38:37.783] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:38:37.783] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:38:37.783] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:38:37.783] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:38:47.786] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:38:47.786] [INFO] MainTest - Starting 1
+[2016-01-13 08:38:47.787] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:38:47.787] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:38:47.788] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:38:47.788] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:38:57.788] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:38:57.789] [INFO] MainTest - Starting 1
+[2016-01-13 08:38:57.789] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:38:57.789] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:38:57.790] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:38:57.790] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:39:07.791] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:39:07.792] [INFO] MainTest - Starting 1
+[2016-01-13 08:39:07.792] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:39:07.792] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:39:07.792] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:39:07.793] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:39:17.793] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:39:17.793] [INFO] MainTest - Starting 1
+[2016-01-13 08:39:17.794] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:39:17.794] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:39:17.795] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:39:17.795] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:39:27.802] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:39:27.802] [INFO] MainTest - Starting 1
+[2016-01-13 08:39:27.802] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:39:27.802] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:39:27.803] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:39:27.803] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:39:37.805] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:39:37.805] [INFO] MainTest - Starting 1
+[2016-01-13 08:39:37.805] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:39:37.805] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:39:37.806] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:39:37.806] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:39:47.808] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:39:47.808] [INFO] MainTest - Starting 1
+[2016-01-13 08:39:47.808] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:39:47.808] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:39:47.809] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:39:47.809] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:39:57.813] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:39:57.814] [INFO] MainTest - Starting 1
+[2016-01-13 08:39:57.814] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:39:57.814] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:39:57.815] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:39:57.815] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:40:07.816] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:40:07.816] [INFO] MainTest - Starting 1
+[2016-01-13 08:40:07.816] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:40:07.816] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:40:07.817] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:40:07.817] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:40:17.820] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:40:17.820] [INFO] MainTest - Starting 1
+[2016-01-13 08:40:17.820] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:40:17.820] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:40:17.821] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:40:17.822] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:40:27.825] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:40:27.825] [INFO] MainTest - Starting 1
+[2016-01-13 08:40:27.825] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:40:27.825] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:40:27.826] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:40:27.826] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:40:37.827] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:40:37.827] [INFO] MainTest - Starting 1
+[2016-01-13 08:40:37.827] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:40:37.828] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:40:37.828] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:40:37.829] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:40:47.829] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:40:47.830] [INFO] MainTest - Starting 1
+[2016-01-13 08:40:47.830] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:40:47.830] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:40:47.831] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:40:47.832] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:40:57.834] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:40:57.834] [INFO] MainTest - Starting 1
+[2016-01-13 08:40:57.834] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:40:57.835] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:40:57.836] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:40:57.836] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:41:07.839] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:41:07.839] [INFO] MainTest - Starting 1
+[2016-01-13 08:41:07.839] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:41:07.839] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:41:07.840] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:41:07.840] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:41:17.843] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:41:17.844] [INFO] MainTest - Starting 1
+[2016-01-13 08:41:17.844] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:41:17.844] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:41:17.845] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:41:17.845] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:41:27.850] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:41:27.850] [INFO] MainTest - Starting 1
+[2016-01-13 08:41:27.850] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:41:27.851] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:41:27.852] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:41:27.852] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:41:37.854] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:41:37.854] [INFO] MainTest - Starting 1
+[2016-01-13 08:41:37.854] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:41:37.854] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:41:37.855] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:41:37.855] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:41:47.860] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:41:47.860] [INFO] MainTest - Starting 1
+[2016-01-13 08:41:47.860] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:41:47.861] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:41:47.862] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:41:47.862] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:41:57.863] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:41:57.863] [INFO] MainTest - Starting 1
+[2016-01-13 08:41:57.863] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:41:57.863] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:41:57.864] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:41:57.864] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:42:08.157] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:42:08.157] [INFO] MainTest - Starting 1
+[2016-01-13 08:42:08.157] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:42:08.158] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:42:08.159] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:42:08.159] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:42:18.161] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:42:18.162] [INFO] MainTest - Starting 1
+[2016-01-13 08:42:18.162] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:42:18.162] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:42:18.163] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:42:18.163] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:42:28.166] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:42:28.166] [INFO] MainTest - Starting 1
+[2016-01-13 08:42:28.166] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:42:28.167] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:42:28.168] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:42:28.168] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:42:38.172] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:42:38.173] [INFO] MainTest - Starting 1
+[2016-01-13 08:42:38.173] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:42:38.173] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:42:38.173] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:42:38.173] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:42:48.178] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:42:48.178] [INFO] MainTest - Starting 1
+[2016-01-13 08:42:48.178] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:42:48.179] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:42:48.180] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:42:48.180] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:42:58.181] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:42:58.182] [INFO] MainTest - Starting 1
+[2016-01-13 08:42:58.182] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:42:58.182] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:42:58.183] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:42:58.183] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:43:08.185] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:43:08.185] [INFO] MainTest - Starting 1
+[2016-01-13 08:43:08.185] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:43:08.185] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:43:08.186] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:43:08.186] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:43:18.188] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:43:18.189] [INFO] MainTest - Starting 1
+[2016-01-13 08:43:18.189] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:43:18.189] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:43:18.190] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:43:18.190] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:43:28.194] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:43:28.194] [INFO] MainTest - Starting 1
+[2016-01-13 08:43:28.194] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:43:28.195] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:43:28.195] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:43:28.196] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:43:38.198] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:43:38.198] [INFO] MainTest - Starting 1
+[2016-01-13 08:43:38.198] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:43:38.199] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:43:38.199] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:43:38.200] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:43:48.204] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:43:48.204] [INFO] MainTest - Starting 1
+[2016-01-13 08:43:48.205] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:43:48.205] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:43:48.206] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:43:48.206] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:43:58.208] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:43:58.208] [INFO] MainTest - Starting 1
+[2016-01-13 08:43:58.208] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:43:58.209] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:43:58.209] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:43:58.209] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:44:08.213] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:44:08.213] [INFO] MainTest - Starting 1
+[2016-01-13 08:44:08.213] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:44:08.213] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:44:08.214] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:44:08.214] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:44:18.218] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:44:18.218] [INFO] MainTest - Starting 1
+[2016-01-13 08:44:18.218] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:44:18.218] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:44:18.219] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:44:18.219] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:44:28.223] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:44:28.223] [INFO] MainTest - Starting 1
+[2016-01-13 08:44:28.223] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:44:28.223] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:44:28.224] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:44:28.224] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:44:38.225] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:44:38.225] [INFO] MainTest - Starting 1
+[2016-01-13 08:44:38.226] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:44:38.226] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:44:38.227] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:44:38.227] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:44:48.227] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:44:48.227] [INFO] MainTest - Starting 1
+[2016-01-13 08:44:48.227] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:44:48.227] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:44:48.228] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:44:48.228] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:44:58.229] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:44:58.229] [INFO] MainTest - Starting 1
+[2016-01-13 08:44:58.229] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:44:58.229] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:44:58.230] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:44:58.231] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:45:08.231] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:45:08.231] [INFO] MainTest - Starting 1
+[2016-01-13 08:45:08.231] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:45:08.231] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:45:08.232] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:45:08.232] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:45:18.233] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:45:18.233] [INFO] MainTest - Starting 1
+[2016-01-13 08:45:18.233] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:45:18.233] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:45:18.234] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:45:18.234] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:45:28.238] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:45:28.238] [INFO] MainTest - Starting 1
+[2016-01-13 08:45:28.238] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:45:28.238] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:45:28.239] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:45:28.239] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:45:38.242] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:45:38.242] [INFO] MainTest - Starting 1
+[2016-01-13 08:45:38.242] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:45:38.243] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:45:38.243] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:45:38.244] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:45:48.246] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:45:48.246] [INFO] MainTest - Starting 1
+[2016-01-13 08:45:48.246] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:45:48.246] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:45:48.247] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:45:48.247] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:45:58.248] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:45:58.248] [INFO] MainTest - Starting 1
+[2016-01-13 08:45:58.248] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:45:58.248] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:45:58.249] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:45:58.249] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:46:08.250] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:46:08.251] [INFO] MainTest - Starting 1
+[2016-01-13 08:46:08.251] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:46:08.251] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:46:08.252] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:46:08.252] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:46:18.256] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:46:18.256] [INFO] MainTest - Starting 1
+[2016-01-13 08:46:18.256] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:46:18.256] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:46:18.257] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:46:18.257] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:46:28.259] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:46:28.259] [INFO] MainTest - Starting 1
+[2016-01-13 08:46:28.259] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:46:28.259] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:46:28.260] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:46:28.260] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:46:38.264] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:46:38.264] [INFO] MainTest - Starting 1
+[2016-01-13 08:46:38.264] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:46:38.265] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:46:38.265] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:46:38.266] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:46:48.269] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:46:48.270] [INFO] MainTest - Starting 1
+[2016-01-13 08:46:48.270] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:46:48.270] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:46:48.271] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:46:48.271] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:46:58.274] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:46:58.275] [INFO] MainTest - Starting 1
+[2016-01-13 08:46:58.275] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:46:58.275] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:46:58.276] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:46:58.276] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:47:08.277] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:47:08.277] [INFO] MainTest - Starting 1
+[2016-01-13 08:47:08.277] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:47:08.277] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:47:08.278] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:47:08.279] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:47:18.280] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:47:18.280] [INFO] MainTest - Starting 1
+[2016-01-13 08:47:18.280] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:47:18.280] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:47:18.281] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:47:18.281] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:47:28.283] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:47:28.283] [INFO] MainTest - Starting 1
+[2016-01-13 08:47:28.284] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:47:28.284] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:47:28.285] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:47:28.285] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:47:38.287] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:47:38.287] [INFO] MainTest - Starting 1
+[2016-01-13 08:47:38.287] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:47:38.287] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:47:38.288] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:47:38.288] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:47:48.290] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:47:48.290] [INFO] MainTest - Starting 1
+[2016-01-13 08:47:48.290] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:47:48.291] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:47:48.291] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:47:48.292] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:47:58.292] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:47:58.293] [INFO] MainTest - Starting 1
+[2016-01-13 08:47:58.293] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:47:58.293] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:47:58.294] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:47:58.294] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:48:08.296] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:48:08.297] [INFO] MainTest - Starting 1
+[2016-01-13 08:48:08.297] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:48:08.297] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:48:08.298] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:48:08.298] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:48:18.301] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:48:18.302] [INFO] MainTest - Starting 1
+[2016-01-13 08:48:18.302] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:48:18.302] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:48:18.302] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:48:18.302] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:48:28.305] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:48:28.306] [INFO] MainTest - Starting 1
+[2016-01-13 08:48:28.306] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:48:28.306] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:48:28.307] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:48:28.307] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:48:38.308] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:48:38.309] [INFO] MainTest - Starting 1
+[2016-01-13 08:48:38.309] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:48:38.309] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:48:38.310] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:48:38.310] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:48:48.313] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:48:48.314] [INFO] MainTest - Starting 1
+[2016-01-13 08:48:48.314] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:48:48.314] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:48:48.314] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:48:48.314] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:48:58.315] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:48:58.315] [INFO] MainTest - Starting 1
+[2016-01-13 08:48:58.316] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:48:58.316] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:48:58.316] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:48:58.317] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:49:08.318] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:49:08.319] [INFO] MainTest - Starting 1
+[2016-01-13 08:49:08.319] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:49:08.319] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:49:08.320] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:49:08.320] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:49:18.321] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:49:18.322] [INFO] MainTest - Starting 1
+[2016-01-13 08:49:18.322] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:49:18.322] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:49:18.323] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:49:18.323] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:49:28.324] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:49:28.325] [INFO] MainTest - Starting 1
+[2016-01-13 08:49:28.325] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:49:28.325] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:49:28.326] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:49:28.326] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:49:38.329] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:49:38.329] [INFO] MainTest - Starting 1
+[2016-01-13 08:49:38.329] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:49:38.329] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:49:38.330] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:49:38.330] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:49:48.330] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:49:48.330] [INFO] MainTest - Starting 1
+[2016-01-13 08:49:48.330] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:49:48.331] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:49:48.331] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:49:48.331] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:49:58.335] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:49:58.335] [INFO] MainTest - Starting 1
+[2016-01-13 08:49:58.335] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:49:58.335] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:49:58.336] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:49:58.336] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:50:08.337] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:50:08.338] [INFO] MainTest - Starting 1
+[2016-01-13 08:50:08.338] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:50:08.338] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:50:08.339] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:50:08.339] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:50:18.340] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:50:18.340] [INFO] MainTest - Starting 1
+[2016-01-13 08:50:18.340] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:50:18.340] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:50:18.341] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:50:18.341] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:50:28.344] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:50:28.344] [INFO] MainTest - Starting 1
+[2016-01-13 08:50:28.344] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:50:28.344] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:50:28.345] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:50:28.345] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:50:38.348] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:50:38.348] [INFO] MainTest - Starting 1
+[2016-01-13 08:50:38.348] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:50:38.348] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:50:38.349] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:50:38.349] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:50:48.353] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:50:48.354] [INFO] MainTest - Starting 1
+[2016-01-13 08:50:48.354] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:50:48.354] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:50:48.355] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:50:48.355] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:50:58.357] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:50:58.357] [INFO] MainTest - Starting 1
+[2016-01-13 08:50:58.357] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:50:58.357] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:50:58.358] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:50:58.358] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:51:08.359] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:51:08.359] [INFO] MainTest - Starting 1
+[2016-01-13 08:51:08.359] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:51:08.359] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:51:08.360] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:51:08.360] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:51:18.360] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:51:18.360] [INFO] MainTest - Starting 1
+[2016-01-13 08:51:18.360] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:51:18.360] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:51:18.361] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:51:18.361] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:51:28.364] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:51:28.365] [INFO] MainTest - Starting 1
+[2016-01-13 08:51:28.365] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:51:28.365] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:51:28.365] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:51:28.365] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:51:38.367] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:51:38.367] [INFO] MainTest - Starting 1
+[2016-01-13 08:51:38.367] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:51:38.368] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:51:38.368] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:51:38.369] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:51:48.372] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:51:48.372] [INFO] MainTest - Starting 1
+[2016-01-13 08:51:48.372] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:51:48.372] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:51:48.373] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:51:48.373] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:51:58.376] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:51:58.376] [INFO] MainTest - Starting 1
+[2016-01-13 08:51:58.377] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:51:58.377] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:51:58.378] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:51:58.378] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:52:08.379] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:52:08.379] [INFO] MainTest - Starting 1
+[2016-01-13 08:52:08.379] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:52:08.379] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:52:08.380] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:52:08.380] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:52:18.382] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:52:18.383] [INFO] MainTest - Starting 1
+[2016-01-13 08:52:18.383] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:52:18.383] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:52:18.384] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:52:18.384] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:52:28.385] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:52:28.385] [INFO] MainTest - Starting 1
+[2016-01-13 08:52:28.385] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:52:28.386] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:52:28.386] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:52:28.387] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:52:38.388] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:52:38.388] [INFO] MainTest - Starting 1
+[2016-01-13 08:52:38.388] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:52:38.388] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:52:38.389] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:52:38.389] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:52:48.393] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:52:48.393] [INFO] MainTest - Starting 1
+[2016-01-13 08:52:48.393] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:52:48.393] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:52:48.393] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:52:48.394] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:52:58.398] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:52:58.398] [INFO] MainTest - Starting 1
+[2016-01-13 08:52:58.398] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:52:58.398] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:52:58.399] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:52:58.399] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:53:08.400] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:53:08.400] [INFO] MainTest - Starting 1
+[2016-01-13 08:53:08.400] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:53:08.400] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:53:08.401] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:53:08.401] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:53:18.404] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:53:18.404] [INFO] MainTest - Starting 1
+[2016-01-13 08:53:18.404] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:53:18.405] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:53:18.405] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:53:18.405] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:53:28.406] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:53:28.406] [INFO] MainTest - Starting 1
+[2016-01-13 08:53:28.406] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:53:28.406] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:53:28.407] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:53:28.407] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:53:38.410] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:53:38.414] [INFO] MainTest - Starting 1
+[2016-01-13 08:53:38.414] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:53:38.414] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:53:38.414] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:53:38.414] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:53:48.414] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:53:48.415] [INFO] MainTest - Starting 1
+[2016-01-13 08:53:48.415] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:53:48.415] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:53:48.416] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:53:48.416] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:53:58.420] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:53:58.420] [INFO] MainTest - Starting 1
+[2016-01-13 08:53:58.420] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:53:58.420] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:53:58.421] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:53:58.421] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:54:08.421] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:54:08.421] [INFO] MainTest - Starting 1
+[2016-01-13 08:54:08.421] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:54:08.422] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:54:08.422] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:54:08.422] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:54:18.424] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:54:18.424] [INFO] MainTest - Starting 1
+[2016-01-13 08:54:18.424] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:54:18.425] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:54:18.425] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:54:18.425] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:54:28.429] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:54:28.429] [INFO] MainTest - Starting 1
+[2016-01-13 08:54:28.430] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:54:28.430] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:54:28.431] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:54:28.431] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:54:38.434] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:54:38.434] [INFO] MainTest - Starting 1
+[2016-01-13 08:54:38.434] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:54:38.434] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:54:38.435] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:54:38.435] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:54:48.436] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:54:48.436] [INFO] MainTest - Starting 1
+[2016-01-13 08:54:48.436] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:54:48.437] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:54:48.437] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:54:48.438] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:54:58.441] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:54:58.442] [INFO] MainTest - Starting 1
+[2016-01-13 08:54:58.442] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:54:58.442] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:54:58.443] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:54:58.443] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:55:08.443] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:55:08.443] [INFO] MainTest - Starting 1
+[2016-01-13 08:55:08.443] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:55:08.443] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:55:08.444] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:55:08.444] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:55:18.445] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:55:18.445] [INFO] MainTest - Starting 1
+[2016-01-13 08:55:18.445] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:55:18.445] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:55:18.446] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:55:18.446] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:55:28.446] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:55:28.446] [INFO] MainTest - Starting 1
+[2016-01-13 08:55:28.446] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:55:28.446] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:55:28.447] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:55:28.447] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:55:38.452] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:55:38.452] [INFO] MainTest - Starting 1
+[2016-01-13 08:55:38.452] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:55:38.452] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:55:38.453] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:55:38.453] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:55:48.454] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:55:48.454] [INFO] MainTest - Starting 1
+[2016-01-13 08:55:48.454] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:55:48.454] [INFO] EntryTest - [1] Got url:  undefined
+[2016-01-13 08:55:48.455] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:55:48.455] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:56:44.460] [INFO] MainTest - Going to start  1  in  10  seconds
+[2016-01-13 08:56:49.536] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 08:56:50.541] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:56:50.541] [INFO] MainTest - Starting 1
+[2016-01-13 08:56:50.541] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:56:50.541] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:56:50.542] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:56:50.553] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58220)
+[2016-01-13 08:56:51.201] [INFO] EntryTest - [1] FFMpeg started, Operation took 660 ms
+[2016-01-13 08:58:56.520] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 08:58:56.521] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 08:58:57.522] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 08:58:57.523] [INFO] MainTest - Starting 1
+[2016-01-13 08:58:57.523] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 08:58:57.523] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:58:57.524] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 08:58:57.527] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58225)
+[2016-01-13 09:01:08.874] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:01:09.882] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:01:09.882] [INFO] MainTest - Starting 1
+[2016-01-13 09:01:09.883] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:01:09.883] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:01:09.883] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:01:09.887] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58241)
+[2016-01-13 09:01:49.224] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:01:50.230] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:01:50.230] [INFO] MainTest - Starting 1
+[2016-01-13 09:01:50.231] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:01:50.231] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:01:50.231] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:01:50.231] [DEBUG] FFMpegTask - [1] Spawnning new ffmpeg process: /Users/guyjacubovski/dev/media-server/Utils/CongestionTest/ffmpegModule/../ffmpeg -re -i /Users/guyjacubovski/123.mp4 -c:v copy -c:a libmp3lame -f flv -rtmp_live 1 r
+[2016-01-13 09:01:50.235] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58247)
+[2016-01-13 09:01:50.261] [DEBUG] FFMpegTask - [1] [FFMPEG] ffmpeg version N-72738-gda05c62-tessus Copyright (c) 2000-2015 the FFmpeg developers
+[2016-01-13 09:01:50.261] [DEBUG] FFMpegTask - [1] [FFMPEG]   built with Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
+[2016-01-13 09:01:50.262] [DEBUG] FFMpegTask - [1] [FFMPEG]   configuration: --cc=/usr/bin/clang --prefix=/opt/ffmpeg --as=yasm --extra-version=tessus --enable-avisynth --enable-fontconfig --enable-gpl --enable-libass --enable-libbluray --enable-libfreetype --enable-libgsm --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libschroedinger --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvidstab --enable-libvo-aacenc --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzmq --enable-version3 --disable-ffplay --disable-indev=qtkit --disable-indev=x11grab_xcb
+[2016-01-13 09:01:50.262] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavutil      54. 26.101 / 54. 26.101
+[2016-01-13 09:01:50.262] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavcodec     56. 41.101 / 56. 41.101
+[2016-01-13 09:01:50.262] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavformat    56. 34.100 / 56. 34.100
+[2016-01-13 09:01:50.262] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavdevice    56.  4.100 / 56.  4.100
+[2016-01-13 09:01:50.262] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavfilter     5. 16.101 /  5. 16.101
+[2016-01-13 09:01:50.263] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswscale      3.  1.101 /  3.  1.101
+[2016-01-13 09:01:50.263] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswresample   1.  1.100 /  1.  1.100
+[2016-01-13 09:01:50.263] [DEBUG] FFMpegTask - [1] [FFMPEG]   libpostproc    53.  3.100 / 53.  3.100
+[2016-01-13 09:01:50.283] [DEBUG] FFMpegTask - [1] [FFMPEG] Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/guyjacubovski/123.mp4':
+[2016-01-13 09:01:50.284] [DEBUG] FFMpegTask - [1] [FFMPEG]   Metadata:
+[2016-01-13 09:01:50.284] [DEBUG] FFMpegTask - [1] [FFMPEG]     major_brand     : isom
+[2016-01-13 09:01:50.284] [DEBUG] FFMpegTask - [1] [FFMPEG]     minor_version   : 512
+[2016-01-13 09:01:50.284] [DEBUG] FFMpegTask - [1] [FFMPEG]     compatible_brands: isomiso2avc1mp41
+[2016-01-13 09:01:50.284] [DEBUG] FFMpegTask - [1] [FFMPEG]     encoder         : Lavf55.19.104
+[2016-01-13 09:01:50.284] [DEBUG] FFMpegTask - [1] [FFMPEG]   Duration: 01:02:44.53, start: 0.000000, bitrate: 1000 kb/s
+[2016-01-13 09:01:50.284] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:0(und): Video: h264 (Baseline) (avc1 / 0x31637661), yuv420p(tv), 640x480 [SAR 1:1 DAR 4:3], 900 kb/s, 15 fps, 15 tbr, 90k tbn, 30 tbc (default)
+[2016-01-13 09:01:50.284] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:01:50.284] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : VideoHandler
+[2016-01-13 09:01:50.284] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 93 kb/s (default)
+[2016-01-13 09:01:50.285] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:01:50.285] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : SoundHandler
+[2016-01-13 09:03:23.449] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:03:24.457] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:03:24.458] [INFO] MainTest - Starting 1
+[2016-01-13 09:03:24.458] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:03:24.459] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:03:24.459] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:03:24.459] [DEBUG] FFMpegTask - [1] Spawnning new ffmpeg process: /Users/guyjacubovski/dev/media-server/Utils/CongestionTest/ffmpegModule/../ffmpeg -re -i /Users/guyjacubovski/123.mp4 -c:v copy -c:a libmp3lame -f flv -rtmp_live 1 r
+[2016-01-13 09:03:24.464] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58259)
+[2016-01-13 09:03:24.495] [DEBUG] FFMpegTask - [1] [FFMPEG] ffmpeg version N-72738-gda05c62-tessus Copyright (c) 2000-2015 the FFmpeg developers
+[2016-01-13 09:03:24.495] [DEBUG] FFMpegTask - [1] [FFMPEG]   built with Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
+[2016-01-13 09:03:24.495] [DEBUG] FFMpegTask - [1] [FFMPEG]   configuration: --cc=/usr/bin/clang --prefix=/opt/ffmpeg --as=yasm --extra-version=tessus --enable-avisynth --enable-fontconfig --enable-gpl --enable-libass --enable-libbluray --enable-libfreetype --enable-libgsm --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libschroedinger --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvidstab --enable-libvo-aacenc --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzmq --enable-version3 --disable-ffplay --disable-indev=qtkit --disable-indev=x11grab_xcb
+[2016-01-13 09:03:24.495] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavutil      54. 26.101 / 54. 26.101
+[2016-01-13 09:03:24.495] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavcodec     56. 41.101 / 56. 41.101
+[2016-01-13 09:03:24.496] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavformat    56. 34.100 / 56. 34.100
+[2016-01-13 09:03:24.496] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavdevice    56.  4.100 / 56.  4.100
+[2016-01-13 09:03:24.496] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavfilter     5. 16.101 /  5. 16.101
+[2016-01-13 09:03:24.496] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswscale      3.  1.101 /  3.  1.101
+[2016-01-13 09:03:24.496] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswresample   1.  1.100 /  1.  1.100
+[2016-01-13 09:03:24.496] [DEBUG] FFMpegTask - [1] [FFMPEG]   libpostproc    53.  3.100 / 53.  3.100
+[2016-01-13 09:03:24.521] [DEBUG] FFMpegTask - [1] [FFMPEG] Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/guyjacubovski/123.mp4':
+[2016-01-13 09:03:24.521] [DEBUG] FFMpegTask - [1] [FFMPEG]   Metadata:
+[2016-01-13 09:03:24.521] [DEBUG] FFMpegTask - [1] [FFMPEG]     major_brand     : isom
+[2016-01-13 09:03:24.521] [DEBUG] FFMpegTask - [1] [FFMPEG]     minor_version   : 512
+[2016-01-13 09:03:24.521] [DEBUG] FFMpegTask - [1] [FFMPEG]     compatible_brands: isomiso2avc1mp41
+[2016-01-13 09:03:24.521] [DEBUG] FFMpegTask - [1] [FFMPEG]     encoder         : Lavf55.19.104
+[2016-01-13 09:03:24.521] [DEBUG] FFMpegTask - [1] [FFMPEG]   Duration: 01:02:44.53, start: 0.000000, bitrate: 1000 kb/s
+[2016-01-13 09:03:24.522] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:0(und): Video: h264 (Baseline) (avc1 / 0x31637661), yuv420p(tv), 640x480 [SAR 1:1 DAR 4:3], 900 kb/s, 15 fps, 15 tbr, 90k tbn, 30 tbc (default)
+[2016-01-13 09:03:24.522] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:03:24.522] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : VideoHandler
+[2016-01-13 09:03:24.522] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 93 kb/s (default)
+[2016-01-13 09:03:24.522] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:03:24.522] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : SoundHandler
+[2016-01-13 09:03:34.465] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:03:34.465] [INFO] FFMpegTask - [1] stopping process  58259
+[2016-01-13 09:03:34.468] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:03:34.468] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:03:35.468] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:03:35.468] [INFO] MainTest - Starting 1
+[2016-01-13 09:03:35.468] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:03:35.469] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:03:35.469] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:03:35.469] [DEBUG] FFMpegTask - [1] Spawnning new ffmpeg process: /Users/guyjacubovski/dev/media-server/Utils/CongestionTest/ffmpegModule/../ffmpeg -re -i /Users/guyjacubovski/123.mp4 -c:v copy -c:a libmp3lame -f flv -rtmp_live 1 r
+[2016-01-13 09:03:35.471] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58260)
+[2016-01-13 09:03:35.482] [DEBUG] FFMpegTask - [1] [FFMPEG] ffmpeg version N-72738-gda05c62-tessus Copyright (c) 2000-2015 the FFmpeg developers
+[2016-01-13 09:03:35.483] [DEBUG] FFMpegTask - [1] [FFMPEG]   built with Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
+[2016-01-13 09:03:35.483] [DEBUG] FFMpegTask - [1] [FFMPEG]   configuration: --cc=/usr/bin/clang --prefix=/opt/ffmpeg --as=yasm --extra-version=tessus --enable-avisynth --enable-fontconfig --enable-gpl --enable-libass --enable-libbluray --enable-libfreetype --enable-libgsm --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libschroedinger --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvidstab --enable-libvo-aacenc --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzmq --enable-version3 --disable-ffplay --disable-indev=qtkit --disable-indev=x11grab_xcb
+[2016-01-13 09:03:35.483] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavutil      54. 26.101 / 54. 26.101
+[2016-01-13 09:03:35.483] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavcodec     56. 41.101 / 56. 41.101
+[2016-01-13 09:03:35.483] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavformat    56. 34.100 / 56. 34.100
+[2016-01-13 09:03:35.483] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavdevice    56.  4.100 / 56.  4.100
+[2016-01-13 09:03:35.484] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavfilter     5. 16.101 /  5. 16.101
+[2016-01-13 09:03:35.484] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswscale      3.  1.101 /  3.  1.101
+[2016-01-13 09:03:35.484] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswresample   1.  1.100 /  1.  1.100
+[2016-01-13 09:03:35.484] [DEBUG] FFMpegTask - [1] [FFMPEG]   libpostproc    53.  3.100 / 53.  3.100
+[2016-01-13 09:03:35.504] [DEBUG] FFMpegTask - [1] [FFMPEG] Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/guyjacubovski/123.mp4':
+[2016-01-13 09:03:35.504] [DEBUG] FFMpegTask - [1] [FFMPEG]   Metadata:
+[2016-01-13 09:03:35.504] [DEBUG] FFMpegTask - [1] [FFMPEG]     major_brand     : isom
+[2016-01-13 09:03:35.504] [DEBUG] FFMpegTask - [1] [FFMPEG]     minor_version   : 512
+[2016-01-13 09:03:35.505] [DEBUG] FFMpegTask - [1] [FFMPEG]     compatible_brands: isomiso2avc1mp41
+[2016-01-13 09:03:35.505] [DEBUG] FFMpegTask - [1] [FFMPEG]     encoder         : Lavf55.19.104
+[2016-01-13 09:03:35.505] [DEBUG] FFMpegTask - [1] [FFMPEG]   Duration: 01:02:44.53, start: 0.000000, bitrate: 1000 kb/s
+[2016-01-13 09:03:35.505] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:0(und): Video: h264 (Baseline) (avc1 / 0x31637661), yuv420p(tv), 640x480 [SAR 1:1 DAR 4:3], 900 kb/s, 15 fps, 15 tbr, 90k tbn, 30 tbc (default)
+[2016-01-13 09:03:35.505] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:03:35.505] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : VideoHandler
+[2016-01-13 09:03:35.506] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 93 kb/s (default)
+[2016-01-13 09:03:35.506] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:03:35.506] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : SoundHandler
+[2016-01-13 09:04:28.087] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:04:29.094] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:04:29.095] [INFO] MainTest - Starting 1
+[2016-01-13 09:04:29.096] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:04:29.096] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:04:29.097] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:04:29.097] [DEBUG] FFMpegTask - [1] Spawnning new ffmpeg process: /Users/guyjacubovski/dev/media-server/Utils/CongestionTest/ffmpegModule/../ffmpeg -re -i /Users/guyjacubovski/123.mp4 -c:v copy -c:a libmp3lame -f flv -rtmp_live 1 r
+[2016-01-13 09:04:29.101] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58264)
+[2016-01-13 09:04:29.129] [DEBUG] FFMpegTask - [1] [FFMPEG] ffmpeg version N-72738-gda05c62-tessus Copyright (c) 2000-2015 the FFmpeg developers
+[2016-01-13 09:04:29.130] [DEBUG] FFMpegTask - [1] [FFMPEG]   built with Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
+[2016-01-13 09:04:29.130] [DEBUG] FFMpegTask - [1] [FFMPEG]   configuration: --cc=/usr/bin/clang --prefix=/opt/ffmpeg --as=yasm --extra-version=tessus --enable-avisynth --enable-fontconfig --enable-gpl --enable-libass --enable-libbluray --enable-libfreetype --enable-libgsm --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libschroedinger --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvidstab --enable-libvo-aacenc --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzmq --enable-version3 --disable-ffplay --disable-indev=qtkit --disable-indev=x11grab_xcb
+[2016-01-13 09:04:29.131] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavutil      54. 26.101 / 54. 26.101
+[2016-01-13 09:04:29.131] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavcodec     56. 41.101 / 56. 41.101
+[2016-01-13 09:04:29.131] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavformat    56. 34.100 / 56. 34.100
+[2016-01-13 09:04:29.131] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavdevice    56.  4.100 / 56.  4.100
+[2016-01-13 09:04:29.131] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavfilter     5. 16.101 /  5. 16.101
+[2016-01-13 09:04:29.132] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswscale      3.  1.101 /  3.  1.101
+[2016-01-13 09:04:29.132] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswresample   1.  1.100 /  1.  1.100
+[2016-01-13 09:04:29.132] [DEBUG] FFMpegTask - [1] [FFMPEG]   libpostproc    53.  3.100 / 53.  3.100
+[2016-01-13 09:04:29.158] [DEBUG] FFMpegTask - [1] [FFMPEG] Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/guyjacubovski/123.mp4':
+[2016-01-13 09:04:29.158] [DEBUG] FFMpegTask - [1] [FFMPEG]   Metadata:
+[2016-01-13 09:04:29.159] [DEBUG] FFMpegTask - [1] [FFMPEG]     major_brand     : isom
+[2016-01-13 09:04:29.159] [DEBUG] FFMpegTask - [1] [FFMPEG]     minor_version   : 512
+[2016-01-13 09:04:29.159] [DEBUG] FFMpegTask - [1] [FFMPEG]     compatible_brands: isomiso2avc1mp41
+[2016-01-13 09:04:29.159] [DEBUG] FFMpegTask - [1] [FFMPEG]     encoder         : Lavf55.19.104
+[2016-01-13 09:04:29.159] [DEBUG] FFMpegTask - [1] [FFMPEG]   Duration: 01:02:44.53, start: 0.000000, bitrate: 1000 kb/s
+[2016-01-13 09:04:29.159] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:0(und): Video: h264 (Baseline) (avc1 / 0x31637661), yuv420p(tv), 640x480 [SAR 1:1 DAR 4:3], 900 kb/s, 15 fps, 15 tbr, 90k tbn, 30 tbc (default)
+[2016-01-13 09:04:29.159] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:04:29.159] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : VideoHandler
+[2016-01-13 09:04:29.160] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 93 kb/s (default)
+[2016-01-13 09:04:29.160] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:04:29.160] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : SoundHandler
+[2016-01-13 09:04:39.104] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:04:39.104] [INFO] FFMpegTask - [1] stopping process  58264
+[2016-01-13 09:10:03.861] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:10:03.861] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:10:15.186] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:10:15.186] [INFO] MainTest - Starting 1
+[2016-01-13 09:10:15.186] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:10:15.186] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:10:15.186] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:10:15.187] [DEBUG] FFMpegTask - [1] Spawnning new ffmpeg process: /Users/guyjacubovski/dev/media-server/Utils/CongestionTest/ffmpegModule/../ffmpeg -re -i /Users/guyjacubovski/123.mp4 -c:v copy -c:a libmp3lame -f flv -rtmp_live 1 r
+[2016-01-13 09:10:15.194] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58272)
+[2016-01-13 09:10:15.213] [DEBUG] FFMpegTask - [1] [FFMPEG] ffmpeg version N-72738-gda05c62-tessus Copyright (c) 2000-2015 the FFmpeg developers
+[2016-01-13 09:10:15.214] [DEBUG] FFMpegTask - [1] [FFMPEG]   built with Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
+[2016-01-13 09:10:15.214] [DEBUG] FFMpegTask - [1] [FFMPEG]   configuration: --cc=/usr/bin/clang --prefix=/opt/ffmpeg --as=yasm --extra-version=tessus --enable-avisynth --enable-fontconfig --enable-gpl --enable-libass --enable-libbluray --enable-libfreetype --enable-libgsm --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libschroedinger --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvidstab --enable-libvo-aacenc --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzmq --enable-version3 --disable-ffplay --disable-indev=qtkit --disable-indev=x11grab_xcb
+[2016-01-13 09:10:15.214] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavutil      54. 26.101 / 54. 26.101
+[2016-01-13 09:10:15.214] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavcodec     56. 41.101 / 56. 41.101
+[2016-01-13 09:10:15.214] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavformat    56. 34.100 / 56. 34.100
+[2016-01-13 09:10:15.214] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavdevice    56.  4.100 / 56.  4.100
+[2016-01-13 09:10:15.214] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavfilter     5. 16.101 /  5. 16.101
+[2016-01-13 09:10:15.214] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswscale      3.  1.101 /  3.  1.101
+[2016-01-13 09:10:15.215] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswresample   1.  1.100 /  1.  1.100
+[2016-01-13 09:10:15.215] [DEBUG] FFMpegTask - [1] [FFMPEG]   libpostproc    53.  3.100 / 53.  3.100
+[2016-01-13 09:10:16.536] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:10:17.542] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:10:17.543] [INFO] MainTest - Starting 1
+[2016-01-13 09:10:17.543] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:10:17.543] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:10:17.544] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:10:17.544] [DEBUG] FFMpegTask - [1] Spawnning new ffmpeg process: /Users/guyjacubovski/dev/media-server/Utils/CongestionTest/ffmpegModule/../ffmpeg -re -i /Users/guyjacubovski/123.mp4 -c:v copy -c:a libmp3lame -f flv -rtmp_live 1 r
+[2016-01-13 09:10:17.548] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58275)
+[2016-01-13 09:10:17.560] [DEBUG] FFMpegTask - [1] [FFMPEG] ffmpeg version N-72738-gda05c62-tessus Copyright (c) 2000-2015 the FFmpeg developers
+[2016-01-13 09:10:17.561] [DEBUG] FFMpegTask - [1] [FFMPEG]   built with Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
+[2016-01-13 09:10:17.561] [DEBUG] FFMpegTask - [1] [FFMPEG]   configuration: --cc=/usr/bin/clang --prefix=/opt/ffmpeg --as=yasm --extra-version=tessus --enable-avisynth --enable-fontconfig --enable-gpl --enable-libass --enable-libbluray --enable-libfreetype --enable-libgsm --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libschroedinger --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvidstab --enable-libvo-aacenc --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzmq --enable-version3 --disable-ffplay --disable-indev=qtkit --disable-indev=x11grab_xcb
+[2016-01-13 09:10:17.561] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavutil      54. 26.101 / 54. 26.101
+[2016-01-13 09:10:17.561] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavcodec     56. 41.101 / 56. 41.101
+[2016-01-13 09:10:17.561] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavformat    56. 34.100 / 56. 34.100
+[2016-01-13 09:10:17.561] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavdevice    56.  4.100 / 56.  4.100
+[2016-01-13 09:10:17.561] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavfilter     5. 16.101 /  5. 16.101
+[2016-01-13 09:10:17.561] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswscale      3.  1.101 /  3.  1.101
+[2016-01-13 09:10:17.562] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswresample   1.  1.100 /  1.  1.100
+[2016-01-13 09:10:17.562] [DEBUG] FFMpegTask - [1] [FFMPEG]   libpostproc    53.  3.100 / 53.  3.100
+[2016-01-13 09:10:17.578] [DEBUG] FFMpegTask - [1] [FFMPEG] Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/guyjacubovski/123.mp4':
+[2016-01-13 09:10:17.579] [DEBUG] FFMpegTask - [1] [FFMPEG]   Metadata:
+[2016-01-13 09:10:17.579] [DEBUG] FFMpegTask - [1] [FFMPEG]     major_brand     : isom
+[2016-01-13 09:10:17.579] [DEBUG] FFMpegTask - [1] [FFMPEG]     minor_version   : 512
+[2016-01-13 09:10:17.579] [DEBUG] FFMpegTask - [1] [FFMPEG]     compatible_brands: isomiso2avc1mp41
+[2016-01-13 09:10:17.579] [DEBUG] FFMpegTask - [1] [FFMPEG]     encoder         : Lavf55.19.104
+[2016-01-13 09:10:17.579] [DEBUG] FFMpegTask - [1] [FFMPEG]   Duration: 01:02:44.53, start: 0.000000, bitrate: 1000 kb/s
+[2016-01-13 09:10:17.579] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:0(und): Video: h264 (Baseline) (avc1 / 0x31637661), yuv420p(tv), 640x480 [SAR 1:1 DAR 4:3], 900 kb/s, 15 fps, 15 tbr, 90k tbn, 30 tbc (default)
+[2016-01-13 09:10:17.579] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:10:17.579] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : VideoHandler
+[2016-01-13 09:10:17.579] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 93 kb/s (default)
+[2016-01-13 09:10:17.580] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:10:17.580] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : SoundHandler
+[2016-01-13 09:10:27.549] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:10:27.549] [INFO] FFMpegTask - [1] stopping process  58275
+[2016-01-13 09:10:27.551] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:10:27.552] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:10:28.555] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:10:28.555] [INFO] MainTest - Starting 1
+[2016-01-13 09:10:28.555] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:10:28.555] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:10:28.555] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:10:28.556] [DEBUG] FFMpegTask - [1] Spawnning new ffmpeg process: /Users/guyjacubovski/dev/media-server/Utils/CongestionTest/ffmpegModule/../ffmpeg -re -i /Users/guyjacubovski/123.mp4 -c:v copy -c:a libmp3lame -f flv -rtmp_live 1 r
+[2016-01-13 09:10:28.558] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58276)
+[2016-01-13 09:10:28.570] [DEBUG] FFMpegTask - [1] [FFMPEG] ffmpeg version N-72738-gda05c62-tessus Copyright (c) 2000-2015 the FFmpeg developers
+[2016-01-13 09:10:28.571] [DEBUG] FFMpegTask - [1] [FFMPEG]   built with Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
+[2016-01-13 09:10:28.571] [DEBUG] FFMpegTask - [1] [FFMPEG]   configuration: --cc=/usr/bin/clang --prefix=/opt/ffmpeg --as=yasm --extra-version=tessus --enable-avisynth --enable-fontconfig --enable-gpl --enable-libass --enable-libbluray --enable-libfreetype --enable-libgsm --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libschroedinger --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvidstab --enable-libvo-aacenc --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzmq --enable-version3 --disable-ffplay --disable-indev=qtkit --disable-indev=x11grab_xcb
+[2016-01-13 09:10:28.571] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavutil      54. 26.101 / 54. 26.101
+[2016-01-13 09:10:28.571] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavcodec     56. 41.101 / 56. 41.101
+[2016-01-13 09:10:28.571] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavformat    56. 34.100 / 56. 34.100
+[2016-01-13 09:10:28.572] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavdevice    56.  4.100 / 56.  4.100
+[2016-01-13 09:10:28.572] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavfilter     5. 16.101 /  5. 16.101
+[2016-01-13 09:10:28.572] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswscale      3.  1.101 /  3.  1.101
+[2016-01-13 09:10:28.572] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswresample   1.  1.100 /  1.  1.100
+[2016-01-13 09:10:28.572] [DEBUG] FFMpegTask - [1] [FFMPEG]   libpostproc    53.  3.100 / 53.  3.100
+[2016-01-13 09:10:28.594] [DEBUG] FFMpegTask - [1] [FFMPEG] Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/guyjacubovski/123.mp4':
+[2016-01-13 09:10:28.595] [DEBUG] FFMpegTask - [1] [FFMPEG]   Metadata:
+[2016-01-13 09:10:28.595] [DEBUG] FFMpegTask - [1] [FFMPEG]     major_brand     : isom
+[2016-01-13 09:10:28.595] [DEBUG] FFMpegTask - [1] [FFMPEG]     minor_version   : 512
+[2016-01-13 09:10:28.595] [DEBUG] FFMpegTask - [1] [FFMPEG]     compatible_brands: isomiso2avc1mp41
+[2016-01-13 09:10:28.596] [DEBUG] FFMpegTask - [1] [FFMPEG]     encoder         : Lavf55.19.104
+[2016-01-13 09:10:28.596] [DEBUG] FFMpegTask - [1] [FFMPEG]   Duration: 01:02:44.53, start: 0.000000, bitrate: 1000 kb/s
+[2016-01-13 09:10:28.596] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:0(und): Video: h264 (Baseline) (avc1 / 0x31637661), yuv420p(tv), 640x480 [SAR 1:1 DAR 4:3], 900 kb/s, 15 fps, 15 tbr, 90k tbn, 30 tbc (default)
+[2016-01-13 09:10:28.596] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:10:28.596] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : VideoHandler
+[2016-01-13 09:10:28.596] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 93 kb/s (default)
+[2016-01-13 09:10:28.596] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:10:28.596] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : SoundHandler
+[2016-01-13 09:10:38.559] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:10:38.559] [INFO] FFMpegTask - [1] stopping process  58276
+[2016-01-13 09:10:38.560] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:10:38.560] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:10:39.564] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:10:39.564] [INFO] MainTest - Starting 1
+[2016-01-13 09:10:39.564] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:10:39.565] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:10:39.565] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:10:39.565] [DEBUG] FFMpegTask - [1] Spawnning new ffmpeg process: /Users/guyjacubovski/dev/media-server/Utils/CongestionTest/ffmpegModule/../ffmpeg -re -i /Users/guyjacubovski/123.mp4 -c:v copy -c:a libmp3lame -f flv -rtmp_live 1 r
+[2016-01-13 09:10:39.575] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58277)
+[2016-01-13 09:10:39.594] [DEBUG] FFMpegTask - [1] [FFMPEG] ffmpeg version N-72738-gda05c62-tessus Copyright (c) 2000-2015 the FFmpeg developers
+[2016-01-13 09:10:39.594] [DEBUG] FFMpegTask - [1] [FFMPEG]   built with Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
+[2016-01-13 09:10:39.595] [DEBUG] FFMpegTask - [1] [FFMPEG]   configuration: --cc=/usr/bin/clang --prefix=/opt/ffmpeg --as=yasm --extra-version=tessus --enable-avisynth --enable-fontconfig --enable-gpl --enable-libass --enable-libbluray --enable-libfreetype --enable-libgsm --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libschroedinger --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvidstab --enable-libvo-aacenc --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzmq --enable-version3 --disable-ffplay --disable-indev=qtkit --disable-indev=x11grab_xcb
+[2016-01-13 09:10:39.595] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavutil      54. 26.101 / 54. 26.101
+[2016-01-13 09:10:39.595] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavcodec     56. 41.101 / 56. 41.101
+[2016-01-13 09:10:39.595] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavformat    56. 34.100 / 56. 34.100
+[2016-01-13 09:10:39.595] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavdevice    56.  4.100 / 56.  4.100
+[2016-01-13 09:10:39.595] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavfilter     5. 16.101 /  5. 16.101
+[2016-01-13 09:10:39.595] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswscale      3.  1.101 /  3.  1.101
+[2016-01-13 09:10:39.595] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswresample   1.  1.100 /  1.  1.100
+[2016-01-13 09:10:39.595] [DEBUG] FFMpegTask - [1] [FFMPEG]   libpostproc    53.  3.100 / 53.  3.100
+[2016-01-13 09:10:39.615] [DEBUG] FFMpegTask - [1] [FFMPEG] Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/guyjacubovski/123.mp4':
+[2016-01-13 09:10:39.615] [DEBUG] FFMpegTask - [1] [FFMPEG]   Metadata:
+[2016-01-13 09:10:39.615] [DEBUG] FFMpegTask - [1] [FFMPEG]     major_brand     : isom
+[2016-01-13 09:10:39.615] [DEBUG] FFMpegTask - [1] [FFMPEG]     minor_version   : 512
+[2016-01-13 09:10:39.615] [DEBUG] FFMpegTask - [1] [FFMPEG]     compatible_brands: isomiso2avc1mp41
+[2016-01-13 09:10:39.616] [DEBUG] FFMpegTask - [1] [FFMPEG]     encoder         : Lavf55.19.104
+[2016-01-13 09:10:39.616] [DEBUG] FFMpegTask - [1] [FFMPEG]   Duration: 01:02:44.53, start: 0.000000, bitrate: 1000 kb/s
+[2016-01-13 09:10:39.616] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:0(und): Video: h264 (Baseline) (avc1 / 0x31637661), yuv420p(tv), 640x480 [SAR 1:1 DAR 4:3], 900 kb/s, 15 fps, 15 tbr, 90k tbn, 30 tbc (default)
+[2016-01-13 09:10:39.616] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:10:39.616] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : VideoHandler
+[2016-01-13 09:10:39.616] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 93 kb/s (default)
+[2016-01-13 09:10:39.616] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:10:39.616] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : SoundHandler
+[2016-01-13 09:10:49.228] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:10:50.231] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:10:50.231] [INFO] MainTest - Starting 1
+[2016-01-13 09:10:50.231] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:10:50.232] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:10:50.232] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:10:50.232] [DEBUG] FFMpegTask - [1] Spawnning new ffmpeg process: /Users/guyjacubovski/dev/media-server/Utils/CongestionTest/ffmpegModule/../ffmpeg -re -i /Users/guyjacubovski/123.mp4 -c:v copy -c:a libmp3lame -f flv -rtmp_live 1 r
+[2016-01-13 09:10:50.237] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58282)
+[2016-01-13 09:10:50.248] [DEBUG] FFMpegTask - [1] [FFMPEG] ffmpeg version N-72738-gda05c62-tessus Copyright (c) 2000-2015 the FFmpeg developers
+[2016-01-13 09:10:50.248] [DEBUG] FFMpegTask - [1] [FFMPEG]   built with Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
+[2016-01-13 09:10:50.248] [DEBUG] FFMpegTask - [1] [FFMPEG]   configuration: --cc=/usr/bin/clang --prefix=/opt/ffmpeg --as=yasm --extra-version=tessus --enable-avisynth --enable-fontconfig --enable-gpl --enable-libass --enable-libbluray --enable-libfreetype --enable-libgsm --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libschroedinger --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvidstab --enable-libvo-aacenc --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzmq --enable-version3 --disable-ffplay --disable-indev=qtkit --disable-indev=x11grab_xcb
+[2016-01-13 09:10:50.249] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavutil      54. 26.101 / 54. 26.101
+[2016-01-13 09:10:50.249] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavcodec     56. 41.101 / 56. 41.101
+[2016-01-13 09:10:50.249] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavformat    56. 34.100 / 56. 34.100
+[2016-01-13 09:10:50.249] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavdevice    56.  4.100 / 56.  4.100
+[2016-01-13 09:10:50.249] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavfilter     5. 16.101 /  5. 16.101
+[2016-01-13 09:10:50.249] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswscale      3.  1.101 /  3.  1.101
+[2016-01-13 09:10:50.249] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswresample   1.  1.100 /  1.  1.100
+[2016-01-13 09:10:50.249] [DEBUG] FFMpegTask - [1] [FFMPEG]   libpostproc    53.  3.100 / 53.  3.100
+[2016-01-13 09:10:50.266] [DEBUG] FFMpegTask - [1] [FFMPEG] Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/guyjacubovski/123.mp4':
+[2016-01-13 09:10:50.267] [DEBUG] FFMpegTask - [1] [FFMPEG]   Metadata:
+[2016-01-13 09:10:50.267] [DEBUG] FFMpegTask - [1] [FFMPEG]     major_brand     : isom
+[2016-01-13 09:10:50.267] [DEBUG] FFMpegTask - [1] [FFMPEG]     minor_version   : 512
+[2016-01-13 09:10:50.267] [DEBUG] FFMpegTask - [1] [FFMPEG]     compatible_brands: isomiso2avc1mp41
+[2016-01-13 09:10:50.267] [DEBUG] FFMpegTask - [1] [FFMPEG]     encoder         : Lavf55.19.104
+[2016-01-13 09:10:50.268] [DEBUG] FFMpegTask - [1] [FFMPEG]   Duration: 01:02:44.53, start: 0.000000, bitrate: 1000 kb/s
+[2016-01-13 09:10:50.268] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:0(und): Video: h264 (Baseline) (avc1 / 0x31637661), yuv420p(tv), 640x480 [SAR 1:1 DAR 4:3], 900 kb/s, 15 fps, 15 tbr, 90k tbn, 30 tbc (default)
+[2016-01-13 09:10:50.268] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:10:50.268] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : VideoHandler
+[2016-01-13 09:10:50.268] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 93 kb/s (default)
+[2016-01-13 09:10:50.268] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:10:50.268] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : SoundHandler
+[2016-01-13 09:11:00.237] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:11:00.238] [INFO] FFMpegTask - [1] stopping process  58282
+[2016-01-13 09:11:26.774] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:11:26.774] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:12:39.126] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:12:40.129] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:12:40.129] [INFO] MainTest - Starting 1
+[2016-01-13 09:12:40.130] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:12:40.130] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:12:40.130] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:12:40.131] [DEBUG] FFMpegTask - [1] Spawnning new ffmpeg process: /Users/guyjacubovski/dev/media-server/Utils/CongestionTest/ffmpegModule/../ffmpeg -re -i /Users/guyjacubovski/123.mp4 -c:v copy -c:a libmp3lame -f flv -rtmp_live 1 r
+[2016-01-13 09:12:40.135] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58303)
+[2016-01-13 09:12:40.196] [DEBUG] FFMpegTask - [1] [FFMPEG] ffmpeg version N-72738-gda05c62-tessus Copyright (c) 2000-2015 the FFmpeg developers
+[2016-01-13 09:12:40.196] [DEBUG] FFMpegTask - [1] [FFMPEG]   built with Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
+[2016-01-13 09:12:40.196] [DEBUG] FFMpegTask - [1] [FFMPEG]   configuration: --cc=/usr/bin/clang --prefix=/opt/ffmpeg --as=yasm --extra-version=tessus --enable-avisynth --enable-fontconfig --enable-gpl --enable-libass --enable-libbluray --enable-libfreetype --enable-libgsm --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libschroedinger --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvidstab --enable-libvo-aacenc --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzmq --enable-version3 --disable-ffplay --disable-indev=qtkit --disable-indev=x11grab_xcb
+[2016-01-13 09:12:40.196] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavutil      54. 26.101 / 54. 26.101
+[2016-01-13 09:12:40.196] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavcodec     56. 41.101 / 56. 41.101
+[2016-01-13 09:12:40.197] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavformat    56. 34.100 / 56. 34.100
+[2016-01-13 09:12:40.197] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavdevice    56.  4.100 / 56.  4.100
+[2016-01-13 09:12:40.197] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavfilter     5. 16.101 /  5. 16.101
+[2016-01-13 09:12:40.197] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswscale      3.  1.101 /  3.  1.101
+[2016-01-13 09:12:40.197] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswresample   1.  1.100 /  1.  1.100
+[2016-01-13 09:12:40.197] [DEBUG] FFMpegTask - [1] [FFMPEG]   libpostproc    53.  3.100 / 53.  3.100
+[2016-01-13 09:12:40.215] [DEBUG] FFMpegTask - [1] [FFMPEG] Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/guyjacubovski/123.mp4':
+[2016-01-13 09:12:40.215] [DEBUG] FFMpegTask - [1] [FFMPEG]   Metadata:
+[2016-01-13 09:12:40.215] [DEBUG] FFMpegTask - [1] [FFMPEG]     major_brand     : isom
+[2016-01-13 09:12:40.216] [DEBUG] FFMpegTask - [1] [FFMPEG]     minor_version   : 512
+[2016-01-13 09:12:40.216] [DEBUG] FFMpegTask - [1] [FFMPEG]     compatible_brands: isomiso2avc1mp41
+[2016-01-13 09:12:40.216] [DEBUG] FFMpegTask - [1] [FFMPEG]     encoder         : Lavf55.19.104
+[2016-01-13 09:12:40.216] [DEBUG] FFMpegTask - [1] [FFMPEG]   Duration: 01:02:44.53, start: 0.000000, bitrate: 1000 kb/s
+[2016-01-13 09:12:40.217] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:0(und): Video: h264 (Baseline) (avc1 / 0x31637661), yuv420p(tv), 640x480 [SAR 1:1 DAR 4:3], 900 kb/s, 15 fps, 15 tbr, 90k tbn, 30 tbc (default)
+[2016-01-13 09:12:40.217] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:12:40.217] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : VideoHandler
+[2016-01-13 09:12:40.217] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 93 kb/s (default)
+[2016-01-13 09:12:40.217] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:12:40.217] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : SoundHandler
+[2016-01-13 09:12:40.219] [DEBUG] FFMpegTask - [1] [FFMPEG] [flv @ 0x7fa163009800] Codec for stream 0 does not use global headers but container format requires global headers
+[2016-01-13 09:12:40.220] [DEBUG] FFMpegTask - [1] [FFMPEG] Output #0, flv, to 'r':
+[2016-01-13 09:12:40.220] [DEBUG] FFMpegTask - [1] [FFMPEG]   Metadata:
+[2016-01-13 09:12:40.220] [DEBUG] FFMpegTask - [1] [FFMPEG]     major_brand     : isom
+[2016-01-13 09:12:40.220] [DEBUG] FFMpegTask - [1] [FFMPEG]     minor_version   : 512
+[2016-01-13 09:12:40.220] [DEBUG] FFMpegTask - [1] [FFMPEG]     compatible_brands: isomiso2avc1mp41
+[2016-01-13 09:12:40.220] [DEBUG] FFMpegTask - [1] [FFMPEG]     encoder         : Lavf56.34.100
+[2016-01-13 09:12:40.220] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:0(und): Video: h264 ([7][0][0][0] / 0x0007), yuv420p, 640x480 [SAR 1:1 DAR 4:3], q=2-31, 900 kb/s, 15 fps, 15 tbr, 1k tbn, 90k tbc (default)
+[2016-01-13 09:12:40.220] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:12:40.220] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : VideoHandler
+[2016-01-13 09:12:40.220] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:1(eng): Audio: mp3 (libmp3lame) ([2][0][0][0] / 0x0002), 44100 Hz, stereo, fltp (default)
+[2016-01-13 09:12:40.221] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:12:40.221] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : SoundHandler
+[2016-01-13 09:12:40.221] [DEBUG] FFMpegTask - [1] [FFMPEG]       encoder         : Lavc56.41.101 libmp3lame
+[2016-01-13 09:12:40.221] [DEBUG] FFMpegTask - [1] [FFMPEG] Stream mapping:
+[2016-01-13 09:12:40.221] [DEBUG] FFMpegTask - [1] [FFMPEG]   Stream #0:0 -> #0:0 (copy)
+[2016-01-13 09:12:40.221] [DEBUG] FFMpegTask - [1] [FFMPEG]   Stream #0:1 -> #0:1 (aac (native) -> mp3 (libmp3lame))
+[2016-01-13 09:12:40.221] [DEBUG] FFMpegTask - [1] [FFMPEG] Press [q] to stop, [?] for help
+[2016-01-13 09:12:40.720] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=    1 fps=0.0 q=-1.0 size=       8kB time=00:00:00.41 bitrate= 164.5kbits/s    
+[2016-01-13 09:12:40.721] [INFO] EntryTest - [1] FFMpeg started, Operation took 591 ms
+[2016-01-13 09:12:40.721] [INFO] EntryTest - [1] waiting for live stream to be active
+[2016-01-13 09:12:40.721] [DEBUG] EntryTest - [1] retryPromise
+[2016-01-13 09:12:40.722] [DEBUG] EntryTest - [1] calling getMasterManifest
+[2016-01-13 09:12:41.232] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=    9 fps=8.9 q=-1.0 size=      61kB time=00:00:01.00 bitrate= 494.4kbits/s    
+[2016-01-13 09:12:41.732] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   16 fps= 11 q=-1.0 size=     128kB time=00:00:01.47 bitrate= 708.7kbits/s    
+[2016-01-13 09:12:42.233] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   24 fps= 12 q=-1.0 size=     193kB time=00:00:02.00 bitrate= 787.7kbits/s    
+[2016-01-13 09:12:42.739] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   31 fps= 12 q=-1.0 size=     251kB time=00:00:02.47 bitrate= 832.0kbits/s    
+[2016-01-13 09:12:43.244] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   39 fps= 13 q=-1.0 size=     318kB time=00:00:03.00 bitrate= 865.3kbits/s    
+[2016-01-13 09:12:43.753] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   47 fps= 13 q=-1.0 size=     383kB time=00:00:03.54 bitrate= 886.4kbits/s    
+[2016-01-13 09:12:44.263] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   54 fps= 13 q=-1.0 size=     466kB time=00:00:04.00 bitrate= 952.2kbits/s    
+[2016-01-13 09:12:44.766] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   62 fps= 14 q=-1.0 size=     528kB time=00:00:04.54 bitrate= 952.0kbits/s    
+[2016-01-13 09:12:45.273] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   69 fps= 14 q=-1.0 size=     590kB time=00:00:05.00 bitrate= 965.1kbits/s    
+[2016-01-13 09:12:45.771] [DEBUG] EntryTest - [1] retryPromise
+[2016-01-13 09:12:45.771] [DEBUG] EntryTest - [1] calling getMasterManifest
+[2016-01-13 09:12:45.776] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   77 fps= 14 q=-1.0 size=     653kB time=00:00:05.54 bitrate= 964.8kbits/s    
+[2016-01-13 09:12:46.286] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   85 fps= 14 q=-1.0 size=     714kB time=00:00:06.07 bitrate= 962.3kbits/s    
+[2016-01-13 09:12:46.796] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   92 fps= 14 q=-1.0 size=     799kB time=00:00:06.54 bitrate=1000.0kbits/s    
+[2016-01-13 09:12:47.294] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  100 fps= 14 q=-1.0 size=     846kB time=00:00:07.07 bitrate= 979.7kbits/s    
+[2016-01-13 09:12:47.800] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  107 fps= 14 q=-1.0 size=     909kB time=00:00:07.54 bitrate= 987.2kbits/s    
+[2016-01-13 09:12:48.310] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  115 fps= 14 q=-1.0 size=     968kB time=00:00:08.07 bitrate= 982.2kbits/s    
+[2016-01-13 09:12:48.806] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  123 fps= 14 q=-1.0 size=    1026kB time=00:00:08.60 bitrate= 976.8kbits/s    
+[2016-01-13 09:12:49.314] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  130 fps= 14 q=-1.0 size=    1096kB time=00:00:09.07 bitrate= 989.5kbits/s    
+[2016-01-13 09:12:49.822] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  138 fps= 14 q=-1.0 size=    1171kB time=00:00:09.60 bitrate= 998.6kbits/s    
+[2016-01-13 09:12:50.326] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  145 fps= 14 q=-1.0 size=    1215kB time=00:00:10.07 bitrate= 987.8kbits/s    
+[2016-01-13 09:12:50.799] [DEBUG] EntryTest - [1] retryPromise
+[2016-01-13 09:12:50.799] [DEBUG] EntryTest - [1] calling getMasterManifest
+[2016-01-13 09:12:50.825] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  153 fps= 14 q=-1.0 size=    1276kB time=00:00:10.60 bitrate= 985.5kbits/s    
+[2016-01-13 09:12:51.330] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  160 fps= 14 q=-1.0 size=    1329kB time=00:00:11.07 bitrate= 983.0kbits/s    
+[2016-01-13 09:12:51.837] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  168 fps= 14 q=-1.0 size=    1386kB time=00:00:11.60 bitrate= 978.4kbits/s    
+[2016-01-13 09:12:52.339] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  176 fps= 15 q=-1.0 size=    1436kB time=00:00:12.14 bitrate= 968.7kbits/s    
+[2016-01-13 09:12:52.842] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  183 fps= 14 q=-1.0 size=    1511kB time=00:00:12.60 bitrate= 981.7kbits/s    
+[2016-01-13 09:12:53.344] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  190 fps= 14 q=-1.0 size=    1570kB time=00:00:13.07 bitrate= 983.6kbits/s    
+[2016-01-13 09:12:53.851] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  198 fps= 15 q=-1.0 size=    1628kB time=00:00:13.60 bitrate= 980.1kbits/s    
+[2016-01-13 09:12:54.353] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  205 fps= 15 q=-1.0 size=    1673kB time=00:00:14.07 bitrate= 973.8kbits/s    
+[2016-01-13 09:12:54.866] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  213 fps= 15 q=-1.0 size=    1732kB time=00:00:14.60 bitrate= 971.3kbits/s    
+[2016-01-13 09:12:55.376] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  221 fps= 15 q=-1.0 size=    1803kB time=00:00:15.14 bitrate= 975.2kbits/s    
+[2016-01-13 09:12:55.824] [DEBUG] EntryTest - [1] retryPromise
+[2016-01-13 09:12:55.824] [DEBUG] EntryTest - [1] calling getMasterManifest
+[2016-01-13 09:12:55.877] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  228 fps= 15 q=-1.0 size=    1884kB time=00:00:15.60 bitrate= 989.0kbits/s    
+[2016-01-13 09:12:56.388] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  236 fps= 15 q=-1.0 size=    1933kB time=00:00:16.14 bitrate= 981.0kbits/s    
+[2016-01-13 09:12:56.887] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  244 fps= 15 q=-1.0 size=    2001kB time=00:00:16.67 bitrate= 983.0kbits/s    
+[2016-01-13 09:12:57.400] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  251 fps= 15 q=-1.0 size=    2069kB time=00:00:17.14 bitrate= 988.5kbits/s    
+[2016-01-13 09:12:57.903] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  259 fps= 15 q=-1.0 size=    2120kB time=00:00:17.67 bitrate= 982.4kbits/s    
+[2016-01-13 09:12:58.409] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  266 fps= 15 q=-1.0 size=    2187kB time=00:00:18.14 bitrate= 987.4kbits/s    
+[2016-01-13 09:12:58.910] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  274 fps= 15 q=-1.0 size=    2260kB time=00:00:18.67 bitrate= 991.5kbits/s    
+[2016-01-13 09:12:59.413] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  281 fps= 15 q=-1.0 size=    2314kB time=00:00:19.14 bitrate= 990.5kbits/s    
+[2016-01-13 09:12:59.913] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  289 fps= 15 q=-1.0 size=    2373kB time=00:00:19.67 bitrate= 987.9kbits/s    
+[2016-01-13 09:13:00.417] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  297 fps= 15 q=-1.0 size=    2440kB time=00:00:20.20 bitrate= 989.0kbits/s    
+[2016-01-13 09:13:00.834] [DEBUG] EntryTest - [1] retryPromise
+[2016-01-13 09:13:00.834] [DEBUG] EntryTest - [1] calling getMasterManifest
+[2016-01-13 09:13:00.921] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  304 fps= 15 q=-1.0 size=    2499kB time=00:00:20.67 bitrate= 990.2kbits/s    
+[2016-01-13 09:13:01.438] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  312 fps= 15 q=-1.0 size=    2566kB time=00:00:21.20 bitrate= 991.3kbits/s    
+[2016-01-13 09:13:01.931] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  319 fps= 15 q=-1.0 size=    2634kB time=00:00:21.67 bitrate= 995.7kbits/s    
+[2016-01-13 09:13:02.435] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  327 fps= 15 q=-1.0 size=    2693kB time=00:00:22.20 bitrate= 993.3kbits/s    
+[2016-01-13 09:13:02.938] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  334 fps= 15 q=-1.0 size=    2760kB time=00:00:22.67 bitrate= 997.1kbits/s    
+[2016-01-13 09:13:03.448] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  342 fps= 15 q=-1.0 size=    2819kB time=00:00:23.20 bitrate= 995.2kbits/s    
+[2016-01-13 09:13:03.954] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  350 fps= 15 q=-1.0 size=    2886kB time=00:00:23.74 bitrate= 995.9kbits/s    
+[2016-01-13 09:13:04.468] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  357 fps= 15 q=-1.0 size=    2946kB time=00:00:24.20 bitrate= 997.0kbits/s    
+[2016-01-13 09:13:04.985] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  365 fps= 15 q=-1.0 size=    3015kB time=00:00:24.74 bitrate= 998.3kbits/s    
+[2016-01-13 09:13:05.486] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  373 fps= 15 q=-1.0 size=    3080kB time=00:00:25.27 bitrate= 998.4kbits/s    
+[2016-01-13 09:13:05.847] [DEBUG] EntryTest - [1] retryPromise
+[2016-01-13 09:13:05.847] [DEBUG] EntryTest - [1] calling getMasterManifest
+[2016-01-13 09:13:21.088] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:13:22.101] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:13:22.102] [INFO] MainTest - Starting 1
+[2016-01-13 09:13:22.102] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:13:22.102] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:13:22.102] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:13:22.106] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58322)
+[2016-01-13 09:13:32.108] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:13:32.108] [INFO] FFMpegTask - [1] stopping process  58322
+[2016-01-13 09:13:32.109] [ERROR] EntryTest - [1] Test Failed!!!  "failed to start ffmpeg"
+[2016-01-13 09:13:41.188] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 09:13:41.188] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:13:41.189] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 09:13:41.189] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:13:41.189] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:13:42.193] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:13:42.194] [INFO] MainTest - Starting 1
+[2016-01-13 09:13:42.194] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:13:42.195] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:13:42.195] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:13:42.206] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58323)
+[2016-01-13 09:14:10.995] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:14:12.001] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:14:12.002] [INFO] MainTest - Starting 1
+[2016-01-13 09:14:12.002] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:14:12.003] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:14:12.003] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:14:12.008] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58327)
+[2016-01-13 09:14:22.010] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:14:22.010] [INFO] FFMpegTask - [1] stopping process  58327
+[2016-01-13 09:14:22.011] [ERROR] EntryTest - [1] Test Failed!!!  "failed to start ffmpeg"
+[2016-01-13 09:14:22.011] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 09:14:22.012] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:14:22.012] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 09:14:22.013] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:14:22.013] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:14:23.017] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:14:23.017] [INFO] MainTest - Starting 1
+[2016-01-13 09:14:23.017] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:14:23.017] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:14:23.017] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:14:23.020] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58328)
+[2016-01-13 09:14:33.020] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:14:33.021] [INFO] FFMpegTask - [1] stopping process  58328
+[2016-01-13 09:14:33.021] [ERROR] EntryTest - [1] Test Failed!!!  "failed to start ffmpeg"
+[2016-01-13 09:14:33.021] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 09:14:33.021] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:14:33.021] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 09:14:33.022] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:14:33.022] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:14:34.026] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:14:34.026] [INFO] MainTest - Starting 1
+[2016-01-13 09:14:34.027] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:14:34.027] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:14:34.027] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:14:34.037] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58329)
+[2016-01-13 09:14:44.041] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:14:44.041] [INFO] FFMpegTask - [1] stopping process  58329
+[2016-01-13 09:14:44.041] [ERROR] EntryTest - [1] Test Failed!!!  "failed to start ffmpeg"
+[2016-01-13 09:14:44.041] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 09:14:44.041] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:14:44.041] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 09:14:44.042] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:14:44.042] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:14:45.046] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:14:45.047] [INFO] MainTest - Starting 1
+[2016-01-13 09:14:45.047] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:14:45.047] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:14:45.047] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_%i
+[2016-01-13 09:14:45.058] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58331)
+[2016-01-13 09:14:46.148] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:14:47.163] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:14:47.164] [INFO] MainTest - Starting 1
+[2016-01-13 09:14:47.164] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:14:47.164] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:14:47.165] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:14:47.168] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58335)
+[2016-01-13 09:14:57.169] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:14:57.169] [INFO] FFMpegTask - [1] stopping process  58335
+[2016-01-13 09:14:57.170] [ERROR] EntryTest - [1] Test Failed!!!  "failed to start ffmpeg"
+[2016-01-13 09:14:57.170] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 09:14:57.170] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:14:57.170] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 09:14:57.171] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:14:57.172] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:14:58.174] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:14:58.174] [INFO] MainTest - Starting 1
+[2016-01-13 09:14:58.175] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:14:58.175] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:14:58.176] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:14:58.179] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58336)
+[2016-01-13 09:15:08.181] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:15:08.181] [INFO] FFMpegTask - [1] stopping process  58336
+[2016-01-13 09:15:08.182] [ERROR] EntryTest - [1] Test Failed!!!  "failed to start ffmpeg"
+[2016-01-13 09:15:08.182] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 09:15:08.182] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:15:08.182] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 09:15:08.182] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:15:08.183] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:15:09.186] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:15:09.186] [INFO] MainTest - Starting 1
+[2016-01-13 09:15:09.186] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:15:09.187] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:15:09.187] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:15:09.197] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58337)
+[2016-01-13 09:15:19.199] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:15:19.199] [INFO] FFMpegTask - [1] stopping process  58337
+[2016-01-13 09:15:19.200] [ERROR] EntryTest - [1] Test Failed!!!  "failed to start ffmpeg"
+[2016-01-13 09:15:19.200] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 09:15:19.200] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:15:19.200] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 09:15:19.200] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:15:19.201] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:15:20.203] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:15:20.203] [INFO] MainTest - Starting 1
+[2016-01-13 09:15:20.204] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:15:20.204] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:15:20.204] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:15:20.207] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58338)
+[2016-01-13 09:15:30.208] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:15:30.208] [INFO] FFMpegTask - [1] stopping process  58338
+[2016-01-13 09:15:30.210] [ERROR] EntryTest - [1] Test Failed!!!  "failed to start ffmpeg"
+[2016-01-13 09:15:30.210] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 09:15:30.211] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:15:30.211] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 09:15:30.211] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:15:30.212] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:15:31.888] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:15:32.892] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:15:32.892] [INFO] MainTest - Starting 1
+[2016-01-13 09:15:32.892] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:15:32.893] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:15:32.893] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:15:32.897] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58344)
+[2016-01-13 09:15:42.899] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:15:42.900] [INFO] FFMpegTask - [1] stopping process  58344
+[2016-01-13 09:15:42.900] [ERROR] EntryTest - [1] Test Failed!!!  "failed to start ffmpeg (timeout) "
+[2016-01-13 09:15:42.901] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 09:15:42.901] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:15:42.901] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 09:15:42.901] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:15:42.901] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:15:43.903] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:15:43.904] [INFO] MainTest - Starting 1
+[2016-01-13 09:15:43.904] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:15:43.904] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:15:43.904] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:15:43.907] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58345)
+[2016-01-13 09:16:01.175] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:16:02.183] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:16:02.183] [INFO] MainTest - Starting 1
+[2016-01-13 09:16:02.184] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:16:02.184] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:16:02.185] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:16:02.185] [DEBUG] FFMpegTask - [1] Spawnning new ffmpeg process: /Users/guyjacubovski/dev/media-server/Utils/CongestionTest/ffmpegModule/../ffmpeg -re -i /Users/guyjacubovski/123.mp4 -c:v copy -c:a libmp3lame -f flv -rtmp_live 1 r
+[2016-01-13 09:16:02.196] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58352)
+[2016-01-13 09:16:02.218] [DEBUG] FFMpegTask - [1] [FFMPEG] ffmpeg version N-72738-gda05c62-tessus Copyright (c) 2000-2015 the FFmpeg developers
+[2016-01-13 09:16:02.218] [DEBUG] FFMpegTask - [1] [FFMPEG]   built with Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
+[2016-01-13 09:16:02.218] [DEBUG] FFMpegTask - [1] [FFMPEG]   configuration: --cc=/usr/bin/clang --prefix=/opt/ffmpeg --as=yasm --extra-version=tessus --enable-avisynth --enable-fontconfig --enable-gpl --enable-libass --enable-libbluray --enable-libfreetype --enable-libgsm --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libschroedinger --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvidstab --enable-libvo-aacenc --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzmq --enable-version3 --disable-ffplay --disable-indev=qtkit --disable-indev=x11grab_xcb
+[2016-01-13 09:16:02.218] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavutil      54. 26.101 / 54. 26.101
+[2016-01-13 09:16:02.219] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavcodec     56. 41.101 / 56. 41.101
+[2016-01-13 09:16:02.219] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavformat    56. 34.100 / 56. 34.100
+[2016-01-13 09:16:02.219] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavdevice    56.  4.100 / 56.  4.100
+[2016-01-13 09:16:02.219] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavfilter     5. 16.101 /  5. 16.101
+[2016-01-13 09:16:02.219] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswscale      3.  1.101 /  3.  1.101
+[2016-01-13 09:16:02.219] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswresample   1.  1.100 /  1.  1.100
+[2016-01-13 09:16:02.220] [DEBUG] FFMpegTask - [1] [FFMPEG]   libpostproc    53.  3.100 / 53.  3.100
+[2016-01-13 09:16:02.250] [DEBUG] FFMpegTask - [1] [FFMPEG] Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/guyjacubovski/123.mp4':
+[2016-01-13 09:16:02.251] [DEBUG] FFMpegTask - [1] [FFMPEG]   Metadata:
+[2016-01-13 09:16:02.251] [DEBUG] FFMpegTask - [1] [FFMPEG]     major_brand     : isom
+[2016-01-13 09:16:02.251] [DEBUG] FFMpegTask - [1] [FFMPEG]     minor_version   : 512
+[2016-01-13 09:16:02.251] [DEBUG] FFMpegTask - [1] [FFMPEG]     compatible_brands: isomiso2avc1mp41
+[2016-01-13 09:16:02.251] [DEBUG] FFMpegTask - [1] [FFMPEG]     encoder         : Lavf55.19.104
+[2016-01-13 09:16:02.251] [DEBUG] FFMpegTask - [1] [FFMPEG]   Duration: 01:02:44.53, start: 0.000000, bitrate: 1000 kb/s
+[2016-01-13 09:16:02.251] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:0(und): Video: h264 (Baseline) (avc1 / 0x31637661), yuv420p(tv), 640x480 [SAR 1:1 DAR 4:3], 900 kb/s, 15 fps, 15 tbr, 90k tbn, 30 tbc (default)
+[2016-01-13 09:16:02.251] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:16:02.251] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : VideoHandler
+[2016-01-13 09:16:02.251] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 93 kb/s (default)
+[2016-01-13 09:16:02.252] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:16:02.252] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : SoundHandler
+[2016-01-13 09:16:12.196] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:16:12.196] [INFO] FFMpegTask - [1] stopping process  58352
+[2016-01-13 09:16:12.197] [ERROR] EntryTest - [1] Test Failed!!!  "failed to start ffmpeg (timeout) "
+[2016-01-13 09:16:12.197] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 09:16:12.197] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:16:12.197] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 09:16:12.198] [INFO] MainTest - Test of entry  1  failed!
+[2016-01-13 09:16:12.198] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:16:13.203] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:16:13.203] [INFO] MainTest - Starting 1
+[2016-01-13 09:16:13.204] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:16:13.204] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:16:13.204] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:16:13.204] [DEBUG] FFMpegTask - [1] Spawnning new ffmpeg process: /Users/guyjacubovski/dev/media-server/Utils/CongestionTest/ffmpegModule/../ffmpeg -re -i /Users/guyjacubovski/123.mp4 -c:v copy -c:a libmp3lame -f flv -rtmp_live 1 r
+[2016-01-13 09:16:13.216] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58353)
+[2016-01-13 09:16:13.231] [DEBUG] FFMpegTask - [1] [FFMPEG] ffmpeg version N-72738-gda05c62-tessus Copyright (c) 2000-2015 the FFmpeg developers
+[2016-01-13 09:16:13.232] [DEBUG] FFMpegTask - [1] [FFMPEG]   built with Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
+[2016-01-13 09:16:13.232] [DEBUG] FFMpegTask - [1] [FFMPEG]   configuration: --cc=/usr/bin/clang --prefix=/opt/ffmpeg --as=yasm --extra-version=tessus --enable-avisynth --enable-fontconfig --enable-gpl --enable-libass --enable-libbluray --enable-libfreetype --enable-libgsm --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libschroedinger --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvidstab --enable-libvo-aacenc --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzmq --enable-version3 --disable-ffplay --disable-indev=qtkit --disable-indev=x11grab_xcb
+[2016-01-13 09:16:13.232] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavutil      54. 26.101 / 54. 26.101
+[2016-01-13 09:16:13.232] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavcodec     56. 41.101 / 56. 41.101
+[2016-01-13 09:16:13.232] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavformat    56. 34.100 / 56. 34.100
+[2016-01-13 09:16:13.233] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavdevice    56.  4.100 / 56.  4.100
+[2016-01-13 09:16:13.233] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavfilter     5. 16.101 /  5. 16.101
+[2016-01-13 09:16:13.233] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswscale      3.  1.101 /  3.  1.101
+[2016-01-13 09:16:13.233] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswresample   1.  1.100 /  1.  1.100
+[2016-01-13 09:16:13.233] [DEBUG] FFMpegTask - [1] [FFMPEG]   libpostproc    53.  3.100 / 53.  3.100
+[2016-01-13 09:16:13.250] [DEBUG] FFMpegTask - [1] [FFMPEG] Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/guyjacubovski/123.mp4':
+[2016-01-13 09:16:13.250] [DEBUG] FFMpegTask - [1] [FFMPEG]   Metadata:
+[2016-01-13 09:16:13.250] [DEBUG] FFMpegTask - [1] [FFMPEG]     major_brand     : isom
+[2016-01-13 09:16:13.250] [DEBUG] FFMpegTask - [1] [FFMPEG]     minor_version   : 512
+[2016-01-13 09:16:13.251] [DEBUG] FFMpegTask - [1] [FFMPEG]     compatible_brands: isomiso2avc1mp41
+[2016-01-13 09:16:13.251] [DEBUG] FFMpegTask - [1] [FFMPEG]     encoder         : Lavf55.19.104
+[2016-01-13 09:16:13.251] [DEBUG] FFMpegTask - [1] [FFMPEG]   Duration: 01:02:44.53, start: 0.000000, bitrate: 1000 kb/s
+[2016-01-13 09:16:13.251] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:0(und): Video: h264 (Baseline) (avc1 / 0x31637661), yuv420p(tv), 640x480 [SAR 1:1 DAR 4:3], 900 kb/s, 15 fps, 15 tbr, 90k tbn, 30 tbc (default)
+[2016-01-13 09:16:13.251] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:16:13.251] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : VideoHandler
+[2016-01-13 09:16:13.251] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 93 kb/s (default)
+[2016-01-13 09:16:13.251] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:16:13.252] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : SoundHandler
+[2016-01-13 09:16:48.045] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:16:49.052] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:16:49.052] [INFO] MainTest - Starting 1
+[2016-01-13 09:16:49.053] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:16:49.053] [INFO] EntryTest - [1] Got url:  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:17:15.912] [INFO] EntryTest - [1] Starting FFMpeg streaming for  rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:17:15.912] [DEBUG] FFMpegTask - [1] Spawnning new ffmpeg process: /Users/guyjacubovski/dev/media-server/Utils/CongestionTest/ffmpegModule/../ffmpeg -re -i /Users/guyjacubovski/123.mp4 -c:v copy -c:a libmp3lame -f flv -rtmp_live 1 r
+[2016-01-13 09:17:15.918] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58361)
+[2016-01-13 09:17:15.931] [DEBUG] FFMpegTask - [1] [FFMPEG] ffmpeg version N-72738-gda05c62-tessus Copyright (c) 2000-2015 the FFmpeg developers
+[2016-01-13 09:17:15.931] [DEBUG] FFMpegTask - [1] [FFMPEG]   built with Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
+[2016-01-13 09:17:15.932] [DEBUG] FFMpegTask - [1] [FFMPEG]   configuration: --cc=/usr/bin/clang --prefix=/opt/ffmpeg --as=yasm --extra-version=tessus --enable-avisynth --enable-fontconfig --enable-gpl --enable-libass --enable-libbluray --enable-libfreetype --enable-libgsm --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libschroedinger --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvidstab --enable-libvo-aacenc --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzmq --enable-version3 --disable-ffplay --disable-indev=qtkit --disable-indev=x11grab_xcb
+[2016-01-13 09:17:15.932] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavutil      54. 26.101 / 54. 26.101
+[2016-01-13 09:17:15.932] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavcodec     56. 41.101 / 56. 41.101
+[2016-01-13 09:17:15.932] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavformat    56. 34.100 / 56. 34.100
+[2016-01-13 09:17:15.932] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavdevice    56.  4.100 / 56.  4.100
+[2016-01-13 09:17:15.933] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavfilter     5. 16.101 /  5. 16.101
+[2016-01-13 09:17:15.933] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswscale      3.  1.101 /  3.  1.101
+[2016-01-13 09:17:15.933] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswresample   1.  1.100 /  1.  1.100
+[2016-01-13 09:17:15.933] [DEBUG] FFMpegTask - [1] [FFMPEG]   libpostproc    53.  3.100 / 53.  3.100
+[2016-01-13 09:17:17.036] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:17:18.045] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:17:18.045] [INFO] MainTest - Starting 1
+[2016-01-13 09:17:18.045] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:17:18.045] [INFO] EntryTest - [1] Got url:  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 09:17:21.472] [INFO] EntryTest - [1] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 09:17:21.473] [DEBUG] FFMpegTask - [1] Spawnning new ffmpeg process: /Users/guyjacubovski/dev/media-server/Utils/CongestionTest/ffmpegModule/../ffmpeg -re -i /Users/guyjacubovski/123.mp4 -c:v copy -c:a libmp3lame -f flv -rtmp_live 1 rtmp://localhost:1935/live/1/abc123_1
+[2016-01-13 09:17:21.479] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58365)
+[2016-01-13 09:17:21.500] [DEBUG] FFMpegTask - [1] [FFMPEG] ffmpeg version N-72738-gda05c62-tessus Copyright (c) 2000-2015 the FFmpeg developers
+[2016-01-13 09:17:21.502] [DEBUG] FFMpegTask - [1] [FFMPEG]   built with Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)
+[2016-01-13 09:17:21.502] [DEBUG] FFMpegTask - [1] [FFMPEG]   configuration: --cc=/usr/bin/clang --prefix=/opt/ffmpeg --as=yasm --extra-version=tessus --enable-avisynth --enable-fontconfig --enable-gpl --enable-libass --enable-libbluray --enable-libfreetype --enable-libgsm --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libschroedinger --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvidstab --enable-libvo-aacenc --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzmq --enable-version3 --disable-ffplay --disable-indev=qtkit --disable-indev=x11grab_xcb
+[2016-01-13 09:17:21.502] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavutil      54. 26.101 / 54. 26.101
+[2016-01-13 09:17:21.503] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavcodec     56. 41.101 / 56. 41.101
+[2016-01-13 09:17:21.503] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavformat    56. 34.100 / 56. 34.100
+[2016-01-13 09:17:21.503] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavdevice    56.  4.100 / 56.  4.100
+[2016-01-13 09:17:21.503] [DEBUG] FFMpegTask - [1] [FFMPEG]   libavfilter     5. 16.101 /  5. 16.101
+[2016-01-13 09:17:21.503] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswscale      3.  1.101 /  3.  1.101
+[2016-01-13 09:17:21.503] [DEBUG] FFMpegTask - [1] [FFMPEG]   libswresample   1.  1.100 /  1.  1.100
+[2016-01-13 09:17:21.504] [DEBUG] FFMpegTask - [1] [FFMPEG]   libpostproc    53.  3.100 / 53.  3.100
+[2016-01-13 09:17:21.523] [DEBUG] FFMpegTask - [1] [FFMPEG] Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/guyjacubovski/123.mp4':
+[2016-01-13 09:17:21.523] [DEBUG] FFMpegTask - [1] [FFMPEG]   Metadata:
+[2016-01-13 09:17:21.524] [DEBUG] FFMpegTask - [1] [FFMPEG]     major_brand     : isom
+[2016-01-13 09:17:21.524] [DEBUG] FFMpegTask - [1] [FFMPEG]     minor_version   : 512
+[2016-01-13 09:17:21.524] [DEBUG] FFMpegTask - [1] [FFMPEG]     compatible_brands: isomiso2avc1mp41
+[2016-01-13 09:17:21.524] [DEBUG] FFMpegTask - [1] [FFMPEG]     encoder         : Lavf55.19.104
+[2016-01-13 09:17:21.524] [DEBUG] FFMpegTask - [1] [FFMPEG]   Duration: 01:02:44.53, start: 0.000000, bitrate: 1000 kb/s
+[2016-01-13 09:17:21.524] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:0(und): Video: h264 (Baseline) (avc1 / 0x31637661), yuv420p(tv), 640x480 [SAR 1:1 DAR 4:3], 900 kb/s, 15 fps, 15 tbr, 90k tbn, 30 tbc (default)
+[2016-01-13 09:17:21.524] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:17:21.524] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : VideoHandler
+[2016-01-13 09:17:21.525] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 93 kb/s (default)
+[2016-01-13 09:17:21.525] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:17:21.525] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : SoundHandler
+[2016-01-13 09:17:21.534] [DEBUG] FFMpegTask - [1] [FFMPEG] [tcp @ 0x7f9811408e20] Connection to tcp://localhost:1935 failed (Connection refused), trying next address
+[2016-01-13 09:17:21.591] [DEBUG] FFMpegTask - [1] [FFMPEG] [flv @ 0x7f98120a0200] Codec for stream 0 does not use global headers but container format requires global headers
+[2016-01-13 09:17:21.592] [DEBUG] FFMpegTask - [1] [FFMPEG] Output #0, flv, to 'rtmp://localhost:1935/live/1/abc123_1':
+[2016-01-13 09:17:21.592] [DEBUG] FFMpegTask - [1] [FFMPEG]   Metadata:
+[2016-01-13 09:17:21.592] [DEBUG] FFMpegTask - [1] [FFMPEG]     major_brand     : isom
+[2016-01-13 09:17:21.592] [DEBUG] FFMpegTask - [1] [FFMPEG]     minor_version   : 512
+[2016-01-13 09:17:21.592] [DEBUG] FFMpegTask - [1] [FFMPEG]     compatible_brands: isomiso2avc1mp41
+[2016-01-13 09:17:21.592] [DEBUG] FFMpegTask - [1] [FFMPEG]     encoder         : Lavf56.34.100
+[2016-01-13 09:17:21.593] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:0(und): Video: h264 ([7][0][0][0] / 0x0007), yuv420p, 640x480 [SAR 1:1 DAR 4:3], q=2-31, 900 kb/s, 15 fps, 15 tbr, 1k tbn, 90k tbc (default)
+[2016-01-13 09:17:21.593] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:17:21.593] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : VideoHandler
+[2016-01-13 09:17:21.593] [DEBUG] FFMpegTask - [1] [FFMPEG]     Stream #0:1(eng): Audio: mp3 (libmp3lame) ([2][0][0][0] / 0x0002), 44100 Hz, stereo, fltp (default)
+[2016-01-13 09:17:21.593] [DEBUG] FFMpegTask - [1] [FFMPEG]     Metadata:
+[2016-01-13 09:17:21.593] [DEBUG] FFMpegTask - [1] [FFMPEG]       handler_name    : SoundHandler
+[2016-01-13 09:17:21.594] [DEBUG] FFMpegTask - [1] [FFMPEG]       encoder         : Lavc56.41.101 libmp3lame
+[2016-01-13 09:17:21.594] [DEBUG] FFMpegTask - [1] [FFMPEG] Stream mapping:
+[2016-01-13 09:17:21.594] [DEBUG] FFMpegTask - [1] [FFMPEG]   Stream #0:0 -> #0:0 (copy)
+[2016-01-13 09:17:21.594] [DEBUG] FFMpegTask - [1] [FFMPEG]   Stream #0:1 -> #0:1 (aac (native) -> mp3 (libmp3lame))
+[2016-01-13 09:17:21.594] [DEBUG] FFMpegTask - [1] [FFMPEG] Press [q] to stop, [?] for help
+[2016-01-13 09:17:22.095] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=    1 fps=0.0 q=-1.0 size=       8kB time=00:00:00.41 bitrate= 164.5kbits/s    
+[2016-01-13 09:17:22.096] [INFO] EntryTest - [1] FFMpeg started, Operation took 4051 ms
+[2016-01-13 09:17:22.096] [INFO] EntryTest - [1] waiting for live stream to be active
+[2016-01-13 09:17:22.096] [DEBUG] EntryTest - [1] retryPromise
+[2016-01-13 09:17:22.096] [DEBUG] EntryTest - [1] calling getMasterManifest
+[2016-01-13 09:17:22.600] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=    9 fps=8.9 q=-1.0 size=      61kB time=00:00:01.00 bitrate= 494.4kbits/s    
+[2016-01-13 09:17:23.099] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   16 fps= 11 q=-1.0 size=     128kB time=00:00:01.47 bitrate= 708.7kbits/s    
+[2016-01-13 09:17:23.607] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   24 fps= 12 q=-1.0 size=     193kB time=00:00:02.00 bitrate= 787.7kbits/s    
+[2016-01-13 09:17:24.106] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   31 fps= 12 q=-1.0 size=     251kB time=00:00:02.47 bitrate= 832.0kbits/s    
+[2016-01-13 09:17:24.613] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   39 fps= 13 q=-1.0 size=     318kB time=00:00:03.00 bitrate= 865.3kbits/s    
+[2016-01-13 09:17:25.118] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   47 fps= 13 q=-1.0 size=     383kB time=00:00:03.54 bitrate= 886.4kbits/s    
+[2016-01-13 09:17:25.618] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   54 fps= 13 q=-1.0 size=     457kB time=00:00:04.00 bitrate= 933.4kbits/s    
+[2016-01-13 09:17:26.126] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   62 fps= 14 q=-1.0 size=     527kB time=00:00:04.54 bitrate= 951.2kbits/s    
+[2016-01-13 09:17:26.620] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   69 fps= 14 q=-1.0 size=     590kB time=00:00:05.00 bitrate= 964.4kbits/s    
+[2016-01-13 09:17:27.113] [DEBUG] EntryTest - [1] retryPromise
+[2016-01-13 09:17:27.113] [DEBUG] EntryTest - [1] calling getMasterManifest
+[2016-01-13 09:17:27.128] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   77 fps= 14 q=-1.0 size=     646kB time=00:00:05.54 bitrate= 954.6kbits/s    
+[2016-01-13 09:17:27.635] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   84 fps= 14 q=-1.0 size=     714kB time=00:00:06.00 bitrate= 973.1kbits/s    
+[2016-01-13 09:17:28.141] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=   92 fps= 14 q=-1.0 size=     777kB time=00:00:06.54 bitrate= 973.4kbits/s    
+[2016-01-13 09:17:28.648] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  100 fps= 14 q=-1.0 size=     846kB time=00:00:07.07 bitrate= 979.2kbits/s    
+[2016-01-13 09:17:29.154] [DEBUG] FFMpegTask - [1] [FFMPEG] frame=  107 fps= 14 q=-1.0 size=     908kB time=00:00:07.54 bitrate= 986.8kbits/s    
+[2016-01-13 09:17:30.607] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:17:31.613] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:17:31.613] [INFO] MainTest - Starting 1
+[2016-01-13 09:17:31.614] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:17:31.614] [INFO] EntryTest - [1] Got url:  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 09:17:31.615] [INFO] EntryTest - [1] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 09:17:31.620] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58372)
+[2016-01-13 09:17:32.194] [INFO] EntryTest - [1] FFMpeg started, Operation took 580 ms
+[2016-01-13 09:17:32.194] [INFO] EntryTest - [1] waiting for live stream to be active
+[2016-01-13 09:17:47.235] [INFO] EntryTest - [1] Recive Url  http://localhost:1935/live/1/abc123_1/playlist.m3u8  from Wowza, Operation took  15621  ms
+[2016-01-13 09:17:47.241] [INFO] EntryTest - [1] Get master manifest succssefully
+[2016-01-13 09:17:47.242] [INFO] EntryTest - [1] About to get manifest from flavor 1010181
+[2016-01-13 09:17:47.267] [INFO] EntryTest - [1] getting ts   http://localhost:1935/live/1/abc123_1/media_w1457467637_2.ts
+[2016-01-13 09:17:47.280] [INFO] EntryTest - [1] successfully downloaded http://localhost:1935/live/1/abc123_1/media_w1457467637_2.ts
+[2016-01-13 09:17:47.281] [INFO] EntryTest - [1] Tested all chunks succssefully
+[2016-01-13 09:17:47.281] [INFO] MainTest - Entry  1  stated succsefully, waiting  10  seconds
+[2016-01-13 09:17:57.286] [INFO] MainTest - Entry  1  stopping 
+[2016-01-13 09:17:57.286] [INFO] EntryTest - [1] stopping FFMPEG
+[2016-01-13 09:17:57.287] [INFO] FFMpegTask - [1] stopping
+[2016-01-13 09:17:57.287] [INFO] FFMpegTask - [1] stopping process  58372
+[2016-01-13 09:17:57.287] [INFO] EntryTest - [1] FFMPEG stopped
+[2016-01-13 09:17:57.287] [INFO] EntryTest - [1] waiting for live stream to be active
+[2016-01-13 09:17:57.295] [INFO] EntryTest - [1] Live stopped from API, Operation took 8 ms
+[2016-01-13 09:17:57.295] [INFO] MainTest - Test of entry  1  was success!
+[2016-01-13 09:17:57.296] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:17:57.311] [WARN] FFMpegTask - [1] [FFMPEG] exited with error:  255
+[2016-01-13 09:17:58.300] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:17:58.301] [INFO] MainTest - Starting 1
+[2016-01-13 09:17:58.301] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:17:58.301] [INFO] EntryTest - [1] Got url:  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 09:17:58.302] [INFO] EntryTest - [1] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 09:17:58.305] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58374)
+[2016-01-13 09:17:58.873] [INFO] EntryTest - [1] FFMpeg started, Operation took 572 ms
+[2016-01-13 09:17:58.873] [INFO] EntryTest - [1] waiting for live stream to be active
+[2016-01-13 09:33:40.775] [INFO] MainTest - Going to start  1  in  1  seconds
+[2016-01-13 09:33:41.779] [INFO] EntryTest - [1] Generate new instance for  1
+[2016-01-13 09:33:41.780] [INFO] MainTest - Starting 1
+[2016-01-13 09:33:41.780] [INFO] EntryTest - [1] Getting rtmp url...
+[2016-01-13 09:33:41.780] [INFO] EntryTest - [1] Got url:  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 09:33:41.781] [INFO] EntryTest - [1] Starting FFMpeg streaming for  [ 'rtmp://localhost:1935/live/1/abc123_1' ]
+[2016-01-13 09:33:41.784] [INFO] FFMpegTask - [1] Spawned a new ffmpeg process (pid=58492)
+[2016-01-13 09:33:42.382] [INFO] EntryTest - [1] FFMpeg started, Operation took 602 ms
+[2016-01-13 09:33:42.383] [INFO] EntryTest - [1] waiting for live stream to be active
+[2016-01-13 09:33:57.437] [INFO] EntryTest - [1] Recive Url  http://localhost:1935/live/1/abc123_1/playlist.m3u8  from Wowza, Operation took  15657  ms
+[2016-01-13 09:33:57.442] [INFO] EntryTest - [1] Get master manifest succssefully
+[2016-01-13 09:33:57.443] [INFO] EntryTest - [1] About to get manifest from flavor 1010181
+[2016-01-13 09:33:57.448] [INFO] EntryTest - [1] getting ts   http://localhost:1935/live/1/abc123_1/media_w1178284449_1.ts
+[2016-01-13 09:33:57.453] [INFO] EntryTest - [1] successfully downloaded http://localhost:1935/live/1/abc123_1/media_w1178284449_1.ts
+[2016-01-13 09:33:57.454] [INFO] EntryTest - [1] Tested all chunks succssefully
+[2016-01-13 09:33:57.454] [INFO] MainTest - Entry  1  stated succsefully, waiting  10  seconds
+[2016-01-13 09:34:30.903] [INFO] MainTest - Going to start  1_vlu0wh35  in  1  seconds
+[2016-01-13 09:34:31.909] [INFO] EntryTest - [1_vlu0wh35] Generate new instance for  1_vlu0wh35
+[2016-01-13 09:34:31.909] [INFO] MainTest - Starting 1_vlu0wh35
+[2016-01-13 09:34:31.910] [INFO] EntryTest - [1_vlu0wh35] Getting rtmp url...
+[2016-01-13 09:34:32.643] [INFO] console - loggedin with user 'ron.yadgar@kaltura.com' in with ks=djJ8MjA0OTkxMXwgFaeJm_6SxNuNPDdP8JXTrzLqM41zWQRB7ioCSK7ukKWob_h09zFbr7-7PZzPQMSxhc_Hc7u2vomZWJVNclrPhCEGAQnQ9WMuXuK5EgHIki8vHMinMKqzIofFwVLn1dA=
+[2016-01-13 09:34:33.003] [INFO] EntryTest - [1_vlu0wh35] Got url:  [ 'rtmp://ny-publish.kaltura.com:1935/kLive/?p=2049911&e=1_vlu0wh35&i=0&t=dba92f46/1_vlu0wh35_0' ]
+[2016-01-13 09:34:33.003] [INFO] EntryTest - [1_vlu0wh35] Starting FFMpeg streaming for  [ 'rtmp://ny-publish.kaltura.com:1935/kLive/?p=2049911&e=1_vlu0wh35&i=0&t=dba92f46/1_vlu0wh35_0' ]
+[2016-01-13 09:34:33.008] [INFO] FFMpegTask - [1_vlu0wh35] Spawned a new ffmpeg process (pid=58507)
+[2016-01-13 09:34:34.932] [INFO] EntryTest - [1_vlu0wh35] FFMpeg started, Operation took 3022 ms
+[2016-01-13 09:34:34.932] [INFO] EntryTest - [1_vlu0wh35] waiting for live stream to be active
+[2016-01-13 09:35:39.295] [INFO] EntryTest - [1_vlu0wh35] Recive Url  http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/smil:1_vlu0wh35_all.smil/playlist.m3u8  from Wowza, Operation took  67385  ms
+[2016-01-13 09:35:40.001] [INFO] EntryTest - [1_vlu0wh35] Get master manifest succssefully
+[2016-01-13 09:35:40.002] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor 996571
+[2016-01-13 09:35:40.004] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor 475136
+[2016-01-13 09:35:40.005] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor 679936
+[2016-01-13 09:35:40.005] [INFO] EntryTest - [1_vlu0wh35] About to get manifest from flavor 987136
+[2016-01-13 09:35:40.232] [INFO] EntryTest - [1_vlu0wh35] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/media-upplh2agn_b996571_3.ts
+[2016-01-13 09:35:40.252] [INFO] EntryTest - [1_vlu0wh35] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/media-usqef9w93_b987136_3.ts
+[2016-01-13 09:35:40.260] [INFO] EntryTest - [1_vlu0wh35] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/media-uf4vitme6_b679936_3.ts
+[2016-01-13 09:35:40.351] [INFO] EntryTest - [1_vlu0wh35] getting ts   http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/media-udus6cprq_b475136_3.ts
+[2016-01-13 09:35:40.404] [INFO] EntryTest - [1_vlu0wh35] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/996571/media-upplh2agn_b996571_3.ts
+[2016-01-13 09:35:40.436] [INFO] EntryTest - [1_vlu0wh35] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/987136/media-usqef9w93_b987136_3.ts
+[2016-01-13 09:35:40.447] [INFO] EntryTest - [1_vlu0wh35] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/679936/media-uf4vitme6_b679936_3.ts
+[2016-01-13 09:35:40.563] [INFO] EntryTest - [1_vlu0wh35] successfully downloaded http://kalseglive-a.akamaihd.net:80/dc-1/m/ny-live-publish3/kLive/1_vlu0wh35/475136/media-udus6cprq_b475136_3.ts
+[2016-01-13 09:35:40.563] [INFO] EntryTest - [1_vlu0wh35] Tested all chunks succssefully
+[2016-01-13 09:35:40.564] [INFO] MainTest - Entry  1_vlu0wh35  stated succsefully, waiting  10  seconds
+[2016-01-13 09:35:50.565] [INFO] MainTest - Entry  1_vlu0wh35  stopping 
+[2016-01-13 09:35:50.565] [INFO] EntryTest - [1_vlu0wh35] stopping FFMPEG
+[2016-01-13 09:35:50.565] [INFO] FFMpegTask - [1_vlu0wh35] stopping
+[2016-01-13 09:35:50.565] [INFO] FFMpegTask - [1_vlu0wh35] stopping process  58507
+[2016-01-13 09:35:50.566] [INFO] EntryTest - [1_vlu0wh35] FFMPEG stopped
+[2016-01-13 09:35:50.566] [INFO] EntryTest - [1_vlu0wh35] waiting for live stream to be active
+[2016-01-13 09:35:50.575] [WARN] FFMpegTask - [1_vlu0wh35] [FFMPEG] exited with error:  255
+[2016-01-13 09:35:53.258] [INFO] EntryTest - [1_vlu0wh35] Live stopped from API, Operation took 2692 ms
+[2016-01-13 09:35:53.258] [INFO] MainTest - Test of entry  1_vlu0wh35  was success!
+[2016-01-13 09:36:34.783] [INFO] MainTest - Going to start  1_vlu0wh35  in  1  seconds
+[2016-01-13 09:36:35.787] [INFO] EntryTest - [1_vlu0wh35] Generate new instance for  1_vlu0wh35
+[2016-01-13 09:36:35.788] [INFO] MainTest - Starting 1_vlu0wh35
+[2016-01-13 09:36:35.788] [INFO] EntryTest - [1_vlu0wh35] Getting rtmp url...
+[2016-01-13 09:36:36.106] [INFO] console - loggedin with user 'ron.yadgar@kaltura.com' in with ks=djJ8MjA0OTkxMXxt39vIb0K_V_09ApCts7fUrgqqLPjalUS6EXMnU_sD_JG0SaWI9DTiePTQG_KNYq64u9lHC01BwSu0hINQ0y52cK48003podqDXQSw5A4aJFt2C-gserI7ecDcWimXjPg=
+[2016-01-13 09:36:37.617] [INFO] EntryTest - [1_vlu0wh35] Got url:  [ 'rtmp://ny-publish.kaltura.com:1935/kLive/?p=2049911&e=1_vlu0wh35&i=0&t=dba92f46/1_vlu0wh35_0' ]
+[2016-01-13 09:36:37.618] [INFO] EntryTest - [1_vlu0wh35] Starting FFMpeg streaming for  [ 'rtmp://ny-publish.kaltura.com:1935/kLive/?p=2049911&e=1_vlu0wh35&i=0&t=dba92f46/1_vlu0wh35_0' ]
+[2016-01-13 09:36:37.622] [INFO] FFMpegTask - [1_vlu0wh35] Spawned a new ffmpeg process (pid=58524)
+[2016-01-13 09:36:38.629] [INFO] FFMpegTask - [1_vlu0wh35] stopping
+[2016-01-13 09:36:38.629] [INFO] FFMpegTask - [1_vlu0wh35] stopping process  58524
+[2016-01-13 09:36:38.630] [ERROR] EntryTest - [1_vlu0wh35] Test Failed!!!  "failed to start ffmpeg (timeout) "
+[2016-01-13 09:36:38.630] [INFO] EntryTest - [1_vlu0wh35] stopping FFMPEG
+[2016-01-13 09:36:38.630] [INFO] FFMpegTask - [1_vlu0wh35] stopping
+[2016-01-13 09:36:38.630] [INFO] EntryTest - [1_vlu0wh35] FFMPEG stopped
+[2016-01-13 09:36:38.630] [INFO] MainTest - Test of entry  1_vlu0wh35  failed!
+[2016-01-13 09:36:38.634] [WARN] FFMpegTask - [1_vlu0wh35] [FFMPEG] exited with error:  1

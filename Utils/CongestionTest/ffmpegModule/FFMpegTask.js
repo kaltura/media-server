@@ -1,8 +1,9 @@
 'use strict';
 var child_process=require("child_process");
-var LoggerEx=require('./utils.js').LoggerEx;
-var Utils=require('./utils.js');
+var LoggerEx=require('./../utils.js').LoggerEx;
+var Utils=require('./../utils.js');
 
+var config = require('config');
 var Q=require('q');
 
 
@@ -91,6 +92,17 @@ FFMpegTask.prototype.start=function() {
     this._process.on('error', processError);
 
     this._waitForStart=def.promise;
+
+
+    setTimeout(function() {
+
+        if ( _this._progressInfo.frames===0) {
+
+            _this.stop();
+            def.reject("failed to start ffmpeg (timeout) ");
+        }
+
+    },config.entryTest.ffmpegTimeout*1000);
 
     return this._waitForStart;
 }

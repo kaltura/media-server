@@ -3,7 +3,9 @@ var kle = require('./API/KalturaLiveEntries.js').KalturaLiveEntries;
 var q = require('q');
 var _ = require('underscore');
 var EntryTest=require('./EntryTest.js');
-
+var LoggerEx = require('./utils').LoggerEx;
+var WowzaTestInfo = require('./testInfo.js').WowzaTestInfo;
+var KalturaTestInfo = require('./testInfo.js').KalturaTestInfo;
 
 
 /*
@@ -44,29 +46,36 @@ kle.getEntries(false).then(function(res) {
 */
 
 
+var logger = LoggerEx("MainTest","");
 
-var logger = require('./logger')("main");
+var streamEntry=function(testInfo,minDelay,maxDelay,duration) {
 
-
-var streamEntry=function(entryId,minDelay,maxDelay,duration) {
+    if (_.isObject(testInfo)) {
+        testInfo=new WowzaTestInfo(testInfo);
+    } else {
+        testInfo=new KalturaTestInfo(testInfo);
+    }
+    var id= testInfo.id;
 
     var delay = minDelay + Math.random()*(maxDelay-minDelay);
 
-    logger.info("Going to start ",entryId," in ",delay,' seconds');
+    logger.info("Going to start ",id," in ",delay,' seconds');
     return q.delay(delay*1000).then(function() {
-        var entryTestInstance = new EntryTest(entryId);
+        var entryTestInstance = new EntryTest(testInfo);
 
-        logger.info("Starting",entryId);
+        logger.info("Starting",id);
         return entryTestInstance.start().then(function () {
+            logger.info("Entry ",id," stated succsefully, waiting ",duration," seconds")
             return q.delay(duration * 1000);
         }).then(function () {
+            logger.info("Entry ",id," stopping ");
             return entryTestInstance.stop();
         }).then(function () {
-            logger.info("Test of entry ",entryId," was success!")
+            logger.info("Test of entry ",id," was success!")
             return q.resolve(true);
         }).catch(function (err) {
             //test failed
-            logger.info("Test of entry ",entryId," failed!")
+            logger.info("Test of entry ",id," failed!")
             return q.resolve(false);
         });
     }).then(function(result) {
@@ -76,7 +85,6 @@ var streamEntry=function(entryId,minDelay,maxDelay,duration) {
 
 var fixedEntries=config.entires.slice(0,config.test.fixedEntries.count);
 fixedEntries.forEach(function(entryId){
-
     streamEntry(entryId, config.test.fixedEntries.minDelay,config.test.fixedEntries.maxDelay, config.test.fixedEntries.duration);
 });
 
@@ -89,7 +97,6 @@ changingEntries.forEach(function(entryId){
 });
 
 
-console.warn(changingEntries);
 (function wait () {
     setTimeout(wait, 1000);
 })();
