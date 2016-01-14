@@ -94,7 +94,7 @@ public class LiveStreamEntry extends ModuleBase {
 	protected final static String STREAM_PROPERTY_SUFFIX = "suffix";
 	protected final static String APPLICATION_MANAGERS_PROPERTY_NAME = "ApplicationManagers";
     private final static String READY_FOR_PLAYBACK_MINIMUM_CHUNK_COUNT = "readyForPlaybackMinimumChunkCount";
-    private final static int DEFAULT_MINIMUM_CHUNKS = 3;
+    private final static int DEFAULT_MINIMUM_CHUNKS = 4;
 
 	protected final static int INVALID_SERVER_INDEX = -1;
 
@@ -306,7 +306,7 @@ public class LiveStreamEntry extends ModuleBase {
 				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, liveStreamManager.get(entryId), serverIndex, applicationName, stream, assetParamsId);
 				KalturaEventsManager.raiseEvent(event);
 			}
-            // Check if packetizer already exists, if so reset flag in order for READY_FOR_PLAYBACK to be lunched
+            // Check if packetizer already exists, if so reset flag in order for READY_FOR_PLAYBACK to be raised
 			checkIfPacketierExists(stream);
 		}
 
@@ -1101,18 +1101,30 @@ public class LiveStreamEntry extends ModuleBase {
         }
 
         private void raiseReadyForPlaybackEvent() {
-			try {
-				IMediaStream mediaStream = this.packetizerCupertino.getAndSetStartStream(null);
-				WMSProperties clientProperties = mediaStream.getProperties();
-				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
-				String entryId = getEntryIdFromStreamName(mediaStream.getName());
-				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_READY_FOR_PLAYBACK, liveStreamManager.get(entryId), serverIndex, applicationName, mediaStream);
-				KalturaEventsManager.raiseEvent(event);
-				eventLunched = true;
-			}
-			catch (Exception err) {
-				logger.error(err);
-			}
+			// Create the even on an outer thread because using liveStreamManager.get(entryId) can take a long time due to lock
+			// of all the entries done in several different places in the code.
+			TimerTask raiseReadyForPlaybackEvent = new TimerTask() {
+
+				@Override
+				public void run() {
+					try {
+						IMediaStream mediaStream = packetizerCupertino.getAndSetStartStream(null);
+						WMSProperties clientProperties = mediaStream.getProperties();
+						KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+						String entryId = getEntryIdFromStreamName(mediaStream.getName());
+						KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_READY_FOR_PLAYBACK, liveStreamManager.get(entryId), serverIndex, applicationName, mediaStream);
+						KalturaEventsManager.raiseEvent(event);
+						eventLunched = true;
+					}
+					catch (Exception err) {
+						logger.error(err);
+					}
+				}
+			};
+
+			Timer timer = new Timer("register- readyForPlaybackEvent" , true);
+			timer.schedule(raiseReadyForPlaybackEvent, 0);
+			logger.debug("Scheduled initial timer - READY_FOR_PLAYBACK");
         }
     }
 

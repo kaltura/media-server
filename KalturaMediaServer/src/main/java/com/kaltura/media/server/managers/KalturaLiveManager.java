@@ -186,6 +186,10 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 				@Override
 				public void run() {
+					if(!isEntryRegistered()) {
+						logger.info("Entry's not registered, can't call setEntryMediaServer");
+						return;
+					}
 					logger.info("Initial timer task running [" + liveEntry.id + "] - PLAYABLE");
 					setEntryMediaServer(liveEntry, index, KalturaLiveEntryStatus.PLAYABLE);
 					readyForPlayback = true;
