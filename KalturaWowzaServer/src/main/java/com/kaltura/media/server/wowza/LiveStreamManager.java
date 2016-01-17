@@ -80,7 +80,10 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 
 		recordingManager = new RecordingManager(this);
 		KalturaEventsManager.registerEventConsumer(this, 
-				KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, KalturaEventType.STREAM_PUBLISHED, KalturaEventType.STREAM_UNPUBLISHED);
+				KalturaMediaEventType.MEDIA_STREAM_PUBLISHED,
+				KalturaEventType.STREAM_PUBLISHED,
+				KalturaEventType.STREAM_UNPUBLISHED,
+				KalturaEventType.STREAM_READY_FOR_PLAYBACK);
 		setInitialized();
 	}
 
