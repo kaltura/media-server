@@ -50,7 +50,7 @@ KalturaTestInfo.prototype.getRtmpUrl=function() {
                         url=url.replace(key,value);
                     });
 
-                    return url.substring(0,url.length-2)+index;
+                    return url.substring(0,url.length-2)+(index+1);
                 }
             );
             return q.resolve(newList);

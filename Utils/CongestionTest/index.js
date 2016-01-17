@@ -7,7 +7,6 @@ var LoggerEx = require('./utils').LoggerEx;
 var WowzaTestInfo = require('./testInfo.js').WowzaTestInfo;
 var KalturaTestInfo = require('./testInfo.js').KalturaTestInfo;
 
-
 /*
 
 kle.getConversionProfiles().then(function(res) {
@@ -108,7 +107,7 @@ var changingEntries=entries.slice(config.test.fixedEntries.count,config.test.fix
 
 changingEntries.forEach(function(entryId){
 
-    streamEntry(entryId, config.test.fixedEntries.minDelay,config.test.fixedEntries.maxDelay,  config.test.changingEntries.duration);
+    streamEntry(entryId, config.test.changingEntries.minDelay,config.test.changingEntries.maxDelay,  config.test.changingEntries.duration);
 });
 
 
