@@ -1016,7 +1016,9 @@ public class LiveStreamEntry extends ModuleBase {
 			String managers = properties.getPropertyStr(LiveStreamEntry.APPLICATION_MANAGERS_PROPERTY_NAME);
 			logger.debug("managers: " + managers);
 			try {
-				KalturaServer.getInstance().initApplicationManagers(managers.replaceAll(" ", "").split(","));
+				if (managers.length()>0) {
+					KalturaServer.getInstance().initApplicationManagers(managers.replaceAll(" ", "").split(","));
+				}
 			} catch (Exception e) {
 				logger.error("An error occurred: " + e.getMessage());
 			}
