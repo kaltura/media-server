@@ -190,9 +190,14 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 						logger.info("Entry's not registered, can't call setEntryMediaServer");
 						return;
 					}
-					logger.info("Initial timer task running [" + liveEntry.id + "] - PLAYABLE");
-					setEntryMediaServer(liveEntry, index, KalturaLiveEntryStatus.PLAYABLE);
-					readyForPlayback = true;
+					try{
+						logger.info("Initial timer task running [" + liveEntry.id + "] - PLAYABLE");
+						setEntryMediaServer(liveEntry, index, KalturaLiveEntryStatus.PLAYABLE);
+						readyForPlayback = true;
+					}
+					catch (Exception err) {
+						logger.error(err);
+					}
 				}
 			};
 
