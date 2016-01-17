@@ -50,18 +50,19 @@ var logger = LoggerEx("MainTest","");
 
 var streamEntry=function(testInfo,minDelay,maxDelay,duration) {
 
+    var testObj=null;
     if (_.isObject(testInfo)) {
-        testInfo=new WowzaTestInfo(testInfo);
+        testObj=new WowzaTestInfo(testInfo);
     } else {
-        testInfo=new KalturaTestInfo(testInfo);
+        testObj=new KalturaTestInfo(testInfo);
     }
-    var id= testInfo.id;
+    var id= testObj.id;
 
     var delay = minDelay + Math.random()*(maxDelay-minDelay);
 
     logger.info("Going to start ",id," in ",delay,' seconds');
     return q.delay(delay*1000).then(function() {
-        var entryTestInstance = new EntryTest(testInfo);
+        var entryTestInstance = new EntryTest(testObj);
 
         logger.info("Starting",id);
         return entryTestInstance.start().then(function () {
@@ -79,17 +80,31 @@ var streamEntry=function(testInfo,minDelay,maxDelay,duration) {
             return q.resolve(false);
         });
     }).then(function(result) {
-        return streamEntry(entryId,minDelay,maxDelay,duration);
+        return streamEntry(testInfo,minDelay,maxDelay,duration);
     });
 };
 
-var fixedEntries=config.entires.slice(0,config.test.fixedEntries.count);
+var entries=config.entires;
+
+/*
+entries=[];
+
+for (var i=0;i<3;i++) {
+
+    entries.push({
+        "id": i,
+        "rtmpUrls":["rtmp://localhost:1935/live/"+i+"/abc123_1"],
+        "m3u8Url":"http://localhost:1935/live/"+i+"/abc123_1/playlist.m3u8"
+    });
+}*/
+
+var fixedEntries=entries.slice(0,config.test.fixedEntries.count);
 fixedEntries.forEach(function(entryId){
     streamEntry(entryId, config.test.fixedEntries.minDelay,config.test.fixedEntries.maxDelay, config.test.fixedEntries.duration);
 });
 
 
-var changingEntries=config.entires.slice(config.test.fixedEntries.count,config.test.fixedEntries+config.test.changingEntries.count-1);
+var changingEntries=entries.slice(config.test.fixedEntries.count,config.test.fixedEntries+config.test.changingEntries.count-1);
 
 changingEntries.forEach(function(entryId){
 
