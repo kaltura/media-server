@@ -31,6 +31,7 @@ import com.kaltura.client.KalturaMultiResponse;
 import com.kaltura.client.KalturaServiceBase;
 import com.kaltura.client.enums.KalturaDVRStatus;
 import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.enums.KalturaLiveEntryStatus;
 import com.kaltura.client.types.KalturaConversionProfileAssetParams;
 import com.kaltura.client.types.KalturaConversionProfileAssetParamsFilter;
 import com.kaltura.client.types.KalturaConversionProfileAssetParamsListResponse;
@@ -188,16 +189,27 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 			index = serverIndex;
 
+			// run this task now to let the server know we are broadcasting
+			TimerTask setMediaServerTaskBroadcasting = new TimerTask() {
+
+				@Override
+				public void run() {
+					logger.debug("Initial timer task running [" + liveEntry.id + "]");
+					setEntryMediaServer(liveEntry, index, KalturaLiveEntryStatus.BROADCASTING);
+				}
+			};
+
 			TimerTask setMediaServerTask = new TimerTask() {
 
 				@Override
 				public void run() {
 					logger.debug("Initial timer task running [" + liveEntry.id + "]");
-					setEntryMediaServer(liveEntry, index);
+					setEntryMediaServer(liveEntry, index, KalturaLiveEntryStatus.PLAYABLE);
 				}
 			};
 
 			timer = new Timer("register-" + liveEntry.id, true);
+			timer.schedule(setMediaServerTaskBroadcasting, 0);
 			timer.schedule(setMediaServerTask, isLiveRegistrationMinBufferTime);
 			logger.debug("Scheduled initial timer [" + liveEntry.id + "]");
 
@@ -714,17 +726,17 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 	}
 
 	protected void entryStillAlive(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
-		setEntryMediaServer(liveEntry, serverIndex);
+		setEntryMediaServer(liveEntry, serverIndex, KalturaLiveEntryStatus.PLAYABLE);
 	}
 
-	protected void setEntryMediaServer(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex) {
-		logger.debug("Register media server [" + hostname + "] entry [" + liveEntry.id + "] index [" + serverIndex.hashCode + "]");
+	protected void setEntryMediaServer(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex, KalturaLiveEntryStatus liveEntryStatus) {
+		logger.debug("Register media server [" + hostname + "] partner [" + liveEntry.partnerId + "] entry [" + liveEntry.id + "] index [" + serverIndex.hashCode + "] entry status [" + liveEntryStatus + "]");
 
 		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
 		KalturaServiceBase liveServiceInstance = getLiveServiceInstance(impersonateClient);
 		try {
-			Method method = liveServiceInstance.getClass().getMethod("registerMediaServer", String.class, String.class, KalturaMediaServerIndex.class);
-			KalturaLiveEntry updatedEntry = (KalturaLiveEntry)method.invoke(liveServiceInstance, liveEntry.id, hostname, serverIndex);
+			Method method = liveServiceInstance.getClass().getMethod("registerMediaServer", String.class, String.class, KalturaMediaServerIndex.class, String.class, KalturaLiveEntryStatus.class );
+			KalturaLiveEntry updatedEntry = (KalturaLiveEntry)method.invoke(liveServiceInstance, liveEntry.id, hostname, serverIndex, (String)null, liveEntryStatus);
 
 			if(updatedEntry != null){
 				synchronized (entries) {
@@ -737,6 +749,9 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 					}
 				}
 			}
+			else{
+				logger.info("updatedEntry is null");
+			}
 
 		} catch (Exception e) {
 			if (e instanceof InvocationTargetException) {
@@ -746,6 +761,9 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 					logger.info("About to disconnect stream " + liveEntry.id);
 					this.disconnectStream(liveEntry.id);
 				}
+			}
+			else{
+				logger.info("Got exception in setEntryMediaServer " + e);
 			}
 		}
 	}
