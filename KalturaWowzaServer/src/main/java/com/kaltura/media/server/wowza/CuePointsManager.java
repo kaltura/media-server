@@ -227,18 +227,21 @@ public class CuePointsManager  extends ModuleBase  {
 
 		@Override
 		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
-
 			Timer t;
 			synchronized (listenerStreams) {
 				t = listenerStreams.remove(streamName);
 			}
+			cancelScheduledTask(t,streamName);
+		}
+
+		public void cancelScheduledTask(Timer t,String streamName){
 			if (t!=null) {
 				logger.debug("Stopping CuePoints timer for stream " + streamName);
 				t.cancel();
 				t.purge();
 			} else {
 
-				logger.error("Unpublishing a stream that does not exist in streams map: " + streamName);
+				logger.error("Stream "+ streamName+" does not exist in streams map");
 			}
 		}
 
@@ -272,9 +275,9 @@ public class CuePointsManager  extends ModuleBase  {
 			final Timer t;
 			synchronized (listenerStreams) {
 				if (listenerStreams.containsKey(streamName)) {
-					//TODO, can this situation occur? need to reset timer?
 					logger.error("Stream with name " + streamName + " already exists in streams map");
 					t = listenerStreams.get(streamName);
+					cancelScheduledTask(t,streamName);
 				}
 				else {
 					logger.debug("Stream with name " + streamName + " does not exist in streams map. creating a new map entry.");
