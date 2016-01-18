@@ -250,11 +250,7 @@ public class CuePointsManager  extends ModuleBase  {
 
 				for (String streamName : listenerStreams.keySet()) {
 					Timer t = listenerStreams.get(streamName);
-					if (t!=null) {
-						logger.warn("dispose Stopping CuePoints timer for stream " + streamName);
-						t.cancel();
-						t.purge();
-					}
+					cancelScheduledTask(t,streamName);
 				}
 				listenerStreams.clear();
 			}
@@ -272,18 +268,19 @@ public class CuePointsManager  extends ModuleBase  {
 
 			logger.debug("Stream [" + streamName + "] entry [" + streamName + "]");
 
-			final Timer t;
+			Timer t;
 			synchronized (listenerStreams) {
 				if (listenerStreams.containsKey(streamName)) {
-					logger.error("Stream with name " + streamName + " already exists in streams map");
-					t = listenerStreams.get(streamName);
+					logger.error("Stream with name " + streamName + " already exists in streams map, cancelling old one");
+					t = listenerStreams.remove(streamName);
 					cancelScheduledTask(t,streamName);
 				}
 				else {
 					logger.debug("Stream with name " + streamName + " does not exist in streams map. creating a new map entry.");
-					t = new Timer();
-					listenerStreams.put(streamName, t);
 				}
+				t = new Timer();
+				listenerStreams.put(streamName, t);
+
 			}
 
 			logger.debug("Running timer to create sync points for stream " + streamName);
