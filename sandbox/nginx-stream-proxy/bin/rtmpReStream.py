@@ -104,6 +104,9 @@ class App(object):
  
   def run_args(self, args, appname='rtmpReStream.py'):
     self.appname = appname
+    if  not len(args):
+	self.usage()
+	return 1 
     isresp = issrc = isidx = isdst = False
     for arg in args:
       if arg == '--src':
@@ -153,7 +156,7 @@ class App(object):
     del self	
  
   def usage(self):
-    print "usage: %s [--src] <rtmp_file(s)> [--dst] <rtmp server ip address[:port]> [--re] <optional, file to save server responces>" % (self.appname)
+    print "usage: %s [--src] <rtmp_file(s)> [--idx] <path to rtmp index file>  [--dst] <rtmp server ip address[:port]> [--re] <optional, file to save server responces>" % (self.appname)
     print "INFILE may be '-' for stdin"
 
   def __del__(self):
