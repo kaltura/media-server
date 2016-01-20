@@ -437,11 +437,11 @@ ngx_check_file_is_valid(ngx_stream_dump_file_handler_t *f)
 		return 0;
 	} else if (f->faio->tf.file.offset  < f->conf->min_file_size ){
 	   	ngx_log_error(NGX_LOG_ERR,f->faio->tf.file.log, 0, "ngx_dump_file_check_reopen. deleting file %s since it's size too small (%d vs %d)",
-    			f->faio->tf.file.offset,f->conf->min_file_size);
+	   			f->faio->tf.file.name.data,f->faio->tf.file.offset,f->conf->min_file_size);
 		return 0;
 	} else if (ngx_time() - f->created  < f->conf->min_file_duration ){
 		ngx_log_error(NGX_LOG_ERR,f->faio->tf.file.log, 0, "ngx_dump_file_check_reopen. deleting file %s since it's duration too short (%d vs %d)",
-           			ngx_time() - f->created,f->conf->min_file_duration);
+				f->faio->tf.file.name.data,ngx_time() - f->created,f->conf->min_file_duration);
         return 0;
 	}
 	return 1;
