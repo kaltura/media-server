@@ -128,13 +128,13 @@ static ngx_command_t  ngx_stream_dump_commands[] = {
             	NGX_STREAM_SRV_CONF|NGX_CONF_TAKE1,
                 ngx_conf_set_off_slot,
                 NGX_STREAM_SRV_CONF_OFFSET,
-                offsetof(ngx_stream_dump_srv_conf_t, dump_file_min_size),
+                offsetof(ngx_stream_dump_srv_conf_t, min_file_size),
                 NULL },
 		{ ngx_string("dump_file_max_duration"),
 				NGX_STREAM_SRV_CONF|NGX_CONF_TAKE1,
 				ngx_conf_set_sec_slot,
 				NGX_STREAM_SRV_CONF_OFFSET,
-				offsetof(ngx_stream_dump_srv_conf_t, min_file_duration),
+				offsetof(ngx_stream_dump_srv_conf_t, max_file_duration),
 				NULL },
 		{ ngx_string("dump_file_min_duration"),
         		NGX_STREAM_SRV_CONF|NGX_CONF_TAKE1,
@@ -197,13 +197,13 @@ ngx_stream_dump_create_srv_conf(ngx_conf_t *cf)
 	}
 
 	conf->original_pt = NGX_CONF_UNSET_PTR;
+	conf->min_file_size = NGX_CONF_UNSET;
 	conf->max_file_size = NGX_CONF_UNSET;
+	conf->min_file_duration = NGX_CONF_UNSET;
 	conf->max_file_duration = NGX_CONF_UNSET;
 	conf->dump_once = NGX_CONF_UNSET;
 	conf->buf_limit_size = NGX_CONF_UNSET_SIZE;//(1024*1024 + ngx_pagesize - 1) & ~(ngx_pagesize - 1);
 	conf->index_write_time_resolution = NGX_CONF_UNSET_MSEC;
-	conf->min_file_duration = NGX_CONF_UNSET;
-	conf->max_file_size = NGX_CONF_UNSET;
 
 	return conf;
 }
@@ -224,7 +224,7 @@ ngx_stream_dump_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child)
 		return NGX_CONF_ERROR;
 	}
 
-	ngx_conf_merge_off_value(conf->max_file_size,prev->max_filesize,NGX_CONF_UNSET);
+	ngx_conf_merge_off_value(conf->max_file_size,prev->max_file_size,NGX_CONF_UNSET);
 
 	ngx_conf_merge_off_value(conf->min_file_size,prev->min_file_size,NGX_CONF_UNSET);
 
@@ -434,17 +434,17 @@ ngx_check_file_is_valid(ngx_stream_dump_file_handler_t *f)
  	if(f->rtmp_stm_parse_state != NGX_DUMP_FILE_PARSE_STREAM_DONE){
     	ngx_log_error(NGX_LOG_ERR,f->faio->tf.file.log, 0, "ngx_dump_file_check_reopen. deleting file %s since stream wasn't parsed yet",
     			f->parser->stream_name.data);
-		return 1;
-	} else if (f->faio->tf.file.offset  < dscf->min_file_size ){
+		return 0;
+	} else if (f->faio->tf.file.offset  < f->conf->min_file_size ){
 	   	ngx_log_error(NGX_LOG_ERR,f->faio->tf.file.log, 0, "ngx_dump_file_check_reopen. deleting file %s since it's size too small (%d vs %d)",
-    			f->faio->tf.file.offset,dscf->min_file_size);
-		return 1;
-	} else if (ngx_time() - f->created  < dscf->min_file_duration ){
+    			f->faio->tf.file.offset,f->conf->min_file_size);
+		return 0;
+	} else if (ngx_time() - f->created  < f->conf->min_file_duration ){
 		ngx_log_error(NGX_LOG_ERR,f->faio->tf.file.log, 0, "ngx_dump_file_check_reopen. deleting file %s since it's duration too short (%d vs %d)",
-           			ngx_time() - f->created,dscf->min_file_duration);
-        return 1;
+           			ngx_time() - f->created,f->conf->min_file_duration);
+        return 0;
 	}
-	return 0;
+	return 1;
 }
 
 static void
@@ -721,7 +721,7 @@ ngx_dump_file_check_reopen(ngx_stream_dump_file_handler_t *f)
 	return NGX_OK;
 reopen:
 
-	if(ngx_check_file_is_valid(f)){
+	if(!ngx_check_file_is_valid(f)){
 		ngx_delete_file(f->faio->tf.file.name.data);
     	incr = 0;
 	} else {
@@ -730,7 +730,7 @@ reopen:
 	}
 
     f->faio->tf.file.offset = 0;
-    dump->created = ngx_time();
+    f->created = ngx_time();
    // ngx_dump_file_write_index_new_file(f,f->faio->tf.file.name);
 	if( NGX_CONF_UNSET != dscf->dump_once && dscf->dump_once ){
 			return NGX_OK;
