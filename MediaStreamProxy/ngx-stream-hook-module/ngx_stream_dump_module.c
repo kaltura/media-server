@@ -432,16 +432,16 @@ static ngx_int_t
 ngx_check_file_is_valid(ngx_stream_dump_file_handler_t *f)
 {
  	if(f->rtmp_stm_parse_state != NGX_DUMP_FILE_PARSE_STREAM_DONE){
-    	ngx_log_error(NGX_LOG_ERR,f->faio->tf.file.log, 0, "ngx_dump_file_check_reopen. deleting file %s since stream wasn't parsed yet",
-    			f->parser->stream_name.data);
+    	ngx_log_error(NGX_LOG_ERR,f->faio->tf.file.log, 0, "ngx_dump_file_check_reopen. deleting file %V since stream wasn't parsed yet",
+    			&f->faio->tf.file.name);
 		return 0;
 	} else if (f->faio->tf.file.offset  < f->conf->min_file_size ){
-	   	ngx_log_error(NGX_LOG_ERR,f->faio->tf.file.log, 0, "ngx_dump_file_check_reopen. deleting file %s since it's size too small (%d vs %d)",
-	   			f->faio->tf.file.name.data,f->faio->tf.file.offset,f->conf->min_file_size);
+	   	ngx_log_error(NGX_LOG_ERR,f->faio->tf.file.log, 0, "ngx_dump_file_check_reopen. deleting file %V since it's size too small (%d vs %d)",
+	   			&f->faio->tf.file.name,f->faio->tf.file.offset,f->conf->min_file_size);
 		return 0;
 	} else if (ngx_time() - f->created  < f->conf->min_file_duration ){
-		ngx_log_error(NGX_LOG_ERR,f->faio->tf.file.log, 0, "ngx_dump_file_check_reopen. deleting file %s since it's duration too short (%d vs %d)",
-				f->faio->tf.file.name.data,ngx_time() - f->created,f->conf->min_file_duration);
+		ngx_log_error(NGX_LOG_ERR,f->faio->tf.file.log, 0, "ngx_dump_file_check_reopen. deleting file %V since it's duration too short (%d vs %d)",
+				&f->faio->tf.file.name,ngx_time() - f->created,f->conf->min_file_duration);
         return 0;
 	}
 	return 1;
