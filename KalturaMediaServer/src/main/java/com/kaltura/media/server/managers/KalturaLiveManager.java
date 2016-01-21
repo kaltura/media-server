@@ -760,7 +760,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		setEntryMediaServer(liveEntry, serverIndex, KalturaLiveEntryStatus.PLAYABLE);
 	}
 
-	protected void 	setEntryMediaServer(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex, KalturaLiveEntryStatus liveEntryStatus) {
+	protected void setEntryMediaServer(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex, KalturaLiveEntryStatus liveEntryStatus) {
 		logger.debug("Register media server [" + hostname + "] partner [" + liveEntry.partnerId + "] entry [" + liveEntry.id + "] index [" + serverIndex.hashCode + "] entry status [" + liveEntryStatus + "]");
 
 		KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
