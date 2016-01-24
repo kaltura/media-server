@@ -1092,7 +1092,7 @@ public class LiveStreamEntry extends ModuleBase {
         public void checkChunksForPlayback() {
             try {
                 int chunkCount = this.packetizerCupertino.getChunkCount();
-                logger.info("Stream contains [" + chunkCount + "] chuncks");
+				logger.info("Stream contains [" + chunkCount + "] chuncks");
                 if (chunkCount >= readyForPlaybackMinimumChunkCount) {
                     logger.info("Raising STREAM_READY_FOR_PLAYBACK event");
                     raiseReadyForPlaybackEvent();
