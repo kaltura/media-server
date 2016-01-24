@@ -28,6 +28,9 @@ public class KalturaServer {
 	public static int MEDIA_SERVER_PARTNER_ID = -5;
 
 	public final static String KALTURA_SERVER_SECRET_KEY = "KalturaServerSecretKey";
+
+	// use the same session key for all Wowza sessions, so all (within a DC) will be directed to the same sphinx to prevent synchronization problems
+	private final static String KALTURA_PERMANENT_SESSION_KEY = "kalturaWowzaPermanentSessionKey";
 	
 	protected final static String KALTURA_SERVER_URL = "KalturaServerURL";
 	protected final static String KALTURA_SERVER_ADMIN_SECRET = "KalturaServerAdminSecret";
@@ -159,7 +162,7 @@ public class KalturaServer {
 		String userId = "MediaServer";
 		KalturaSessionType type = KalturaSessionType.ADMIN;
 		int expiry = 86400;
-		String privileges = "disableentitlement";
+		String privileges = "disableentitlement,sessionkey:" + KalturaServer.KALTURA_PERMANENT_SESSION_KEY;
 		String sessionId;
 		
 		try {
