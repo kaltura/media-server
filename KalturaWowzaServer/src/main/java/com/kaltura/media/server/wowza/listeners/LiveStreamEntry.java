@@ -1094,7 +1094,7 @@ public class LiveStreamEntry extends ModuleBase {
                 int chunkCount = this.packetizerCupertino.getChunkCount();
                 logger.info("Stream contains [" + chunkCount + "] chuncks");
                 if (chunkCount >= readyForPlaybackMinimumChunkCount) {
-                    logger.info("Raising STREAM_READY_FOR_PLAYBACK event");
+					logger.info("Stream: [" + this.streamName + "] contains [" + chunkCount + "] chunks");
                     raiseReadyForPlaybackEvent();
                 }
             } catch (Exception err) {
@@ -1111,11 +1111,14 @@ public class LiveStreamEntry extends ModuleBase {
 				public void run() {
 					try {
 						IMediaStream mediaStream = packetizerCupertino.getAndSetStartStream(null);
+						if (mediaStream == null)
+							return;
 						WMSProperties clientProperties = mediaStream.getProperties();
 						KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 						String entryId = getEntryIdFromStreamName(mediaStream.getName());
 						KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_READY_FOR_PLAYBACK, liveStreamManager.get(entryId), serverIndex, applicationName, mediaStream);
 						KalturaEventsManager.raiseEvent(event);
+						logger.info("Stream [" + mediaStream + "] raised READY_FOR_PLAYBACK");
 						eventLunched = true;
 					}
 					catch (Exception err) {
