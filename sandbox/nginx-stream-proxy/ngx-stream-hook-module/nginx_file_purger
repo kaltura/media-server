@@ -1,0 +1,98 @@
+#!/bin/sh
+#find all files older than 7 days under dir specified in dump_stream directive
+
+SCRIPT_NAME=`basename ${BASH_SOURCE[0]}`
+
+ #conf file path
+NGX_CONF_PATH=${NGX_CONF_PATH:-/etc/nginx/nginx.conf}
+
+#disk quote  %
+DISK_QUOTE_PERCNT=${DISK_QUOTE_PERCNT:-70}			
+
+#disk quote bytes
+DISK_QUOTE=${DISK_QUOTE:-0}
+
+#days to keep files
+EXPIRED_DAYS=${EXPIRED_DAYS:-7}
+
+function format()
+{
+	echo "`date` $SCRIPT_NAME $@"
+}
+
+function log()
+{
+	debug $@
+	logger "`format $@`"
+}
+
+function debug()
+{
+	echo "`format $@`"
+}
+
+function error()
+{
+	log "$@ error $?"
+	exit 1	
+}
+
+function __exec()
+{
+	eval "$@" || error "$@"
+}
+
+function check_if_empty_dir()
+{
+	debug "check_if_empty_dir $1"
+
+	[ -d "$1" ] || exit 0
+
+	local test=`find $1 -maxdepth 0 -empty`
+
+	debug "check_if_empty_dir test=$test"
+
+	[ -d "$test" ] && exit 0
+
+}
+
+debug "DISK_QUOTE_PERCNT=<$DISK_QUOTE_PERCNT> NGX_CONF_PATH=$NGX_CONF_PATH"
+
+log "$SCRIPT_NAME. entered"
+
+if [[ `sudo grep "dump_stream" $NGX_CONF_PATH` =~ dump_stream(\s*?)(.*)\; ]] 
+then
+ 	DUMP_DIR=${BASH_REMATCH[2]}
+
+	check_if_empty_dir $DUMP_DIR
+	
+	if [ "$DISK_QUOTE" -eq "0" ]
+	then
+		DISK_QUOTE=`__exec "sudo df -B 1 $DUMP_DIR" | awk 'NR > 2 {print $1}'`
+		DISK_QUOTE=$((DISK_QUOTE_PERCNT  * DISK_QUOTE / 100))
+		debug "set DISK_QUOTE=<$DISK_QUOTE>"
+		[ "$DISK_QUOTE" -eq "0" ] && exit 0
+	fi
+
+	sudo find $DUMP_DIR -mtime +$EXPIRED_DAYS -user kaltura -delete  &> /dev/null || error "sudo find $DUMP_DIR -mtime +$EXPIRED_DAYS -delete  &>"
+	sudo find $DUMP_DIR mindepth 1 -user kaltura -empty -delete  &> /dev/null 
+	while [ "`ls -A  $DUMP_DIR`" ]
+	do	
+		actual=`__exec "sudo du -B 1 $DUMP_DIR" | tail -n 1 | awk '{print $1}'` 
+		actual=${actual:-0}
+
+		log "$DUMP_DIR size = $actual DISK_QUOTE=$DISK_QUOTE"
+		[ "$DISK_QUOTE" -gt "$actual" ] && break;
+		log "erasing files"
+		sudo rm -f `sudo find $DUMP_DIR -type f -user kaltura  | tail -n 100` || error "sudo rm -f \`sudo ls -t $DUMP_DIR/*/* | tail -n 100\`"
+		sudo find $DUMP_DIR -mindepth 1 -user kaltura -empty -delete  &> /dev/null 
+		log "erasing files done"
+	done
+
+else
+	log "nginx_file_purger. did not find dump directory in $NGX_CONF_PATH"
+fi
+
+log "$SCRIPT_NAME. done"
+
+

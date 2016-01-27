@@ -1,0 +1,21 @@
+
+RTMP implementations:
+http://osflash.org/red5
+http://sourceforge.net/projects/javartmpserver
+http://dev.collab.com/rtmpy
+
+RTMP docs:
+http://osflash.org/documentation/rtmp
+
+AMF docs:
+http://osflash.org/documentation/rtmp?s=shared%20object
+  Enumerates shared object datatypes (lower-level than AMF), FLV stream
+  handshake
+http://osflash.org/documentation/amf/astypes
+  ActionScript types, decoding AMFs
+
+SO (Shared Object) docs:
+http://osflash.org/documentation/rtmp
+  Only lists SO typecodes
+
+
