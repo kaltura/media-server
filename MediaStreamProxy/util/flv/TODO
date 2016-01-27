@@ -1,0 +1,9 @@
+RTMP Tool TODO
+--------------
+
+rtmp2flv:
+  * Make audio work
+  * Dump separate video streams separately
+  * Figure out the spurious massive video timings
+
+
