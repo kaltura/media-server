@@ -1,5 +1,4 @@
 github-php-client
-bin
 .gradle
 .idea
 *.iml
@@ -15,3 +14,7 @@ KalturaMediaServer/build
 KalturaWowzaServer/release/xml
 KalturaWowzaServer/release/tmp
 KalturaWowzaServer/build
+
+**/node_modules/**
+*.o
+*.pcap

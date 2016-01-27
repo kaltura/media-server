@@ -1,0 +1,20 @@
+/*
+In order to override the configuration, create local.json on this folder, and do the changes for this file in there
+for example, changing the multicastPort to 55555
+{
+  "MulticastService": {
+        "multicastPort": 55555
+  }
+}
+*/
+{
+  "KMService": {
+    "enabled": true,
+    "listenPort": 7777,
+    "sessionRefreshPeriod": 86400,
+    "keepaliveTimeout": 5000,
+    "minTimeBeforeStoppedSec" : 50,
+    "minLiveDurationSec" : 30,
+    "minLiveChunks" : 3
+  }
+}
