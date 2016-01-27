@@ -26,7 +26,7 @@ function usage()
 
 [[ "$#" -eq "0" ]] && usage
 
-rtmp2flvScriptPath=$(readlink -e `dirname $0`/../flv/rtmp2flv.py)
+rtmp2flvScriptPath=$(readlink -e `dirname $0`/../util/flv/rtmp2flv.py)
 ffmpegPath=$(readlink -e `dirname $0`/ffmpeg)
 
 rtmp2flv=${rtmp2flv:-$rtmp2flvScriptPath}

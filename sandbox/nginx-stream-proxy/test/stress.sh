@@ -3,7 +3,7 @@
 SCRIPT_NAME=`readlink -f ${BASH_SOURCE[0]}`
 SCRIPT_DIR=`dirname $SCRIPT_NAME`
 
-. $SCRIPT_DIR/check.sh
+. $SCRIPT_DIR/../util/check.sh
 
 function error()
 {
