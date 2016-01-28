@@ -9,8 +9,10 @@
 typedef struct {
 	ngx_stream_handler_pt   original_pt;
 	ngx_path_t			   *dump_dir;
-	off_t				   max_filesize;
-	time_t				   max_file_duration;
+	off_t				   max_file_size,
+						   min_file_size;
+	time_t				   max_file_duration,
+						   min_file_duration;
 	ngx_flag_t			   dump_once;
 	size_t				   buf_limit_size;
 	ngx_msec_t			   index_write_time_resolution;
