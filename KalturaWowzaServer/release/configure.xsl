@@ -1,4 +1,5 @@
-l:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:ext="http://exslt.org/common"
                 version="1.0">
 <xsl:output omit-xml-declaration="no" method="xml" encoding="UTF-8" indent="no" />
@@ -188,7 +189,7 @@ l:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                                     </Property>
                                     <Property>
                                         <Name>dvrMinimumAvailableChunks</Name>
-                                        <Value>5</Value>
+                                        <Value>3</Value>
                                         <Type>Integer</Type>
                                     </Property>
                                 </xsl:with-param>
@@ -272,12 +273,12 @@ l:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                                     </Property>
                                     <Property>
                                         <Name>calculateChunkIDBasedOnTimecode</Name>
-                                        <Value>true</Value>
+                                        <Value>false</Value>
                                         <Type>boolean</Type>
                                     </Property>
                                     <Property>
                                         <Name>cupertinoCalculateChunkIDBasedOnTimecode</Name>
-                                        <Value>true</Value>
+                                        <Value>false</Value>
                                         <Type>boolean</Type>
                                     </Property>
                                     <Property>
@@ -288,6 +289,11 @@ l:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                                     <Property>
                                         <Name>cupertinoMaxChunkCount</Name>
                                         <Value>20</Value>
+                                        <Type>Integer</Type>
+                                    </Property>
+                                    <Property>
+                                        <Name>cupertinoMaxChunkLogCount</Name>
+                                        <Value>0</Value>
                                         <Type>Integer</Type>
                                     </Property>
                                     <Property>
@@ -344,12 +350,12 @@ l:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                                     </Property>
                                     <Property>
                                         <Name>calculateChunkIDBasedOnTimecode</Name>
-                                        <Value>true</Value>
+                                        <Value>false</Value>
                                         <Type>boolean</Type>
                                     </Property>
                                     <Property>
                                         <Name>cupertinoCalculateChunkIDBasedOnTimecode</Name>
-                                        <Value>true</Value>
+                                        <Value>false</Value>
                                         <Type>boolean</Type>
                                     </Property>
                                     <Property>
