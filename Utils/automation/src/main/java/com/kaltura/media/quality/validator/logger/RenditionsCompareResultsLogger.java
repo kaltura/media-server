@@ -2,6 +2,7 @@ package com.kaltura.media.quality.validator.logger;
 
 import java.io.IOException;
 
+import com.kaltura.media.quality.comparators.ImageComparator;
 import com.kaltura.media.quality.configurations.LoggerConfig;
 import com.kaltura.media.quality.event.EventsManager;
 import com.kaltura.media.quality.event.listener.IListener;
@@ -32,18 +33,21 @@ public class RenditionsCompareResultsLogger extends ResultsLogger implements ISe
 		private Segment segment1;
 		private Segment segment2;
 		private double diff;
+		private ImageComparator imageComparator;
 		
-		public RenditionsCompareResult(Segment segment1, Segment segment2, double diff) {
+		public RenditionsCompareResult(Segment segment1, Segment segment2, double diff, ImageComparator imageComparator) {
 			this.segment1 = segment1;
 			this.segment2 = segment2;
 			this.diff = diff;
+			this.imageComparator = imageComparator;
 		}
 
 		@Override
 		public Object[] getValues(){
 			return new Object[]{
 				segment1.getNumber(),
-				segment1.getRendition().getDomainHash(),
+				segment1.getRendition().getProviderName(),
+				imageComparator.getClass().getSimpleName(),
 				segment1.getRendition().getBandwidth(),
 				segment2.getRendition().getBandwidth(),
 				diff
@@ -54,7 +58,8 @@ public class RenditionsCompareResultsLogger extends ResultsLogger implements ISe
 		public String[] getHeaders() {
 			return new String[]{
 				"Segment Number",
-				"Domain",
+				"Provider",
+				"Comparator",
 				"Bitrate 1",
 				"Bitrate 2",
 				"Diff"
@@ -76,12 +81,12 @@ public class RenditionsCompareResultsLogger extends ResultsLogger implements ISe
 	}
 
 	@Override
-	public void onSegmentsResult(Segment segment1, Segment segment2, double diff) {
+	public void onSegmentsResult(Segment segment1, Segment segment2, double diff, ImageComparator imageComparator) {
 		if(!segment1.getEntryId().equals(uniqueId)){
 			return;
 		}
 
-		RenditionsCompareResult result = new RenditionsCompareResult(segment1, segment2, diff);
+		RenditionsCompareResult result = new RenditionsCompareResult(segment1, segment2, diff, imageComparator);
 		write(result);
 	}
 

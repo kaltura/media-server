@@ -179,7 +179,8 @@ public class Downloader extends Provider implements ISegmentListener, HttpRespon
 				i = j; // TODO index out of bounds in case there is nothing
 						// after #EXT-X-STREAM-INF:
 
-				rendition.setUrl(url.resolve(tempLine), name);
+				rendition.setUrl(url.resolve(tempLine));
+				rendition.setProviderName(name);
 				log.info("Adding stream: " + tempLine);
 				renditions.add(rendition);
 			}
@@ -262,7 +263,7 @@ public class Downloader extends Provider implements ISegmentListener, HttpRespon
 		for (Rendition rendition : renditions) {
 
 			stream = rendition.getUrl();
-			domainHash = rendition.getDomainHash();
+			domainHash = rendition.getProviderName();
 			streamDestination = downloadDir + "/" + playlistName + "/" + rendition.getBandwidth();
 			
 			// write stream name to file:
@@ -293,7 +294,7 @@ public class Downloader extends Provider implements ISegmentListener, HttpRespon
 			expectedSegments = new ConcurrentHashMap<String, Map<Long, ExpectedSegment>>();
 		}
 		
-		String domainHash = segment.getRendition().getDomainHash();
+		String domainHash = segment.getRendition().getProviderName();
 
 		Map<Long, ExpectedSegment> domainExpectedSegment;
 		if(expectedSegments.containsKey(domainHash)){
@@ -354,7 +355,7 @@ public class Downloader extends Provider implements ISegmentListener, HttpRespon
 		protected String getTitle() {
 			Segment segment = segments.get(0);
 			String title = uniqueId;
-			title += "-" + segment.getRendition().getDomainHash();
+			title += "-" + segment.getRendition().getProviderName();
 			title += "-" + segment.getRendition().getBandwidth();
 			title += "-" + segment.getNumber();
 			return title;

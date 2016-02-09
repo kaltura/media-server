@@ -26,7 +26,8 @@ public class DVRInputStreamEnhancer implements PlaylistEnhancer {
 			url = rendition.getUrl();
 			if (url.endsWith(DVR_SUFFIX)) {
 				newRendition = rendition.clone();
-				newRendition.setUrl(url.replace(DVR_SUFFIX, NO_DVR_SUFFIX), name);
+				newRendition.setUrl(url.replace(DVR_SUFFIX, NO_DVR_SUFFIX));
+				newRendition.setProviderName(name);
 				newSet.add(newRendition);
 			}
 		}

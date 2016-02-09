@@ -49,7 +49,7 @@ public class QRCodeCompareResultsLogger extends ResultsLogger implements IQRCode
 			
 			return new Object[]{
 				segment.getNumber(),
-				segment.getRendition().getDomainHash(),
+				segment.getRendition().getProviderName(),
 				segment.getRendition().getBandwidth(),
 				frame.getDts(),
 				frame.getPts(),
@@ -63,7 +63,7 @@ public class QRCodeCompareResultsLogger extends ResultsLogger implements IQRCode
 		public String[] getHeaders() {
 			return new String[]{
 				"Segment Number",
-				"Domain",
+				"Provider",
 				"Bitrate",
 				"DTS",
 				"PTS",

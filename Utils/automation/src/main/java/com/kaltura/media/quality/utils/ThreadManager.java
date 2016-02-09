@@ -24,22 +24,29 @@ public class ThreadManager {
 	private static ExecutorService executor  = init();
 	private static Map<String, List<FutureTask<String>>> pools = new HashMap<String, List<FutureTask<String>>>();
 	private static List<Future<String>> workers = Collections.synchronizedList(new ArrayList<Future<String>>());
-	private static long endTime; 
+	private static long endTime = 0; 
 	private static Boolean stopped = false; 
-	private static Boolean shouldRunForever = false;
+	private static Boolean shouldRunForever = true;
 	
 	private static ExecutorService init(){
 		TestConfig config = TestConfig.get();
 
-		long duration = config.getTestDuration() * 1000;
-		endTime = System.currentTimeMillis() + duration;
-		
 		int numberOfThreads = 1000;
 		if(config.hasOtherProperty("number-of-threads")){
 			numberOfThreads = (int) config.getOtherProperty("number-of-threads");
 		}
 //		return Executors.newCachedThreadPool();
 		return Executors.newFixedThreadPool(numberOfThreads);
+	}
+	
+	public static void startTestNow(){
+		if(endTime > 0) { 
+			return; // already started
+		}
+		
+		long duration = TestConfig.get().getTestDuration() * 1000;
+		endTime = System.currentTimeMillis() + duration;
+		shouldRunForever = false;
 	}
 	
 	public static void start(String poolName, Runnable worker){
@@ -169,11 +176,5 @@ public class ThreadManager {
 	        n = root.enumerate( threads, true );
 	    } while ( n == nAlloc );
 	    return java.util.Arrays.copyOf( threads, n );
-	}
-
-	public static void runForever() {
-		synchronized (shouldRunForever) {
-			shouldRunForever = true;
-		}
 	}
 }

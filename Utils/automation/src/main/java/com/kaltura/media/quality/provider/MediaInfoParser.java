@@ -75,7 +75,7 @@ public class MediaInfoParser extends Provider implements ISegmentListener {
 		@Override
 		protected String getTitle() {
 			String title = uniqueId;
-			title += "-" + segment.getRendition().getDomainHash();
+			title += "-" + segment.getRendition().getProviderName();
 			title += "-" + segment.getRendition().getBandwidth();
 			title += "-" + segment.getNumber();
 			return title;
@@ -112,7 +112,14 @@ public class MediaInfoParser extends Provider implements ISegmentListener {
 			Class<MediaInfoBase> mediaParserClass = (Class<MediaInfoBase>) Class.forName(mediaParserClassName);
 			Constructor<MediaInfoBase> constructor = mediaParserClass.getConstructor(File.class);
 			MediaInfoBase mediaParser = constructor.newInstance(segment.getFile());
-			infos.add(mediaParser.getInfo());
+			Info info = mediaParser.getInfo();
+			if(segment.getRendition().getWidth() == 0) {
+				segment.getRendition().setWidth(info.getVideo().getWidth());
+			}
+			if(segment.getRendition().getHeight() == 0) {
+				segment.getRendition().setHeight(info.getVideo().getHeight());
+			}
+			infos.add(info);
 		}
 		EventsManager.get().raiseEvent(new SegmentInfoEvent(segment, infos));
 	}

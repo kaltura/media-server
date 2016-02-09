@@ -60,7 +60,7 @@ public class QRCodeComparator extends Validator implements ISegmentFirstFrameIma
 		@Override
 		protected String getTitle() {
 			String title = segment.getEntryId();
-			title += "-" + segment.getRendition().getDomainHash();
+			title += "-" + segment.getRendition().getProviderName();
 			title += "-" + segment.getRendition().getBandwidth();
 			title += "-" + segment.getNumber();
 			return title;

@@ -11,7 +11,7 @@ public class QrCodeCompareAggregator extends Aggregator {
 	@Override
 	protected void aggregate(CSV csv, String streamName) {
 		int segmentNumber;
-		String domainHash;
+		String domain;
 		int bitrate;
 //		String dts;
 //		String pts;
@@ -21,7 +21,7 @@ public class QrCodeCompareAggregator extends Aggregator {
 
 		for (String[] record : csv) {
 			segmentNumber = Integer.valueOf(trim(record[0]));
-			domainHash = trim(record[1]);
+			domain = trim(record[1]);
 			bitrate = Integer.valueOf(trim(record[2]));
 //			dts = record[3];
 //			pts = record[4];
@@ -29,7 +29,7 @@ public class QrCodeCompareAggregator extends Aggregator {
 //			qrCodeTime = record[6];
 			diff = Double.valueOf(trim(record[7]));
 
-			addData(streamName, segmentNumber, domainHash, bitrate, "QR Code Diff", diff);
+			addData(streamName, segmentNumber, domain, bitrate, "Time Diff - QR Code", diff);
 		}
 	}
 }

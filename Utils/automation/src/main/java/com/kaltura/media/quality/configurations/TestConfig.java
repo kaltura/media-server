@@ -121,19 +121,23 @@ public class TestConfig extends Config {
     }
 
     public String getPathToFfmpeg() {
-        return pathToFfmpeg;
+    	File file = new File(pathToFfmpeg);
+        return file.getAbsolutePath();
     }
 
 	public String getPathToFfprobe() {
-		return pathToFfprobe;
+    	File file = new File(pathToFfprobe);
+        return file.getAbsolutePath();
 	}
 
 	public String getPathToMediaInfo() {
-		return pathToMediaInfo;
+    	File file = new File(pathToMediaInfo);
+        return file.getAbsolutePath();
 	}
 
     public String getDestinationFolder() {
-        return destinationFolder;
+    	File file = new File(destinationFolder);
+        return file.getAbsolutePath();
     }
 
     public String getStreamType() {

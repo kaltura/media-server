@@ -58,7 +58,7 @@ public class HttpUtils {
             response = httpClient.execute(httpGet);
 
             if (response.getStatusLine().getStatusCode() != 200 && response.getStatusLine().getStatusCode() != 201) {
-                throw new Exception("get request failed. error code: " + response.getStatusLine().getStatusCode());
+                throw new Exception("GET [" + url + "] request failed. error code: " + response.getStatusLine().getStatusCode());
             }
 
             HttpEntity entity = response.getEntity();
@@ -82,10 +82,8 @@ public class HttpUtils {
         File f = new File(destinationPath);
         URL urlObj = new URL(url);
 
-        log.info("Downloading file: " + url);
-        log.info("Destination: " + destinationPath);
+        log.info("Downloading file [" + url + "] destination [" + destinationPath + "]");
         FileUtils.copyURLToFile(urlObj, f);
-        log.info("File downloaded successfully");
         
         return f;
     }

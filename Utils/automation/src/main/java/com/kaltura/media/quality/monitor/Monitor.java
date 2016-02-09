@@ -14,6 +14,7 @@ import com.kaltura.media.quality.configurations.DataValidator;
 import com.kaltura.media.quality.configurations.LoggerConfig;
 import com.kaltura.media.quality.configurations.TestConfig;
 import com.kaltura.media.quality.provider.Provider;
+import com.kaltura.media.quality.utils.ThreadManager;
 import com.kaltura.media.quality.validator.Validator;
 import com.kaltura.media.quality.validator.logger.ResultsLogger;
 
@@ -42,6 +43,8 @@ abstract public class Monitor {
 	}
 	
 	protected void handleStream(String uniqueId) throws Exception {
+		ThreadManager.startTestNow();
+		
 		for(DataProvider dataProvider : config.getDataProviders()){
 			log.info("Create provider [" + dataProvider.getType().getName() + "] for entry [" + uniqueId + "]");
 			Constructor<Provider> constructor = dataProvider.getType().getConstructor(String.class, DataProvider.class);

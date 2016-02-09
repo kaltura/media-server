@@ -1,18 +1,18 @@
-package com.kaltura.media.quality.comparators.imagemagik;
+package com.kaltura.media.quality.comparators.qr;
 
 import com.kaltura.media.quality.comparators.BaseSegmentsComparator;
 import com.kaltura.media.quality.comparators.ImageComparator;
 import com.kaltura.media.quality.configurations.SegmentsComparatorConfig;
 
-public class ImageMagikSegmentsComparator extends BaseSegmentsComparator {
+public class QRCodeSegmentsComparator extends BaseSegmentsComparator {
 	
-	public ImageMagikSegmentsComparator(SegmentsComparatorConfig comparatorConfig) {
+	public QRCodeSegmentsComparator(SegmentsComparatorConfig comparatorConfig) {
 		super(comparatorConfig);
 	}
 
 	@Override
 	protected ImageComparator getImageComparator(String diffPath)
 	{
-		return new ImageMagikImageComparator(diffPath);
+		return new QRCodeComparator(diffPath);
 	}
 }

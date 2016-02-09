@@ -56,7 +56,7 @@ class RenditionDownloader extends Provider implements Serializable {
 		@Override
 		protected String getTitle() {
 			String title = segment.getEntryId();
-			title += "-" + segment.getRendition().getDomainHash();
+			title += "-" + segment.getRendition().getProviderName();
 			title += "-" + segment.getRendition().getBandwidth();
 			title += "-" + segment.getNumber();
 			return title;

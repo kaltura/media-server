@@ -60,17 +60,29 @@ public class MediaInfoResultsLogger extends ResultsLogger implements ISegmentInf
 			int ffprobeHeightDiff = segment.getRendition().getHeight() - ffprobeInfo.getVideo().getHeight();
 			int ffprobeBitrateDiff = segment.getRendition().getBandwidth() - ffprobeInfo.getBitrate();
 
-			double mediaInfoContainerDurationDiff = segment.getDuration() - mediaInfoInfo.getDuration();
-			double mediaInfoVideoDurationDiff = segment.getDuration() - mediaInfoInfo.getVideo().getDuration();
-			double mediaInfoAudioDurationDiff = segment.getDuration() - mediaInfoInfo.getAudio().getDuration();
-			int mediaInfoWidthDiff = segment.getRendition().getWidth() - mediaInfoInfo.getVideo().getWidth();
-			int mediaInfoHeightDiff = segment.getRendition().getHeight() - mediaInfoInfo.getVideo().getHeight();
-			int mediaInfoBitrateDiff = segment.getRendition().getBandwidth() - mediaInfoInfo.getBitrate();
-			int mediaInfoVideoMaxBitrateDiff = segment.getRendition().getBandwidth() - mediaInfoInfo.getVideo().getBitrate();
+			double mediaInfoContainerDurationDiff = 0;
+			double mediaInfoVideoDurationDiff = 0;
+			double mediaInfoAudioDurationDiff = 0;
+			double audioDelayRelativeToVideo = 0;
+			int mediaInfoWidthDiff = 0;
+			int mediaInfoHeightDiff = 0;
+			int mediaInfoBitrateDiff = 0;
+			int mediaInfoVideoMaxBitrateDiff = 0;
+			
+			if(mediaInfoInfo != null){
+				mediaInfoContainerDurationDiff = segment.getDuration() - mediaInfoInfo.getDuration();
+				mediaInfoVideoDurationDiff = segment.getDuration() - mediaInfoInfo.getVideo().getDuration();
+				mediaInfoAudioDurationDiff = segment.getDuration() - mediaInfoInfo.getAudio().getDuration();
+				audioDelayRelativeToVideo = mediaInfoInfo.getAudio().getDelayRelativeToVideo();
+				mediaInfoWidthDiff = segment.getRendition().getWidth() - mediaInfoInfo.getVideo().getWidth();
+				mediaInfoHeightDiff = segment.getRendition().getHeight() - mediaInfoInfo.getVideo().getHeight();
+				mediaInfoBitrateDiff = segment.getRendition().getBandwidth() - mediaInfoInfo.getBitrate();
+				mediaInfoVideoMaxBitrateDiff = segment.getRendition().getBandwidth() - mediaInfoInfo.getVideo().getBitrate();
+			}
 			
 			return new Object[]{
 				segment.getFile().getAbsolutePath(),
-				segment.getRendition().getDomainHash(),
+				segment.getRendition().getProviderName(),
 				segment.getRendition().getBandwidth(),
 				segment.getRendition().getResolution(),
 				
@@ -90,7 +102,7 @@ public class MediaInfoResultsLogger extends ResultsLogger implements ISegmentInf
 				ffprobeHeightDiff,
 				ffprobeBitrateDiff,
 				
-				mediaInfoInfo.getAudio().getDelayRelativeToVideo(),
+				audioDelayRelativeToVideo,
 
 				mediaInfoContainerDurationDiff,
 				mediaInfoVideoDurationDiff,
@@ -107,7 +119,7 @@ public class MediaInfoResultsLogger extends ResultsLogger implements ISegmentInf
 		public String[] getHeaders() {
 			return new String[]{
 				"File Path",
-				"Domain Hash",
+				"Provider",
 				"Rendition Bitrate",
 				"Rendition Resolution",
 				

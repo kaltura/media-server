@@ -1,7 +1,6 @@
 package com.kaltura.media.quality.event;
 
 import com.kaltura.media.quality.monitor.Monitor;
-import com.kaltura.media.quality.utils.ThreadManager;
 
 /**
  * This class monitors the system:
@@ -23,7 +22,6 @@ public class ConsumeDefferedEvents extends Monitor {
 		thread.setPriority(Thread.MIN_PRIORITY);
 		thread.setName("main");
 
-		ThreadManager.runForever();
 		EventsManager.consumeDefferedEvents();
 	}
 }

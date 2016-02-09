@@ -103,21 +103,34 @@ public class QualitySegmentsComparator implements SegmentsComparator {
 				source = segment;
 			}
 		}
+		if(!source.getFile().exists()){
+			log.info("File removed");
+			return;
+		}
+		File sourceFile = new File(source.getFile().getAbsolutePath() + ".avi");
 
 		List<String> commandLine;
 		for(Segment segment : segments){
 			if(segment == source){
 				continue;
 			}
+			if(!segment.getFile().exists()){
+				log.info("File removed");
+				return;
+			}
+			File destinationFile = new File(segment.getFile().getAbsolutePath() + ".avi");
+
+			decode(source.getFile(), sourceFile, segment.getRendition().getWidth(), segment.getRendition().getHeight());
+			decode(segment.getFile(), destinationFile, segment.getRendition().getWidth(), segment.getRendition().getHeight());
 			
 			commandLine = new ArrayList<String>(cmd);
-			
+
 			// files to compare (the first one is assumed as original, colorspace is applicable for raw files only)
 			commandLine.add("-f");
-			commandLine.add("\"" + source.getFile().getAbsolutePath() + "\"");
+			commandLine.add("\"" + sourceFile.getAbsolutePath() + "\"");
 		
 			commandLine.add("-f");
-			commandLine.add("\"" + segment.getFile().getAbsolutePath() + "\"");
+			commandLine.add("\"" + destinationFile.getAbsolutePath() + "\"");
 
 			String cmdString = StringUtils.join(commandLine, " ");
 			log.info("Executing command: " + cmdString);
@@ -142,12 +155,76 @@ public class QualitySegmentsComparator implements SegmentsComparator {
 			String output = stringBuilder.toString();
 			log.debug("##### Process Output Messages #####\n" + output);
 
+			sourceFile.delete();
+			
 			if (exitValue != 0) {
 				throw new Exception("Exec failed with exit code [" + exitValue + "]: " + cmdString);
 			}
 		}
 	}
 	
+	private void decode(File source, File destination, int width, int height) throws Exception {
+		String ffmpeg = TestConfig.get().getPathToFfmpeg();
+		
+		List<String> cmd = new ArrayList<String>();
+		cmd.add(ffmpeg);
+		cmd.add("-i");
+		cmd.add(source.getAbsolutePath());
+		
+		cmd.add("-c:v");
+		cmd.add("rawvideo");
+		
+		cmd.add("-pix_fmt");
+		cmd.add("yuv420p");
+		
+		cmd.add("-s");
+		cmd.add(width + "x" + height);
+		
+		cmd.add("-r");
+		cmd.add("25");
+		
+		cmd.add("-g");
+		cmd.add("50");
+		
+		cmd.add("-aspect");
+		cmd.add(width + ":" + height);
+		
+		cmd.add("-c:a");
+		cmd.add("copy");
+
+		cmd.add("-f");
+		cmd.add("avi");
+		
+		cmd.add(destination.getAbsolutePath());
+		
+		String cmdString = StringUtils.join(cmd, " ");
+		log.info("Executing command: " + cmdString);
+
+		ProcessBuilder processBuilder = new ProcessBuilder(cmd);
+		File stdOut = File.createTempFile("stdout", ".log");
+		processBuilder.redirectErrorStream(true);
+		processBuilder.redirectOutput(Redirect.appendTo(stdOut));
+		process = processBuilder.start();
+
+		int exitValue = process.waitFor();
+		log.debug("Exit code [" + exitValue + "]");
+
+		BufferedReader reader = new BufferedReader(new FileReader(stdOut));
+		StringBuilder stringBuilder = new StringBuilder();
+		String line = null;
+		while ((line = reader.readLine()) != null) {
+			stringBuilder.append(line);
+			stringBuilder.append("\n");
+		}
+		reader.close();
+		String output = stringBuilder.toString();
+		log.debug("##### Process Output Messages #####\n" + output);
+
+		if (exitValue != 0) {
+			throw new Exception("Exec failed with exit code [" + exitValue + "]: " + cmdString);
+		}
+	}
+
 	@Override
 	public void compare(List<Segment> segments) {
 		try {

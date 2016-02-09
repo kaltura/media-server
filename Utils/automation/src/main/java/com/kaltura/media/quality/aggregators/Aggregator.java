@@ -11,8 +11,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.apache.log4j.Logger;
 import org.apache.tools.ant.DirectoryScanner;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
@@ -24,6 +27,8 @@ import com.kaltura.media.quality.configurations.TestConfig;
 import com.kaltura.media.quality.utils.StringUtils;
 
 abstract public class Aggregator {
+	private static final Logger log = Logger.getLogger(Aggregator.class);
+	
 	private static Map<String, AggregatedStream> aggregatedData = new HashMap<String, AggregatedStream>();
 	private static Map<String, SegmentsFiles> segmentsFiles = new HashMap<String, SegmentsFiles>();
 
@@ -70,7 +75,7 @@ abstract public class Aggregator {
 		}
 
 		public String appendChart(String title, String destinationPath) throws IOException {
-			
+
 			DefaultCategoryDataset categoryDataset = new DefaultCategoryDataset();
 
 			AggregatedSegment aggregatedSegment;
@@ -80,21 +85,21 @@ abstract public class Aggregator {
 					categoryDataset.addValue(aggregatedSegment.get(segmentNumber), domain, "" + segmentNumber);
 				}
 			}
-			
+
 			JFreeChart lineChart = ChartFactory.createLineChart(title + " - bitrate [" + bitrate + "]", "Domains", "Diff", categoryDataset);
 
 			int width = 1200;
 			int height = 250;
 			int quality = 1;
-			
+
 			String fileName = title + " " + bitrate;
 			fileName = fileName.replaceAll("[\\s-]", "_");
 			fileName += ".jpg";
-			
+
 			FileOutputStream outputStream = new FileOutputStream(destinationPath + "/" + fileName);
 			ChartUtilities.writeChartAsJPEG(outputStream, quality, lineChart, width, height);
 			outputStream.close();
-			
+
 			return fileName;
 		}
 
@@ -138,8 +143,8 @@ abstract public class Aggregator {
 			}
 		}
 
-		public Map<String, String> appendCharts(String destinationPath) throws IOException {
-			Map<String, String> charts = new HashMap<String, String>();
+		public SortedMap<String, String> appendCharts(String destinationPath) throws IOException {
+			SortedMap<String, String> charts = new TreeMap<String, String>();
 			for (AggregatedBitrate aggregatedBitrate : values()) {
 				charts.put(aggregatedBitrate.appendChart(title, destinationPath), title);
 			}
@@ -163,9 +168,13 @@ abstract public class Aggregator {
 				aggregatedBitrate.appendData(segmentNumber, record);
 			}
 		}
+		
+		public String getTitle(){
+			return title;
+		}
 	}
 
-	class AggregatedStream extends HashMap<String, AggregatedValue> {
+	class AggregatedStream extends TreeMap<String, AggregatedValue> {
 		private static final long serialVersionUID = -3511593060586917671L;
 		private Set<Long> segmentsNumbers = new TreeSet<Long>();
 		private String streamName;
@@ -192,71 +201,70 @@ abstract public class Aggregator {
 
 		public void saveCSV() throws IOException {
 			String destinationPath = TestConfig.get().getDestinationFolder();
-			
-			 FileWriter writer;
-			 List<String> record;
-			 String line;
-			
-			 writer = new FileWriter(destinationPath + "/" + streamName +
-			 ".csv");
-			
-			
-			 // write titles
-			 record = new ArrayList<String>();
-			 record.add("Segment Number");
-			 for(AggregatedValue aggregatedValue : values()){
-			 aggregatedValue.appendTitle(record);
-			 }
-			 line = "\"" + StringUtils.join(record, "\",\"") + "\"\n";
-			 writer.write(line);
-			
-			 // write bitrates
-			 record = new ArrayList<String>();
-			 record.add("");
-			 for(AggregatedValue aggregatedValue : values()){
-			 aggregatedValue.appendBitrates(record);
-			 }
-			 line = StringUtils.join(record, ",") + "\n";
-			 writer.write(line);
-			
-			 // write domains
-			 record = new ArrayList<String>();
-			 record.add("");
-			 for(AggregatedValue aggregatedValue : values()){
-			 aggregatedValue.appendDomains(record);
-			 }
-			 line = StringUtils.join(record, ",") + "\n";
-			 writer.write(line);
-			
-			 // write data
-			 for(long segmentNumber : segmentsNumbers){
+
+			FileWriter writer;
+			List<String> record;
+			String line;
+
+			writer = new FileWriter(destinationPath + "/" + streamName + ".csv");
+
+			// write titles
+			record = new ArrayList<String>();
+			record.add("Segment Number");
+			for (AggregatedValue aggregatedValue : values()) {
+				aggregatedValue.appendTitle(record);
+			}
+			line = "\"" + StringUtils.join(record, "\",\"") + "\"\n";
+			writer.write(line);
+
+			// write bitrates
+			record = new ArrayList<String>();
+			record.add("");
+			for (AggregatedValue aggregatedValue : values()) {
+				aggregatedValue.appendBitrates(record);
+			}
+			line = StringUtils.join(record, ",") + "\n";
+			writer.write(line);
+
+			// write domains
+			record = new ArrayList<String>();
+			record.add("");
+			for (AggregatedValue aggregatedValue : values()) {
+				aggregatedValue.appendDomains(record);
+			}
+			line = StringUtils.join(record, ",") + "\n";
+			writer.write(line);
+
+			// write data
+			for (long segmentNumber : segmentsNumbers) {
 				record = new ArrayList<String>();
 				record.add("" + segmentNumber);
-			 for(AggregatedValue aggregatedValue : values()){
-			 aggregatedValue.appendData(segmentNumber, record);
-			 }
-			 line = StringUtils.join(record, ",") + "\n";
-			 writer.write(line);
-			 }
-			
-			 writer.close();
+				for (AggregatedValue aggregatedValue : values()) {
+//					log.info(aggregatedValue.getTitle());
+					aggregatedValue.appendData(segmentNumber, record);
+				}
+				line = StringUtils.join(record, ",") + "\n";
+				writer.write(line);
+			}
+
+			writer.close();
 		}
 
 		public void saveHTML() throws IOException {
 			String destinationPath = TestConfig.get().getDestinationFolder();
 			destinationPath += "/" + streamName;
 			File dir = new File(destinationPath);
-			if(!dir.exists()){
+			if (!dir.exists()) {
 				dir.mkdirs();
 			}
 
-			Map<String, String> charts = new HashMap<String, String>();
+			SortedMap<String, String> charts = new TreeMap<String, String>();
 			for (AggregatedValue aggregatedValue : values()) {
 				charts.putAll(aggregatedValue.appendCharts(dir.getAbsolutePath()));
 			}
 
 			String html = "<html><body>";
-			for(String chart : charts.keySet()){
+			for (String chart : charts.keySet()) {
 				html += "<br/>";
 				html += "<b>" + charts.get(chart) + "</b>";
 				html += "<br/>";
@@ -264,7 +272,7 @@ abstract public class Aggregator {
 				html += "<br/>";
 			}
 			html += "</body></html>";
-			
+
 			FileOutputStream outputStream = new FileOutputStream(destinationPath + ".html");
 			outputStream.write(html.getBytes());
 			outputStream.close();
@@ -276,7 +284,7 @@ abstract public class Aggregator {
 		}
 	}
 
-	class SegmentInfo{
+	class SegmentInfo {
 		private long segmentNumber;
 		private String domain;
 		private int bitrate;
@@ -300,7 +308,7 @@ abstract public class Aggregator {
 		}
 	}
 
-	class PendingData{
+	class PendingData {
 
 		private String title;
 		private double value;
@@ -319,42 +327,47 @@ abstract public class Aggregator {
 		}
 	}
 
-	class SegmentsFiles extends HashMap<String, SegmentInfo>{
+	class SegmentsFiles extends HashMap<String, SegmentInfo> {
 		private static final long serialVersionUID = 2606832419294125863L;
 		private String streamName;
-		private Map<String, List<PendingData>>  pendingData = new HashMap<String, List<PendingData>>();
+		private Map<String, List<PendingData>> pendingData = new HashMap<String, List<PendingData>>();
 
-		public SegmentsFiles(String streamName){
+		public SegmentsFiles(String streamName) {
 			this.streamName = streamName;
 		}
-		
+
 		public void handleData(String fileName, String title, double value) throws Exception {
 			SegmentInfo segmentInfo;
-			if(containsKey(fileName)){
+			if (containsKey(fileName)) {
 				segmentInfo = get(fileName);
 				addData(streamName, segmentInfo.getSegmentNumber(), segmentInfo.getDomain(), segmentInfo.getBitrate(), title, value);
-			}
-			else {
-				List<PendingData> pendingDataList = new ArrayList<PendingData>();
-				pendingDataList.add(new PendingData(title, value));
-				pendingData.put(fileName, pendingDataList);
+			} else {
+				PendingData pendingDataItem = new PendingData(title, value);
+				List<PendingData> pendingDataList;
+				if(pendingData.containsKey(fileName)) {
+					pendingDataList = pendingData.get(fileName);
+				} else {
+					pendingDataList = new ArrayList<PendingData>();
+					pendingData.put(fileName, pendingDataList);
+				}
+				pendingDataList.add(pendingDataItem);
 			}
 		}
 
 		public void add(String fileName, long segmentNumber, String domain, int bitrate) throws Exception {
-			if(containsKey(fileName)){
+			if (containsKey(fileName)) {
 				return;
 			}
-						
+
 			put(fileName, new SegmentInfo(segmentNumber, domain, bitrate));
-			if(pendingData.containsKey(fileName)){
-				for(PendingData data : pendingData.remove(fileName)){
+			if (pendingData.containsKey(fileName)) {
+				for (PendingData data : pendingData.remove(fileName)) {
 					addData(streamName, segmentNumber, domain, bitrate, data.getTitle(), data.getValue());
 				}
 			}
 		}
 	}
-	
+
 	class CSV extends ArrayList<String[]> {
 		private static final long serialVersionUID = -3776477674988122754L;
 
@@ -394,7 +407,7 @@ abstract public class Aggregator {
 
 		streamSegmentsFiles.handleData(fileName, title, value);
 	}
-	
+
 	protected void addData(String streamName, String fileName, long segmentNumber, String domain, int bitrate, String title, double value) throws Exception {
 		SegmentsFiles streamSegmentsFiles;
 		if (segmentsFiles.containsKey(streamName)) {
@@ -404,10 +417,10 @@ abstract public class Aggregator {
 			segmentsFiles.put(streamName, streamSegmentsFiles);
 		}
 		streamSegmentsFiles.add(fileName, segmentNumber, domain, bitrate);
-		
+
 		addData(streamName, segmentNumber, domain, bitrate, title, value);
 	}
-	
+
 	protected void addData(String streamName, long segmentNumber, String domain, int bitrate, String title, double value) {
 		AggregatedStream aggregatedStream;
 		if (aggregatedData.containsKey(streamName)) {

@@ -11,7 +11,7 @@ public class SegmentsAggregator extends Aggregator {
 	@Override
 	protected void aggregate(CSV csv, String streamName) throws Exception {
 		String filePath;
-		String domainHash;
+		String domain;
 		int bitrate;
 //		String resolution;
 		long segmentNumber;
@@ -38,7 +38,7 @@ public class SegmentsAggregator extends Aggregator {
 
 		for (String[] record : csv) {
 			filePath = trim(record[0]);
-			domainHash = trim(record[1]);
+			domain = trim(record[1]);
 			bitrate = Integer.valueOf(trim(record[2]));
 //			resolution = record[3];
 			segmentNumber = Long.valueOf(trim(record[4]));
@@ -63,17 +63,17 @@ public class SegmentsAggregator extends Aggregator {
 			mediainfoBitrateDiff = Double.valueOf(trim(record[23]));
 			mediainfoVideoMaxBitrateDiff = Double.valueOf(trim(record[24]));
 
-			addData(streamName, filePath, segmentNumber, domainHash, bitrate, "Duration Diff", durationDiff);
-			addData(streamName, filePath, segmentNumber, domainHash, bitrate, "FFprobe Container Duration Diff", ffprobeContainerDurationDiff);
-			addData(streamName, filePath, segmentNumber, domainHash, bitrate, "FFprobe Video Duration Diff", ffprobeVideoDurationDiff);
-			addData(streamName, filePath, segmentNumber, domainHash, bitrate, "FFprobe Audio Duration Diff", ffprobeAudioDurationDiff);
-			addData(streamName, filePath, segmentNumber, domainHash, bitrate, "FFprobe Bitrate Diff", ffprobeBitrateDiff);
-			addData(streamName, filePath, segmentNumber, domainHash, bitrate, "Media-info Audio Delay", mediainfoAudioDelay);
-			addData(streamName, filePath, segmentNumber, domainHash, bitrate, "Media-info Container Duration Diff", mediainfoContainerDurationDiff);
-			addData(streamName, filePath, segmentNumber, domainHash, bitrate, "Media-info Video Duration Diff", mediainfoVideoDurationDiff);
-			addData(streamName, filePath, segmentNumber, domainHash, bitrate, "Media-info Audio Duration Diff", mediainfoAudioDurationDiff);
-			addData(streamName, filePath, segmentNumber, domainHash, bitrate, "Media-info Bitrate Diff", mediainfoBitrateDiff);
-			addData(streamName, filePath, segmentNumber, domainHash, bitrate, "Media-info Video Max Bitrate Diff", mediainfoVideoMaxBitrateDiff);
+			addData(streamName, filePath, segmentNumber, domain, bitrate, "Duration Diff", durationDiff);
+			addData(streamName, filePath, segmentNumber, domain, bitrate, "Duration Diff - FFprobe Container", ffprobeContainerDurationDiff);
+			addData(streamName, filePath, segmentNumber, domain, bitrate, "Duration Diff - FFprobe Video", ffprobeVideoDurationDiff);
+			addData(streamName, filePath, segmentNumber, domain, bitrate, "Duration Diff - FFprobe Audio", ffprobeAudioDurationDiff);
+			addData(streamName, filePath, segmentNumber, domain, bitrate, "Bitrate Diff - FFprobe", ffprobeBitrateDiff);
+			addData(streamName, filePath, segmentNumber, domain, bitrate, "Audio Delay - Media-info", mediainfoAudioDelay);
+			addData(streamName, filePath, segmentNumber, domain, bitrate, "Duration Diff - Media-info Container", mediainfoContainerDurationDiff);
+			addData(streamName, filePath, segmentNumber, domain, bitrate, "Duration Diff - Media-info Video", mediainfoVideoDurationDiff);
+			addData(streamName, filePath, segmentNumber, domain, bitrate, "Duration Diff - Media-info Audio", mediainfoAudioDurationDiff);
+			addData(streamName, filePath, segmentNumber, domain, bitrate, "Bitrate Diff - Media-info", mediainfoBitrateDiff);
+			addData(streamName, filePath, segmentNumber, domain, bitrate, "Bitrate Diff - Media-info Video Max", mediainfoVideoMaxBitrateDiff);
 		}
 	}
 }

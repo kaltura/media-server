@@ -79,6 +79,8 @@
 	  "comparators" : [{
 		  "type" : "com.kaltura.media.quality.comparators.imagemagik.ImageMagikSegmentsComparator"
 	  }, {
+		  "type" : "com.kaltura.media.quality.comparators.qr.QRCodeSegmentsComparator"
+	  }, {
 		  "type" : "com.kaltura.media.quality.comparators.vqmt.QualitySegmentsComparator",
 		  "path-to-executable" : "C:/Program Files/MSU VQMT/msu_metric_64.exe",
 		  "metric" : "psnr",
