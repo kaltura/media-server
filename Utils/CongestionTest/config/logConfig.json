@@ -1,0 +1,19 @@
+{
+    "appenders": [
+        {
+            "type": "console"
+        },
+        {
+            "type": "file",
+            "filename": "logs/Test.log",
+            "maxLogSize": 1024000,
+            "backups": 3
+        }
+    ],
+
+    "replaceConsole": true,
+    "levels": {
+        "[all]": "info",
+        "FFMpegTask": "error"
+    }
+}
