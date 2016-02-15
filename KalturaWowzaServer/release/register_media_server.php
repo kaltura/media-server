@@ -1,9 +1,5 @@
 <?php
 
-require_once('../app/infra/general/BaseEnum.php');
-require_once('../app/alpha/lib/enums/serverNodeType.php');
-require_once('../app/alpha/lib/IKalturaPluginEnum.php');
-require_once('../app/plugins/media/wowza/lib/WowzaMediaServerNodeType.php');
 require_once('../app/clients/php5/KalturaClient.php');
 
 $kaltura_system_ini = "/etc/kaltura.d/system.ini";
@@ -63,4 +59,3 @@ $system_ini_content = parse_ini_file($kaltura_system_ini);
 $xml_admin_secret = getMediaAdminsecretFromXml();
 $new_client = initClient($system_ini_content, $xml_admin_secret);
 registerMediaServer ($system_ini_content, $new_client);
-
