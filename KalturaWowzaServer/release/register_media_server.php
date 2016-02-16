@@ -4,58 +4,65 @@ require_once('../app/clients/php5/KalturaClient.php');
 
 $kaltura_system_ini = "/etc/kaltura.d/system.ini";
 $broadcast_file = "../app/configurations/broadcast.ini";
+$xml_file_path="/usr/local/WowzaStreamingEngine/conf/Server.xml";
+
 
 /**
- * @param $ini_content
+ * @param $xml_file_path
  * @param $admin_secret
  * @return KalturaClient
  */
-function initClient ($ini_content, $admin_secret) {
+function initClient ($xml_file_path, $admin_secret) {
     $config = new KalturaConfiguration();
-    $config->serviceUrl = $ini_content["SERVICE_URL"].'/';
+    $config->serviceUrl = getValueFromXml($xml_file_path,"Server/Properties/Property[1]/Value").'/';
     $client = new KalturaClient($config);
     $result = $client->session->start($admin_secret, null, KalturaSessionType::ADMIN, -5, null, null);
     $client->setKs($result);
     return $client;
 }
 
+
 /**
- * @param $ini_content
+ * @param $xml_file_path
  * @param $client
  */
-function registerMediaServer ($ini_content, $client) {
+function registerMediaServer ($xml_file_path, $client) {
     $media_server_tag = "_media_server";
     $media_server_default_port = 1935;
     $media_server_default_protocol = "http";
 
     $config = new KalturaConfiguration();
-    $config->serviceUrl = $ini_content["SERVICE_URL"].'/';
+    $config->serviceUrl = getValueFromXml($xml_file_path,"Server/Properties/Property[1]/Value").'/';
     $serverNode = new KalturaWowzaMediaServerNode();
-    $serverNode->name = $ini_content["RED5_HOST"].$media_server_tag;
+    $serverNode->name = php_uname('n').$media_server_tag;
     $serverNode->systemName = '';
     $serverNode->description = '';
-    $serverNode->hostName = $ini_content["RED5_HOST"];
+    $serverNode->hostName = php_uname('n');
     $serverNode->liveServicePort = $media_server_default_port;
     $serverNode->liveServiceProtocol = $media_server_default_protocol;
     (array)$res = $client->serverNode->add($serverNode); // if there's a problem, we'd exit, otherwise it's ok to return true in the end
     $client->serverNode->enable($res->id);
-    print '['.$ini_content["RED5_HOST"]."] registered with id: ".$res->id.PHP_EOL;
+    logToFIle ('['.php_uname('n')."] registered with id: ".$res->id.PHP_EOL);
 }
 
 function logToFIle ($message) {
     print $message;
 }
 
+
 /**
- * @return mixed
+ * @param $xml_file
+ * @param $xml_path
+ * @return SimpleXMLElement
  */
-function getMediaAdminsecretFromXml () {
-    $xml_file_path=__DIR__."/../../../usr/local/WowzaStreamingEngine/conf/Server.xml";
-    $xml = simplexml_load_file($xml_file_path);
-    return $xml->Server->Properties->Property[1]->Value;
+function getValueFromXml ($xml_file, $xml_path) {
+    $xml = simplexml_load_file($xml_file);
+    $result = $xml->xpath($xml_path);
+    return $result[0];
 }
+
 // main
-$system_ini_content = parse_ini_file($kaltura_system_ini);
-$xml_admin_secret = getMediaAdminsecretFromXml();
-$new_client = initClient($system_ini_content, $xml_admin_secret);
-registerMediaServer ($system_ini_content, $new_client);
+$xml_admin_secret = getValueFromXml($xml_file_path, "Server/Properties/Property[2]/Value");
+$new_client = initClient($xml_file_path, $xml_admin_secret);
+registerMediaServer ($xml_file_path, $new_client);
+
