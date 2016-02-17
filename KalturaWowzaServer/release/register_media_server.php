@@ -1,9 +1,7 @@
 <?php
 
-require_once('../app/clients/php5/KalturaClient.php');
+require_once('/opt/kaltura/app/clients/php5/KalturaClient.php');
 
-$kaltura_system_ini = "/etc/kaltura.d/system.ini";
-$broadcast_file = "../app/configurations/broadcast.ini";
 $xml_file_path="/usr/local/WowzaStreamingEngine/conf/Server.xml";
 
 
