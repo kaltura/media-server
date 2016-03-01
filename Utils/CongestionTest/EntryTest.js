@@ -17,7 +17,12 @@ function EntryTest(testInfo) {
     var id= testInfo.id;
     var task=null;
     var logger = LoggerEx("EntryTest", id);
+    var masterM3U8=null;
 
+
+    var broadcastingTime=0;
+    var playingTime=0;
+    var stoppingTime=0;
     logger.info("Generate new instance for ",id);
 
 
@@ -37,32 +42,24 @@ function EntryTest(testInfo) {
             });
     }
 
-    function waitForLiveState(expectedState,timeOut) {
 
 
-        logger.info("waiting for live stream to be ",expectedState);
+    function waitForLiveStatus(expectedStatus,timeOut) {
+
+
+        logger.info("waiting for live stream to be ",expectedStatus);
         return retryPromise(function () {
-            logger.debug("calling getMasterManifest");
+            logger.debug("calling getLiveStatus");
 
 
-            return testInfo.getMasterManifest(logger,expectedState).then(function (masterClipList) {
+            return testInfo.getLiveStatus(logger).then(function (liveStatus) {
 
-                logger.debug("getMasterManifest returned "+masterClipList);
-                if (expectedState) {
-                    if (masterClipList) {
-                        return q.resolve(masterClipList);
-                    }
-                    else {  //try agin in some interval
-                        return q.reject();
-                    }
-                } else {
-
-                    if (masterClipList) {
-                        return q.reject();
-                    }
-                    else {  //try agin in some interval
-                        return q.resolve();
-                    }
+                logger.debug("getLiveStatus returned "+liveStatus);
+                if (expectedStatus.indexOf(liveStatus)>-1) {
+                        return q.resolve(liveStatus);
+                }
+                else {
+                    return q.reject();
                 }
             });
         }, config.entryTest.poolInterval, (1000*timeOut)/config.entryTest.poolInterval);
@@ -73,10 +70,11 @@ function EntryTest(testInfo) {
         return kle.parseChunkListM3U8(logger,flavorUrl)
             .then(function (res) {
 
-                if (res.length===0) {
+                if (res.length<config.entryTest.minimumChunksInChunkList) {
 
-                    logger.warn("err: empty chunk list  ",flavorUrl);
-                    return q.reject("empty chunk list  "+flavorUrl);
+                    var err="chunk list  "+res.length+"<"+config.entryTest.minimumChunksInChunkList+ " flavorUrl "+flavorUrl;
+                    logger.warn(err);
+                    return q.reject(err);
                 }
                 _.each(res,function(chunk){
                     if (chunk.duration<=0) {
@@ -98,29 +96,26 @@ function EntryTest(testInfo) {
             });
     }
 
-    function testHls(masterM3U8) {
-        logger.info("Testing ",masterM3U8);
+    function verifyHls() {
+
+        var promises=_.map(masterM3U8,function(flavor) {
+            logger.info("About to get manifest from flavor ",flavor.bitrate,' url: ',flavor.m3u8);
+            return getAllChuncksHeader(flavor.m3u8);
+        });
+
+        return q.all(promises);
+
+    }
+    function getMasterManifest(masterM3U8Url) {
+        logger.info("Testing ",masterM3U8Url);
 
         return retryPromise(function () {
 
-            var finishTime = new Date();
-            return kle.parseMasterM3U8(logger,masterM3U8,false)
-                .then(function(res){
-                    logger.info("Got master manifest succssefully",JSON.stringify(res));
-                    var promises=_.map(res,function(flavor) {
-                        logger.info("About to get manifest from flavor ",flavor.bitrate,' url: ',flavor.m3u8);
-                        return getAllChuncksHeader(flavor.m3u8);
-                });
+            return kle.parseMasterM3U8(logger,masterM3U8Url,false);
 
-                return q.all(promises).catch(function(e) {
-                    logger.info("Retrying testHls...");
-
-                    return q.reject(e);
-                    });
-            });
-
-
-        }, 1000, 10);
+        }, 1000, 10).then(function(res){
+            masterM3U8=res;
+        });
 
 
 
@@ -142,11 +137,10 @@ function EntryTest(testInfo) {
     that.start=function() {
         var startTime=new Date();
         logger.info("Getting rtmp url...");
-       return testInfo.getRtmpUrl()
-           .then(
-            function(urls){
-                logger.info("Got url: ",urls);
 
+       return testInfo.getRtmpUrl()
+           .then(function(urls){
+                logger.info("Got url: ",urls);
                 task=new FFMpegTask(id, [ "-re","-i",config.sourceFileNames[0],"-c:v","copy","-c:a","libmp3lame","-f","flv","-rtmp_live","1",urls[0]]);
                 logger.info("Starting FFMpeg streaming for ", urls);
                 return task.start();
@@ -154,12 +148,28 @@ function EntryTest(testInfo) {
             .then(function() {
                 var finishTime = new Date();
                 logger.info("FFMpeg started, Operation took "+ (finishTime - startTime) + " ms");
-                return waitForLiveState(true,config.entryTest.maxTimeToBeLive);
+                return waitForLiveStatus([1,2],config.entryTest.maxTimeToBeBroadcasting);
             })
-            .then(function(url){
+           .then(function(newState) {
+
+               if (newState===2) {
+                   var finishTime = new Date();
+                   logger.info("got state BROADCASTING after %s ms waiting for playing", (finishTime - startTime));
+
+                   broadcastingTime= (finishTime - startTime);
+
+                   return waitForLiveStatus([1], config.entryTest.maxTimeToBeLive);
+               }
+            })
+            .then(function() {
+               var finishTime = new Date();
+               logger.info("got state PLAYING after %s ms waiting for playing", (finishTime - startTime));
+               playingTime= (finishTime - startTime);
+               return testInfo.getMasterManifest(logger);
+            }).then(function (masterClipListUrl) {
                 var finishTime = new Date();
-                logger.info("Received Url ",url," from wowza, Operation took ", (finishTime - startTime) , " ms");
-                return testHls(url);
+                logger.info("Received Url ",masterClipListUrl," from wowza, Operation took ", (finishTime - startTime) , " ms");
+                return getMasterManifest(masterClipListUrl);
             })
             .then(function(){
                 logger.info("Tested all chunks succssefully");
@@ -172,17 +182,36 @@ function EntryTest(testInfo) {
            });
     }
 
+    that.verifyAlive=function() {
+        logger.info("Verify stream is alive");
+
+        return waitForLiveStatus([1])
+            .then(function() {
+                return verifyHls();
+            });
+    }
+
     that.stop=function() {
         stopffmpegTask();
         var startTime = new Date();
-        return waitForLiveState(false,config.entryTest.maxTimeToBeOffline)
+        return waitForLiveStatus([0],config.entryTest.maxTimeToBeOffline)
             .then(function() {
 
                 var finishTime = new Date();
-                logger.info("Live stopped from API, Operation took "+ (finishTime.getTime() - startTime.getTime()) + " ms");
+                logger.info("Live stopped from API, Operation took "+ (finishTime - startTime) + " ms");
+                stoppingTime=finishTime-startTime;
                 return q.resolve();
                 });
 
+    };
+
+    that.getResults=function() {
+
+        return {
+            broadcastingTime: broadcastingTime,
+            playingTime: playingTime,
+            stoppingTime: stoppingTime
+        };
     };
 
 

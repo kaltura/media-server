@@ -4,6 +4,7 @@ var q = require('q');
 var _ = require('underscore');
 var EntryTest=require('./EntryTest.js');
 var LoggerEx = require('./utils').LoggerEx;
+var repeatPromise = require('./utils').repeatPromise;
 var WowzaTestInfo = require('./testInfo.js').WowzaTestInfo;
 var KalturaTestInfo = require('./testInfo.js').KalturaTestInfo;
 
@@ -65,20 +66,26 @@ var streamEntry=function(testInfo,minDelay,maxDelay,duration) {
 
         logger.info("Starting",id);
         return entryTestInstance.start().then(function () {
-            logger.info("Entry",id,"strated succsefully, waiting ",duration," seconds")
-            return q.delay(duration * 1000);
+            logger.info("Entry",id,"strated succsefully, waiting ",duration," seconds");
+            return repeatPromise(logger,function() {
+                return entryTestInstance.verifyAlive();
+            },60*1000,Math.round(duration/60));
         }).then(function () {
             logger.info("Entry",id,"stopping");
             return entryTestInstance.stop();
         }).then(function () {
-            logger.info("Test of entry ",id," was success!")
+            logger.info("Test of entry %s was success! %j",id,entryTestInstance.getResults());
             return q.resolve(true);
         }).catch(function (err) {
             //test failed
-            logger.info("Test of entry ",id," failed!")
-            return q.resolve(false);
+            logger.info("Test of entry ",id," failed!",err);
+
+            logger.info("Entry",id,"stopping");
+            return entryTestInstance.stop().then (function() {
+                return q.resolve(false);
+            });
         });
-    }).then(function(result) {
+    }).finally(function(result) {
         return streamEntry(testInfo,minDelay,maxDelay,duration);
     });
 };

@@ -7,7 +7,7 @@
     "mkdirp": "^0.5.1",
     "path": "^0.12.7",
     "q": "1.4.1",
-    "request": "2.65.0",
+    "request": "2.67.0",
     "retry-promise": "^1.0.0",
     "underscore": "1.8.3"
   }
