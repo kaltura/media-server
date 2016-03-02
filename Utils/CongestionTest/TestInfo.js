@@ -53,16 +53,25 @@ WowzaTestInfo.prototype.getLiveStatus=function(logger) {
 
 
 
-function KalturaTestInfo(entryId) {
+function KalturaTestInfo(entryObj) {
 
-    this.id=entryId;
+    this.id=entryObj.entryId;
+    this.useBackup=entryObj.useBackup;
 }
 
 KalturaTestInfo.prototype.getRtmpInfo=function() {
 
+    var self=this;
     return  kle.getEntry(this.id)
         .then(function(entry) {
-            return q.resolve( { urls: [entry.primaryBroadcastingUrl + "/" + entry.streamName,entry.secondaryBroadcastingUrl + "/" + entry.streamName], bitrates: entry.bitrates, flavorParamsIds: entry.flavorParamsIds});
+            var urls=[];
+            if (entry.primaryBroadcastingUrl) {
+                urls.push(entry.primaryBroadcastingUrl+ "/" + entry.streamName);
+            }
+            if (self.useBackup && entry.secondaryBroadcastingUrl ) {
+                urls.push(entry.secondaryBroadcastingUrl+ "/" + entry.streamName);
+            }
+            return q.resolve( { urls: urls, bitrates: entry.bitrates, flavorParamsIds: entry.flavorParamsIds});
         })
         .then(function(results){
 

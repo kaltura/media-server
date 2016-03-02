@@ -53,10 +53,10 @@ var testResults = LoggerEx("testResults","");
 var streamEntry=function(testInfo,minDelay,maxDelay,duration) {
 
     var testObj=null;
-    if (_.isObject(testInfo)) {
-        testObj=new WowzaTestInfo(testInfo);
-    } else {
+    if (testInfo.entryId) {
         testObj=new KalturaTestInfo(testInfo);
+    } else {
+        testObj=new WowzaTestInfo(testInfo);
     }
     var id= testObj.id;
 

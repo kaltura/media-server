@@ -151,11 +151,11 @@ function EntryTest(testInfo) {
                 logger.info("Got rtmpInfo: %j",rtmpInfo);
 
               var rtmps= _.reduce(rtmpInfo.urls,function(old,value) {
-                   return old.concat(["-f", "flv", "-rtmp_live", "1", value]);
+                   return old.concat(["-c:v", "copy", "-c:a", "libmp3lame","-f", "flv", "-rtmp_live", "1", value]);
                },[]);
 
                if (runffmpeg) {
-                   task = new FFMpegTask(id, ["-re", "-i", config.sourceFileNames[0], "-c:v", "copy", "-c:a", "libmp3lame"].concat(rtmps));
+                   task = new FFMpegTask(id, ["-re", "-i", config.sourceFileNames[0]].concat(rtmps));
                    logger.info("Starting FFMpeg streaming");
                    return task.start();
                }
@@ -183,10 +183,7 @@ function EntryTest(testInfo) {
                 logger.info("Received Url ",masterClipListUrl," Operation took ", (finishTime - startTime) , " ms");
                 return getMasterManifest(masterClipListUrl);
             }).then(function(){
-                logger.info("Parsed master manifest succssefully, waiting for chunklist to be available");
-                return that.verifyAlive(true);
-            }).then(function(){
-               logger.info("chunklist available");
+               logger.info("Parsed master manifest successfully, starting was successfull");
                return q.resolve();
             }).catch(function(err) {
                logger.error("Test Failed!!! ",err);
