@@ -15,12 +15,12 @@ function WowzaTestInfo(info) {
     this.id=info.id;
 }
 
-WowzaTestInfo.prototype.getRtmpUrl=function() {
-    return q.resolve(this._info.rtmpUrls);
+WowzaTestInfo.prototype.getRtmpInfo=function() {
+    return q.resolve(this._info.rtmpInfo);
 }
 
 
-WowzaTestInfo.prototype.getMasterManifest=function(logger) {
+WowzaTestInfo.prototype.getMasterManifestUrl=function(logger) {
     var _this=this;
     return kle.parseMasterM3U8(logger,_this._info.m3u8Url,false).then(function(flavors) {
 
@@ -58,36 +58,44 @@ function KalturaTestInfo(entryId) {
     this.id=entryId;
 }
 
-KalturaTestInfo.prototype.getRtmpUrl=function() {
+KalturaTestInfo.prototype.getRtmpInfo=function() {
 
     return  kle.getEntry(this.id)
         .then(function(entry) {
-            return q.resolve([entry.primaryBroadcastingUrl + "/" + entry.streamName]);
+            return q.resolve( { urls: [entry.primaryBroadcastingUrl + "/" + entry.streamName,entry.secondaryBroadcastingUrl + "/" + entry.streamName], bitrates: entry.bitrates, flavorParamsIds: entry.flavorParamsIds});
         })
-        .then(function(urls){
+        .then(function(results){
 
-            var newList=_.map(urls,function(url,index) {
+            results.urls= _.map(results.urls,function(url,index) {
                     _.each(config.rtmpReplace,function(value,key) {
                         url=url.replace(key,value);
                     });
 
-                    return url.substring(0,url.length-2)+(index+1);
+                    return url.substring(0,url.length-2)+(1);
                 }
             );
-            return q.resolve(newList);
+            return q.resolve(results);
         });
 }
 
 
-KalturaTestInfo.prototype.getMasterManifest=function(logger) {
+KalturaTestInfo.prototype.getMasterManifestUrl=function(logger) {
+
+    var playManifest=config.KalturaService.serverAddress+"/p/"+config.KalturaService.partnerId+"/sp/"+config.KalturaService.partnerId+"00/playManifest/entryId/"+this.id+"/format/applehttp/protocol/http/a.m3u8";
+    return q.resolve(playManifest);
+    /*
+    return kle.getPlayManifest(
+
      return  kle.getEntry(this.id)
         .then(function(entry) {
-            var hlsconfig = _.filter(entry.liveStreamConfigurations, function (config) {
+
+             var hlsconfig = _.filter(entry.liveStreamConfigurations, function (config) {
                 return config.protocol === "hls";
             })[0];
 
             return  q.resolve(hlsconfig.url);
-        });
+        });*/
+
 }
 
 KalturaTestInfo.prototype.getLiveStatus=function(logger) {

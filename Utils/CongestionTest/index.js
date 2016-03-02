@@ -47,6 +47,8 @@ kle.getEntries(false).then(function(res) {
 
 
 var logger = LoggerEx("MainTest","");
+var testResults = LoggerEx("testResults","");
+
 
 var streamEntry=function(testInfo,minDelay,maxDelay,duration) {
 
@@ -75,10 +77,13 @@ var streamEntry=function(testInfo,minDelay,maxDelay,duration) {
             return entryTestInstance.stop();
         }).then(function () {
             logger.info("Test of entry %s was success! %j",id,entryTestInstance.getResults());
+            testResults.warn("Test of entry %s was success! %j",id,entryTestInstance.getResults());
+
             return q.resolve(true);
         }).catch(function (err) {
             //test failed
             logger.info("Test of entry ",id," failed!",err);
+            testResults.warn("Test of entry ",id," failed!",err);
 
             logger.info("Entry",id,"stopping");
             return entryTestInstance.stop().then (function() {
