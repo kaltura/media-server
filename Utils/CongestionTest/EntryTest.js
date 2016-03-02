@@ -13,6 +13,7 @@ function EntryTest(testInfo) {
     // private variables
     var that = this;
 
+    var runffmpeg=true;
 
     var id= testInfo.id;
     var task=null;
@@ -37,7 +38,7 @@ function EntryTest(testInfo) {
                     // retry with more time
                     .then(function(){
                         if (maxRetries <= 0) {
-                            throw new Error("Failed to download master manifest after "+maxRetries+" retries");
+                            return q.reject("maxRetries <= 0");
                         }
                         return retryPromise(fn,intervalRetry,maxRetries-1);
                     });
@@ -64,7 +65,10 @@ function EntryTest(testInfo) {
                     return q.reject();
                 }
             });
-        }, config.entryTest.poolInterval, (1000*timeOut)/config.entryTest.poolInterval);
+        }, config.entryTest.poolInterval, (1000*timeOut)/config.entryTest.poolInterval)
+            .catch(function(err) {
+                throw new  Error("getLiveStatus didn't return expected status "+expectedStatus);
+            });
     }
 
     function getAllChuncksHeader(flavorUrl)
@@ -143,22 +147,23 @@ function EntryTest(testInfo) {
         logger.info("Getting rtmp url...");
 
        return testInfo.getRtmpInfo()
-           .then(function(rtmpInfo){
+            .then(function(rtmpInfo){
                 logger.info("Got rtmpInfo: %j",rtmpInfo);
 
               var rtmps= _.reduce(rtmpInfo.urls,function(old,value) {
                    return old.concat(["-f", "flv", "-rtmp_live", "1", value]);
                },[]);
-                task=new FFMpegTask(id, [ "-re","-i",config.sourceFileNames[0],"-c:v","copy","-c:a","libmp3lame"].concat(rtmps));
-                logger.info("Starting FFMpeg streaming");
-                return task.start();
-            })
-            .then(function() {
+
+               if (runffmpeg) {
+                   task = new FFMpegTask(id, ["-re", "-i", config.sourceFileNames[0], "-c:v", "copy", "-c:a", "libmp3lame"].concat(rtmps));
+                   logger.info("Starting FFMpeg streaming");
+                   return task.start();
+               }
+            }).then(function() {
                 var finishTime = new Date();
                 logger.info("FFMpeg started, Operation took "+ (finishTime - startTime) + " ms");
                 return waitForLiveStatus([1,2],config.entryTest.maxTimeToBeBroadcasting);
-            })
-           .then(function(newState) {
+            }).then(function(newState) {
 
                if (newState===2) {
                    var finishTime = new Date();
@@ -168,8 +173,7 @@ function EntryTest(testInfo) {
 
                    return waitForLiveStatus([1], config.entryTest.maxTimeToBePlaying);
                }
-            })
-            .then(function() {
+            }).then(function() {
                var finishTime = new Date();
                logger.info("got state PLAYING after %s ms waiting for playing", (finishTime - startTime));
                playingTime= (finishTime - startTime);
@@ -178,20 +182,23 @@ function EntryTest(testInfo) {
                 var finishTime = new Date();
                 logger.info("Received Url ",masterClipListUrl," Operation took ", (finishTime - startTime) , " ms");
                 return getMasterManifest(masterClipListUrl);
-            })
-            .then(function(){
-                logger.info("Tested all chunks succssefully");
-                return q.resolve();
+            }).then(function(){
+                logger.info("Parsed master manifest succssefully, waiting for chunklist to be available");
+                return that.verifyAlive(true);
+            }).then(function(){
+               logger.info("chunklist available");
+               return q.resolve();
             }).catch(function(err) {
-               logger.error("Test Failed!!! %s",err);
+               logger.error("Test Failed!!! ",err);
 
                stopffmpegTask();
                return q.reject(err);
            });
     }
 
-    that.verifyAlive=function() {
+    that.verifyAlive=function(wait) {
         logger.info("Verify stream is alive");
+
 
         return waitForLiveStatus([1])
             .then(function() {
@@ -200,7 +207,16 @@ function EntryTest(testInfo) {
                     return getAllChuncksHeader(flavor.m3u8);
                 });
 
-                return q.all(promises);
+                if (wait) {
+                    return retryPromise(function() {
+                        return q.all(promises);
+                    },1000,5).catch(function(err) {
+                        logger.info("Chunklist not ready yet");
+                        return q.reject("Timeout waiting for chunklist");
+                    });
+                } else {
+                    return q.all(promises);
+                }
             });
     }
 

@@ -108,10 +108,11 @@ KalturaLiveEntries.prototype.getBroadcastingUrls=function(){
 KalturaLiveEntries.prototype.parseMasterM3U8=function(logger,masterUrl,failOnError) {
     return $q.Promise( function(resolve,reject) {
         request.get({
-            url: masterUrl
+            url: masterUrl,
+            followAllRedirects: true
         }, function (error, response, result) {
 
-            logger.debug("Got response from",masterUrl,":",result);
+            logger.debug("parseMasterM3U8: Got response from",masterUrl,":",result);
 
             var re = /BANDWIDTH=([\d.]*)(?:,RESOLUTION=([\d]*))?.*\n(.*.m3u8)/gm;
 
@@ -126,7 +127,7 @@ KalturaLiveEntries.prototype.parseMasterM3U8=function(logger,masterUrl,failOnErr
                 res.push({
                     bitrate: m[1],
                     resolution: m[2],
-                    m3u8: url.resolve(masterUrl, m[3])
+                    m3u8: url.resolve(response.request.href, m[3])
                 });
             }
 
