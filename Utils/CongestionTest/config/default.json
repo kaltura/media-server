@@ -15,26 +15,36 @@
     "ffmpegTimeout": 20 //20 seconds
   },
   "rtmpReplace": {
-   // "ny-publish": "il-wowza-68.dev"
-    //"pa-publish": ""
   },
-  "sourceFileNames": [
-    "/Users/guyjacubovski/123.mp4"
-  ],
+  "env": {
+    "ffmpeg": "/Users/guyjacubovski/ffmpeg",
+    "sourceFileNames": [
+      "/Users/guyjacubovski/Sample video/900.mp4",
+      "/Users/guyjacubovski/Sample video/600.mp4",
+      "/Users/guyjacubovski/Sample video/400.mp4"
+    ]
+  },
 
   "entires": [
     { "id": "1",
-      "rtmpInfo":{ "urls": ["rtmp://localhost:1935/live/1/abc123_1"] },
+      "rtmpInfo":{
+        "urls": ["rtmp://localhost:1935/live/1/abc123_"],
+        "bitrates": [
+          {
+            "bitrate": 900
+          }
+        ]
+      },
       "m3u8Url":"http://localhost:1935/live/1/abc123_1/playlist.m3u8"
     },
 
     { "id": "2",
-      "rtmpInfo":{ "urls": ["rtmp://localhost:1935/live/2/abc123_1"] },
+      "rtmpInfo":{ "urls": ["rtmp://localhost:1935/live/2/abc123_"] },
       "m3u8Url":"http://localhost:1935/live/2/abc123_1/playlist.m3u8"
     },
 
     { "id": "3",
-      "rtmpInfo":{ "urls": ["rtmp://localhost:1935/live/3/abc123_1"] },
+      "rtmpInfo":{ "urls": ["rtmp://localhost:1935/live/3/abc123_"] },
       "m3u8Url":"http://localhost:1935/live/3/abc123_1/playlist.m3u8"
     }
 
@@ -49,7 +59,7 @@
       "maxDelay": 1
     },
     "changingEntries": {
-      "count": 0,
+      "count": 1,
       "duration": 100,
       "minDelay": 10,
       "maxDelay": 100

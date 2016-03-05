@@ -67,7 +67,7 @@ function EntryTest(testInfo) {
             });
         }, config.entryTest.poolInterval, (1000*timeOut)/config.entryTest.poolInterval)
             .catch(function(err) {
-                throw new  Error("getLiveStatus didn't return expected status "+expectedStatus);
+                throw new  Error("Timeout! getLiveStatus didn't return expected status "+expectedStatus+ " for more than "+timeOut+ " seconds");
             });
     }
 
@@ -141,6 +141,22 @@ function EntryTest(testInfo) {
             task=null;
         }
     }
+
+    function buildFFmpegCommand(rtmpInfo) {
+        var inputFiles=_.reduce(rtmpInfo.bitrates,function(old,bitrate, index) {
+            return old.concat(["-i", config.env.sourceFileNames[index]]);
+        },[]);
+        var map=_.reduce(rtmpInfo.bitrates,function(old,bitrate, index) {
+             var rtmps = _.reduce(rtmpInfo.urls, function (old, value) {
+                 //libmp3lame
+                 return old.concat(["-c:v", "copy", "-c:a", "copy", "-f", "flv", "-rtmp_live", "1", value+(index+1)]);
+             }, ["-map",index]);
+
+            return old.concat(rtmps);
+        },[]);
+
+        return ['-re'].concat(inputFiles,map);
+    }
     // public functions
     that.start=function() {
         var startTime=new Date();
@@ -150,13 +166,10 @@ function EntryTest(testInfo) {
             .then(function(rtmpInfo){
                 logger.info("Got rtmpInfo: %j",rtmpInfo);
 
-              var rtmps= _.reduce(rtmpInfo.urls,function(old,value) {
-                   return old.concat(["-c:v", "copy", "-c:a", "libmp3lame","-f", "flv", "-rtmp_live", "1", value]);
-               },[]);
-
                if (runffmpeg) {
-                   task = new FFMpegTask(id, ["-re", "-i", config.sourceFileNames[0]].concat(rtmps));
-                   logger.info("Starting FFMpeg streaming");
+                   var cmd=buildFFmpegCommand(rtmpInfo);
+                   task = new FFMpegTask(id, cmd);
+                   logger.info("Starting FFMpeg streaming (",cmd,")");
                    return task.start();
                }
             }).then(function() {

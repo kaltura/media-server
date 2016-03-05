@@ -68,7 +68,7 @@ var streamEntry=function(testInfo,minDelay,maxDelay,duration) {
 
         logger.info("Starting",id);
         return entryTestInstance.start().then(function () {
-            logger.info("Entry",id,"strated succsefully, waiting ",duration," seconds");
+            logger.info("Entry",id,"started successfully, continue to test for ",duration," seconds");
             return repeatPromise(logger,function() {
                 return entryTestInstance.verifyAlive();
             },60*1000,Math.round(duration/60));

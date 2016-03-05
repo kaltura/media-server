@@ -11,7 +11,7 @@ var Q=require('q');
 function FFMpegTask(id,params) {
 
     this._logger = LoggerEx("FFMpegTask", id);
-    this._ffmpeg = '/Users/guyjacubovski/ffmpeg';
+    this._ffmpeg = config.env.ffmpegBin;
     this._process=null;
 
     this._lastMessageTime=null;

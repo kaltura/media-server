@@ -57,6 +57,7 @@ function KalturaTestInfo(entryObj) {
 
     this.id=entryObj.entryId;
     this.useBackup=entryObj.useBackup;
+    this.flavorsToStream=entryObj.flavorsToStream || 3;
 }
 
 KalturaTestInfo.prototype.getRtmpInfo=function() {
@@ -65,6 +66,7 @@ KalturaTestInfo.prototype.getRtmpInfo=function() {
     return  kle.getEntry(this.id)
         .then(function(entry) {
             var urls=[];
+            entry.bitrates=entry.bitrates.splice(0,self.flavorsToStream);
             if (entry.primaryBroadcastingUrl) {
                 urls.push(entry.primaryBroadcastingUrl+ "/" + entry.streamName);
             }
@@ -80,7 +82,7 @@ KalturaTestInfo.prototype.getRtmpInfo=function() {
                         url=url.replace(key,value);
                     });
 
-                    return url.substring(0,url.length-2)+(1);
+                    return url.substring(0,url.length-2);
                 }
             );
             return q.resolve(results);

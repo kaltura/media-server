@@ -83,7 +83,7 @@ var repeatPromise=function(logger,fn,intervalRetry,maxRetries) {
             if (maxRetries <= 0) {
                 return Q.resolve(res);
             }
-            logger.warn("Waiting another ",intervalRetry," ms until next test ",maxRetries, "retries left");
+            logger.info("Waiting another ",intervalRetry," ms until next test ",maxRetries, "retries left");
             return Q.delay(intervalRetry) // delay
                 // retry with more time
                 .then(function(){
