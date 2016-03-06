@@ -5,8 +5,8 @@ var _ = require('underscore');
 var EntryTest=require('./EntryTest.js');
 var LoggerEx = require('./utils').LoggerEx;
 var repeatPromise = require('./utils').repeatPromise;
-var WowzaTestInfo = require('./testInfo.js').WowzaTestInfo;
-var KalturaTestInfo = require('./testInfo.js').KalturaTestInfo;
+var WowzaTestInfo = require('./TestInfo.js').WowzaTestInfo;
+var KalturaTestInfo = require('./TestInfo.js').KalturaTestInfo;
 
 /*
 

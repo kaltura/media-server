@@ -40,13 +40,13 @@ KalturaLiveEntries.prototype.getEntry=function(entryId){
 
     var obj={
         service: "liveStream",
-        action: "get",
-        entryId: entryId
+        action: "list",
+        "filter:idEqual": entryId
 
     };
 
     return kalturaAPI.call(obj).then(function (res) {
-        return $q.resolve(res);
+        return $q.resolve(res.objects[0]);
     }, function (error) {
         return $q.reject(error);
     });

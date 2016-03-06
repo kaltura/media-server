@@ -14,6 +14,7 @@ function KalturaAPI() {
 
     this._multiRequestParams=null;
 
+    this._ks_expiry=null;
 }
 
 
@@ -36,6 +37,12 @@ KalturaAPI.prototype.login = function () {
 
     var _this=this;
 
+    var now=new Date();
+
+    if (this._ks_expiry && now>this._ks_expiry) {
+        this._loginPromise=null;
+        this._ks=null;
+    }
 
     if (this._loginPromise) {
         return this._loginPromise;
@@ -52,6 +59,7 @@ KalturaAPI.prototype.login = function () {
             partnerId: this._connectionInfo.partnerId
         },true).then(function (result) {
                 _this._ks = result;
+                _this._ks_expiry=new Date(now.getTime()+1*60*60*1000);//1 hour
                 console.info("loggedin with user '" + _this._connectionInfo.userId + "' in with ks=" + result);
                 return $q.resolve(result);
             },
