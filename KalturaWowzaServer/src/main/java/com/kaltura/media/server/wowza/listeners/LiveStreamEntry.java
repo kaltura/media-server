@@ -251,15 +251,25 @@ public class LiveStreamEntry extends ModuleBase {
 					Matcher matcher = getStreamNameMatches(streamName);
 					if (matcher == null) {
 						logger.error("Unknown published stream [" + streamName + "]");
+						stream.getClient().setShutdownClient(true);
 						return;
 					}
 
 					if (!entryId.equals(matcher.group(1))) {
-						logger.error("Published stream stream name [" + streamName + "] does not match entry id [" + entryId + "]");
+						logger.error("Published  stream name [" + streamName + "] does not match entry id [" + entryId + "]");
+						stream.getClient().setShutdownClient(true);
 						return;
 					}
 
 					String streamSuffix = matcher.group(2);
+
+
+					if (getSuffixStream(streamSuffix)==null) {
+						logger.error("Wrong suffix stream name:  "+streamSuffix );
+						stream.getClient().setShutdownClient(true);
+						return;
+					}
+
 					KalturaLiveAsset liveAsset = liveStreamManager.getLiveAsset(entry.id, streamSuffix);
 					if (liveAsset != null) {
 						assetParamsId = liveAsset.flavorParamsId;
@@ -683,6 +693,10 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 
 		return matcher;
+	}
+
+	private Matcher getSuffixStream(String groupName) {
+		return getMatches(groupName, "^[1-8]$");
 	}
 
 	private Matcher getStreamNameMatches(String streamName) {
