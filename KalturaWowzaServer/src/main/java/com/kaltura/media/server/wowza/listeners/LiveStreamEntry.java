@@ -249,23 +249,10 @@ public class LiveStreamEntry extends ModuleBase {
 
 					Matcher matcher = getStreamNameMatches(streamName);
 					if (matcher == null) {
-						logger.error("Unknown published stream [" + streamName + "]");
-						IClient client = stream.getClient();
-						sendStreamOnStatusError(stream, "NetStream.Publish.BadName888", "888Denied888");
-						client.rejectConnection("not wwww");
-						sendClientOnStatusError(client, "NetStream.Play.Failed", "Client has been rejected");
-						client.rejectConnection("yoyo");
-						client.setShutdownClient(true);
 						return;
 					}
 
 					if (!entryId.equals(matcher.group(1))) {
-						logger.error("Published stream stream name [" + streamName + "] does not match entry id [" + entryId + "]");
-						IClient client = stream.getClient();
-						sendStreamOnStatusError(stream, "NetStream.Publish.BadName888", "888Denied888");
-						client.rejectConnection("not wwww");
-						client.rejectConnection("yoyo");
-						client.setShutdownClient(true);
 						return;
 					}
 
