@@ -249,10 +249,12 @@ public class LiveStreamEntry extends ModuleBase {
 
 					Matcher matcher = getStreamNameMatches(streamName);
 					if (matcher == null) {
+						logger.error("Unknown published stream [" + streamName + "]");
 						return;
 					}
 
 					if (!entryId.equals(matcher.group(1))) {
+						logger.error("Published stream stream name [" + streamName + "] does not match entry id [" + entryId + "]");
 						return;
 					}
 
