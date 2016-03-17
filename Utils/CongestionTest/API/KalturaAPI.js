@@ -23,7 +23,7 @@ function KalturaAPI() {
 
 KalturaAPI.prototype.call=function(params) {
     var _this=this;
-    if (this._multiRequestParams || this._ks) {
+    if (this._multiRequestParams ) {
         return _this._kcall(params);
     } else {
         return this.login().then(function () {
@@ -42,6 +42,7 @@ KalturaAPI.prototype.login = function () {
     if (this._ks_expiry && now>this._ks_expiry) {
         this._loginPromise=null;
         this._ks=null;
+        console.log("KS session is expiry. About to generate a new one")
     }
 
     if (this._loginPromise) {
