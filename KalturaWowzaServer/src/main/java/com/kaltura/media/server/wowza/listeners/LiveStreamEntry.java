@@ -105,7 +105,6 @@ public class LiveStreamEntry extends ModuleBase {
     private LiveStreamPacketizerListener2 liveStreamPacketizerListener = new LiveStreamPacketizerListener2();
 	private String applicationName;
 	private LiveStreamManager liveStreamManager;
-	private DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
 	private LiveStreamTranscoderListener liveStreamTranscoderListener = new LiveStreamTranscoderListener();
 	private LiveStreamTranscoderActionListener liveStreamTranscoderActionListener = new LiveStreamTranscoderActionListener();
 	private PacketListener packetListener = new PacketListener();
@@ -908,6 +907,14 @@ public class LiveStreamEntry extends ModuleBase {
 		this.appInstance = appInstance;
 
 		WMSProperties properties = this.appInstance.getProperties();
+		WMSProperties properties2 = appInstance.getDvrProperties();
+		boolean DVREnable = appInstance.getManagerProperties().getPropertyBoolean("DVREnable", false);
+		if (DVREnable){
+			DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
+			appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
+			appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
+
+		}
 		//Init Application Managers
 		if (properties.containsKey(LiveStreamEntry.APPLICATION_MANAGERS_PROPERTY_NAME)) {
 			String managers = properties.getPropertyStr(LiveStreamEntry.APPLICATION_MANAGERS_PROPERTY_NAME);
@@ -921,8 +928,7 @@ public class LiveStreamEntry extends ModuleBase {
 			}
 		}
         appInstance.addLiveStreamPacketizerListener(liveStreamPacketizerListener);
-		appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
-		appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
+
 		appInstance.setLiveStreamTranscoderControl(new TranscoderControl());
         // Set the minimum chunks required for sending isLive to player
         readyForPlaybackMinimumChunkCount = appInstance.getProperties().getPropertyInt(READY_FOR_PLAYBACK_MINIMUM_CHUNK_COUNT, DEFAULT_MINIMUM_CHUNKS);
