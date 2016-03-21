@@ -11,7 +11,7 @@ var Q=require('q');
 function FFMpegTask(id,params) {
 
     this._logger = LoggerEx("FFMpegTask", id);
-    this._ffmpeg = config.env.ffmpegBin;
+    this._ffmpeg = config.env.ffmpeg;
     this._process=null;
 
     this._lastMessageTime=null;

@@ -91,28 +91,47 @@ KalturaTestInfo.prototype.getRtmpInfo=function() {
 
 
 KalturaTestInfo.prototype.getMasterManifestUrl=function(logger) {
-
-    var playManifest=config.KalturaService.serverAddress+"/p/"+config.KalturaService.partnerId+"/sp/"+config.KalturaService.partnerId+"00/playManifest/entryId/"+this.id+"/format/applehttp/protocol/http/a.m3u8";
+    var playManifest=config.KalturaService.serverAddress[0]+"/p/"+config.KalturaService.partnerId+"/sp/"+config.KalturaService.partnerId+"00/playManifest/entryId/"+this.id+"/format/applehttp/protocol/http/a.m3u8";
     return q.resolve(playManifest);
-    /*
-    return kle.getPlayManifest(
+}
 
-     return  kle.getEntry(this.id)
-        .then(function(entry) {
+KalturaTestInfo.prototype.checkDualDC=function(entries) {
+    if (entries.length<=1)
+        return;
 
-             var hlsconfig = _.filter(entry.liveStreamConfigurations, function (config) {
-                return config.protocol === "hls";
-            })[0];
+    if (entries[0].liveStatus!==entries[1].liveStatus)
+         throw  new Error("Both dc are not in sync"+entries[0].liveStatus+ " "+entries[1].liveStatus);
 
-            return  q.resolve(hlsconfig.url);
-        });*/
+    function hash_hls_urls(entry){
+        var hlsconfig = _.map( _.filter(entry.liveStreamConfigurations, function (config) {
+            return config.protocol === "hls";
+        }),function(config) {
+            return config.url+"_"+config.backupUrl;
+        });
 
+        hlsconfig.sort();
+
+
+        return hlsconfig.join("_");
+    }
+    if (hash_hls_urls(entries[0])!==hash_hls_urls(entries[1])) {
+
+        throw  new Error("Both dc are not in sync"+entries[0].liveStatus+ " "+entries[1].liveStatus)
+    }
 }
 
 KalturaTestInfo.prototype.getLiveStatus=function(logger) {
-    return  kle.getEntry(this.id)
-        .then(function(entry) {
+    var self=this;
+    if (config.KalturaService.serverAddress.length==1){
+        return kle.getEntry(this.id)
+            .then(function(entry) {
             return entry.liveStatus;
+        });
+    }
+    return q.all([kle.getEntry(this.id,0),kle.getEntry(this.id,1)])
+        .then(function(entries) {
+            self.checkDualDC(entries);
+            return entries[0].liveStatus;
         });
 }
 

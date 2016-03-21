@@ -143,6 +143,8 @@ function EntryTest(testInfo) {
     }
 
     function buildFFmpegCommand(rtmpInfo) {
+       // rtmpInfo.bitrates=rtmpInfo.bitrates[0];
+     //   rtmpInfo.flavorParamsIds="32";
         var inputFiles=_.reduce(rtmpInfo.bitrates,function(old,bitrate, index) {
             return old.concat(["-i", config.env.sourceFileNames[index]]);
         },[]);

@@ -36,21 +36,24 @@ KalturaLiveEntries.prototype.getEntries=function(liveValue){
  *
  * @param liveValue
  */
-KalturaLiveEntries.prototype.getEntry=function(entryId){
+KalturaLiveEntries.prototype.getEntry=function(entryId, serverIndex){
 
     var obj={
+        serverIndex : serverIndex,
         service: "liveStream",
-        action: "list",
-        "filter:idEqual": entryId
+        action: "get",
+        entryId: entryId
 
     };
 
     return kalturaAPI.call(obj).then(function (res) {
-        return $q.resolve(res.objects[0]);
+        return $q.resolve(res);
     }, function (error) {
         return $q.reject(error);
     });
 }
+
+
 
 KalturaLiveEntries.prototype.createEntry=function(name,description,conversionProfileId,recording,dvr){
     return kalturaAPI.call({
@@ -108,11 +111,10 @@ KalturaLiveEntries.prototype.getBroadcastingUrls=function(){
 KalturaLiveEntries.prototype.parseMasterM3U8=function(logger,masterUrl,failOnError) {
     return $q.Promise( function(resolve,reject) {
         request.get({
-            url: masterUrl,
-            followAllRedirects: true
+            url: masterUrl
         }, function (error, response, result) {
 
-            logger.debug("parseMasterM3U8: Got response from",masterUrl,":",result);
+            logger.debug("Got response from",masterUrl,":",result);
 
             var re = /BANDWIDTH=([\d.]*)(?:,RESOLUTION=([\d]*))?.*\n(.*.m3u8)/gm;
 
@@ -127,7 +129,7 @@ KalturaLiveEntries.prototype.parseMasterM3U8=function(logger,masterUrl,failOnErr
                 res.push({
                     bitrate: m[1],
                     resolution: m[2],
-                    m3u8: url.resolve(response.request.href, m[3])
+                    m3u8: url.resolve(masterUrl, m[3])
                 });
             }
 

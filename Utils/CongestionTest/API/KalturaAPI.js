@@ -5,7 +5,6 @@ var url= require('url');
 
 function KalturaAPI() {
 
-
     this._connectionInfo=config.KalturaService;
     this._loginPromise = null;
 
@@ -102,26 +101,29 @@ KalturaAPI.prototype._kcall=function(params,ingoreMR) {
 
 
 
-
-    return $q.Promise( function(resolve,reject) {
-
-        request.post({
-            url: _this._connectionInfo.serverAddress + '/api_v3/index.php',
-            json: true,
-            body: params
-        }, function (error, response, result) {
+    var serverIndex = params.serverIndex || 0;
 
 
 
-            if (result && result.objectType==="KalturaAPIException") {
-                return reject( result );
-            }
-            return resolve( result );
+
+
+     return $q.Promise(function (resolve, reject) {
+
+            request.post({
+                url: _this._connectionInfo.serverAddress[serverIndex] + '/api_v3/index.php',
+                json: true,
+                body: params
+            }, function (error, response, result) {
+
+
+                if (result && result.objectType === "KalturaAPIException") {
+                    return reject(result);
+                }
+                return resolve(result);
+            });
+
+
         });
-
-
-    });
-
 
 }
 
