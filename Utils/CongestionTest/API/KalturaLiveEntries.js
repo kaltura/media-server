@@ -36,24 +36,22 @@ KalturaLiveEntries.prototype.getEntries=function(liveValue){
  *
  * @param liveValue
  */
-KalturaLiveEntries.prototype.getEntry=function(entryId, serverIndex){
+KalturaLiveEntries.prototype.getEntry=function(entryId , serverIndex){
 
     var obj={
         serverIndex : serverIndex,
         service: "liveStream",
-        action: "get",
-        entryId: entryId
+        action: "list",
+        "filter:idEqual": entryId
 
     };
 
     return kalturaAPI.call(obj).then(function (res) {
-        return $q.resolve(res);
+        return $q.resolve(res.objects[0]);
     }, function (error) {
         return $q.reject(error);
     });
 }
-
-
 
 KalturaLiveEntries.prototype.createEntry=function(name,description,conversionProfileId,recording,dvr){
     return kalturaAPI.call({
@@ -89,8 +87,8 @@ KalturaLiveEntries.prototype.deleteEntry=function(id){
 
 KalturaLiveEntries.prototype.getConversionProfiles=function(){
     return kalturaAPI.call({  service: "conversionProfile",
-                    "filter:typeEqual": 2,
-                    action: "list"}).then(function (res) {
+        "filter:typeEqual": 2,
+        action: "list"}).then(function (res) {
         return $q.resolve(res.objects);
     }, function (error) {
         return $q.reject(error);
@@ -101,7 +99,7 @@ KalturaLiveEntries.prototype.getConversionProfiles=function(){
 KalturaLiveEntries.prototype.getBroadcastingUrls=function(){
 
     return this.getEntries().then(function(res) {
-       return $q.resolve(_.map(res,function(entry) { return entry.primaryBroadcastingUrl+"/"+entry.streamName; }));
+        return $q.resolve(_.map(res,function(entry) { return entry.primaryBroadcastingUrl+"/"+entry.streamName; }));
     });
 }
 
@@ -111,10 +109,11 @@ KalturaLiveEntries.prototype.getBroadcastingUrls=function(){
 KalturaLiveEntries.prototype.parseMasterM3U8=function(logger,masterUrl,failOnError) {
     return $q.Promise( function(resolve,reject) {
         request.get({
-            url: masterUrl
+            url: masterUrl,
+            followAllRedirects: true
         }, function (error, response, result) {
 
-            logger.debug("Got response from",masterUrl,":",result);
+            logger.debug("parseMasterM3U8: Got response from",masterUrl,":",result);
 
             var re = /BANDWIDTH=([\d.]*)(?:,RESOLUTION=([\d]*))?.*\n(.*.m3u8)/gm;
 
@@ -129,7 +128,7 @@ KalturaLiveEntries.prototype.parseMasterM3U8=function(logger,masterUrl,failOnErr
                 res.push({
                     bitrate: m[1],
                     resolution: m[2],
-                    m3u8: url.resolve(masterUrl, m[3])
+                    m3u8: url.resolve(response.request.href, m[3])
                 });
             }
 

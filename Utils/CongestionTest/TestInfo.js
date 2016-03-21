@@ -91,7 +91,8 @@ KalturaTestInfo.prototype.getRtmpInfo=function() {
 
 
 KalturaTestInfo.prototype.getMasterManifestUrl=function(logger) {
-    var playManifest=config.KalturaService.serverAddress[0]+"/p/"+config.KalturaService.partnerId+"/sp/"+config.KalturaService.partnerId+"00/playManifest/entryId/"+this.id+"/format/applehttp/protocol/http/a.m3u8";
+   // var playManifest=config.KalturaService.serverAddress[0]+"/p/"+config.KalturaService.partnerId+"/sp/"+config.KalturaService.partnerId+"00/playManifest/entryId/"+this.id+"/format/applehttp/protocol/http/a.m3u8";
+    var playManifest=config.KalturaService.serverAddress+"/p/"+config.KalturaService.partnerId+"/sp/"+config.KalturaService.partnerId+"00/playManifest/entryId/"+this.id+"/format/applehttp/protocol/http/a.m3u8";
     return q.resolve(playManifest);
 }
 
