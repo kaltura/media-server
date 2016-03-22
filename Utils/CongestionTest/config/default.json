@@ -1,7 +1,7 @@
 
 {
   "KalturaService": {
-      "serverAddress": "",
+      "serverAddress": "[]",
       "userId": "",
       "adminSecret": "",
       "partnerId": 0
@@ -17,14 +17,14 @@
   "rtmpReplace": {
   },
   "env": {
-    "ffmpeg": "/Users/guyjacubovski/ffmpeg",
+    "ffmpeg": "YOUR FFMPEG APP",
     "sourceFileNames": [
-      "/Users/guyjacubovski/Sample video/900.mp4",
-      "/Users/guyjacubovski/Sample video/600.mp4",
-      "/Users/guyjacubovski/Sample video/400.mp4"
+      "FLAVOR1.mp4",
+      "FLAVOR2.mp4",
+      "FLAVOR3.mp4"
     ]
   },
-
+/*
   "entires": [
     { "id": "1",
       "rtmpInfo":{
@@ -49,8 +49,8 @@
     }
 
   ],
-
-// "entires": [{"entryId":"1_yinsgmiv"},{"entryId":"1_viucair0"},{"entryId":"1_2ibpfies"}],
+  */
+  "entires": [{"entryId":"your_entryId", "useBackup": true, "flavorsToStream": 1}],
   "test": {
     "fixedEntries": {
       "count": 1,

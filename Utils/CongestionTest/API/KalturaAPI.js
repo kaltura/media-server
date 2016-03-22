@@ -2,7 +2,8 @@ var $q = require('q');
 var request = require('request');
 var config = require('config');
 var url= require('url');
-
+var LoggerEx = require('../utils').LoggerEx;
+var logger = LoggerEx("KalturaAPI");
 function KalturaAPI() {
 
     this._connectionInfo=config.KalturaService;
@@ -22,7 +23,15 @@ function KalturaAPI() {
 
 KalturaAPI.prototype.call=function(params) {
     var _this=this;
-    if (this._multiRequestParams ) {
+    var now=new Date();
+
+    if (this._ks_expiry && now>this._ks_expiry) {
+        this._loginPromise=null;
+        this._ks=null;
+        logger.info("KS session is expiry. About to generate a new one");
+    }
+
+    if (this._multiRequestParams  || this._ks ) {
         return _this._kcall(params);
     } else {
         return this.login().then(function () {
@@ -36,13 +45,7 @@ KalturaAPI.prototype.login = function () {
 
     var _this=this;
 
-    var now=new Date();
 
-    if (this._ks_expiry && now>this._ks_expiry) {
-        this._loginPromise=null;
-        this._ks=null;
-        console.log("KS session is expiry. About to generate a new one")
-    }
 
     if (this._loginPromise) {
         return this._loginPromise;
@@ -59,8 +62,9 @@ KalturaAPI.prototype.login = function () {
             partnerId: this._connectionInfo.partnerId
         },true).then(function (result) {
                 _this._ks = result;
+                var now=new Date();
                 _this._ks_expiry=new Date(now.getTime()+1*60*60*1000);//1 hour
-                console.info("loggedin with user '" + _this._connectionInfo.userId + "' in with ks=" + result);
+                logger.info("loggedin with user '" + _this._connectionInfo.userId + "' in with ks=" + result);
                 return $q.resolve(result);
             },
             function (res) {
