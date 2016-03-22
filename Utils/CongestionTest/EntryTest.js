@@ -13,11 +13,19 @@ function EntryTest(testInfo) {
     // private variables
     var that = this;
 
+    var runffmpeg=true;
 
     var id= testInfo.id;
     var task=null;
     var logger = LoggerEx("EntryTest", id);
+    var masterM3U8=null;
 
+
+    var broadcastingTime=0;
+    var playingTime=0;
+    var stoppingTime=0;
+
+    var lastTsList={};
     logger.info("Generate new instance for ",id);
 
 
@@ -30,42 +38,37 @@ function EntryTest(testInfo) {
                     // retry with more time
                     .then(function(){
                         if (maxRetries <= 0) {
-                            throw new Error("Failed to download master manifest after "+maxRetries+" retries");
+                            return q.reject("maxRetries <= 0");
                         }
                         return retryPromise(fn,intervalRetry,maxRetries-1);
                     });
             });
     }
 
-    function waitForLiveState(expectedState,timeOut) {
 
 
-        logger.info("waiting for live stream to be ",expectedState);
+    function waitForLiveStatus(expectedStatus,timeOut) {
+
+
+        logger.info("waiting for live stream to be ",expectedStatus);
         return retryPromise(function () {
-            logger.debug("calling getMasterManifest");
+            logger.debug("calling getLiveStatus");
 
 
-            return testInfo.getMasterManifest(logger,expectedState).then(function (masterClipList) {
+            return testInfo.getLiveStatus(logger).then(function (liveStatus) {
 
-                logger.debug("getMasterManifest returned "+masterClipList);
-                if (expectedState) {
-                    if (masterClipList) {
-                        return q.resolve(masterClipList);
-                    }
-                    else {  //try agin in some interval
-                        return q.reject();
-                    }
-                } else {
-
-                    if (masterClipList) {
-                        return q.reject();
-                    }
-                    else {  //try agin in some interval
-                        return q.resolve();
-                    }
+                logger.debug("getLiveStatus returned "+liveStatus);
+                if (expectedStatus.indexOf(liveStatus)>-1) {
+                        return q.resolve(liveStatus);
+                }
+                else {
+                    return q.reject();
                 }
             });
-        }, config.entryTest.poolInterval, (1000*timeOut)/config.entryTest.poolInterval);
+        }, config.entryTest.poolInterval, (1000*timeOut)/config.entryTest.poolInterval)
+            .catch(function(err) {
+                throw new  Error("Timeout! getLiveStatus didn't return expected status "+expectedStatus+ " for more than "+timeOut+ " seconds");
+            });
     }
 
     function getAllChuncksHeader(flavorUrl)
@@ -73,54 +76,54 @@ function EntryTest(testInfo) {
         return kle.parseChunkListM3U8(logger,flavorUrl)
             .then(function (res) {
 
-                if (res.length===0) {
+                if (res.length<config.entryTest.minimumChunksInChunkList) {
 
-                    logger.warn("err: empty chunk list  ",flavorUrl);
-                    return q.reject("empty chunk list  "+flavorUrl);
+                    var err="chunk list  "+res.length+"<"+config.entryTest.minimumChunksInChunkList+ " flavorUrl "+flavorUrl;
+                    logger.warn(err);
+                    return q.reject(err);
                 }
                 _.each(res,function(chunk){
                     if (chunk.duration<=0) {
-                        logger.error("Incorrect duration for chunk ",chunk.duration);
+                        logger.error("Incorrect duration (%s) for chunk %s ",chunk.duration,chunk.ts);
+                        throw new Error("Incorrect duration for chunk "+chunk.ts+ " duration="+chunk.duration);
                     }
                 });
-                var Chunk=res[0];
-                logger.info("getting ts  ",Chunk.ts);
 
-                return kle.getTS(Chunk.ts)
-                    .then(function(headers){
-                            logger.info("successfully downloaded " +Chunk.ts);
+                if (lastTsList[flavorUrl]) {
+                   var diff= _.difference(lastTsList[flavorUrl],res);
+                    if (diff.length===0) {
+                        logger.error("No progress in chunklist for flavor (%s) ",flavorUrl);
+                        throw new Error("No progress in chunklist for flavor "+flavorUrl);
+                    }
+                }
+                lastTsList[flavorUrl]=res;
+
+                var promises=_.map([res[0],res[res.length-1]],function(chunk) {
+                    logger.info("getting ts ", chunk.ts);
+
+                    return kle.getTS(chunk.ts)
+                        .then(function () {
+                            logger.info("successfully downloaded %s" , chunk.ts);
                             return q.resolve();
                         })
-                    .catch(function(err) {
-                            logger.error("err: Failed to download "+Chunk.ts+" : "+ err.message);
+                        .catch(function (err) {
+                            logger.error("err: Failed to download %s (%s)", chunk.ts, err);
                             return q.reject(err);
                         });
+                });
+                return q.all(promises);
             });
     }
-
-    function testHls(masterM3U8) {
-        logger.info("Testing ",masterM3U8);
+    function getMasterManifest(masterM3U8Url) {
+        logger.info("Testing ",masterM3U8Url);
 
         return retryPromise(function () {
 
-            var finishTime = new Date();
-            return kle.parseMasterM3U8(logger,masterM3U8,false)
-                .then(function(res){
-                    logger.info("Got master manifest succssefully",JSON.stringify(res));
-                    var promises=_.map(res,function(flavor) {
-                        logger.info("About to get manifest from flavor ",flavor.bitrate,' url: ',flavor.m3u8);
-                        return getAllChuncksHeader(flavor.m3u8);
-                });
+            return kle.parseMasterM3U8(logger,masterM3U8Url,false);
 
-                return q.all(promises).catch(function(e) {
-                    logger.info("Retrying testHls...");
-
-                    return q.reject(e);
-                    });
-            });
-
-
-        }, 1000, 10);
+        }, 1000, 10).then(function(res){
+            masterM3U8=res;
+        });
 
 
 
@@ -138,51 +141,118 @@ function EntryTest(testInfo) {
             task=null;
         }
     }
+
+    function buildFFmpegCommand(rtmpInfo) {
+       // rtmpInfo.bitrates=rtmpInfo.bitrates[0];
+     //   rtmpInfo.flavorParamsIds="32";
+        var inputFiles=_.reduce(rtmpInfo.bitrates,function(old,bitrate, index) {
+            return old.concat(["-i", config.env.sourceFileNames[index]]);
+        },[]);
+        var map=_.reduce(rtmpInfo.bitrates,function(old,bitrate, index) {
+             var rtmps = _.reduce(rtmpInfo.urls, function (old, value) {
+                 //libmp3lame
+                 return old.concat(["-c:v", "copy", "-c:a", "copy", "-f", "flv", "-rtmp_live", "1", value+(index+1)]);
+             }, ["-map",index]);
+
+            return old.concat(rtmps);
+        },[]);
+
+        return ['-re'].concat(inputFiles,map);
+    }
     // public functions
     that.start=function() {
         var startTime=new Date();
         logger.info("Getting rtmp url...");
-       return testInfo.getRtmpUrl()
-           .then(
-            function(urls){
-                logger.info("Got url: ",urls);
 
-                task=new FFMpegTask(id, [ "-re","-i",config.sourceFileNames[0],"-c:v","copy","-c:a","libmp3lame","-f","flv","-rtmp_live","1",urls[0]]);
-                logger.info("Starting FFMpeg streaming for ", urls);
-                return task.start();
-            })
-            .then(function() {
+       return testInfo.getRtmpInfo()
+            .then(function(rtmpInfo){
+                logger.info("Got rtmpInfo: %j",rtmpInfo);
+
+               if (runffmpeg) {
+                   var cmd=buildFFmpegCommand(rtmpInfo);
+                   task = new FFMpegTask(id, cmd);
+                   logger.info("Starting FFMpeg streaming (",cmd,")");
+                   return task.start();
+               }
+            }).then(function() {
                 var finishTime = new Date();
                 logger.info("FFMpeg started, Operation took "+ (finishTime - startTime) + " ms");
-                return waitForLiveState(true,config.entryTest.maxTimeToBeLive);
-            })
-            .then(function(url){
+                return waitForLiveStatus([1,2],config.entryTest.maxTimeToBeBroadcasting);
+            }).then(function(newState) {
+
+               if (newState===2) {
+                   var finishTime = new Date();
+                   logger.info("got state BROADCASTING after %s ms waiting for playing", (finishTime - startTime));
+
+                   broadcastingTime= (finishTime - startTime);
+
+                   return waitForLiveStatus([1], config.entryTest.maxTimeToBePlaying);
+               }
+            }).then(function() {
+               var finishTime = new Date();
+               logger.info("got state PLAYING after %s ms waiting for playing", (finishTime - startTime));
+               playingTime= (finishTime - startTime);
+               return testInfo.getMasterManifestUrl(logger);
+            }).then(function (masterClipListUrl) {
                 var finishTime = new Date();
-                logger.info("Received Url ",url," from wowza, Operation took ", (finishTime - startTime) , " ms");
-                return testHls(url);
-            })
-            .then(function(){
-                logger.info("Tested all chunks succssefully");
-                return q.resolve();
+                logger.info("Received Url ",masterClipListUrl," Operation took ", (finishTime - startTime) , " ms");
+                return getMasterManifest(masterClipListUrl);
+            }).then(function(){
+               logger.info("Parsed master manifest successfully, starting was successfull");
+               return q.resolve();
             }).catch(function(err) {
-               logger.error("Test Failed!!! ",JSON.stringify(err));
+               logger.error("Test Failed!!! ",err);
 
                stopffmpegTask();
                return q.reject(err);
            });
     }
 
+    that.verifyAlive=function(wait) {
+        logger.info("Verify stream is alive");
+
+
+        return waitForLiveStatus([1])
+            .then(function() {
+                var promises=_.map(masterM3U8,function(flavor) {
+                    logger.info("About to get manifest from flavor ",flavor.bitrate,' url: ',flavor.m3u8);
+                    return getAllChuncksHeader(flavor.m3u8);
+                });
+
+                if (wait) {
+                    return retryPromise(function() {
+                        return q.all(promises);
+                    },1000,5).catch(function(err) {
+                        logger.info("Chunklist not ready yet");
+                        return q.reject("Timeout waiting for chunklist");
+                    });
+                } else {
+                    return q.all(promises);
+                }
+            });
+    }
+
     that.stop=function() {
         stopffmpegTask();
         var startTime = new Date();
-        return waitForLiveState(false,config.entryTest.maxTimeToBeOffline)
+        return waitForLiveStatus([0],config.entryTest.maxTimeToBeOffline)
             .then(function() {
 
                 var finishTime = new Date();
-                logger.info("Live stopped from API, Operation took "+ (finishTime.getTime() - startTime.getTime()) + " ms");
+                logger.info("Live stopped from API, Operation took "+ (finishTime - startTime) + " ms");
+                stoppingTime=finishTime-startTime;
                 return q.resolve();
                 });
 
+    };
+
+    that.getResults=function() {
+
+        return {
+            broadcastingTime: broadcastingTime,
+            playingTime: playingTime,
+            stoppingTime: stoppingTime
+        };
     };
 
 
