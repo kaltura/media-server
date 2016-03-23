@@ -193,7 +193,6 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 					try{
 						logger.info("Initial timer task running [" + liveEntry.id + "] - PLAYABLE");
 						setEntryMediaServer(liveEntry, index, KalturaLiveEntryStatus.PLAYABLE);
-						readyForPlayback = true;
 					}
 					catch (Exception err) {
 						logger.error(err);
@@ -203,6 +202,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 			timer = new Timer("register-" + liveEntry.id, true);
 			timer.schedule(setMediaServerTask, 0);
+			readyForPlayback = true;
 			logger.debug("Scheduled initial timer [" + liveEntry.id + "]");
 		}
 		
