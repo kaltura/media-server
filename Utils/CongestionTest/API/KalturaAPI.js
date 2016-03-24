@@ -2,9 +2,9 @@ var $q = require('q');
 var request = require('request');
 var config = require('config');
 var url= require('url');
-
+var LoggerEx = require('../utils').LoggerEx;
+var logger = LoggerEx("KalturaAPI");
 function KalturaAPI() {
-
 
     this._connectionInfo=config.KalturaService;
     this._loginPromise = null;
@@ -14,6 +14,7 @@ function KalturaAPI() {
 
     this._multiRequestParams=null;
 
+    this._ks_expiry=null;
 }
 
 
@@ -22,7 +23,15 @@ function KalturaAPI() {
 
 KalturaAPI.prototype.call=function(params) {
     var _this=this;
-    if (this._multiRequestParams || this._ks) {
+    var now=new Date();
+
+    if (this._ks_expiry && now>this._ks_expiry) {
+        this._loginPromise=null;
+        this._ks=null;
+        logger.info("KS session is expiry. About to generate a new one");
+    }
+
+    if (this._multiRequestParams  || this._ks ) {
         return _this._kcall(params);
     } else {
         return this.login().then(function () {
@@ -35,6 +44,7 @@ KalturaAPI.prototype.call=function(params) {
 KalturaAPI.prototype.login = function () {
 
     var _this=this;
+
 
 
     if (this._loginPromise) {
@@ -52,7 +62,9 @@ KalturaAPI.prototype.login = function () {
             partnerId: this._connectionInfo.partnerId
         },true).then(function (result) {
                 _this._ks = result;
-                console.info("loggedin with user '" + _this._connectionInfo.userId + "' in with ks=" + result);
+                var now=new Date();
+                _this._ks_expiry=new Date(now.getTime()+1*60*60*1000);//1 hour
+                logger.info("loggedin with user '" + _this._connectionInfo.userId + "' in with ks=" + result);
                 return $q.resolve(result);
             },
             function (res) {
@@ -93,26 +105,29 @@ KalturaAPI.prototype._kcall=function(params,ingoreMR) {
 
 
 
-
-    return $q.Promise( function(resolve,reject) {
-
-        request.post({
-            url: _this._connectionInfo.serverAddress + '/api_v3/index.php',
-            json: true,
-            body: params
-        }, function (error, response, result) {
+    var serverIndex = params.serverIndex || 0;
 
 
 
-            if (result && result.objectType==="KalturaAPIException") {
-                return reject( result );
-            }
-            return resolve( result );
+
+
+     return $q.Promise(function (resolve, reject) {
+
+            request.post({
+                url: _this._connectionInfo.serverAddress[serverIndex] + '/api_v3/index.php',
+                json: true,
+                body: params
+            }, function (error, response, result) {
+
+
+                if (result && result.objectType === "KalturaAPIException") {
+                    return reject(result);
+                }
+                return resolve(result);
+            });
+
+
         });
-
-
-    });
-
 
 }
 
