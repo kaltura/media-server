@@ -76,3 +76,20 @@ exports.emitLines=function(stream) {
         }
     });
 }
+
+var repeatPromise=function(logger,fn,intervalRetry,maxRetries) {
+    return fn()
+        .then(function(res) {
+            if (maxRetries <= 0) {
+                return Q.resolve(res);
+            }
+            logger.info("Waiting another ",intervalRetry," ms until next test ",maxRetries, "retries left");
+            return Q.delay(intervalRetry) // delay
+                // retry with more time
+                .then(function(){
+                    return repeatPromise(logger,fn,intervalRetry,maxRetries-1);
+                });
+        });
+}
+
+exports.repeatPromise=repeatPromise;

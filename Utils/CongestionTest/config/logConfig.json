@@ -5,15 +5,22 @@
         },
         {
             "type": "file",
-            "filename": "logs/Test.log",
-            "maxLogSize": 1024000,
-            "backups": 3
+            "filename": "./logs/Test.log",
+            "pattern": "-yyyy-MM-dd",
+            "alwaysIncludePattern": false
+        },
+        {
+            "category": "testResults",
+            "type": "file",
+            "filename": "./logs/testResults.log",
+            "pattern": "-yyyy-MM-dd",
+            "alwaysIncludePattern": false
         }
     ],
 
     "replaceConsole": true,
     "levels": {
-        "[all]": "info",
+        "[all]": "Info",
         "FFMpegTask": "error"
     }
 }
