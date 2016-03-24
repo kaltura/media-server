@@ -105,10 +105,8 @@ public class LiveStreamEntry extends ModuleBase {
     private LiveStreamPacketizerListener2 liveStreamPacketizerListener = new LiveStreamPacketizerListener2();
 	private String applicationName;
 	private LiveStreamManager liveStreamManager;
-	private DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
 	private LiveStreamTranscoderListener liveStreamTranscoderListener = new LiveStreamTranscoderListener();
 	private LiveStreamTranscoderActionListener liveStreamTranscoderActionListener = new LiveStreamTranscoderActionListener();
-	private PacketListener packetListener = new PacketListener();
 	private ZombieStreamsWatcher zombieManager = new ZombieStreamsWatcher();
 	private IApplicationInstance appInstance;
 	private Map<String, Map<String, Stream>> restreams = new HashMap<String, Map<String, Stream>>();
@@ -366,108 +364,6 @@ public class LiveStreamEntry extends ModuleBase {
 			ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 			liveManager.removeReferrer(liveStreamEntry.id, this);
 		}
-
-		@SuppressWarnings("unchecked")
-		@Override
-		public void onMetaData(IMediaStream stream, AMFPacket packet) {
-			if (stream.getClientId() < 0) {
-				return;
-			}
-
-			if (stream.isTranscodeResult() || stream.isPublisherStream()) {
-				return;
-			}
-
-			WMSProperties properties = getConnectionProperties(stream);
-			if ((properties == null) || !properties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
-				return;
-			}
-
-			String entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
-			KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
-
-			KalturaLiveEntry entry = liveStreamManager.get(entryId);
-			if (entry == null) {
-				return;
-			}
-
-			byte[] buffer = packet.getData();
-			if (buffer == null) {
-				return;
-			}
-
-			if (packet.getSize() <= 2) {
-				return;
-			}
-
-			int offset = 0;
-			if (buffer[0] == 0)
-				offset++;
-
-			AMFDataList amfList = new AMFDataList(buffer, offset, buffer.length - offset);
-
-			if (amfList.size() <= 1) {
-				return;
-			}
-
-			if (amfList.get(0).getType() != AMFData.DATA_TYPE_STRING) {
-				return;
-			}
-
-			if (amfList.get(1).getType() != AMFData.DATA_TYPE_OBJECT) {
-				return;
-			}
-
-			String method = amfList.getString(0);
-			AMFDataObj amfData = (AMFDataObj) amfList.getObject(1);
-
-			if (!amfData.containsKey("objectType")) {
-				return;
-			}
-
-			String objectType = amfData.getString("objectType");
-			logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] object type [" + objectType + "]");
-			String objectClassName = "com.kaltura.client.types." + objectType;
-			Class<KalturaObjectBase> clazz;
-			KalturaObjectBase object;
-			try {
-				clazz = (Class<KalturaObjectBase>) Class.forName(objectClassName);
-				object = clazz.newInstance();
-			} catch (ClassNotFoundException e) {
-				logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] not found");
-				return;
-			} catch (InstantiationException | IllegalAccessException e) {
-				logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] failed to initialize: " + e.getMessage());
-				return;
-			}
-
-			@SuppressWarnings("rawtypes")
-			Iterator i = amfData.getKeys().iterator();
-			Field field;
-			while (i.hasNext()) {
-				String attributeName = (String) i.next();
-				field = null;
-				try {
-					field = clazz.getField(attributeName);
-				} catch (NoSuchFieldException e) {
-					logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] field [" + attributeName + "] not found");
-				} catch (SecurityException e) {
-					logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] field [" + attributeName + "]: " + e.getMessage());
-				}
-				if (field == null) {
-					continue;
-				}
-
-				try {
-					field.set(object, amfData.get(attributeName));
-				} catch (IllegalArgumentException | IllegalAccessException e) {
-					logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] set field [" + attributeName + "]: " + e.getMessage());
-				}
-			}
-
-			IKalturaEvent event = new KalturaMetadataEvent(KalturaEventType.METADATA, entry, serverIndex, object);
-			KalturaEventsManager.raiseEvent(event);
-		}
 	}
 
 	class LiveStreamTranscoderActionListener extends LiveStreamTranscoderActionNotifyBase {
@@ -638,136 +534,6 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
-	class PacketListener implements IMediaStreamLivePacketNotify {
-
-		protected static final String KNOWN_PTS = "known_pts";
-		// Maximum age allowed for a PTS in comparison to the current one
-		protected static final int MAX_PTS_AGE = 1000 * 10;
-		private static final int DEFAULT_CODEC = -1;
-
-		@Override
-		public void onLivePacket(IMediaStream stream, AMFPacket packet) {
-
-			if (FLVUtils.isVideoKeyFrame(packet)) {
-				WMSProperties properties = getConnectionProperties(stream);
-				if(properties == null)
-					return; // Transcoded stream
-
-				handleStream(stream, packet, properties);
-			}
-		}
-
-		@SuppressWarnings("unchecked")
-		private void handleStream(final IMediaStream stream, final AMFPacket packet, final WMSProperties properties) {
-
-			executor.execute(new Runnable() {
-				
-				@Override
-				public void run() {
-					String streamName = stream.getName();
-					String entryId = getEntryIdFromStreamName(streamName);
-					if(entryId == null){
-						logger.warn("Stream [" + streamName + "] does not match entry id");
-						return;
-					}
-
-					// Calculate PTS
-					long pts = packet.getAbsTimecode();
-					int codec = properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_CODEC_TYPE, DEFAULT_CODEC);
-					if ((codec == IVHost.CODEC_VIDEO_H264 || codec == IVHost.CODEC_VIDEO_H265) && packet.getSize() >= 5)
-						pts += BufferUtils.byteArrayToLong(packet.getData(), 2, 3);
-
-					// Update PTS metadata and compare to related streams PTSes
-					ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
-
-
-					// Stream PTSes contains for each stream of the entry, the PTSes that arrived on that stream and
-					// didn't appear yet on all other streams. Once a PTS has arrived on all PTSes -
-					// it's removed from all streams.
-					Map<String, List<Long>> defaultValue = new HashMap<String, List<Long>>();
-					Map<String, List<Long>> streamsPtses = (Map<String, List<Long>>)liveManager.getOrAddMetadata(entryId, KNOWN_PTS, defaultValue);
-
-					addPtsToStream(streamsPtses, streamName, pts);
-					if(ptsAppearInAllStreams(streamsPtses, streamName, pts)) {
-						removePtsFromStreams(streamsPtses, pts);
-					}
-
-					handleOldPtses(streamsPtses, streamName, pts);
-				}
-			});
-		}
-
-		/**
-		 * This function verifies that the arrived PTS appears in all streams
-		 *
-		 * @param streamsPtses All known PTSes by streams
-		 * @param currentStreamName Current stream name
-		 * @param pts Current stream read
-		 * @return Whether it appeared in all streams
-		 */
-		protected boolean ptsAppearInAllStreams(Map<String, List<Long>> streamsPtses, String currentStreamName, long pts) {
-
-			for (Entry<String, List<Long>> itr : streamsPtses.entrySet()) {
-				if (currentStreamName.equals(itr.getKey())) {
-					continue;
-				}
-
-				if (!itr.getValue().contains(pts)) {
-					return false;
-				}
-			}
-
-			return true;
-		}
-
-		/**
-		 * This function cleans the stream PTSes list from old ptses and warn about them.
-		 * @param pts current pts for time reference
-		 */
-		protected void handleOldPtses(Map<String, List<Long>> streamsPtses, String streamName, long pts) {
-
-			List<Long> streamPts = streamsPtses.get(streamName);
-			synchronized (streamPts) {
-				for (Iterator<Long> iterator = streamPts.iterator(); iterator.hasNext();) {
-					Long pastPts = iterator.next();
-					if(Math.abs(pts - pastPts) > MAX_PTS_AGE) {
-						logger.warn("Stream [" + streamName + "] has a PTS:" + pastPts + " which didn't appear in all other streams. ");
-						iterator.remove();
-					}
-				}
-			}
-		}
-
-		/**
-		 * Removes a given PTS from all the streams
-		 */
-		protected void removePtsFromStreams(Map<String, List<Long>> streamsPtses, long pts) {
-			synchronized(streamsPtses) {
-				for (List<Long> streamPts : streamsPtses.values()) {
-					streamPts.remove(pts);
-				}
-			}
-		}
-
-
-		/**
-		 * Adds a new key-frame pts to the stream-ptses metadata object.
-		 * @param streamsPtses Ptses per stream-name
-		 * @param streamName current stream name
-		 * @param pts the pts to add
-		 */
-		protected void addPtsToStream(Map<String, List<Long>> streamsPtses, String streamName, long pts) {
-
-			synchronized(streamsPtses) {
-				if(!streamsPtses.containsKey(streamName)) {
-					streamsPtses.put(streamName, new ArrayList<Long>());
-				}
-				List<Long> streamPts = streamsPtses.get(streamName);
-				streamPts.add(pts);
-			}
-		}
-	}
-
 	private void restream(Stream stream, String inputStreamName) {
 		logger.debug("Restream [" + stream.getName() + "] from [" + inputStreamName + "]");
 		Publisher publisher = stream.getPublisher();
@@ -843,14 +609,12 @@ public class LiveStreamEntry extends ModuleBase {
 	public void onStreamCreate(IMediaStream stream) {
 		logger.debug("LiveStreamEntry: onStreamCreate - [" + stream.getName() + "]");
 		stream.addClientListener(new LiveStreamListener(this.appInstance));
-		stream.addLivePacketListener(packetListener);
 		
 		stream.addClientListener(zombieManager);
 		stream.addLivePacketListener(zombieManager);
 	}
 
 	public void onStreamDestroy(IMediaStream stream) {
-		stream.removeLivePacketListener(packetListener);
 		stream.removeLivePacketListener(zombieManager);
 		stream.removeClientListener(zombieManager);
 	}
@@ -1011,6 +775,14 @@ public class LiveStreamEntry extends ModuleBase {
 		this.appInstance = appInstance;
 
 		WMSProperties properties = this.appInstance.getProperties();
+		WMSProperties properties2 = appInstance.getDvrProperties();
+		boolean DVREnable = appInstance.getManagerProperties().getPropertyBoolean("DVREnable", false);
+		if (DVREnable){
+			DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
+			appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
+			appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
+
+		}
 		//Init Application Managers
 		if (properties.containsKey(LiveStreamEntry.APPLICATION_MANAGERS_PROPERTY_NAME)) {
 			String managers = properties.getPropertyStr(LiveStreamEntry.APPLICATION_MANAGERS_PROPERTY_NAME);
@@ -1024,8 +796,7 @@ public class LiveStreamEntry extends ModuleBase {
 			}
 		}
         appInstance.addLiveStreamPacketizerListener(liveStreamPacketizerListener);
-		appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
-		appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
+
 		appInstance.setLiveStreamTranscoderControl(new TranscoderControl());
         // Set the minimum chunks required for sending isLive to player
         readyForPlaybackMinimumChunkCount = appInstance.getProperties().getPropertyInt(READY_FOR_PLAYBACK_MINIMUM_CHUNK_COUNT, DEFAULT_MINIMUM_CHUNKS);

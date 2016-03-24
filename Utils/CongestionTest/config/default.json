@@ -1,58 +1,65 @@
 
 {
   "KalturaService": {
-      "serverAddress": "http://www.kaltura.com",
-      "userId": "ron.yadgar@kaltura.com",
-      "adminSecret": "355795aa9e37e496cfb078681b8a4351",
-      "partnerId": 2049911
+      "serverAddress": "[]",
+      "userId": "",
+      "adminSecret": "",
+      "partnerId": 0
   },
   "entryTest": {
     "poolInterval": 5000,
-    "maxTimeToBeLive": 120,//2minutes
+    "minimumChunksInChunkList":3,
+    "maxTimeToBeBroadcasting" :10,
+    "maxTimeToBePlaying": 120,//2minutes
     "maxTimeToBeOffline": 10,//10 seconds
     "ffmpegTimeout": 20 //20 seconds
   },
   "rtmpReplace": {
-    "ny-publish": "il-wowza-68.dev"
-    //"pa-publish": ""
   },
-  "sourceFileNames": [
-   // "/Users/guyjacubovski/123.mp4"
-    "/Users/ronyadgar/Downloads/123.mp4"
-  ],
+  "env": {
+    "ffmpeg": "YOUR FFMPEG APP",
+    "sourceFileNames": [
+      "FLAVOR1.mp4",
+      "FLAVOR2.mp4",
+      "FLAVOR3.mp4"
+    ]
+  },
 /*
   "entires": [
     { "id": "1",
-      "rtmpUrls":["rtmp://localhost:1935/live/1/abc123_1"],
+      "rtmpInfo":{
+        "urls": ["rtmp://localhost:1935/live/1/abc123_"],
+        "bitrates": [
+          {
+            "bitrate": 900
+          }
+        ]
+      },
       "m3u8Url":"http://localhost:1935/live/1/abc123_1/playlist.m3u8"
     },
 
     { "id": "2",
-      "rtmpUrls":["rtmp://localhost:1935/live/2/abc123_1"],
+      "rtmpInfo":{ "urls": ["rtmp://localhost:1935/live/2/abc123_"] },
       "m3u8Url":"http://localhost:1935/live/2/abc123_1/playlist.m3u8"
     },
 
     { "id": "3",
-      "rtmpUrls":["rtmp://localhost:1935/live/3/abc123_1"],
+      "rtmpInfo":{ "urls": ["rtmp://localhost:1935/live/3/abc123_"] },
       "m3u8Url":"http://localhost:1935/live/3/abc123_1/playlist.m3u8"
-    },
-
-    { "id": "4",
-      "rtmpUrls":["rtmp://localhost:1935/live/4/abc123_1"],
-      "m3u8Url":"http://localhost:1935/live/4/abc123_1/playlist.m3u8"
     }
-  ],*/
 
- "entires": ["1_vlu0wh35","1_ieude8tq","1_y4h3n7gb","1_kqopu2qm","1_occ3ebye","1_q8lsxm7i","1_r9ja1zma"],
+  ],
+  */
+  "entires": [{"entryId":"your_entryId", "useBackup": true, "flavorsToStream": 1}],
   "test": {
     "fixedEntries": {
-      "count": 4,
-      "duration":10,
+      "count": 1,
+      "duration":100,
       "minDelay": 1,
       "maxDelay": 1
     },
     "changingEntries": {
-      "count": 0,
+      "count": 1,
       "duration": 100,
       "minDelay": 10,
       "maxDelay": 100
