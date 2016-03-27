@@ -15,3 +15,8 @@ KalturaMediaServer/build
 KalturaWowzaServer/release/xml
 KalturaWowzaServer/release/tmp
 KalturaWowzaServer/build
+
+**/node_modules
+
+Utils/CongestionTest/samples
+Utils/CongestionTest/logs

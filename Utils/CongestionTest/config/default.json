@@ -1,0 +1,68 @@
+
+{
+  "KalturaService": {
+      "serverAddress": "[]",
+      "userId": "",
+      "adminSecret": "",
+      "partnerId": 0
+  },
+  "entryTest": {
+    "poolInterval": 5000,
+    "minimumChunksInChunkList":3,
+    "maxTimeToBeBroadcasting" :10,
+    "maxTimeToBePlaying": 120,//2minutes
+    "maxTimeToBeOffline": 10,//10 seconds
+    "ffmpegTimeout": 20 //20 seconds
+  },
+  "rtmpReplace": {
+  },
+  "env": {
+    "ffmpeg": "YOUR FFMPEG APP",
+    "sourceFileNames": [
+      "FLAVOR1.mp4",
+      "FLAVOR2.mp4",
+      "FLAVOR3.mp4"
+    ]
+  },
+/*
+  "entires": [
+    { "id": "1",
+      "rtmpInfo":{
+        "urls": ["rtmp://localhost:1935/live/1/abc123_"],
+        "bitrates": [
+          {
+            "bitrate": 900
+          }
+        ]
+      },
+      "m3u8Url":"http://localhost:1935/live/1/abc123_1/playlist.m3u8"
+    },
+
+    { "id": "2",
+      "rtmpInfo":{ "urls": ["rtmp://localhost:1935/live/2/abc123_"] },
+      "m3u8Url":"http://localhost:1935/live/2/abc123_1/playlist.m3u8"
+    },
+
+    { "id": "3",
+      "rtmpInfo":{ "urls": ["rtmp://localhost:1935/live/3/abc123_"] },
+      "m3u8Url":"http://localhost:1935/live/3/abc123_1/playlist.m3u8"
+    }
+
+  ],
+  */
+  "entires": [{"entryId":"your_entryId", "useBackup": true, "flavorsToStream": 1}],
+  "test": {
+    "fixedEntries": {
+      "count": 1,
+      "duration":100,
+      "minDelay": 1,
+      "maxDelay": 1
+    },
+    "changingEntries": {
+      "count": 1,
+      "duration": 100,
+      "minDelay": 10,
+      "maxDelay": 100
+    }
+  }
+}

@@ -2,19 +2,6 @@ package com.kaltura.media.server.wowza;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kaltura.client.types.KalturaLiveEntry;
-import com.kaltura.infra.StringUtils;
-import com.kaltura.media.server.KalturaEventsManager;
-import com.kaltura.media.server.KalturaServer;
-import com.kaltura.media.server.events.IKalturaEvent;
-import com.kaltura.media.server.events.IKalturaEventConsumer;
-import com.kaltura.media.server.events.KalturaEventType;
-import com.kaltura.media.server.managers.ILiveManager;
-import com.kaltura.media.server.managers.KalturaManager;
-import com.kaltura.media.server.managers.KalturaManagerException;
-import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
-import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
-import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
 import com.wowza.wms.amf.*;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.CupertinoPacketHolder;
@@ -23,19 +10,19 @@ import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.LiveSt
 import com.wowza.wms.media.mp3.model.idtags.ID3Frames;
 import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameBase;
 import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameRawBytes;
+import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.stream.IMediaStream;
-import com.wowza.wms.stream.MediaStream;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizer;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
 import org.apache.log4j.Logger;
-
+import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class CuePointsManager extends KalturaManager implements IKalturaEventConsumer, ILiveManager.ILiveEntryReferrer {
+public class CuePointsManager  extends ModuleBase  {
 
 	private static final String OBJECT_TYPE_KEY = "objectType";
 	private static final String OBJECT_TYPE_VALUE = "KalturaSyncPoint";
-	private static final String OFFSET_KEY = "offset";
 	private static final String TIMESTAMP_KEY = "timestamp";
 	private static final String ID_KEY = "id";
 
@@ -44,16 +31,15 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 	private final static int DEFAULT_SYNC_POINTS_INTERVAL_IN_MS = 8000;
 	private final static String KALTURA_SYNC_POINTS_INTERVAL_PROPERTY = "KalturaSyncPointsInterval";
 	private static final long START_SYNC_POINTS_DELAY = 0;
+	private final ConcurrentHashMap<IMediaStream,CuePointManagerLiveStreamListener> streams;
 
-	private final Map<String,Timer> streams;
 	private LiveStreamPacketizerListener liveStreamPacketizerListener;
-	private ILiveManager liveManager;
 	private int syncPointsInterval;
 
 	public CuePointsManager() {
 		logger.debug("Creating a new instance of CuePointsManager");
-		this.streams = new HashMap<>();
 		this.liveStreamPacketizerListener = new LiveStreamPacketizerListener();
+		this.streams = new ConcurrentHashMap<IMediaStream,CuePointManagerLiveStreamListener>();
 	}
 
 	class ID3V2FrameObject extends ID3V2FrameRawBytes{
@@ -106,7 +92,6 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 		private String jsonAMF(AMFDataObj dataObj) throws JsonProcessingException {
 			Map<String, Object> map = new HashMap<>();
 			addToMap(map, dataObj, OBJECT_TYPE_KEY);
-			addToMap(map, dataObj, OFFSET_KEY);
 			addToMap(map, dataObj, TIMESTAMP_KEY);
 			addToMap(map, dataObj, ID_KEY);
 			return new ObjectMapper().writeValueAsString(map);
@@ -196,135 +181,147 @@ public class CuePointsManager extends KalturaManager implements IKalturaEventCon
 		}
 	}
 
-	@Override
-	public void init() throws KalturaManagerException {
-		super.init();
-		KalturaEventsManager.registerEventConsumer(this, KalturaEventType.STREAM_PUBLISHED, KalturaEventType.STREAM_UNPUBLISHED, KalturaMediaEventType.APPLICATION_INSTANCE_STARTED);
-		liveManager = KalturaServer.getManager(ILiveManager.class);
-		setInitialized();
-	}
-
-	@Override
-	public void onEvent(IKalturaEvent event) {
-
-		if (event.getType() instanceof KalturaMediaEventType) {
-
-			switch ((KalturaMediaEventType) event.getType()) {
-				case APPLICATION_INSTANCE_STARTED:
-					KalturaApplicationInstanceEvent applicationInstanceEvent = (KalturaApplicationInstanceEvent) event;
-					onAppStart(applicationInstanceEvent.getApplicationInstance());
-					break;
-				default:
-					break;
-			}
-		}
-
-		if (event.getType() instanceof KalturaEventType) {
-
-			KalturaMediaStreamEvent streamEvent = (KalturaMediaStreamEvent) event;
-			switch ((KalturaEventType) event.getType()) {
-				case STREAM_PUBLISHED:
-					onPublish(streamEvent.getMediaStream(), streamEvent.getEntryId());
-					break;
-				case STREAM_UNPUBLISHED:
-					onUnPublish(streamEvent.getMediaStream(), streamEvent.getEntryId());
-					break;
-				default:
-					break;
-			}
-		}
-	}
-
-	private void onUnPublish(IMediaStream mediaStream, String entryId) {
-		final String streamName = mediaStream.getName();
-		Timer t;
-		synchronized (streams) {
-			if (!streams.containsKey(streamName)) {
-				logger.error("Unpublishing a stream that does not exist in streams map: " + streamName);
-				return;
-			}
-			t = streams.remove(streamName);
-		}
-		logger.debug("Stopping CuePoints timer for stream " + streamName);
-		t.cancel();
-		t.purge();
-
-		liveManager.removeReferrer(entryId, this);
-
-	}
-
-	protected void onAppStart(IApplicationInstance applicationInstance) {
+	public void onAppStart(IApplicationInstance applicationInstance) {
 		applicationInstance.addLiveStreamPacketizerListener(liveStreamPacketizerListener);
 		syncPointsInterval = applicationInstance.getProperties().getPropertyInt(KALTURA_SYNC_POINTS_INTERVAL_PROPERTY, DEFAULT_SYNC_POINTS_INTERVAL_IN_MS);
 		logger.info("CuePointsManager application instance started. Sync points interval: " + syncPointsInterval);
 	}
 
-	protected void onPublish(final IMediaStream stream, final String entryId) {
-		if(stream.getClientId() < 0){
-			logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "] is a transcoded rendition");
+	public void onStreamCreate(IMediaStream stream) {
+		if(stream.getClientId() < 0){ //ranscoded rendition
 			return;
 		}
 
-		String streamName = stream.getName();
-		logger.debug("Stream [" + streamName + "] entry [" + entryId + "]");
-		liveManager.addReferrer(entryId, this);
+		CuePointManagerLiveStreamListener listener=new CuePointManagerLiveStreamListener();
+		streams.put(stream,listener);
+		logger.debug("CuePointsManager::onStreamCreate with stream.getName() "+stream.getName()+" and stream.getClientId() "+stream.getClientId());
+		stream.addClientListener(listener);
+	}
 
-		final Timer t;
-		synchronized (streams) {
-			if (streams.containsKey(streamName)) {
-				//TODO, can this situation occur? need to reset timer?
-				logger.error("Stream with name " + streamName + " already exists in streams map");
-				t = streams.get(streamName);
+	public void onStreamDestroy(IMediaStream stream)
+	{
+		logger.debug("CuePointsManager::onStreamDestroy with stream.getName() "+stream.getName()+" and stream.getClientId() "+stream.getClientId());
+
+		CuePointManagerLiveStreamListener listener=streams.remove(stream);
+		if (listener!=null) {
+			listener.dispose();
+			stream.removeClientListener(listener);
+		}
+	}
+
+	class CuePointManagerLiveStreamListener extends MediaStreamActionNotifyBase  {
+
+		private long runningId=0;
+		private final Map<String,Timer> listenerStreams;
+		public CuePointManagerLiveStreamListener() {
+			logger.debug("Creating a new instance of CuePointManagerLiveStreamListener");
+			this.listenerStreams = new ConcurrentHashMap<String,Timer>();
+		}
+
+		@Override
+		public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
+			Timer t;
+			synchronized (listenerStreams) {
+				t = listenerStreams.remove(streamName);
 			}
-			else {
-				logger.debug("Stream with name " + streamName + " does not exist in streams map. creating a new map entry.");
-				t = new Timer();
-				streams.put(streamName, t);
+			cancelScheduledTask(t,streamName);
+		}
+
+		public void cancelScheduledTask(Timer t,String streamName){
+			if (t!=null) {
+				logger.debug("Stopping CuePoints timer for stream " + streamName);
+				t.cancel();
+				t.purge();
+			} else {
+
+				logger.error("Stream " + streamName + " does not exist in streams map");
 			}
 		}
 
-		logger.debug("Running timer to create sync points for stream " + streamName);
-		startSyncPoints(t, stream, entryId);
-	}
+		public void dispose() {
+			synchronized (listenerStreams) {
 
-	private void startSyncPoints(Timer t, final IMediaStream stream, final String entryId) {
-		TimerTask tt = new TimerTask() {
-			@Override
-			public void run() {
-				try {
-					createSyncPoint(stream, entryId);
-				} catch (Exception e) {
-					logger.error("Error occured while running sync points timer", e);
+				for (String streamName : listenerStreams.keySet()) {
+					Timer t = listenerStreams.get(streamName);
+					cancelScheduledTask(t,streamName);
 				}
+				listenerStreams.clear();
 			}
-		};
-		try {
-			t.schedule(tt,START_SYNC_POINTS_DELAY, syncPointsInterval);
-		} catch (Exception e) {
-			logger.error("Error occurred while scheduling a timer task",e);
 		}
-	}
+		@Override
+		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
-	private void createSyncPoint(IMediaStream stream, String entryId) {
-		KalturaLiveEntry liveEntry = liveManager.get(entryId);
-		String id = StringUtils.getUniqueId();
-		double currentTime = new Date().getTime();
-		double offset = currentTime - liveEntry.currentBroadcastStartTime * 1000;	//offset in ms
+			logger.debug("Stream [" + streamName + "]");
 
-		logger.debug("Sending sync point: entryId: " + entryId + " stream: " + stream.getName() + " id: " + id + " timestamp: " + currentTime + " offset: " + offset + " BCStartTime: " + (liveEntry.currentBroadcastStartTime * 1000));
-		sendSyncPoint(stream, id, currentTime, offset);
-	}
 
-	public void sendSyncPoint(final IMediaStream stream, String id, double time, double offset) {
+			if(stream.getClientId() < 0){
+				logger.debug("Stream [" + stream.getName() + "] entry [" + streamName + "] is a transcoded rendition");
+				return;
+			}
 
-		AMFDataObj data = new AMFDataObj();
+			logger.debug("Stream [" + streamName + "] entry [" + streamName + "]");
 
-		data.put(OBJECT_TYPE_KEY, OBJECT_TYPE_VALUE);
-		data.put(ID_KEY, id);
-		data.put(OFFSET_KEY, offset);
-		data.put(TIMESTAMP_KEY, time);
+			Timer t;
+			synchronized (listenerStreams) {
+				if (listenerStreams.containsKey(streamName)) {
+					logger.error("Stream with name " + streamName + " already exists in streams map, cancelling old one");
+					t = listenerStreams.remove(streamName);
+					cancelScheduledTask(t,streamName);
+				}
+				else {
+					logger.debug("Stream with name " + streamName + " does not exist in streams map. creating a new map entry.");
+				}
+				t = new Timer();
+				listenerStreams.put(streamName, t);
 
-		stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
-		logger.info("Sent sync-point: stream " + stream.getName() + "time: " + time + " offset: " + offset + "id: " + id);
+			}
+
+			logger.debug("Running timer to create sync points for stream " + streamName);
+			startSyncPoints(t, stream, streamName);
+		}
+
+		private void startSyncPoints(Timer t, final IMediaStream stream, final String entryId) {
+			TimerTask tt = new TimerTask() {
+				@Override
+				public void run() {
+					try {
+						createSyncPoint(stream, entryId);
+					} catch (Exception e) {
+						logger.error("Error occured while running sync points timer", e);
+					}
+				}
+			};
+			try {
+				t.schedule(tt,START_SYNC_POINTS_DELAY, syncPointsInterval);
+			} catch (Exception e) {
+				logger.error("Error occurred while scheduling a timer task",e);
+			}
+		}
+
+		private void createSyncPoint(IMediaStream stream, String entryId) {
+			String id = entryId+"_"+(runningId++);
+			double currentTime = new Date().getTime();
+
+			logger.debug("Sending sync point: entryId: " + entryId + " stream: " + stream.getName() + " id: " + id + " timestamp: " + currentTime );
+			sendSyncPoint(stream, id, currentTime);
+		}
+
+		public void sendSyncPoint(final IMediaStream stream, String id, double time) {
+
+			AMFDataObj data = new AMFDataObj();
+
+			data.put(OBJECT_TYPE_KEY, OBJECT_TYPE_VALUE);
+			data.put(ID_KEY, id);
+			data.put(TIMESTAMP_KEY, time);
+
+			//This condition is due to huge duration time (invalid) in the first chunk after stop-start on FMLE.
+			//According to Wowza calling sendDirect() before stream contains any packets causes problems.
+			if (stream.getPlayPackets().size() > 0) {
+				stream.sendDirect(CuePointsManager.PUBLIC_METADATA, data);
+			}
+			logger.info("Sent sync-point: stream " + stream.getName() + "time: " + time  + "id: " + id);
+		}
+
+
 	}
 }

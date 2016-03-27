@@ -164,7 +164,7 @@
 					<xsl:choose>
 						<xsl:when test="local-name(.) = 'Recorders'">dvrrecorder</xsl:when>
 						<xsl:when test="local-name(.) = 'Store'">dvrfilestorage</xsl:when>
-						<xsl:when test="local-name(.) = 'WindowDuration'">86400</xsl:when>
+						<xsl:when test="local-name(.) = 'WindowDuration'">14400</xsl:when>
 						<xsl:when test="local-name(.) = 'StorageDir'">
 							<xsl:value-of select="$BASE_DIR" />
 							<xsl:text>/web/content/dvr</xsl:text>
@@ -184,12 +184,12 @@
 									</Property>
 									<Property>
 										<Name>dvrChunkDurationMinimum</Name>
-										<Value>9999</Value>
+										<Value>10000</Value>
 										<Type>Integer</Type>
 									</Property>
 									<Property>
 										<Name>dvrMinimumAvailableChunks</Name>
-										<Value>5</Value>
+										<Value>3</Value>
 										<Type>Integer</Type>
 									</Property>
 								</xsl:with-param>
@@ -273,12 +273,12 @@
 									</Property>
 									<Property>
 										<Name>calculateChunkIDBasedOnTimecode</Name>
-										<Value>true</Value>
+										<Value>false</Value>
 										<Type>boolean</Type>
 									</Property>
 									<Property>
 										<Name>cupertinoCalculateChunkIDBasedOnTimecode</Name>
-										<Value>true</Value>
+										<Value>false</Value>
 										<Type>boolean</Type>
 									</Property>
 									<Property>
@@ -325,6 +325,61 @@
 		<xsl:text>
 		</xsl:text>
 </xsl:template>
+
+<xsl:template name="application-client">
+	<xsl:for-each select="*|comment()">
+	<xsl:text>
+	</xsl:text>
+		<xsl:choose>
+			<xsl:when test="self::comment()">
+				<xsl:copy-of select="."/>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:element name="{local-name(.)}">
+					<xsl:choose>
+						<xsl:when test="local-name(.) = 'Access'">
+							<xsl:call-template name="application-client-access"></xsl:call-template>
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:call-template name="apply-copy" />
+						</xsl:otherwise>
+					</xsl:choose>
+				</xsl:element>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:for-each>
+<xsl:text>
+</xsl:text>
+</xsl:template>
+
+
+<xsl:template name="application-client-access">
+	<xsl:for-each select="*|comment()">
+	<xsl:text>
+	</xsl:text>
+		<xsl:choose>
+			<xsl:when test="self::comment()">
+				<xsl:copy-of select="."/>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:element name="{local-name(.)}">
+					<xsl:choose>
+						<xsl:when test="local-name(.) = 'StreamWriteAccess'">
+							<xsl:text>*</xsl:text>
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:call-template name="apply-copy">
+								<!--<xsl:with-param name="indent"  />-->
+							</xsl:call-template>
+						</xsl:otherwise>
+					</xsl:choose>
+				</xsl:element>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:for-each>
+<xsl:text>
+</xsl:text>
+</xsl:template>
 <xsl:template name="application-http_streamer">
 	<xsl:for-each select="*|comment()">
 			<xsl:text>
@@ -345,12 +400,12 @@
 									</Property>
 									<Property>
 										<Name>calculateChunkIDBasedOnTimecode</Name>
-										<Value>true</Value>
+										<Value>false</Value>
 										<Type>boolean</Type>
 									</Property>
 									<Property>
 										<Name>cupertinoCalculateChunkIDBasedOnTimecode</Name>
-										<Value>true</Value>
+										<Value>false</Value>
 										<Type>boolean</Type>
 									</Property>
 									<Property>
@@ -457,15 +512,31 @@
 	</xsl:for-each>
 	<xsl:variable name="live-stream-entry-module">
 		<Module>
+			<Name>ModuleCoreSecurity</Name>
+			<Description>Core Security Module for Applications</Description>
+			<Class>com.wowza.wms.security.ModuleCoreSecurity</Class>
+		</Module>
+		<Module>
 			<Name>LiveStreamEntry</Name>
 			<Description>LiveStreamEntry</Description>
 			<Class>com.kaltura.media.server.wowza.listeners.LiveStreamEntry</Class>
+		</Module>
+		<Module>
+			<Name>ModuleRTMPPublishDebug</Name>
+			<Description>WowzaDebugModule</Description>
+			<Class>com.kaltura.media.server.wowza.ModuleRTMPPublishDebug</Class>
+		</Module>
+		<Module>
+			<Name>CuePointManager</Name>
+			<Description>CuePointManager</Description>
+			<Class>com.kaltura.media.server.wowza.CuePointsManager</Class>
 		</Module>
 	</xsl:variable>
 	<xsl:call-template name="apply-copy">
 		<xsl:with-param name="copy-element" select="ext:node-set($live-stream-entry-module)" />
 	</xsl:call-template>
 </xsl:template>
+
 <xsl:template name="application">
 	<xsl:text>
 	</xsl:text>
@@ -491,6 +562,7 @@
 							<xsl:when test="local-name(.) = 'HTTPStreamer'"><xsl:call-template name="application-http_streamer"/></xsl:when>
 							<xsl:when test="local-name(.) = 'Manager'"><xsl:call-template name="application-manager"/></xsl:when>
 							<xsl:when test="local-name(.) = 'Modules'"><xsl:call-template name="application-modules"/></xsl:when>
+							<xsl:when test="local-name(.) = 'Client'"><xsl:call-template name="application-client"/></xsl:when>
 							<xsl:when test="local-name(.) = 'Properties'">
 								<xsl:call-template name="apply-properties">
 									<xsl:with-param name="indent"><xsl:text>
@@ -511,14 +583,19 @@
 											<Value>200</Value>
 											<Type>Integer</Type>
 										</Property>
-										<Property>
-											<Name>ApplicationManagers</Name>
-											<Value>com.kaltura.media.server.wowza.CuePointsManager</Value>
-											<Type>String</Type>
-										</Property>
+										<!--<Property>-->
+											<!--<Name>ApplicationManagers</Name>-->
+											<!--<Value>com.kaltura.media.server.wowza.CuePointsManager</Value>-->
+											<!--<Type>String</Type>-->
+										<!--</Property>-->
 										<Property>
 											<Name>KalturaSyncPointsInterval</Name>
-											<Value>8000</Value>
+											<Value>4000</Value>
+											<Type>Integer</Type>
+										</Property>
+										<Property>
+											<Name>readyForPlaybackMinimumChunkCount</Name>
+											<Value>4</Value>
 											<Type>Integer</Type>
 										</Property>
 									</xsl:with-param>
@@ -612,7 +689,7 @@
 										<Property>
 											<Name>KalturaServerManagers</Name>
 											<!--list of managers to be loaded-->
-											<Value>com.kaltura.media.server.wowza.StatusManager, com.kaltura.media.server.wowza.LiveStreamManager, com.kaltura.media.server.wowza.PushPublishManager</Value>
+											<Value>com.kaltura.media.server.wowza.LiveStreamManager, com.kaltura.media.server.wowza.PushPublishManager</Value>
 										</Property>
 										<Property>
 											<Name>KalturaServerWebServices</Name>

@@ -1,0 +1,14 @@
+{
+  "name": "application-name",
+  "version": "0.0.1",
+  "dependencies": {
+    "config": "1.14.0",
+    "log4js": "^0.6.25",
+    "mkdirp": "^0.5.1",
+    "path": "^0.12.7",
+    "q": "1.4.1",
+    "request": "2.67.0",
+    "retry-promise": "^1.0.0",
+    "underscore": "1.8.3"
+  }
+}

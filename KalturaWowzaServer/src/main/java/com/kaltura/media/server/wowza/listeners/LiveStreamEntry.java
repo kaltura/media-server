@@ -16,6 +16,10 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.kaltura.client.enums.KalturaLiveEntryStatus;
+import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.HTTPStreamerCupertinoLiveStreamPacketizerChunkIdContext;
+import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.IHTTPStreamerCupertinoLiveStreamPacketizerChunkIdHandler;
+import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
 import org.apache.log4j.Logger;
 
 import com.kaltura.client.KalturaApiException;
@@ -71,6 +75,8 @@ import com.wowza.wms.transcoder.model.LiveStreamTranscoderActionNotifyBase;
 import com.wowza.wms.transcoder.model.TranscoderStreamNameGroup;
 import com.wowza.wms.transcoder.model.TranscoderStreamNameGroupMember;
 import com.wowza.wms.vhost.IVHost;
+import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.LiveStreamPacketizerCupertino;
+import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizer;
 
 public class LiveStreamEntry extends ModuleBase {
 
@@ -87,6 +93,8 @@ public class LiveStreamEntry extends ModuleBase {
 	protected final static String CLIENT_PROPERTY_CODEC_TYPE = "codecType";
 	protected final static String STREAM_PROPERTY_SUFFIX = "suffix";
 	protected final static String APPLICATION_MANAGERS_PROPERTY_NAME = "ApplicationManagers";
+    private final static String READY_FOR_PLAYBACK_MINIMUM_CHUNK_COUNT = "readyForPlaybackMinimumChunkCount";
+    private final static int DEFAULT_MINIMUM_CHUNKS = 4;
 
 	protected final static int INVALID_SERVER_INDEX = -1;
 
@@ -94,15 +102,15 @@ public class LiveStreamEntry extends ModuleBase {
 	
 	private static ExecutorService executor = Executors.newCachedThreadPool();
 
+    private LiveStreamPacketizerListener2 liveStreamPacketizerListener = new LiveStreamPacketizerListener2();
 	private String applicationName;
 	private LiveStreamManager liveStreamManager;
-	private DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
 	private LiveStreamTranscoderListener liveStreamTranscoderListener = new LiveStreamTranscoderListener();
 	private LiveStreamTranscoderActionListener liveStreamTranscoderActionListener = new LiveStreamTranscoderActionListener();
-	private PacketListener packetListener = new PacketListener();
 	private ZombieStreamsWatcher zombieManager = new ZombieStreamsWatcher();
 	private IApplicationInstance appInstance;
 	private Map<String, Map<String, Stream>> restreams = new HashMap<String, Map<String, Stream>>();
+    private int readyForPlaybackMinimumChunkCount;
 
 	@SuppressWarnings("serial")
 	private class ClientConnectException extends Exception{
@@ -192,6 +200,11 @@ public class LiveStreamEntry extends ModuleBase {
 
 	class LiveStreamListener extends MediaStreamActionNotifyBase implements ILiveManager.ILiveEntryReferrer {
 
+        public IApplicationInstance appInstance;
+
+        public LiveStreamListener(IApplicationInstance appInstance) {
+            this.appInstance = appInstance;
+        }
 		@Override
 		public void onCodecInfoVideo(IMediaStream stream, MediaCodecInfoVideo videoCodec) {
 			super.onCodecInfoVideo(stream, videoCodec);
@@ -204,6 +217,8 @@ public class LiveStreamEntry extends ModuleBase {
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
 			logger.debug("Stream [" + streamName + "]");
+            String entryId;
+            KalturaMediaServerIndex serverIndex;
 
 			WMSProperties properties = getConnectionProperties(stream);
 			int assetParamsId = Integer.MIN_VALUE;
@@ -211,8 +226,8 @@ public class LiveStreamEntry extends ModuleBase {
 
 				logger.debug("Client IP: " + getStreamIp(stream));
 
-				String entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
-				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+				entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
+				serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 				liveManager.addReferrer(entryId, this);
@@ -259,7 +274,7 @@ public class LiveStreamEntry extends ModuleBase {
 					return;
 				}
 
-				String entryId = matcher.group(1);
+				entryId = matcher.group(1);
 
 				synchronized (restreams) {
 					if(restreams.containsKey(entryId)){
@@ -284,10 +299,34 @@ public class LiveStreamEntry extends ModuleBase {
 				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 				liveManager.addReferrer(entryId, this);
 
-				KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+				serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, liveStreamManager.get(entryId), serverIndex, applicationName, stream, assetParamsId);
 				KalturaEventsManager.raiseEvent(event);
+			}
+            // Check if packetizer already exists, if so reset flag in order for READY_FOR_PLAYBACK to be raised
+			checkIfPacketierExists(stream);
+		}
+
+		private void checkIfPacketierExists(IMediaStream stream) {
+			if (stream != null) {
+				try {
+					ILiveStreamPacketizer packetizer = stream.getLiveStreamPacketizer("cupertinostreamingpacketizer");
+					if (packetizer == null) {
+						logger.debug("Packetizer not created yet created");
+						return;
+					}
+					LiveStreamPacketizerCupertino cupertino = (LiveStreamPacketizerCupertino) packetizer;
+					ChunkIdHandler myHandler = (ChunkIdHandler) cupertino.getChunkIdHandler();
+					logger.info("Packetizer exist for stream: [" + stream.getName() + "]. Reset flag for READY_FOR_PLAYBACK event" );
+					myHandler.resetEventLunched();
+				}
+				catch(Exception err) {
+					logger.error(err);
+				}
+			}
+			else {
+				logger.error("onPublish was called but stream is null");
 			}
 		}
 
@@ -324,108 +363,6 @@ public class LiveStreamEntry extends ModuleBase {
 
 			ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 			liveManager.removeReferrer(liveStreamEntry.id, this);
-		}
-
-		@SuppressWarnings("unchecked")
-		@Override
-		public void onMetaData(IMediaStream stream, AMFPacket packet) {
-			if (stream.getClientId() < 0) {
-				return;
-			}
-
-			if (stream.isTranscodeResult() || stream.isPublisherStream()) {
-				return;
-			}
-
-			WMSProperties properties = getConnectionProperties(stream);
-			if ((properties == null) || !properties.containsKey(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID)) {
-				return;
-			}
-
-			String entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
-			KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
-
-			KalturaLiveEntry entry = liveStreamManager.get(entryId);
-			if (entry == null) {
-				return;
-			}
-
-			byte[] buffer = packet.getData();
-			if (buffer == null) {
-				return;
-			}
-
-			if (packet.getSize() <= 2) {
-				return;
-			}
-
-			int offset = 0;
-			if (buffer[0] == 0)
-				offset++;
-
-			AMFDataList amfList = new AMFDataList(buffer, offset, buffer.length - offset);
-
-			if (amfList.size() <= 1) {
-				return;
-			}
-
-			if (amfList.get(0).getType() != AMFData.DATA_TYPE_STRING) {
-				return;
-			}
-
-			if (amfList.get(1).getType() != AMFData.DATA_TYPE_OBJECT) {
-				return;
-			}
-
-			String method = amfList.getString(0);
-			AMFDataObj amfData = (AMFDataObj) amfList.getObject(1);
-
-			if (!amfData.containsKey("objectType")) {
-				return;
-			}
-
-			String objectType = amfData.getString("objectType");
-			logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] object type [" + objectType + "]");
-			String objectClassName = "com.kaltura.client.types." + objectType;
-			Class<KalturaObjectBase> clazz;
-			KalturaObjectBase object;
-			try {
-				clazz = (Class<KalturaObjectBase>) Class.forName(objectClassName);
-				object = clazz.newInstance();
-			} catch (ClassNotFoundException e) {
-				logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] not found");
-				return;
-			} catch (InstantiationException | IllegalAccessException e) {
-				logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] failed to initialize: " + e.getMessage());
-				return;
-			}
-
-			@SuppressWarnings("rawtypes")
-			Iterator i = amfData.getKeys().iterator();
-			Field field;
-			while (i.hasNext()) {
-				String attributeName = (String) i.next();
-				field = null;
-				try {
-					field = clazz.getField(attributeName);
-				} catch (NoSuchFieldException e) {
-					logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] field [" + attributeName + "] not found");
-				} catch (SecurityException e) {
-					logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] field [" + attributeName + "]: " + e.getMessage());
-				}
-				if (field == null) {
-					continue;
-				}
-
-				try {
-					field.set(object, amfData.get(attributeName));
-				} catch (IllegalArgumentException | IllegalAccessException e) {
-					logger.info("Stream [" + stream.getName() + "] metadata [" + method + "] class [" + objectClassName + "] set field [" + attributeName + "]: " + e.getMessage());
-				}
-			}
-
-			IKalturaEvent event = new KalturaMetadataEvent(KalturaEventType.METADATA, entry, serverIndex, object);
-			KalturaEventsManager.raiseEvent(event);
 		}
 	}
 
@@ -597,136 +534,6 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 	}
 
-	class PacketListener implements IMediaStreamLivePacketNotify {
-
-		protected static final String KNOWN_PTS = "known_pts";
-		// Maximum age allowed for a PTS in comparison to the current one
-		protected static final int MAX_PTS_AGE = 1000 * 10;
-		private static final int DEFAULT_CODEC = -1;
-
-		@Override
-		public void onLivePacket(IMediaStream stream, AMFPacket packet) {
-
-			if (FLVUtils.isVideoKeyFrame(packet)) {
-				WMSProperties properties = getConnectionProperties(stream);
-				if(properties == null)
-					return; // Transcoded stream
-
-				handleStream(stream, packet, properties);
-			}
-		}
-
-		@SuppressWarnings("unchecked")
-		private void handleStream(final IMediaStream stream, final AMFPacket packet, final WMSProperties properties) {
-
-			executor.execute(new Runnable() {
-				
-				@Override
-				public void run() {
-					String streamName = stream.getName();
-					String entryId = getEntryIdFromStreamName(streamName);
-					if(entryId == null){
-						logger.warn("Stream [" + streamName + "] does not match entry id");
-						return;
-					}
-
-					// Calculate PTS
-					long pts = packet.getAbsTimecode();
-					int codec = properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_CODEC_TYPE, DEFAULT_CODEC);
-					if ((codec == IVHost.CODEC_VIDEO_H264 || codec == IVHost.CODEC_VIDEO_H265) && packet.getSize() >= 5)
-						pts += BufferUtils.byteArrayToLong(packet.getData(), 2, 3);
-
-					// Update PTS metadata and compare to related streams PTSes
-					ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
-
-
-					// Stream PTSes contains for each stream of the entry, the PTSes that arrived on that stream and
-					// didn't appear yet on all other streams. Once a PTS has arrived on all PTSes -
-					// it's removed from all streams.
-					Map<String, List<Long>> defaultValue = new HashMap<String, List<Long>>();
-					Map<String, List<Long>> streamsPtses = (Map<String, List<Long>>)liveManager.getOrAddMetadata(entryId, KNOWN_PTS, defaultValue);
-
-					addPtsToStream(streamsPtses, streamName, pts);
-					if(ptsAppearInAllStreams(streamsPtses, streamName, pts)) {
-						removePtsFromStreams(streamsPtses, pts);
-					}
-
-					handleOldPtses(streamsPtses, streamName, pts);
-				}
-			});
-		}
-
-		/**
-		 * This function verifies that the arrived PTS appears in all streams
-		 *
-		 * @param streamsPtses All known PTSes by streams
-		 * @param currentStreamName Current stream name
-		 * @param pts Current stream read
-		 * @return Whether it appeared in all streams
-		 */
-		protected boolean ptsAppearInAllStreams(Map<String, List<Long>> streamsPtses, String currentStreamName, long pts) {
-
-			for (Entry<String, List<Long>> itr : streamsPtses.entrySet()) {
-				if (currentStreamName.equals(itr.getKey())) {
-					continue;
-				}
-
-				if (!itr.getValue().contains(pts)) {
-					return false;
-				}
-			}
-
-			return true;
-		}
-
-		/**
-		 * This function cleans the stream PTSes list from old ptses and warn about them.
-		 * @param pts current pts for time reference
-		 */
-		protected void handleOldPtses(Map<String, List<Long>> streamsPtses, String streamName, long pts) {
-
-			List<Long> streamPts = streamsPtses.get(streamName);
-			synchronized (streamPts) {
-				for (Iterator<Long> iterator = streamPts.iterator(); iterator.hasNext();) {
-					Long pastPts = iterator.next();
-					if(Math.abs(pts - pastPts) > MAX_PTS_AGE) {
-						logger.warn("Stream [" + streamName + "] has a PTS:" + pastPts + " which didn't appear in all other streams. ");
-						iterator.remove();
-					}
-				}
-			}
-		}
-
-		/**
-		 * Removes a given PTS from all the streams
-		 */
-		protected void removePtsFromStreams(Map<String, List<Long>> streamsPtses, long pts) {
-			synchronized(streamsPtses) {
-				for (List<Long> streamPts : streamsPtses.values()) {
-					streamPts.remove(pts);
-				}
-			}
-		}
-
-
-		/**
-		 * Adds a new key-frame pts to the stream-ptses metadata object.
-		 * @param streamsPtses Ptses per stream-name
-		 * @param streamName current stream name
-		 * @param pts the pts to add
-		 */
-		protected void addPtsToStream(Map<String, List<Long>> streamsPtses, String streamName, long pts) {
-
-			synchronized(streamsPtses) {
-				if(!streamsPtses.containsKey(streamName)) {
-					streamsPtses.put(streamName, new ArrayList<Long>());
-				}
-				List<Long> streamPts = streamsPtses.get(streamName);
-				streamPts.add(pts);
-			}
-		}
-	}
-
 	private void restream(Stream stream, String inputStreamName) {
 		logger.debug("Restream [" + stream.getName() + "] from [" + inputStreamName + "]");
 		Publisher publisher = stream.getPublisher();
@@ -800,17 +607,14 @@ public class LiveStreamEntry extends ModuleBase {
 	}
 
 	public void onStreamCreate(IMediaStream stream) {
-		logger.debug("LiveStreamEntry::onStreamCreate");
-		stream.addClientListener(new LiveStreamListener());
-		stream.addLivePacketListener(packetListener);
+		logger.debug("LiveStreamEntry: onStreamCreate - [" + stream.getName() + "]");
+		stream.addClientListener(new LiveStreamListener(this.appInstance));
 		
 		stream.addClientListener(zombieManager);
 		stream.addLivePacketListener(zombieManager);
 	}
 
-	public void onStreamDestroy(IMediaStream stream)
-	{
-		stream.removeLivePacketListener(packetListener);
+	public void onStreamDestroy(IMediaStream stream) {
 		stream.removeLivePacketListener(zombieManager);
 		stream.removeClientListener(zombieManager);
 	}
@@ -971,20 +775,32 @@ public class LiveStreamEntry extends ModuleBase {
 		this.appInstance = appInstance;
 
 		WMSProperties properties = this.appInstance.getProperties();
+		WMSProperties properties2 = appInstance.getDvrProperties();
+		boolean DVREnable = appInstance.getManagerProperties().getPropertyBoolean("DVREnable", false);
+		if (DVREnable){
+			DvrRecorderControl dvrRecorderControl = new DvrRecorderControl();
+			appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
+			appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
+
+		}
 		//Init Application Managers
 		if (properties.containsKey(LiveStreamEntry.APPLICATION_MANAGERS_PROPERTY_NAME)) {
 			String managers = properties.getPropertyStr(LiveStreamEntry.APPLICATION_MANAGERS_PROPERTY_NAME);
 			logger.debug("managers: " + managers);
 			try {
-				KalturaServer.getInstance().initApplicationManagers(managers.replaceAll(" ", "").split(","));
+				if (managers.length()>0) {
+					KalturaServer.getInstance().initApplicationManagers(managers.replaceAll(" ", "").split(","));
+				}
 			} catch (Exception e) {
 				logger.error("An error occurred: " + e.getMessage());
 			}
 		}
+        appInstance.addLiveStreamPacketizerListener(liveStreamPacketizerListener);
 
-		appInstance.setLiveStreamDvrRecorderControl(dvrRecorderControl);
-		appInstance.setLiveStreamPacketizerControl(dvrRecorderControl);
 		appInstance.setLiveStreamTranscoderControl(new TranscoderControl());
+        // Set the minimum chunks required for sending isLive to player
+        readyForPlaybackMinimumChunkCount = appInstance.getProperties().getPropertyInt(READY_FOR_PLAYBACK_MINIMUM_CHUNK_COUNT, DEFAULT_MINIMUM_CHUNKS);
+        logger.info("Application started. Minimum chunks for sending isLive to Player: " + readyForPlaybackMinimumChunkCount);
 
 		setLiveStreamManager();
 
@@ -1017,4 +833,96 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 
 	}
+
+    class ChunkIdHandler implements IHTTPStreamerCupertinoLiveStreamPacketizerChunkIdHandler
+    {
+        private LiveStreamPacketizerCupertino packetizerCupertino;
+		private String streamName;
+        private boolean eventLunched;
+
+        public ChunkIdHandler(LiveStreamPacketizerCupertino packetizer, String stream) {
+            this.packetizerCupertino = packetizer;
+			this.streamName = stream;
+			this.eventLunched = false;
+        }
+
+        public void init(LiveStreamPacketizerCupertino var) {}
+
+        public long onAssignChunkId(HTTPStreamerCupertinoLiveStreamPacketizerChunkIdContext context) {
+			logger.info("ATTENTION - Stream: [" + streamName + "] has Chunk Index: [" + context.getChunkIndex() + "]");
+			if (!eventLunched) {
+                checkChunksForPlayback();
+            }
+            return context.getChunkIndex();
+        }
+
+		public void resetEventLunched() {
+			eventLunched = false;
+		}
+
+        public void checkChunksForPlayback() {
+            try {
+                int chunkCount = this.packetizerCupertino.getChunkCount();
+				logger.info("Stream contains [" + chunkCount + "] chuncks");
+                if (chunkCount >= readyForPlaybackMinimumChunkCount) {
+					logger.info("Stream: [" + this.streamName + "] contains [" + chunkCount + "] chunks");
+                    raiseReadyForPlaybackEvent();
+                }
+            } catch (Exception err) {
+                logger.error(err);
+            }
+        }
+
+        private void raiseReadyForPlaybackEvent() {
+			// Create the even on an outer thread because using liveStreamManager.get(entryId) can take a long time due to lock
+			// of all the entries done in several different places in the code.
+			TimerTask raiseReadyForPlaybackEvent = new TimerTask() {
+
+				@Override
+				public void run() {
+					try {
+						IMediaStream mediaStream = packetizerCupertino.getAndSetStartStream(null);
+						if (mediaStream == null)
+							return;
+						WMSProperties clientProperties = mediaStream.getProperties();
+						KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+						String entryId = getEntryIdFromStreamName(mediaStream.getName());
+						KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_READY_FOR_PLAYBACK, liveStreamManager.get(entryId), serverIndex, applicationName, mediaStream);
+						KalturaEventsManager.raiseEvent(event);
+						logger.info("Stream [" + mediaStream + "] raised READY_FOR_PLAYBACK");
+						eventLunched = true;
+					}
+					catch (Exception err) {
+						logger.error(err);
+					}
+				}
+			};
+
+			Timer timer = new Timer("register- readyForPlaybackEvent" , true);
+			timer.schedule(raiseReadyForPlaybackEvent, 0);
+			logger.debug("Scheduled initial timer - READY_FOR_PLAYBACK");
+        }
+    }
+
+    class LiveStreamPacketizerListener2 implements ILiveStreamPacketizerActionNotify {
+
+        public LiveStreamPacketizerListener2() {
+            logger.debug("creating new LiveStreamPacketizerListener2 object");
+        }
+
+        public void onLiveStreamPacketizerInit(ILiveStreamPacketizer var1, String var2) {}
+
+        public void onLiveStreamPacketizerCreate(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {
+            logger.info("Packetizer [" + liveStreamPacketizer.getClass().getSimpleName() + "] created, for stream: [" + streamName + "]");
+			if (!(liveStreamPacketizer instanceof LiveStreamPacketizerCupertino))
+                return;
+
+            logger.info("Stream [" + streamName + "] - creating ChunkIdHandler object ");
+            ((LiveStreamPacketizerCupertino)liveStreamPacketizer).setChunkIdHandler(new ChunkIdHandler((LiveStreamPacketizerCupertino)liveStreamPacketizer, streamName));
+        }
+
+        public void onLiveStreamPacketizerDestroy(ILiveStreamPacketizer liveStreamPacketizer) {
+            logger.debug("Destroying liveStreamPacketizer " + liveStreamPacketizer.getLiveStreamPacketizerId());
+        }
+    }
 }
