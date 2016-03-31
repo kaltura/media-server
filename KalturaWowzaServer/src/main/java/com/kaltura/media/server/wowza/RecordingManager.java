@@ -202,7 +202,7 @@ public class RecordingManager {
 		}
 	}
 
-	public void restart(){
+	/*public void restart(){
 		logger.debug("Restart");
 		synchronized (recorders)
 		{
@@ -217,7 +217,7 @@ public class RecordingManager {
 				}
 			}
 		}
-	}
+	}*/
 
 	public boolean restart(String entryId){
 		logger.debug("Restart: " + entryId);

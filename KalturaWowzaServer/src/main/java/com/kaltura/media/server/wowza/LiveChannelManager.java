@@ -372,10 +372,4 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 	protected void disconnectStream(String entryId) {
 		// TODO
 	}
-	
-	protected void entryStillAlive(KalturaLiveEntry liveEntry, KalturaMediaServerIndex serverIndex){
-		super.entryStillAlive(liveEntry, serverIndex);
-		
-		SmilManager.updateSmils(liveEntry.id);
-	}
 }
