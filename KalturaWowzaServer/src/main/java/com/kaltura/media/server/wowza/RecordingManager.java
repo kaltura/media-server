@@ -202,23 +202,6 @@ public class RecordingManager {
 		}
 	}
 
-	public void restart(){
-		logger.debug("Restart");
-		synchronized (recorders)
-		{
-			for(String entryId : recorders.keySet()){
-				if(liveManager.isEntryRegistered(entryId)){
-					Map<String, EntryRecorder> entryRecorders = recorders.get(entryId);
-					if (entryRecorders != null){
-						for(ILiveStreamRecord streamRecorder : entryRecorders.values()){
-							streamRecorder.splitRecordingNow();
-						}
-					}
-				}
-			}
-		}
-	}
-
 	public boolean restart(String entryId){
 		logger.debug("Restart: " + entryId);
 

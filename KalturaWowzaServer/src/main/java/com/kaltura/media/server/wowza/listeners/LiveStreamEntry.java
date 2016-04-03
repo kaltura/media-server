@@ -93,8 +93,6 @@ public class LiveStreamEntry extends ModuleBase {
 	protected final static String CLIENT_PROPERTY_CODEC_TYPE = "codecType";
 	protected final static String STREAM_PROPERTY_SUFFIX = "suffix";
 	protected final static String APPLICATION_MANAGERS_PROPERTY_NAME = "ApplicationManagers";
-    private final static String READY_FOR_PLAYBACK_MINIMUM_CHUNK_COUNT = "readyForPlaybackMinimumChunkCount";
-    private final static int DEFAULT_MINIMUM_CHUNKS = 4;
 
 	protected final static int INVALID_SERVER_INDEX = -1;
 
@@ -102,7 +100,6 @@ public class LiveStreamEntry extends ModuleBase {
 	
 	private static ExecutorService executor = Executors.newCachedThreadPool();
 
-    private LiveStreamPacketizerListener2 liveStreamPacketizerListener = new LiveStreamPacketizerListener2();
 	private String applicationName;
 	private LiveStreamManager liveStreamManager;
 	private LiveStreamTranscoderListener liveStreamTranscoderListener = new LiveStreamTranscoderListener();
@@ -110,7 +107,6 @@ public class LiveStreamEntry extends ModuleBase {
 	private ZombieStreamsWatcher zombieManager = new ZombieStreamsWatcher();
 	private IApplicationInstance appInstance;
 	private Map<String, Map<String, Stream>> restreams = new HashMap<String, Map<String, Stream>>();
-    private int readyForPlaybackMinimumChunkCount;
 
 	@SuppressWarnings("serial")
 	private class ClientConnectException extends Exception{
@@ -313,30 +309,6 @@ public class LiveStreamEntry extends ModuleBase {
 
 				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, liveStreamManager.get(entryId), serverIndex, applicationName, stream, assetParamsId);
 				KalturaEventsManager.raiseEvent(event);
-			}
-            // Check if packetizer already exists, if so reset flag in order for READY_FOR_PLAYBACK to be raised
-			checkIfPacketierExists(stream);
-		}
-
-		private void checkIfPacketierExists(IMediaStream stream) {
-			if (stream != null) {
-				try {
-					ILiveStreamPacketizer packetizer = stream.getLiveStreamPacketizer("cupertinostreamingpacketizer");
-					if (packetizer == null) {
-						logger.debug("Packetizer not created yet created");
-						return;
-					}
-					LiveStreamPacketizerCupertino cupertino = (LiveStreamPacketizerCupertino) packetizer;
-					ChunkIdHandler myHandler = (ChunkIdHandler) cupertino.getChunkIdHandler();
-					logger.info("Packetizer exist for stream: [" + stream.getName() + "]. Reset flag for READY_FOR_PLAYBACK event" );
-					myHandler.resetEventLunched();
-				}
-				catch(Exception err) {
-					logger.error(err);
-				}
-			}
-			else {
-				logger.error("onPublish was called but stream is null");
 			}
 		}
 
@@ -809,12 +781,8 @@ public class LiveStreamEntry extends ModuleBase {
 				logger.error("An error occurred: " + e.getMessage());
 			}
 		}
-        appInstance.addLiveStreamPacketizerListener(liveStreamPacketizerListener);
-
+		
 		appInstance.setLiveStreamTranscoderControl(new TranscoderControl());
-        // Set the minimum chunks required for sending isLive to player
-        readyForPlaybackMinimumChunkCount = appInstance.getProperties().getPropertyInt(READY_FOR_PLAYBACK_MINIMUM_CHUNK_COUNT, DEFAULT_MINIMUM_CHUNKS);
-        logger.info("Application started. Minimum chunks for sending isLive to Player: " + readyForPlaybackMinimumChunkCount);
 
 		setLiveStreamManager();
 
@@ -847,96 +815,4 @@ public class LiveStreamEntry extends ModuleBase {
 		}
 
 	}
-
-    class ChunkIdHandler implements IHTTPStreamerCupertinoLiveStreamPacketizerChunkIdHandler
-    {
-        private LiveStreamPacketizerCupertino packetizerCupertino;
-		private String streamName;
-        private boolean eventLunched;
-
-        public ChunkIdHandler(LiveStreamPacketizerCupertino packetizer, String stream) {
-            this.packetizerCupertino = packetizer;
-			this.streamName = stream;
-			this.eventLunched = false;
-        }
-
-        public void init(LiveStreamPacketizerCupertino var) {}
-
-        public long onAssignChunkId(HTTPStreamerCupertinoLiveStreamPacketizerChunkIdContext context) {
-			logger.info("ATTENTION - Stream: [" + streamName + "] has Chunk Index: [" + context.getChunkIndex() + "]");
-			if (!eventLunched) {
-                checkChunksForPlayback();
-            }
-            return context.getChunkIndex();
-        }
-
-		public void resetEventLunched() {
-			eventLunched = false;
-		}
-
-        public void checkChunksForPlayback() {
-            try {
-                int chunkCount = this.packetizerCupertino.getChunkCount();
-				logger.info("Stream contains [" + chunkCount + "] chuncks");
-                if (chunkCount >= readyForPlaybackMinimumChunkCount) {
-					logger.info("Stream: [" + this.streamName + "] contains [" + chunkCount + "] chunks");
-                    raiseReadyForPlaybackEvent();
-                }
-            } catch (Exception err) {
-                logger.error(err);
-            }
-        }
-
-        private void raiseReadyForPlaybackEvent() {
-			// Create the even on an outer thread because using liveStreamManager.get(entryId) can take a long time due to lock
-			// of all the entries done in several different places in the code.
-			TimerTask raiseReadyForPlaybackEvent = new TimerTask() {
-
-				@Override
-				public void run() {
-					try {
-						IMediaStream mediaStream = packetizerCupertino.getAndSetStartStream(null);
-						if (mediaStream == null)
-							return;
-						WMSProperties clientProperties = mediaStream.getProperties();
-						KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
-						String entryId = getEntryIdFromStreamName(mediaStream.getName());
-						KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaEventType.STREAM_READY_FOR_PLAYBACK, liveStreamManager.get(entryId), serverIndex, applicationName, mediaStream);
-						KalturaEventsManager.raiseEvent(event);
-						logger.info("Stream [" + mediaStream + "] raised READY_FOR_PLAYBACK");
-						eventLunched = true;
-					}
-					catch (Exception err) {
-						logger.error(err);
-					}
-				}
-			};
-
-			Timer timer = new Timer("register- readyForPlaybackEvent" , true);
-			timer.schedule(raiseReadyForPlaybackEvent, 0);
-			logger.debug("Scheduled initial timer - READY_FOR_PLAYBACK");
-        }
-    }
-
-    class LiveStreamPacketizerListener2 implements ILiveStreamPacketizerActionNotify {
-
-        public LiveStreamPacketizerListener2() {
-            logger.debug("creating new LiveStreamPacketizerListener2 object");
-        }
-
-        public void onLiveStreamPacketizerInit(ILiveStreamPacketizer var1, String var2) {}
-
-        public void onLiveStreamPacketizerCreate(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {
-            logger.info("Packetizer [" + liveStreamPacketizer.getClass().getSimpleName() + "] created, for stream: [" + streamName + "]");
-			if (!(liveStreamPacketizer instanceof LiveStreamPacketizerCupertino))
-                return;
-
-            logger.info("Stream [" + streamName + "] - creating ChunkIdHandler object ");
-            ((LiveStreamPacketizerCupertino)liveStreamPacketizer).setChunkIdHandler(new ChunkIdHandler((LiveStreamPacketizerCupertino)liveStreamPacketizer, streamName));
-        }
-
-        public void onLiveStreamPacketizerDestroy(ILiveStreamPacketizer liveStreamPacketizer) {
-            logger.debug("Destroying liveStreamPacketizer " + liveStreamPacketizer.getLiveStreamPacketizerId());
-        }
-    }
 }
