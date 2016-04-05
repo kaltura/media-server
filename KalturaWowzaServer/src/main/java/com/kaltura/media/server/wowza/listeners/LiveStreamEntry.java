@@ -1,39 +1,14 @@
 package com.kaltura.media.server.wowza.listeners;
 
-import java.io.File;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import com.kaltura.client.enums.KalturaLiveEntryStatus;
-import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.HTTPStreamerCupertinoLiveStreamPacketizerChunkIdContext;
-import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.IHTTPStreamerCupertinoLiveStreamPacketizerChunkIdHandler;
-import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
-import org.apache.log4j.Logger;
-
 import com.kaltura.client.KalturaApiException;
-import com.kaltura.client.KalturaObjectBase;
 import com.kaltura.client.enums.KalturaDVRStatus;
-import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.enums.KalturaEntryServerNodeType;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.media.server.KalturaEventsManager;
 import com.kaltura.media.server.KalturaServer;
-import com.kaltura.media.server.events.IKalturaEvent;
 import com.kaltura.media.server.events.KalturaEventType;
-import com.kaltura.media.server.events.KalturaMetadataEvent;
 import com.kaltura.media.server.events.KalturaStreamEvent;
 import com.kaltura.media.server.managers.ILiveManager;
 import com.kaltura.media.server.managers.ILiveStreamManager;
@@ -43,12 +18,7 @@ import com.kaltura.media.server.wowza.ZombieStreamsWatcher;
 import com.kaltura.media.server.wowza.events.KalturaApplicationInstanceEvent;
 import com.kaltura.media.server.wowza.events.KalturaMediaEventType;
 import com.kaltura.media.server.wowza.events.KalturaMediaStreamEvent;
-import com.wowza.util.BufferUtils;
-import com.wowza.util.FLVUtils;
-import com.wowza.wms.amf.AMFData;
 import com.wowza.wms.amf.AMFDataList;
-import com.wowza.wms.amf.AMFDataObj;
-import com.wowza.wms.amf.AMFPacket;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.application.WMSProperties;
 import com.wowza.wms.client.IClient;
@@ -61,7 +31,6 @@ import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.rtp.model.RTPSession;
 import com.wowza.wms.stream.IMediaStream;
-import com.wowza.wms.stream.IMediaStreamLivePacketNotify;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import com.wowza.wms.stream.livedvr.ILiveStreamDvrRecorderControl;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerControl;
@@ -74,9 +43,14 @@ import com.wowza.wms.transcoder.model.LiveStreamTranscoder;
 import com.wowza.wms.transcoder.model.LiveStreamTranscoderActionNotifyBase;
 import com.wowza.wms.transcoder.model.TranscoderStreamNameGroup;
 import com.wowza.wms.transcoder.model.TranscoderStreamNameGroupMember;
-import com.wowza.wms.vhost.IVHost;
-import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.LiveStreamPacketizerCupertino;
-import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizer;
+import java.io.File;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.net.InetAddress;
+import org.apache.log4j.Logger;
 
 public class LiveStreamEntry extends ModuleBase {
 
@@ -94,7 +68,7 @@ public class LiveStreamEntry extends ModuleBase {
 	protected final static String STREAM_PROPERTY_SUFFIX = "suffix";
 	protected final static String APPLICATION_MANAGERS_PROPERTY_NAME = "ApplicationManagers";
 
-	protected final static int INVALID_SERVER_INDEX = -1;
+	protected final static String INVALID_SERVER_INDEX = "-1";
 
 	protected static Logger logger = Logger.getLogger(LiveStreamEntry.class);
 	
@@ -214,7 +188,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 			logger.debug("Stream [" + streamName + "]");
             String entryId;
-            KalturaMediaServerIndex serverIndex;
+            KalturaEntryServerNodeType serverIndex;
 
 			WMSProperties properties = getConnectionProperties(stream);
 			int assetParamsId = Integer.MIN_VALUE;
@@ -223,7 +197,7 @@ public class LiveStreamEntry extends ModuleBase {
 				logger.debug("Client IP: " + getStreamIp(stream));
 
 				entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
-				serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+				serverIndex = KalturaEntryServerNodeType.get(properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 				liveManager.addReferrer(entryId, this);
@@ -305,7 +279,7 @@ public class LiveStreamEntry extends ModuleBase {
 				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 				liveManager.addReferrer(entryId, this);
 
-				serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+				serverIndex = KalturaEntryServerNodeType.get(properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, liveStreamManager.get(entryId), serverIndex, applicationName, stream, assetParamsId);
 				KalturaEventsManager.raiseEvent(event);
@@ -336,7 +310,7 @@ public class LiveStreamEntry extends ModuleBase {
 				return;
 
 			KalturaLiveStreamEntry liveStreamEntry = liveStreamManager.get(clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID));
-			KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+            KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 			logger.debug("UnPublish: " + liveStreamEntry.id);
 
@@ -726,10 +700,12 @@ public class LiveStreamEntry extends ModuleBase {
 		int partnerId = Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
 		String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
 		String token = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_TOKEN);
+        KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX));
+        String hostname = KalturaServer.getHostName();
 
-		KalturaLiveEntry entry = liveStreamManager.authenticate(entryId, partnerId, token);
+        KalturaLiveEntry entry = liveStreamManager.authenticate(entryId, partnerId, token, hostname, serverIndex);
 		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
-		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
+		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX));
 		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
 		logger.info("Entry added [" + entryId + "]");
 
