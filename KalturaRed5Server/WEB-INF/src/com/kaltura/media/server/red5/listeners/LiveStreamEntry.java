@@ -1,17 +1,8 @@
 package com.kaltura.media.server.red5.listeners;
 
-import com.kaltura.infra.
-import com.kaltura.client.KalturaApiException;
-import com.kaltura.client.enums.KalturaEntryServerNodeType;
-import com.kaltura.client.enums.KalturaRecordStatus;
-import com.kaltura.client.types.KalturaLiveStreamEntry;
-import com.kaltura.media.server.managers.ILiveStreamManager;
-import com.kaltura.media.server.KalturaServer;
-import com.kaltura.media.server.KalturaServerException;
-import com.kaltura.media.server.red5.LiveStreamManager;
 import java.util.HashMap;
 import java.util.Map;
-import java.net.InetAddress;
+
 import org.apache.log4j.Logger;
 import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.IClient;
@@ -23,6 +14,15 @@ import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.stream.ServerStream;
+
+import com.kaltura.client.KalturaApiException;
+import com.kaltura.client.enums.KalturaEntryServerNodeType;
+import com.kaltura.client.enums.KalturaRecordStatus;
+import com.kaltura.client.types.KalturaLiveStreamEntry;
+import com.kaltura.media.server.ILiveStreamManager;
+import com.kaltura.media.server.KalturaServer;
+import com.kaltura.media.server.KalturaServerException;
+import com.kaltura.media.server.red5.LiveStreamManager;
 
 public class LiveStreamEntry extends ApplicationAdapter implements IStreamAwareScopeHandler {
 
@@ -178,7 +178,7 @@ public class LiveStreamEntry extends ApplicationAdapter implements IStreamAwareS
         KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX));
         String hostname = KalturaServer.getHostName();
 
-		try {
+        try {
 			liveStreamManager.authenticate(entryId, partnerId, token, hostname, serverIndex);
 			client.setAttribute(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
 			client.setAttribute(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX));

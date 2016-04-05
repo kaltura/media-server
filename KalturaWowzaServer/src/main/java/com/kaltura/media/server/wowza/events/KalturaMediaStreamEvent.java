@@ -2,7 +2,6 @@ package com.kaltura.media.server.wowza.events;
 
 import com.kaltura.client.enums.KalturaEntryServerNodeType;
 import com.kaltura.client.types.KalturaLiveEntry;
-import com.kaltura.client.enums.KalturaEntryServerNodeType;
 import com.kaltura.media.server.events.IKalturaEventType;
 import com.kaltura.media.server.events.KalturaStreamEvent;
 import com.wowza.wms.stream.IMediaStream;
