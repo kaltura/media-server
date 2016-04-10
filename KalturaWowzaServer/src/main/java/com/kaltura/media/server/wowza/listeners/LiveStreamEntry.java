@@ -652,7 +652,45 @@ public class LiveStreamEntry extends ModuleBase {
 
 		onClientConnect(client);
 	}
+	public void publish(IClient client, RequestFunction function, AMFDataList params)
+	{
+		String streamName = extractStreamName(client, function, params);
+		if (isDuplicateStream(client, streamName))
+		{
+			logger.info("ModuleBlockDuplicateStreamNames.publish[" + appInstance.getContextStr() + "]: Stream name is already in use: " + streamName);
+			IMediaStream stream = getStream(client, function);
+			sendStreamOnStatusError(stream, "NetStream.Publish.BadName", "Stream name is already in use: " + streamName);
+		}
+		else
+			invokePrevious(client, function, params);
+	}
 
+	public void releaseStream(IClient client, RequestFunction function, AMFDataList params)
+	{
+		String streamName = extractStreamName(client, function, params);
+		if (!isDuplicateStream(client, streamName))
+			invokePrevious(client, function, params);
+	}
+
+	private String extractStreamName(IClient client, RequestFunction function, AMFDataList params)
+	{
+		String streamName = params.getString(PARAM1);
+		if (streamName != null)
+		{
+
+			streamName = streamName.split("\\?")[0];
+		}
+
+		return streamName;
+	}
+
+	private boolean isDuplicateStream(IClient client, String streamName)
+	{
+		if (streamName != null)
+			return client.getAppInstance().getStreams().getStream(streamName) != null;
+
+		return false;
+	}
 	private KalturaLiveEntry onClientConnect(IMediaStream stream) {
 		if (stream.getClient() != null) {
 			return onClientConnect(stream.getClient());
