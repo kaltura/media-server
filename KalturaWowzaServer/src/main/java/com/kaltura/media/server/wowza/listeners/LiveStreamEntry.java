@@ -671,7 +671,8 @@ public class LiveStreamEntry extends ModuleBase {
 		String streamName = extractStreamName(client, function, params);
 		if (!isDuplicateStream(client, streamName))
 			invokePrevious(client, function, params);
-		logger.info("Deleting duplicate stream [" + streamName + "]");
+		else
+			logger.info("Deleting duplicate stream [" + streamName + "]");
 	}
 
 	private String extractStreamName(IClient client, RequestFunction function, AMFDataList params)
