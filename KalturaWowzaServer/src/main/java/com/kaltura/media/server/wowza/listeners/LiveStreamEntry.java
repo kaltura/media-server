@@ -658,7 +658,8 @@ public class LiveStreamEntry extends ModuleBase {
 		logger.debug("Extract stream name and check if already playing");
 		if (isDuplicateStream(client, streamName))
 		{
-			logger.info("Duplicate stream [" + appInstance.getContextStr() + "]. Stream name is already in use: " + streamName);
+			logger.info("Duplicate stream for client [" + client.getClientId() + "]. Name is already in use: " + streamName);
+			logger.info("Query params: [" + client.getQueryStr() + "]; Source IP: [" + client.getIp() + "]");
 			IMediaStream stream = getStream(client, function);
 			sendStreamOnStatusError(stream, "NetStream.Publish.BadName", "Stream name is already in use: " + streamName);
 		}
