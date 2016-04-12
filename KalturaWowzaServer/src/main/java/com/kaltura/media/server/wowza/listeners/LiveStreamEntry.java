@@ -658,7 +658,8 @@ public class LiveStreamEntry extends ModuleBase {
 		logger.debug("Extract stream name and check if already playing");
 		if (isDuplicateStream(client, streamName))
 		{
-			logger.info("Duplicate stream [" + appInstance.getContextStr() + "]. Stream name is already in use: " + streamName);
+			logger.info("Duplicate stream for client [" + client.getClientId() + "]. Name is already in use: " + streamName);
+			logger.info("Query params: [" + client.getQueryStr() + "]; Source IP: [" + client.getIp() + "]");
 			IMediaStream stream = getStream(client, function);
 			sendStreamOnStatusError(stream, "NetStream.Publish.BadName", "Stream name is already in use: " + streamName);
 		}
@@ -671,6 +672,8 @@ public class LiveStreamEntry extends ModuleBase {
 		String streamName = extractStreamName(client, function, params);
 		if (!isDuplicateStream(client, streamName))
 			invokePrevious(client, function, params);
+		else
+			logger.info("Deleting duplicate stream [" + streamName + "]");
 	}
 
 	private String extractStreamName(IClient client, RequestFunction function, AMFDataList params)
@@ -680,7 +683,6 @@ public class LiveStreamEntry extends ModuleBase {
 		{
 			streamName = streamName.split("\\?")[0];
 		}
-		logger.debug("Stream name extracted: [" + streamName + "]");
 		return streamName;
 	}
 
