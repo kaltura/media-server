@@ -560,11 +560,11 @@ public class LiveStreamEntry extends ModuleBase {
 
 		private String getRtmpUrlParameters(String rtmpUrl) {
 
-			final String OldPattern= "rtmp:\\/\\/.+\\.kaltura\\.com:1935\\/kLive\\/\\?(p=[0-9]+)&(e=[01]_[\\d\\w]{8})&(i=0)&(t=[\\d\\w]+)";
+			final String OldPattern= "\\/kLive\\/\\?(p=[0-9]+)&(e=[01]_[\\d\\w]{8})&(i=[01])&(t=[\\d\\w]+)";
 			final String NewPattern= "rtmp:\\/\\/([01]_[\\d\\w]{8}).([pb])\\.kpublish\\.kaltura\\.com:\\d*\\/kLive\\/\\?(p=[0-9]+)&(t=[\\d\\w]+)";
 			Matcher matcher;
 
-			
+
 			//first, try the old url pattern
 			 matcher = getMatches(rtmpUrl, OldPattern);
 
@@ -576,7 +576,7 @@ public class LiveStreamEntry extends ModuleBase {
 			 matcher = getMatches(rtmpUrl, NewPattern);
 			if (matcher != null  && matcher.groupCount() ==4) {
 
-				String i= matcher.group(2).equals("p") ? "i=1" : "i=0" ;
+				String i= matcher.group(2).equals("p") ? "i=0" : "i=1" ;
 				return  "e="+matcher.group(1)+'&'+i+'&'+matcher.group(3)+'&'+matcher.group(4);
 			}
 
@@ -766,8 +766,8 @@ public class LiveStreamEntry extends ModuleBase {
 		try {
 			return onClientConnect(properties, queryString);
 		} catch (KalturaApiException | ClientConnectException e) {
-			logger.error("Entry authentication failed [" + queryString + "]: " + e.getMessage());
-			client.rejectConnection("Unable to authenticate entry [" + queryString + "]", "Unable to authenticate entry [" + queryString + "]");
+			logger.error("Entry authentication failed with url [" + rtmpUrl + "]: " + e.getMessage());
+			client.rejectConnection("Unable to authenticate ur; [" + rtmpUrl + "]");
 			client.shutdownClient();
 		}
 
