@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.kaltura.client.enums.KalturaLiveEntryStatus;
+import com.kaltura.client.enums.KalturaEntryServerNodeStatus;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.HTTPStreamerCupertinoLiveStreamPacketizerChunkIdContext;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.IHTTPStreamerCupertinoLiveStreamPacketizerChunkIdHandler;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
