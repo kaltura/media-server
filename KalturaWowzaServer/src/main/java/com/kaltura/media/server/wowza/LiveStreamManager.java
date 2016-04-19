@@ -2,7 +2,7 @@ package com.kaltura.media.server.wowza;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.enums.KalturaEntryServerNodeType;
 import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
@@ -92,7 +92,7 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 		return recordingManager.restart(entryId);
 	}
 	
-	public String startRecord(String entryId, String assetId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
+	public String startRecord(String entryId, String assetId, IMediaStream stream, KalturaEntryServerNodeType index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
 		logger.debug("Start recording: " + entryId);
 		return recordingManager.start(entryId, assetId, stream, index, versionFile, startOnKeyFrame, recordData);
 	}
@@ -158,7 +158,7 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 		super.onEvent(event);
 	}
 	
-	protected void onMediaStreamPublish(IMediaStream stream, String entryId, KalturaMediaServerIndex serverIndex, int assetParamsId) {
+	protected void onMediaStreamPublish(IMediaStream stream, String entryId, KalturaEntryServerNodeType serverIndex, int assetParamsId) {
 
 		logger.debug("Stream [" + stream.getName() + "] entry [" + entryId + "] index [" + serverIndex.hashCode + "] asset params id [" + assetParamsId + "]");
 		

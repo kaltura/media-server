@@ -16,7 +16,7 @@ import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.stream.ServerStream;
 
 import com.kaltura.client.KalturaApiException;
-import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.enums.KalturaEntryServerNodeType;
 import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.media.server.ILiveStreamManager;
@@ -54,7 +54,7 @@ public class LiveStreamEntry extends ApplicationAdapter implements IStreamAwareS
 			return;
 
 		KalturaLiveStreamEntry liveStreamEntry = liveStreamManager.get((String) client.getAttribute(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID));
-		KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get((int) client.getAttribute(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+        KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get((int) client.getAttribute(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 		logger.debug("LiveStreamEntry::streamPublishStart: " + liveStreamEntry.id);
 
@@ -95,7 +95,7 @@ public class LiveStreamEntry extends ApplicationAdapter implements IStreamAwareS
 			return;
 
 		KalturaLiveStreamEntry liveStreamEntry = liveStreamManager.get((String) client.getAttribute(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID));
-		KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get((int) client.getAttribute(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+        KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get((String) client.getAttribute(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 		logger.debug("LiveStreamEntry::streamPublishStart: " + liveStreamEntry.id);
 
@@ -175,11 +175,13 @@ public class LiveStreamEntry extends ApplicationAdapter implements IStreamAwareS
 		int partnerId = Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
 		String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
 		String token = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_TOKEN);
+        KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX));
+        String hostname = KalturaServer.getHostName();
 
-		try {
-			liveStreamManager.authenticate(entryId, partnerId, token);
+        try {
+			liveStreamManager.authenticate(entryId, partnerId, token, hostname, serverIndex);
 			client.setAttribute(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
-			client.setAttribute(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
+			client.setAttribute(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX));
 			client.setAttribute(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
 			logger.info("LiveStreamEntry::connect: Entry added [" + entryId + "]");
 		} catch (KalturaApiException e) {

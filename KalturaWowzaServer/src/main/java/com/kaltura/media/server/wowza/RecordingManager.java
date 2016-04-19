@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 
-import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.enums.KalturaEntryServerNodeType;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.managers.ILiveManager;
@@ -51,7 +51,7 @@ public class RecordingManager {
 	{
 		private String entryId;
 		private String assetId;
-		private KalturaMediaServerIndex index;
+		private KalturaEntryServerNodeType index;
 		private boolean isLastChunk = false;
 
 		abstract class AppendRecordingTimerTask extends TimerTask {
@@ -67,7 +67,7 @@ public class RecordingManager {
 			}
 		}
 
-		public EntryRecorder(String entryId, String assetId, KalturaMediaServerIndex index) {
+		public EntryRecorder(String entryId, String assetId, KalturaEntryServerNodeType index) {
 			super();
 
 			this.entryId = entryId;
@@ -90,7 +90,7 @@ public class RecordingManager {
 		}
 
 
-		public KalturaMediaServerIndex getIndex() {
+		public KalturaEntryServerNodeType getIndex() {
 			return index;
 		}
 
@@ -163,7 +163,7 @@ public class RecordingManager {
 			//If the current live asset being unpublished is the recording anchor - send cancelReplace call
 			KalturaLiveAsset liveAsset = liveManager.getLiveAssetById(entryId, assetId);
 			logger.info("current media server index: " + index);
-			if (liveAsset != null && liveAsset.tags.contains(RecordingManager.RECORDING_ANCHOR_TAG_VALUE) && KalturaMediaServerIndex.PRIMARY.equals(index)) {
+			if (liveAsset != null && liveAsset.tags.contains(RecordingManager.RECORDING_ANCHOR_TAG_VALUE) && KalturaEntryServerNodeType.LIVE_PRIMARY.equals(index)) {
 				liveManager.cancelReplace(entryId);
 			}
 
@@ -225,7 +225,7 @@ public class RecordingManager {
 	}
 
 
-	public String start(String entryId, String assetId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
+	public String start(String entryId, String assetId, IMediaStream stream, KalturaEntryServerNodeType index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
 		logger.debug("Stream name [" + stream.getName() + "] entry [" + entryId + "]");
 
 		// create a stream recorder and save it in a map of recorders

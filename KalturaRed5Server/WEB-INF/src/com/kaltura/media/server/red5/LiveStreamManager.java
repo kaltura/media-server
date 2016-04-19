@@ -13,11 +13,11 @@ import java.nio.file.attribute.UserPrincipalLookupService;
 import org.red5.server.stream.ServerStream;
 
 import com.kaltura.client.KalturaApiException;
-import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.enums.KalturaEntryServerNodeType;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
 import com.kaltura.client.types.KalturaServerFileResource;
-import com.kaltura.media.server.KalturaLiveStreamManager;
-import com.kaltura.media.server.KalturaManagerException;
+import com.kaltura.media.server.managers.KalturaLiveStreamManager;
+import com.kaltura.media.server.managers.KalturaManagerException;
 import com.kaltura.media.server.KalturaServer;
 
 public class LiveStreamManager extends KalturaLiveStreamManager {
@@ -60,7 +60,7 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 		return false;
 	}
 
-	public void onPublish(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex serverIndex, ServerStream stream) {
+	public void onPublish(KalturaLiveStreamEntry liveStreamEntry, KalturaEntryServerNodeType serverIndex, ServerStream stream) {
 		logger.debug("LiveStreamManager::onPublish: " + liveStreamEntry.id);
 
 		try {
@@ -73,7 +73,7 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 		logger.info("LiveStreamManager::onPublish: Saving stream [" + stream.getSaveFilename() + "]");
 	}
 
-	public void onUnPublish(KalturaLiveStreamEntry liveStreamEntry, KalturaMediaServerIndex serverIndex, ServerStream stream) {
+	public void onUnPublish(KalturaLiveStreamEntry liveStreamEntry, KalturaEntryServerNodeType serverIndex, ServerStream stream) {
 		logger.info("LiveStreamManager::onUnPublish: stream [" + stream.getPublishedName() + "]");
 		
 		if(stream.getSaveFilename() != null){
@@ -101,7 +101,7 @@ public class LiveStreamManager extends KalturaLiveStreamManager {
 		}
 		unimpersonate();
 		
-		if(serverIndex == KalturaMediaServerIndex.PRIMARY)
+		if(serverIndex == KalturaEntryServerNodeType.LIVE_PRIMARY)
 			createMediaEntryOrAppend(liveStreamEntry);
 		}
 		

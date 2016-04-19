@@ -25,7 +25,7 @@ import org.apache.log4j.Logger;
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.KalturaObjectBase;
 import com.kaltura.client.enums.KalturaDVRStatus;
-import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.enums.KalturaEntryServerNodeType;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
@@ -94,7 +94,7 @@ public class LiveStreamEntry extends ModuleBase {
 	protected final static String STREAM_PROPERTY_SUFFIX = "suffix";
 	protected final static String APPLICATION_MANAGERS_PROPERTY_NAME = "ApplicationManagers";
 
-	protected final static int INVALID_SERVER_INDEX = -1;
+	protected final static String INVALID_SERVER_INDEX = "-1";
 
 	protected static Logger logger = Logger.getLogger(LiveStreamEntry.class);
 	
@@ -214,7 +214,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 			logger.debug("Stream [" + streamName + "]");
             String entryId;
-            KalturaMediaServerIndex serverIndex;
+            KalturaEntryServerNodeType serverIndex;
 
 			WMSProperties properties = getConnectionProperties(stream);
 			int assetParamsId = Integer.MIN_VALUE;
@@ -223,7 +223,7 @@ public class LiveStreamEntry extends ModuleBase {
 				logger.debug("Client IP: " + getStreamIp(stream));
 
 				entryId = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID);
-				serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+				serverIndex = KalturaEntryServerNodeType.get(properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 				liveManager.addReferrer(entryId, this);
@@ -305,7 +305,7 @@ public class LiveStreamEntry extends ModuleBase {
 				ILiveStreamManager liveManager = KalturaServer.getManager(ILiveStreamManager.class);
 				liveManager.addReferrer(entryId, this);
 
-				serverIndex = KalturaMediaServerIndex.get(properties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+				serverIndex = KalturaEntryServerNodeType.get(properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 				KalturaMediaStreamEvent event = new KalturaMediaStreamEvent(KalturaMediaEventType.MEDIA_STREAM_PUBLISHED, liveStreamManager.get(entryId), serverIndex, applicationName, stream, assetParamsId);
 				KalturaEventsManager.raiseEvent(event);
@@ -336,7 +336,7 @@ public class LiveStreamEntry extends ModuleBase {
 				return;
 
 			KalturaLiveStreamEntry liveStreamEntry = liveStreamManager.get(clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID));
-			KalturaMediaServerIndex serverIndex = KalturaMediaServerIndex.get(clientProperties.getPropertyInt(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
+            KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(clientProperties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, LiveStreamEntry.INVALID_SERVER_INDEX));
 
 			logger.debug("UnPublish: " + liveStreamEntry.id);
 
@@ -766,10 +766,12 @@ public class LiveStreamEntry extends ModuleBase {
 		int partnerId = Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
 		String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
 		String token = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_TOKEN);
+        KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX));
+        String hostname = KalturaServer.getHostName();
 
-		KalturaLiveEntry entry = liveStreamManager.authenticate(entryId, partnerId, token);
+        KalturaLiveEntry entry = liveStreamManager.authenticate(entryId, partnerId, token, hostname, serverIndex);
 		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
-		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)));
+		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX));
 		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
 		logger.info("Entry added [" + entryId + "]");
 
