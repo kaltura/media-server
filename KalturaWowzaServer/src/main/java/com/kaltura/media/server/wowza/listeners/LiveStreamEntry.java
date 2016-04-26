@@ -86,7 +86,8 @@ public class LiveStreamEntry extends ModuleBase {
 	protected final static String REQUEST_PROPERTY_TOKEN = "t";
 	protected final static String REQUEST_PROPERTY_FLAVOR_IDS = "flavorIds";
 
-	protected final static String CLIENT_PROPERTY_CONNECT_APP = "connectapp";
+	protected final static String CLIENT_PROPERTY_CONNECT_URL = "connecttcUrl";
+
 	protected final static String CLIENT_PROPERTY_PARTNER_ID = "partnerId";
 	protected final static String CLIENT_PROPERTY_SERVER_INDEX = "serverIndex";
 	protected final static String CLIENT_PROPERTY_ENTRY_ID = "entryId";
@@ -557,6 +558,32 @@ public class LiveStreamEntry extends ModuleBase {
 		return matcher.group(1);
 	}
 
+		private String getRtmpUrlParameters(String rtmpUrl) {
+
+			final String OldPattern= "\\/kLive\\/\\?(p=[0-9]+)&(e=[01]_[\\d\\w]{8})&(i=[01])&(t=[\\d\\w]+)";
+			final String NewPattern= "rtmp:\\/\\/([01]_[\\d\\w]{8}).([pb])\\.kpublish\\.kaltura\\.com:\\d*\\/kLive\\/\\?(p=[0-9]+)&(t=[\\d\\w]+)";
+			Matcher matcher;
+
+
+			//first, try the old url pattern
+			 matcher = getMatches(rtmpUrl, OldPattern);
+
+		if (matcher != null && matcher.groupCount() ==4) {
+			return  matcher.group(1)+'&'+matcher.group(2)+'&'+matcher.group(3)+'&'+matcher.group(4);
+		}
+		else{
+			//if not match, try the new pattrn
+			 matcher = getMatches(rtmpUrl, NewPattern);
+			if (matcher != null  && matcher.groupCount() ==4) {
+
+				String i= matcher.group(2).equals("p") ? "i=0" : "i=1" ;
+				return  "e="+matcher.group(1)+'&'+i+'&'+matcher.group(3)+'&'+matcher.group(4);
+			}
+
+		}
+			return null;
+	}
+
 	private WMSProperties getConnectionProperties(IMediaStream stream) {
 		WMSProperties properties = null;
 
@@ -641,7 +668,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 	public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
 		WMSProperties properties = client.getProperties();
-		logger.debug("End point [" + properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_CONNECT_APP) + "]");
+		logger.debug("End point [" + properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_CONNECT_URL) + "]");
 
 		if (!setLiveStreamManager()) {
 			logger.error("Live Stream Manager is not loaded yet");
@@ -720,29 +747,24 @@ public class LiveStreamEntry extends ModuleBase {
 
 	private KalturaLiveEntry onClientConnect(IClient client) {
 		WMSProperties properties = client.getProperties();
-		String entryPoint = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_CONNECT_APP);
-		logger.debug("Connect: " + entryPoint);
-
-		String[] requestParts = entryPoint.split("\\?", 2);
-		if (requestParts.length < 2) {
-			logger.error("Entry point is missing params [" + entryPoint + "]");
-			client.rejectConnection("Entry point is missing params [" + entryPoint + "]");
+		String rtmpUrl = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_CONNECT_URL);
+		logger.debug("Geting url: " + rtmpUrl+ " from client "+client.getIp());
+		String queryString = getRtmpUrlParameters(rtmpUrl);
+		if (queryString ==null) {
+			logger.error("Invalid rtmp url provided: " + rtmpUrl);
+			client.rejectConnection("Invalid rtmp url provided: " + rtmpUrl);
 			client.shutdownClient();
 			return null;
-		}
-
-		String queryString = requestParts[1];
-		if(queryString.indexOf("/") > 0){
-			queryString = queryString.substring(0, queryString.indexOf("/"));
 		}
 
 		try {
 			return onClientConnect(properties, queryString);
 		} catch (KalturaApiException | ClientConnectException e) {
-			logger.error("Entry authentication failed [" + entryPoint + "]: " + e.getMessage());
-			client.rejectConnection("Unable to authenticate entry [" + entryPoint + "]", "Unable to authenticate entry [" + entryPoint + "]");
+			logger.error("Entry authentication failed with url [" + rtmpUrl + "]: " + e.getMessage());
+			client.rejectConnection("Unable to authenticate ur; [" + rtmpUrl + "]");
 			client.shutdownClient();
 		}
+
 
 		return null;
 	}
