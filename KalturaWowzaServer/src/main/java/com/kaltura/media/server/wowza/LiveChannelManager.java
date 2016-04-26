@@ -11,7 +11,7 @@ import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.KalturaClient;
 import com.kaltura.client.enums.KalturaFileSyncObjectType;
 import com.kaltura.client.enums.KalturaFlavorAssetStatus;
-import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.enums.KalturaEntryServerNodeType;
 import com.kaltura.client.enums.KalturaNullableBoolean;
 import com.kaltura.client.services.KalturaFileSyncService;
 import com.kaltura.client.types.KalturaAssetFilter;
@@ -303,7 +303,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			
 			SmilManager.generate(appInstance, liveChannel.id, liveChannel.id + "_all", bitrates);
 			
-			onPublish(liveChannel.id, KalturaMediaServerIndex.PRIMARY, appInstance.getApplication().getName()); // TODO support fallback
+			onPublish(liveChannel.id, KalturaEntryServerNodeType.LIVE_PRIMARY, appInstance.getApplication().getName()); // TODO support fallback
 		}
 	}
 
@@ -357,7 +357,7 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 		return recordingManager.restart(entryId);
 	}
 
-	public String startRecord(String entryId, String assetId, IMediaStream stream, KalturaMediaServerIndex index, boolean versionFile, boolean startOnKeyFrame, boolean recordData) {
+	public String startRecord(String entryId, String assetId, IMediaStream stream, KalturaEntryServerNodeType index, boolean versionFile, boolean startOnKeyFrame, boolean recordData) {
 		logger.debug("LiveStreamEntry::startRecord: " + entryId);
 		return recordingManager.start(entryId, assetId, stream, index, versionFile, startOnKeyFrame, recordData);
 	}

@@ -30,8 +30,8 @@ import com.kaltura.client.KalturaFile;
 import com.kaltura.client.KalturaMultiResponse;
 import com.kaltura.client.KalturaServiceBase;
 import com.kaltura.client.enums.KalturaDVRStatus;
-import com.kaltura.client.enums.KalturaMediaServerIndex;
-import com.kaltura.client.enums.KalturaLiveEntryStatus;
+import com.kaltura.client.enums.KalturaEntryServerNodeType;
+import com.kaltura.client.enums.KalturaEntryServerNodeStatus;
 import com.kaltura.client.types.KalturaConversionProfileAssetParams;
 import com.kaltura.client.types.KalturaConversionProfileAssetParamsFilter;
 import com.kaltura.client.types.KalturaConversionProfileAssetParamsListResponse;
@@ -86,7 +86,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 	protected class LiveEntryCache {
 		private KalturaLiveEntry liveEntry;
-		private KalturaMediaServerIndex index = null;
+		private KalturaEntryServerNodeType index = null;
 		private ArrayList<KalturaConversionProfileAssetParams> conversionProfileAssetParams;
 		private Map<Integer, KalturaLiveAsset> liveAssets = new HashMap<Integer, KalturaLiveAsset>();
 		Set<ILiveEntryReferrer> referrers = new HashSet<ILiveManager.ILiveEntryReferrer>();
@@ -217,7 +217,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 			return liveAssets.keySet().toArray(new Integer[0]);
 		}
 
-		public KalturaMediaServerIndex getIndex() {
+		public KalturaEntryServerNodeType getIndex() {
 			return index;
 		}
 
@@ -257,7 +257,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		return null;
 	}
 
-	public KalturaMediaServerIndex getMediaServerIndexForEntry (String entryId) {
+	public KalturaEntryServerNodeType getMediaServerIndexForEntry (String entryId) {
 		synchronized (entries) {
 			if (entries.containsKey(entryId)) {
 				LiveEntryCache liveEntryCache = entries.get(entryId);
@@ -418,7 +418,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		}
 	}
 
-	protected void onPublish(String entryId, final KalturaMediaServerIndex serverIndex, String applicationName) {
+	protected void onPublish(String entryId, final KalturaEntryServerNodeType serverIndex, String applicationName) {
 		logger.debug("Entry [" + entryId + "]");
 
 		LiveEntryCache liveEntryCache;
@@ -436,7 +436,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		onEntryPublished(entryId, liveEntryCache, serverIndex, applicationName);
 	}
 
-	protected void onEntryPublished(String entryId, LiveEntryCache liveEntryCache, final KalturaMediaServerIndex serverIndex, String applicationName) {
+	protected void onEntryPublished(String entryId, LiveEntryCache liveEntryCache, final KalturaEntryServerNodeType serverIndex, String applicationName) {
 
 		if (liveEntryCache == null || liveEntryCache.getLiveEntry() == null) {
 			logger.debug("liveEntryCache is null. or getLiveEntry is null");
@@ -471,7 +471,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 				//this stream is the first one to broadcast, update the server
 				liveEntry.currentBroadcastStartTime = new Date().getTime() / 1000.0;
 				logger.debug("currentBroadcastStartTime is not updated in server. updating to value - " + liveEntry.currentBroadcastStartTime);
-				boolean isPrimary = KalturaMediaServerIndex.PRIMARY.equals(serverIndex);
+				boolean isPrimary = KalturaEntryServerNodeType.LIVE_PRIMARY.equals(serverIndex);
 
 				//if the current Wowza is the primary one, update the server
 				if (isPrimary) {
@@ -516,7 +516,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		}
 	}
 
-	public void appendRecording(String entryId, String assetId, KalturaMediaServerIndex index, String filePath, double duration, boolean isLastChunk) {
+	public void appendRecording(String entryId, String assetId, KalturaEntryServerNodeType index, String filePath, double duration, boolean isLastChunk) {
 
 		logger.info("Entry [" + entryId + "] asset [" + assetId + "] index [" + index + "] filePath [" + filePath + "] duration [" + duration + "] isLastChunk [" + isLastChunk + "]");
 
@@ -545,7 +545,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 		try {
 
-			Method method = liveServiceInstance.getClass().getMethod("appendRecording", String.class, String.class, KalturaMediaServerIndex.class, KalturaDataCenterContentResource.class, double.class, boolean.class);
+			Method method = liveServiceInstance.getClass().getMethod("appendRecording", String.class, String.class, KalturaEntryServerNodeType.class, KalturaDataCenterContentResource.class, double.class, boolean.class);
 			KalturaLiveEntry updatedEntry = (KalturaLiveEntry)method.invoke(liveServiceInstance, entryId, assetId, index, resource, duration, isLastChunk);
 
 			if(updatedEntry != null){
@@ -625,7 +625,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 		return liveEntry;
 	}
 
-	protected boolean saveUploadAsXml (String entryId, String assetId, KalturaMediaServerIndex index, String filePath, double duration, boolean isLastChunk, int partnerId)
+	protected boolean saveUploadAsXml (String entryId, String assetId, KalturaEntryServerNodeType index, String filePath, double duration, boolean isLastChunk, int partnerId)
 	{
 		try {
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
@@ -651,7 +651,7 @@ abstract public class KalturaLiveManager extends KalturaManager implements ILive
 
 			// index element
 			Element indexElem = doc.createElement("index");
-			indexElem.appendChild(doc.createTextNode(Integer.toString(index.hashCode)));
+			indexElem.appendChild(doc.createTextNode(index.hashCode));
 			rootElement.appendChild(indexElem);
 
 			// duration element
