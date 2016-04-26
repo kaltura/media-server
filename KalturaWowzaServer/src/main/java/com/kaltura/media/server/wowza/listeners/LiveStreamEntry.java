@@ -748,7 +748,7 @@ public class LiveStreamEntry extends ModuleBase {
 	private KalturaLiveEntry onClientConnect(IClient client) {
 		WMSProperties properties = client.getProperties();
 		String rtmpUrl = properties.getPropertyStr(LiveStreamEntry.CLIENT_PROPERTY_CONNECT_URL);
-		logger.debug("Geting url: " + rtmpUrl);
+		logger.debug("Geting url: " + rtmpUrl+ " from client "+client.getIp());
 		String queryString = getRtmpUrlParameters(rtmpUrl);
 		if (queryString ==null) {
 			logger.error("Invalid rtmp url provided: " + rtmpUrl);
@@ -756,12 +756,6 @@ public class LiveStreamEntry extends ModuleBase {
 			client.shutdownClient();
 			return null;
 		}
-		/*
-		String queryString = requestParts[1];
-		if(queryString.indexOf("/") > 0){
-			queryString = queryString.substring(0, queryString.indexOf("/"));
-		}
-		*/
 
 		try {
 			return onClientConnect(properties, queryString);
