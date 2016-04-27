@@ -145,6 +145,7 @@ public class CuePointsManager  extends ModuleBase  {
 					if (data.get("sd")!=null && data.get("st")!=null){	//Check if AMFdata containing Timecode
 						String date=(String)data.get("sd").getValue();
 						String time=(String)data.get("st").getValue();
+						//todo Does the difference of timezone matter?
 						SimpleDateFormat sdf  = new SimpleDateFormat("dd-MM-yyyy kk:mm:ss.SSS");
 						Date dateObj = sdf.parse(date+ " "+time);
 						long UnixTime =dateObj.getTime();
@@ -155,7 +156,7 @@ public class CuePointsManager  extends ModuleBase  {
 					}
 					if (data.get(OBJECT_TYPE_KEY) != null) {
 						String json = jsonAMF(data);
-						logger.debug("Stream [" + streamName + "] JSON:\n" + json);
+						logger.debug("Stream [" + streamName + "] JSON: " + json);
 
 						ID3V2FrameBase frame;
 						frame = new ID3V2FrameObject();
