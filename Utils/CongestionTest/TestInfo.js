@@ -64,7 +64,8 @@ KalturaTestInfo.prototype.getRtmpInfo=function() {
 
     var self=this;
     return  kle.getEntry(this.id)
-        .then(function(entry) {
+        .then(function(result) {
+            var entry=result[0];
             var urls=[];
             entry.bitrates=entry.bitrates.splice(0,self.flavorsToStream);
             if (entry.primaryBroadcastingUrl) {
@@ -123,10 +124,12 @@ KalturaTestInfo.prototype.checkDualDC=function(entries, numOfWowza) {
 
 KalturaTestInfo.prototype.getLiveStatus=function(logger) {
     var self=this;
+    self.logger=logger;
     if (config.KalturaService.serverAddress.length==1){
         return kle.getEntry(this.id)
-            .then(function(entry) {
-            return entry.liveStatus;
+            .then(function(results) {
+                self.logger.debug("got live status %d , kaltura session %s",results[0].liveStatus, results["1"]["x-kaltura-session"])
+            return results[0].liveStatus;
         });
     }
     var entry_id=this.id;
@@ -135,7 +138,8 @@ KalturaTestInfo.prototype.getLiveStatus=function(logger) {
     });
     var numOfWowza= (entryConfiguration.useBackup === true) ? 2 :1;
     return q.all([kle.getEntry(this.id,0),kle.getEntry(this.id,1)])
-        .then(function(entries) {
+        .then(function(results) {
+            var entries=[results[0][0], results[1][0]];
             return self.checkDualDC(entries, numOfWowza)
                 .then(function(){
                     return entries[0].liveStatus;

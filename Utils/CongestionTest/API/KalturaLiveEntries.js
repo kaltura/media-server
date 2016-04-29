@@ -47,7 +47,7 @@ KalturaLiveEntries.prototype.getEntry=function(entryId , serverIndex){
     };
 
     return kalturaAPI.call(obj).then(function (res) {
-        return $q.resolve(res.objects[0]);
+        return $q.resolve([res[0].objects[0], res[1]]);
     }, function (error) {
         return $q.reject(error);
     });

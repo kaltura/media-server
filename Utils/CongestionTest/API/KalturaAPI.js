@@ -61,10 +61,10 @@ KalturaAPI.prototype.login = function () {
             secret: this._connectionInfo.adminSecret,
             partnerId: this._connectionInfo.partnerId
         },true).then(function (result) {
-                _this._ks = result;
+                _this._ks = result[0];
                 var now=new Date();
                 _this._ks_expiry=new Date(now.getTime()+1*60*60*1000);//1 hour
-                logger.info("loggedin with user '" + _this._connectionInfo.userId + "' in with ks=" + result);
+                logger.info("loggedin with user '" + _this._connectionInfo.userId + "' in with ks=%s, %s", result[0], result["1"]["x-kaltura-session"]);
                 return $q.resolve(result);
             },
             function (res) {
@@ -121,9 +121,9 @@ KalturaAPI.prototype._kcall=function(params,ingoreMR) {
 
 
                 if (result && result.objectType === "KalturaAPIException") {
-                    return reject(result);
+                    return reject([result, response.headers]);
                 }
-                return resolve(result);
+                return resolve([result, response.headers]);
             });
 
 
