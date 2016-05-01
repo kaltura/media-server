@@ -143,11 +143,18 @@ public class CuePointsManager  extends ModuleBase  {
 						return;
 					}
 					if (data.get("sd")!=null && data.get("st")!=null){	//Check if AMFdata containing Timecode
-						String date=(String)data.get("sd").getValue();
-						String time=(String)data.get("st").getValue();
-						//todo Does the difference of timezone matter?
-						SimpleDateFormat sdf  = new SimpleDateFormat("dd-MM-yyyy kk:mm:ss.SSS");
-						Date dateObj = sdf.parse(date+ " "+time);
+						String datestring=(String)data.get("sd").getValue();
+						datestring+=" "+(String)data.get("st").getValue();
+						SimpleDateFormat sdf;
+						if (data.get("tz")!=null) {
+							String timezone = (String) data.get("tz").getValue();
+							datestring = datestring + " " + timezone;
+							sdf = new SimpleDateFormat("dd-MM-yyyy kk:mm:ss.SSS XXX");
+
+						else {
+							 sdf = new SimpleDateFormat("dd-MM-yyyy kk:mm:ss.SSS");
+						}
+						Date dateObj = sdf.parse(datestring);
 						long UnixTime =dateObj.getTime();
 						// Add following fields to the AMFDataObj
 						data.put(OBJECT_TYPE_KEY, OBJECT_TYPE_TIMECODE);
@@ -165,7 +172,7 @@ public class CuePointsManager  extends ModuleBase  {
 					}
 
 				} catch (Exception e) {
-					logger.error("failed to add sync points data to ID3Tag", e);
+					logger.error("Stream [" + streamName + "] failed to add sync points data to ID3Tag", e);
 				}
 			}
 			else {
