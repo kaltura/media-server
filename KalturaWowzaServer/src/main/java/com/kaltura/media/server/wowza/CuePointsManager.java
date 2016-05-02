@@ -18,13 +18,17 @@ import org.apache.log4j.Logger;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.text.SimpleDateFormat;
 
 public class CuePointsManager  extends ModuleBase  {
 
 	private static final String OBJECT_TYPE_KEY = "objectType";
-	private static final String OBJECT_TYPE_VALUE = "KalturaSyncPoint";
+	private static final String OBJECT_TYPE_SYNCPOINT = "KalturaSyncPoint";
+	private static final String OBJECT_TYPE_TIMECODE = "KalturaSyncTimecode";
 	private static final String TIMESTAMP_KEY = "timestamp";
 	private static final String ID_KEY = "id";
+	private static final String META_DATA_TIMECODE= "onFI";
+
 
 	private static final Logger logger = Logger.getLogger(CuePointsManager.class);
 	private static final String PUBLIC_METADATA = "onMetaData";
@@ -84,7 +88,8 @@ public class CuePointsManager  extends ModuleBase  {
 			AMFData obj = o.get(key);
 			if (obj != null) {
 				map.put(key, obj.getValue());
-			} else {
+			}
+			else {
 				throw new NoSuchElementException(key + " is not found in AMFDataObj");
 			}
 		}
@@ -130,30 +135,50 @@ public class CuePointsManager  extends ModuleBase  {
 			String metaDataStr = amfList.getString(0);
 			AMFDataObj data = amfList.getObject(1);
 
-			if (!metaDataStr.equals(CuePointsManager.PUBLIC_METADATA)) {
+			if (metaDataStr.equals(CuePointsManager.PUBLIC_METADATA) || metaDataStr.equals(CuePointsManager.META_DATA_TIMECODE)) {
+
+
+				try {
+					if (data == null) {
+						return;
+					}
+					if (data.get("sd")!=null && data.get("st")!=null){	//Check if AMFdata containing Timecode
+						String datestring=(String)data.get("sd").getValue();
+						datestring+=" "+(String)data.get("st").getValue();
+						SimpleDateFormat sdf;
+						if (data.get("tz")!=null) {
+							String timezone = (String) data.get("tz").getValue();
+							datestring = datestring + " " + timezone;
+							sdf = new SimpleDateFormat("dd-MM-yyyy kk:mm:ss.SSS XXX");
+
+						else {
+							 sdf = new SimpleDateFormat("dd-MM-yyyy kk:mm:ss.SSS");
+						}
+						Date dateObj = sdf.parse(datestring);
+						long UnixTime =dateObj.getTime();
+						// Add following fields to the AMFDataObj
+						data.put(OBJECT_TYPE_KEY, OBJECT_TYPE_TIMECODE);
+						data.put(TIMESTAMP_KEY, UnixTime);
+						data.put(ID_KEY, "null");
+					}
+					if (data.get(OBJECT_TYPE_KEY) != null) {
+						String json = jsonAMF(data);
+						logger.debug("Stream [" + streamName + "] JSON: " + json);
+
+						ID3V2FrameBase frame;
+						frame = new ID3V2FrameObject();
+						((ID3V2FrameObject) frame).setText(json);
+						id3Frames.putFrame(frame);
+					}
+
+				} catch (Exception e) {
+					logger.error("Stream [" + streamName + "] failed to add sync points data to ID3Tag", e);
+				}
+			}
+			else {
 				logger.info("Stream [" + streamName + "] metadata [" + metaDataStr + "]");
 				return;
 			}
-
-			try {
-				if (data == null) {
-					return;
-				}
-
-				if ( data.get(OBJECT_TYPE_KEY) != null){
-					String json = jsonAMF(data);
-					logger.debug("Stream [" + streamName + "] JSON:\n" + json);
-
-					ID3V2FrameBase frame;
-					frame = new ID3V2FrameObject();
-					((ID3V2FrameObject) frame).setText(json);
-					id3Frames.putFrame(frame);
-				}
-
-			} catch (Exception e) {
-				logger.error("failed to add sync points data to ID3Tag",e);
-			}
-
 		}
 	}
 
@@ -310,7 +335,7 @@ public class CuePointsManager  extends ModuleBase  {
 
 			AMFDataObj data = new AMFDataObj();
 
-			data.put(OBJECT_TYPE_KEY, OBJECT_TYPE_VALUE);
+			data.put(OBJECT_TYPE_KEY, OBJECT_TYPE_SYNCPOINT);
 			data.put(ID_KEY, id);
 			data.put(TIMESTAMP_KEY, time);
 
