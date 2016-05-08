@@ -92,30 +92,33 @@ class App(object):
     	self.out.header(FLV_AUDIO|FLV_VIDEO)
 
   def get_output(self,index):
-	if hasattr(self,'out'):
-	   return self.out
-	else:
-	   return self.outputs[index];	
-	
+    if hasattr(self,'out'):
+      return self.out
+    else:
+      return self.outputs.get(index,None)
+
   def convert(self):
     self.src_file.seek(rtmp.HANDSHAKE_LEN)
     self.rtmp.set_stream(self.src_file)
-  
+
     while True:
       msg = self.rtmp.get_msg()
       if not msg:
         break
-  
 
+      #streamId = msg.index
+      streamId = msg.streamId
       if msg.type in self.filter and len(msg.data) > 0:
         if msg.type == rtmp.RTMP_INVOKE:
-	  msg.data[3:10]  	
-	  if( len(msg.data) > 10 and msg.data[3:10] == 'publish' ):
-	     self.createFLV(msg.data[23:23 + int( (ord(msg.data[21]) << 8) or ord(msg.data[22]))],msg.index)
+          msg.data[3:10]
+          if( len(msg.data) > 10 and msg.data[3:10] == 'publish' ):
+            self.createFLV(msg.data[23:23 + int( (ord(msg.data[21]) << 8) or ord(msg.data[22]))],streamId)
         elif msg.type == rtmp.RTMP_FLV_DATA:
-	  self.write_packed(self.get_output(msg.index), msg.data, msg.absolute_time)
+          self.write_packed(self.get_output(streamId), msg.data, msg.absolute_time)
         else:
-	  self.get_output(msg.index).write_tag(msg.type, msg.data, msg.absolute_time)
+          stream = self.get_output(streamId)
+          if stream is not None:
+            stream.write_tag(msg.type, msg.data, msg.absolute_time)
 
   def run_args(self, args, appname='rtmp2flv.py'):
     self.appname = appname
@@ -128,6 +131,8 @@ class App(object):
         self.filter = [rtmp.RTMP_VIDEO_DATA]
       elif arg == '--av':
         self.filter = [rtmp.RTMP_AUDIO_DATA, rtmp.RTMP_VIDEO_DATA]
+      elif arg == '--debug':
+        self.rtmp.debug = True
       elif arg.startswith('--'):
         self.usage()
         return 1

@@ -58,7 +58,7 @@ class RTMPError(Exception):
 class RTMPStream(object):
   """Implements the RTMP message-stream state machine"""
   __slots__ = ['index', 'len', 'remaining', 'type', 'time', 'peer_id', 'data',
-      'oobdata', 'absolute_time']
+      'oobdata', 'absolute_time', 'streamId']
 
   def __init__(self, index):
     self.index = index
@@ -71,12 +71,13 @@ class RTMPStream(object):
     self.data = ''
     self.oobdata = []
     self.absolute_time = 0
+    self.streamId = 0
 
   def __repr__(self):
     return '<RTMPStream %r %r[%02x] %d/%d>' % (
         self.index, self.type, self.type, len(self.data), self.len)
 
-  def handle_header(self, hdr):
+  def handle_header(self, hdr, hdrType):
     """Apply header to the current stream.
     Returns remaining length of the message."""
 
@@ -109,6 +110,8 @@ class RTMPStream(object):
     elif self.data == '':
       self.absolute_time += self.time
 
+    if hdrType == 0:
+      self.streamId = hdr[2]
     return self.remaining
 
   def feed_oobdata(self, buffer):
@@ -122,7 +125,7 @@ class RTMPStream(object):
     self.remaining -= len(buffer)
 
     if self.remaining == 0:
-      msg = RTMPMessage(self.index, self.type, self.time, self.absolute_time, self.peer_id, self.data)
+      msg = RTMPMessage(self.index, self.type, self.time, self.absolute_time, self.peer_id, self.data, self.streamId)
       self.data = ''
       self.oobdata = []
       self.remaining = self.len
@@ -132,16 +135,16 @@ class RTMPStream(object):
 
 class RTMPMessage(object):
   """Represents a complete RTMP message"""
-  __slots__ = ['index', 'type', 'time', 'absolute_time', 'peer_id', 'data']
+  __slots__ = ['index', 'type', 'time', 'absolute_time', 'peer_id', 'data', 'streamId']
 
-  def __init__(self, index, type, time, absolute_time, peer_id, data):
+  def __init__(self, index, type, time, absolute_time, peer_id, data,streamId = -1):
     self.index = index
     self.type = type
     self.time = time
     self.absolute_time = absolute_time
     self.peer_id = peer_id
     self.data = data
-
+    self.streamId = streamId
   def __repr__(self):
     return '<RTMPMessage st=%d type=%r[%02x] peer=%08x time=%d absolute_time=%d len=%d>' % (
         self.index, self.type, self.type, self.peer_id, self.time, self.absolute_time,
@@ -192,17 +195,17 @@ class RTMPParser(object):
     #except EOFError:
     #  self.queue.append(None)
     #  return
-    streamid = init & 0x3f
+    cstreamid = init & 0x3f
     try:
-      stream = self.streams[streamid]
+      stream = self.streams[cstreamid]
     except KeyError:
-      stream = self.new_stream(streamid)
+      stream = self.new_stream(cstreamid)
 
     if init & 0xc0 != 0xc0:
       hdr = readstruct(self.stream, hdrfmt[init>>6])
     else:
       hdr = ()
-    stream.handle_header(hdr)
+    stream.handle_header(hdr,init>>6)
 
     # if the "time" field has the magic value, the packet header is
     # superseded by a 32-bit extended timestamp
@@ -214,8 +217,10 @@ class RTMPParser(object):
       # hdr is left unassigned otherwise
       if init & 0xc0 == 0xc0:
         hdr = None
-      print 'header@%08x: hdr type=%d streamid=%d hdr=%r; \t%d/%d bytes [%r]' % (
-          offset, init>>6, streamid, hdr, stream.remaining, chunklen, stream.type)
+      #if (init>>6) == 0:
+
+      print 'header@%08x: hdr type=%d cstreamid=%d hdr=%r; \t%d/%d bytes [%r] streamid=%x ' % (
+          offset, init>>6, cstreamid, hdr, stream.remaining, chunklen, stream.type, stream.streamId)
 
     msg = stream.feed_data(self.read(chunklen))
 
@@ -235,16 +240,16 @@ class RTMPParser(object):
     else:
       self.queue.append(msg)
 
-  def new_stream(self, streamid):
+  def new_stream(self, cstreamid):
     """Create a new RTMPStream object and add it to the 'streams' dict"""
-    assert streamid not in self.streams
-    assert streamid < 64
-    if streamid < 2:
+    assert cstreamid not in self.streams
+    assert cstreamid < 64
+    if cstreamid < 2:
       raise RTMPError("Multi-byte inits not supported (streamid=%d)" %
-          (streamid))
+          (cstreamid))
 
-    stream = RTMPStream(streamid)
-    self.streams[streamid] = stream
+    stream = RTMPStream(cstreamid)
+    self.streams[cstreamid] = stream
 
     return stream
 
