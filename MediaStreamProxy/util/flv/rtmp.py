@@ -233,7 +233,7 @@ class RTMPParser(object):
       assert msg.peer_id == 0
       assert len(msg.data) == 4
       chunklen = struct.unpack('>I', msg.data)[0]
-      if chunklen > 64*1024:
+        if chunklen > 64*1024:
         # FIXME: this is a sanity check only
         raise RTMPError("abnormal chunk size specified: %d" % chunklen)
       self.chunklen = int(chunklen)
