@@ -1,12 +1,12 @@
 package com.kaltura.media.server.events;
 
-import com.kaltura.client.enums.KalturaEntryServerNodeType;
+import com.kaltura.client.enums.KalturaMediaServerIndex;
 import com.kaltura.client.types.KalturaLiveEntry;
 
 public class KalturaStreamEvent extends KalturaEvent {
 
 	private KalturaLiveEntry entry;
-	private KalturaEntryServerNodeType serverIndex;
+	private KalturaMediaServerIndex serverIndex;
 	private String applicationName;
 
 	public KalturaStreamEvent(IKalturaEventType type, KalturaLiveEntry entry) {
@@ -15,12 +15,12 @@ public class KalturaStreamEvent extends KalturaEvent {
 		this.entry = entry;
 	}
 	
-	public KalturaStreamEvent(IKalturaEventType type, KalturaLiveEntry entry, KalturaEntryServerNodeType serverIndex) {
+	public KalturaStreamEvent(IKalturaEventType type, KalturaLiveEntry entry, KalturaMediaServerIndex serverIndex) {
 		this(type, entry);
 		this.serverIndex = serverIndex;
 	}
 	
-	public KalturaStreamEvent(IKalturaEventType type, KalturaLiveEntry entry, KalturaEntryServerNodeType serverIndex, String applicationName) {
+	public KalturaStreamEvent(IKalturaEventType type, KalturaLiveEntry entry, KalturaMediaServerIndex serverIndex, String applicationName) {
 		this(type, entry, serverIndex);
 		this.applicationName = applicationName;
 	}
@@ -33,7 +33,7 @@ public class KalturaStreamEvent extends KalturaEvent {
 		return entry;
 	}
 
-	public KalturaEntryServerNodeType getServerIndex() {
+	public KalturaMediaServerIndex getServerIndex() {
 		return serverIndex;
 	}
 
