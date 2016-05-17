@@ -1,9 +1,9 @@
 package com.kaltura.media.server.wowza.listeners;
 
 import org.apache.log4j.Logger;
-
-import com.kaltura.media.server.KalturaServer;
 import com.kaltura.media.server.KalturaServerException;
+import com.kaltura.media.server.wowza.KalturaAPI;
+
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.application.WMSProperties;
 import com.wowza.wms.server.*;
@@ -13,8 +13,8 @@ import com.wowza.wms.vhost.VHostSingleton;
 public class ServerListener implements IServerNotify2 {
 
 	protected static Logger logger = Logger.getLogger(ServerListener.class);
-	
-	KalturaServer kalturaServer;
+
+	private static KalturaAPI KalturaAPI;
 
 	public void onServerConfigLoaded(IServer server) {
 	}
@@ -26,7 +26,7 @@ public class ServerListener implements IServerNotify2 {
 	public void onServerInit(IServer server) {
 		WMSProperties config = server.getProperties();
 		try {
-			kalturaServer = KalturaServer.init(config);
+			KalturaAPI= new KalturaAPI(config);
 			logger.info("ServerListener::onServerInit Initialized Kaltura server");
 		} catch (KalturaServerException e) {
 			logger.error("ServerListener::onServerInit Failed to initialize Kaltura server: " + e.getMessage());
@@ -36,8 +36,11 @@ public class ServerListener implements IServerNotify2 {
 	}
 
 	public void onServerShutdownStart(IServer server) {
+		//todo should write here something?
+		/*
 		if(kalturaServer != null)
 			kalturaServer.stop();
+			*/
 	}
 
 	public void onServerShutdownComplete(IServer server) {
@@ -57,5 +60,11 @@ public class ServerListener implements IServerNotify2 {
 				logger.warn("Application folder ([install-location]/applications/" + appName + ") is missing");
 			}
 		}
+	}
+	public static KalturaAPI getKalturaAPI(){
+		if (KalturaAPI== null){
+			throw new NullPointerException("KalturaAPI is not initialized");
+		}
+			return KalturaAPI;
 	}
 }
