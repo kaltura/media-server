@@ -8,7 +8,6 @@ import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.KalturaClient;
 import com.kaltura.client.KalturaServiceBase;
 import com.kaltura.client.types.KalturaLiveStreamEntry;
-import com.kaltura.client.enums.KalturaEntryServerNodeType;
 
 
 
@@ -33,9 +32,9 @@ abstract public class KalturaLiveStreamManager extends KalturaLiveManager implem
 		return syncEntryIds.contains(entryId);
 	}
 
-	public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token, String hostname, KalturaEntryServerNodeType serverIndex) throws KalturaApiException {
+	public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token) throws KalturaApiException {
 		KalturaClient impersonateClient = impersonate(partnerId);
-		KalturaLiveStreamEntry liveStreamEntry = impersonateClient.getLiveStreamService().authenticate(entryId, token, hostname, serverIndex);
+		KalturaLiveStreamEntry liveStreamEntry = impersonateClient.getLiveStreamService().authenticate(entryId, token);
 
 		synchronized (entries) {
 			updateEntryCache(liveStreamEntry);
