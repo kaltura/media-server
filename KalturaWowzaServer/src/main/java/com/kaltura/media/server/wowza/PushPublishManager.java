@@ -9,7 +9,7 @@ import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.KalturaClient;
 import com.kaltura.client.KalturaMultiResponse;
 import com.kaltura.client.enums.KalturaLivePublishStatus;
-import com.kaltura.client.enums.KalturaMediaServerIndex;
+import com.kaltura.client.enums.KalturaEntryServerNodeType;
 import com.kaltura.client.enums.KalturaPlaybackProtocol;
 import com.kaltura.client.types.KalturaLiveAsset;
 import com.kaltura.client.types.KalturaLiveEntry;
@@ -139,7 +139,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 		}
 	}
 	
-	protected void onSourcePublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId, KalturaMediaServerIndex serverIndex)
+	protected void onSourcePublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId, KalturaEntryServerNodeType serverIndex)
 	{
 		if (entry.pushPublishEnabled == KalturaLivePublishStatus.DISABLED)
 		{
@@ -234,7 +234,7 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 	    }
 	}
 	
-	protected void rtmpPublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId, KalturaMediaServerIndex serverIndex) {
+	protected void rtmpPublish (IMediaStream stream, KalturaLiveEntry entry, int assetParamsId, KalturaEntryServerNodeType serverIndex) {
 		try {
 			ArrayList<KalturaLiveStreamPushPublishConfiguration> configurations = entry.publishConfigurations;
 			for (KalturaLiveStreamPushPublishConfiguration configuration : configurations) { 
@@ -250,10 +250,10 @@ public class PushPublishManager extends KalturaManager implements IKalturaEventC
 					
 					logger.info("Server index to publish to: " + serverIndex);
 					
-					if (KalturaMediaServerIndex.PRIMARY.equals(serverIndex) ) {
+					if (KalturaEntryServerNodeType.LIVE_PRIMARY.equals(serverIndex) ) {
 						publisher.setHost(rtmpConfiguration.publishUrl);
 					}
-					else if (KalturaMediaServerIndex.SECONDARY.equals(serverIndex)) {
+					else if (KalturaEntryServerNodeType.LIVE_BACKUP.equals(serverIndex)) {
 						publisher.setHost(rtmpConfiguration.backupPublishUrl);
 					}
 					
