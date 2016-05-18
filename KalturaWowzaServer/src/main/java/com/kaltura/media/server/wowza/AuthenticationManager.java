@@ -4,7 +4,8 @@ package com.kaltura.media.server.wowza;
  * Created by ron.yadgar on 09/05/2016.
  */
 
-import com.kaltura.media.server.wowza.listeners.ServerListener;
+
+
 import com.kaltura.client.*;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.client.KalturaApiException;
@@ -17,6 +18,7 @@ import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.amf.AMFDataList;
 import com.wowza.wms.stream.IMediaStream;
 import com.kaltura.client.KalturaClient;
+
 import org.apache.log4j.Logger;
 
 import java.util.HashMap;
@@ -33,6 +35,7 @@ public class AuthenticationManager extends ModuleBase  {
     protected final static String CLIENT_PROPERTY_PARTNER_ID = "partnerId";
     protected final static String CLIENT_PROPERTY_SERVER_INDEX = "serverIndex";
     protected final static String CLIENT_PROPERTY_ENTRY_ID = "entryId";
+    protected final static String CLIENT_PROPERTY_KALTURA_LIVE_ENTRY = "KalturaLiveEntry";
     protected final static String APPLICATION_MANAGERS_PROPERTY_NAME = "ApplicationManagers";
     private static final Logger logger = Logger.getLogger(AuthenticationManager.class);
     protected KalturaConfiguration config;
@@ -93,15 +96,15 @@ public class AuthenticationManager extends ModuleBase  {
         String token = requestParams.get(REQUEST_PROPERTY_TOKEN);
         KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(REQUEST_PROPERTY_SERVER_INDEX));
 
-        KalturaLiveEntry entry = ServerListener.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
+        KalturaLiveEntry liveEntry = KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
         //todo check if all parameters needed
         properties.setProperty(CLIENT_PROPERTY_PARTNER_ID, partnerId);
         properties.setProperty(CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(REQUEST_PROPERTY_SERVER_INDEX));
         properties.setProperty(CLIENT_PROPERTY_ENTRY_ID, entryId);
-        properties.setProperty("KalturaLiveEntry", entry);
+        properties.setProperty(CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
         logger.info("Entry added [" + entryId + "]");
 
-        return entry;
+        return liveEntry;
     }
 
 

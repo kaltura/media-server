@@ -10,11 +10,13 @@ import com.wowza.wms.server.*;
 import com.wowza.wms.vhost.IVHost;
 import com.wowza.wms.vhost.VHostSingleton;
 
+import java.util.Map;
+
 public class ServerListener implements IServerNotify2 {
 
 	protected static Logger logger = Logger.getLogger(ServerListener.class);
 
-	private static KalturaAPI KalturaAPI;
+	private static Map<String, Object> config;
 
 	public void onServerConfigLoaded(IServer server) {
 	}
@@ -23,12 +25,13 @@ public class ServerListener implements IServerNotify2 {
 	}
 
 
+	@SuppressWarnings("unchecked")
 	public void onServerInit(IServer server) {
-		WMSProperties config = server.getProperties();
+		config = server.getProperties();
 		try {
-			KalturaAPI= new KalturaAPI(config);
+			KalturaAPI.initKalturaAPI(config);
 			logger.info("ServerListener::onServerInit Initialized Kaltura server");
-		} catch (KalturaServerException e) {
+		} catch ( Exception e) {
 			logger.error("ServerListener::onServerInit Failed to initialize KalturaAPI: " + e.getMessage());
 		}
 		
@@ -48,12 +51,12 @@ public class ServerListener implements IServerNotify2 {
 
 	private void loadAndLockAppInstance(String vhostName, String appName, String appInstanceName)
 	{
-		IVHost vhost = VHostSingleton.getInstance(vhostName);
+			IVHost vhost = VHostSingleton.getInstance(vhostName);
 		if(vhost != null)
 		{
-			if (vhost.startApplicationInstance(appName, appInstanceName))
+			if (vhost.startApplicationInstance(appName, appInstanceName))	//invoke OnAppsrart in all managers
 			{
-				vhost.getApplication(appName).getAppInstance(appInstanceName).setApplicationTimeout(0);
+				vhost.getApplication(appName).getAppInstance(appInstanceName).setApplicationTimeout(0); //stop the instance from shutting down:
 			}
 			else
 			{
@@ -61,10 +64,7 @@ public class ServerListener implements IServerNotify2 {
 			}
 		}
 	}
-	public static KalturaAPI getKalturaAPI(){
-		if (KalturaAPI== null){
-			throw new NullPointerException("KalturaAPI is not initialized");
-		}
-			return KalturaAPI;
+	public static Map<String, Object> getServerConfig(){
+		return config;
 	}
 }

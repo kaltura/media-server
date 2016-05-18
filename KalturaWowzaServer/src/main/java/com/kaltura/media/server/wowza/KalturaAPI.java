@@ -9,7 +9,6 @@ import com.kaltura.client.enums.KalturaEntryServerNodeType;
 import org.apache.log4j.Logger;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -39,10 +38,26 @@ public class KalturaAPI {
     protected static KalturaClient client;
     protected static String hostname;
     private   KalturaConfiguration clientConfig;
+    private  static KalturaAPI KalturaAPIInstance = null;
 
-    public KalturaAPI(Map<String, Object> serverConfiguration)  throws KalturaServerException {  //TODO CHECK THIS CODE
+    public static synchronized void  initKalturaAPI(Map<String, Object> serverConfiguration)  throws KalturaServerException {
+        if  (KalturaAPIInstance!=null){
+            logger.warn("KalturaAPI instance is already initialized");
+            return;
+        }
+        KalturaAPIInstance =  new KalturaAPI(serverConfiguration);
+    }
+
+    public static synchronized KalturaAPI getKalturaAPI(){  //todo should check that instance is initialized?
+        if (KalturaAPIInstance== null){
+            throw new NullPointerException("KalturaAPI is not initialized");
+        }
+        return KalturaAPIInstance;
+    }
+
+    private KalturaAPI(Map<String, Object> serverConfiguration)  throws KalturaServerException {  //TODO CHECK THIS CODE
         logger.info("Initializing KalturaUncaughtException handler");
-        this.serverConfiguration=serverConfiguration;
+        this.serverConfiguration = serverConfiguration;
         Thread.setDefaultUncaughtExceptionHandler(new KalturaUncaughtExceptionHnadler());   //TODO CHECK THIS CODE
         try {
             hostname = InetAddress.getLocalHost().getHostName();
@@ -161,7 +176,7 @@ public class KalturaAPI {
                      //       KalturaFlavorParams liveParams = impersonateClient.getFlavorParamsService().get(liveAsset.flavorParamsId);
                      //       if(liveParams instanceof KalturaLiveParams)
                      //           liveAssetParams.put(liveAsset.flavorParamsId, (KalturaLiveParams) liveParams);
-                     //   }
+                     //   }f
                         return (KalturaLiveAsset)liveAsset;
                     }
                 }
@@ -172,19 +187,15 @@ public class KalturaAPI {
         }
         return null;
     }
-    public static Map<String, Object> getServerConfig(){
-        return serverConfiguration;
-    }
 
     public KalturaLiveEntry appendRecording(int partnerId, String entryId, String assetId, KalturaEntryServerNodeType index, String filePath, double duration, boolean isLastChunk) throws Exception{
         KalturaDataCenterContentResource resource = getContentResource(filePath, partnerId);
         KalturaClient impersonateClient = impersonate(partnerId);
-        KalturaServiceBase liveServiceInstance = impersonateClient.getLiveStreamService();
-        Method method = liveServiceInstance.getClass().getMethod("appendRecording", String.class, String.class, KalturaEntryServerNodeType.class, KalturaDataCenterContentResource.class, double.class, boolean.class);
-        KalturaLiveEntry updatedEntry = (KalturaLiveEntry)method.invoke(liveServiceInstance, entryId, assetId, index, resource, duration, isLastChunk);
+        KalturaLiveEntry updatedEntry = impersonateClient.getLiveStreamService().appendRecording(entryId, assetId, index, resource, duration, isLastChunk);
 
         return updatedEntry;
     }
+
     protected KalturaDataCenterContentResource getContentResource (String filePath,  int partnerId) {
         if (!this.serverConfiguration.containsKey(KALTURA_WOWZA_SERVER_WORK_MODE) || (this.serverConfiguration.get(KALTURA_WOWZA_SERVER_WORK_MODE).equals(KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA))) {
             KalturaServerFileResource resource = new KalturaServerFileResource();
