@@ -1,8 +1,0 @@
-rootProject.name = 'automation'
-
-include 'stream-downloader'
-include 'utils'
-include 'comparators'
-include 'streamer'
-include 'tasks'
-

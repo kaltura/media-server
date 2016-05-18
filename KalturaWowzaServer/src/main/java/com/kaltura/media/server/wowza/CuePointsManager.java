@@ -150,7 +150,7 @@ public class CuePointsManager  extends ModuleBase  {
 							String timezone = (String) data.get("tz").getValue();
 							datestring = datestring + " " + timezone;
 							sdf = new SimpleDateFormat("dd-MM-yyyy kk:mm:ss.SSS XXX");
-
+						}
 						else {
 							 sdf = new SimpleDateFormat("dd-MM-yyyy kk:mm:ss.SSS");
 						}
@@ -213,7 +213,7 @@ public class CuePointsManager  extends ModuleBase  {
 	}
 
 	public void onStreamCreate(IMediaStream stream) {
-		if(stream.getClientId() < 0){ //ranscoded rendition
+		if(stream.getClientId() < 0){ //transcoded rendition
 			return;
 		}
 
@@ -273,6 +273,7 @@ public class CuePointsManager  extends ModuleBase  {
 				listenerStreams.clear();
 			}
 		}
+
 		@Override
 		public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 

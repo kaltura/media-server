@@ -50,9 +50,15 @@ import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.stream.IMediaStream;
 
 import com.kaltura.media.server.wowza.KalturaAPI;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
-
-
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 
 public class RecordingManagerV2  extends ModuleBase {
@@ -61,6 +67,7 @@ public class RecordingManagerV2  extends ModuleBase {
     protected final static String DEFAULT_RECORDED_FILE_GROUP = "kaltura";
     protected final static String RECORDING_ANCHOR_TAG_VALUE = "recording_anchor";
     protected final static String CLIENT_PROPERTY_ENTRY_ID = "entryId";
+    protected final static String UPLOAD_XML_SAVE_PATH = "uploadXMLSavePath";
 
     //The default live segment duration is 15 minutes long
     protected final static int DEFAULT_RECORDED_SEGMENT_DURATION = 900000;
@@ -68,6 +75,10 @@ public class RecordingManagerV2  extends ModuleBase {
     protected final static String COPY_SEGMENT_TO_LOCATION_FIELD_NAME = "CopySegmentToLocation";
     protected final static String INVALID_SERVER_INDEX = "-1";
     protected final static String CLIENT_PROPERTY_SERVER_INDEX = "serverIndex";
+    protected final static String LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION = "LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION";
+    protected final static String KALTURA_WOWZA_SERVER_WORK_MODE = "KalturaWorkMode";
+    protected final static String KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA = "kaltura";
+
     protected static Logger logger = Logger.getLogger(RecordingManagerV2.class);
 
     static private Map<String, Map<String, EntryRecorder>> recorders = new ConcurrentHashMap<String, Map<String, EntryRecorder>>(); //todo checkit
@@ -84,6 +95,7 @@ public class RecordingManagerV2  extends ModuleBase {
     {
         private String entryId;
         private String assetId;
+        private KalturaLiveEntry liveEntry;
         private KalturaEntryServerNodeType index;
         private boolean isLastChunk = false;
         abstract class AppendRecordingTimerTask extends TimerTask {
@@ -99,9 +111,10 @@ public class RecordingManagerV2  extends ModuleBase {
             }
         }
 
-        public EntryRecorder(String entryId, String assetId, KalturaEntryServerNodeType index) {
+        public EntryRecorder(KalturaLiveEntry liveEntry, String entryId, String assetId, KalturaEntryServerNodeType index) {
             super();
 
+            this.liveEntry = liveEntry;
             this.entryId = entryId;
             this.assetId = assetId;
             this.index = index;
@@ -167,7 +180,7 @@ public class RecordingManagerV2  extends ModuleBase {
                         }
                     }
 
-               //     RecordingManagerV2.appendRecording(entryId, assetId, index, filePath, appendTime, lastChunkFlag);
+                   appendRecording(liveEntry, entryId, assetId, index, filePath, appendTime, lastChunkFlag);
 
                 }
             };
@@ -178,17 +191,19 @@ public class RecordingManagerV2  extends ModuleBase {
             appendRecordingTimer.schedule(appendRecording, 1);
             this.isLastChunk = false;
         }
-/*
+
         @Override
         public void onUnPublish () {
             logger.info("Stop recording: entry Id [" + entryId + "], asset Id [" + assetId + "]");
 
+            //  todo check the following code
+
             //If the current live asset being unpublished is the recording anchor - send cancelReplace call
-            KalturaLiveAsset liveAsset = liveManager.getLiveAssetById(entryId, assetId);
+           // KalturaLiveAsset liveAsset = liveManager.getLiveAssetById(entryId, assetId);
             logger.info("current media server index: " + index);
-            if (liveAsset != null && liveAsset.tags.contains(RecordingManager.RECORDING_ANCHOR_TAG_VALUE) && KalturaEntryServerNodeType.LIVE_PRIMARY.equals(index)) {
-                cancelReplace(entryId);
-            }
+       //     if (liveAsset != null && liveAsset.tags.contains(RecordingManager.RECORDING_ANCHOR_TAG_VALUE) && KalturaEntryServerNodeType.LIVE_PRIMARY.equals(index)) {
+    //            cancelReplace(entryId);
+     //       }
 
             this.isLastChunk = true;
             super.onUnPublish();
@@ -200,7 +215,7 @@ public class RecordingManagerV2  extends ModuleBase {
             }
             this.removeListener(this);
         }
-        */
+
     }
 
 
@@ -314,7 +329,7 @@ public class RecordingManagerV2  extends ModuleBase {
                         logger.error("Entry [" + entryId + "] asset params id [" + assetParamsId + "] asset not found");
                         return;
                    }
-                String fileName = start(liveEntry.id, liveAsset.id, stream, serverIndex, true, true, true);
+                String fileName = start(liveEntry , liveEntry.id, liveAsset.id, stream, serverIndex, true, true, true);
             }
         }
 
@@ -360,11 +375,11 @@ public class RecordingManagerV2  extends ModuleBase {
 
     }
 
-    public String start(String entryId, String assetId, IMediaStream stream, KalturaEntryServerNodeType index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
+    public String start(KalturaLiveEntry liveEntry , String entryId, String assetId, IMediaStream stream, KalturaEntryServerNodeType index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
         logger.debug("Stream name [" + stream.getName() + "] entry [" + entryId + "]");
 
         // create a stream recorder and save it in a map of recorders
-        EntryRecorder recorder = new EntryRecorder(entryId, assetId, index);
+        EntryRecorder recorder = new EntryRecorder(liveEntry, entryId, assetId, index);
 
         // remove existing recorder from the recorders list
 
@@ -417,27 +432,28 @@ public class RecordingManagerV2  extends ModuleBase {
         return filePath;
     }
 
-    public void appendRecording(String entryId, String assetId, KalturaEntryServerNodeType index, String filePath, double duration, boolean isLastChunk) {
+    public void appendRecording(KalturaLiveEntry liveEntry, String entryId, String assetId, KalturaEntryServerNodeType index, String filePath, double duration, boolean isLastChunk) {
 
         logger.info("Entry [" + entryId + "] asset [" + assetId + "] index [" + index + "] filePath [" + filePath + "] duration [" + duration + "] isLastChunk [" + isLastChunk + "]");
 
-        KalturaLiveEntry liveEntry = get(entryId);
-        if(liveEntry == null){
-            logger.info("Entry [" + entryId + "] not found");
-            return;
+        if (serverConfiguration.containsKey(UPLOAD_XML_SAVE_PATH))
+        {
+            //todo this function is related to ECDN, and therefore was not checked.
+            boolean result = saveUploadAsXml (entryId, assetId, index, filePath, duration, isLastChunk, liveEntry.partnerId);
+            if (result) {
+                liveEntry.msDuration += duration;
+                //todo check the following code
+    //            LiveEntryCache liveEntryCache = entries.get(entryId);
+    //            liveEntryCache.setLiveEntry(liveEntry);
+                return;
+            }
+
         }
-
-
-        KalturaDataCenterContentResource resource = getContentResource(filePath, liveEntry);
-
-        KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
-        KalturaServiceBase liveServiceInstance = getLiveServiceInstance(impersonateClient);
 
         try {
 
-            Method method = liveServiceInstance.getClass().getMethod("appendRecording", String.class, String.class, KalturaEntryServerNodeType.class, KalturaDataCenterContentResource.class, double.class, boolean.class);
-            KalturaLiveEntry updatedEntry = (KalturaLiveEntry)method.invoke(liveServiceInstance, entryId, assetId, index, resource, duration, isLastChunk);
-
+            ServerListener.getKalturaAPI().appendRecording(liveEntry.partnerId,  entryId, assetId,  index,  filePath,  duration,  isLastChunk);
+            /*
             if(updatedEntry != null){
                 synchronized (entries) {
                     LiveEntryCache liveEntryCache = entries.get(entryId);
@@ -449,14 +465,100 @@ public class RecordingManagerV2  extends ModuleBase {
                     }
                 }
             }
+            */
         }
         catch (Exception e) {
-            if(e instanceof KalturaApiException && ((KalturaApiException) e).code == KalturaLiveManager.LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION){
+            if(e instanceof KalturaApiException && ((KalturaApiException) e).code == LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION){
                 logger.info("Entry [" + entryId + "] exceeded max recording duration: " + e.getMessage());
             }
             logger.error("Unexpected error occurred [" + entryId + "]", e);
         }
     }
+    protected boolean saveUploadAsXml (String entryId, String assetId, KalturaEntryServerNodeType index, String filePath, double duration, boolean isLastChunk, int partnerId)
+    {
+        try {
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+            Document doc = docBuilder.newDocument();
+            Element rootElement = doc.createElement("upload");
+            doc.appendChild(rootElement);
+
+            // entryId element
+            Element entryIdElem = doc.createElement("entryId");
+            entryIdElem.appendChild(doc.createTextNode(entryId));
+            rootElement.appendChild(entryIdElem);
+
+            // assetId element
+            Element assetIdElem = doc.createElement("assetId");
+            assetIdElem.appendChild(doc.createTextNode(assetId));
+            rootElement.appendChild(assetIdElem);
+
+            // partnerId element
+            Element partnerIdElem = doc.createElement("partnerId");
+            partnerIdElem.appendChild(doc.createTextNode(Integer.toString(partnerId)));
+            rootElement.appendChild(partnerIdElem);
+
+            // index element
+            Element indexElem = doc.createElement("index");
+            indexElem.appendChild(doc.createTextNode(index.hashCode));
+            rootElement.appendChild(indexElem);
+
+            // duration element
+            Element durationElem = doc.createElement("duration");
+            durationElem.appendChild(doc.createTextNode(Double.toString(duration)));
+            rootElement.appendChild(durationElem);
+
+            // isLastChunk element
+            Element isLastChunkElem = doc.createElement("isLastChunk");
+            isLastChunkElem.appendChild(doc.createTextNode(Boolean.toString(isLastChunk)));
+            rootElement.appendChild(isLastChunkElem);
+
+            // filepath element
+            Element filepathElem = doc.createElement("filepath");
+            filepathElem.appendChild(doc.createTextNode(filePath));
+            rootElement.appendChild(filepathElem);
+
+            // workmode element
+            String workmode = serverConfiguration.containsKey(KALTURA_WOWZA_SERVER_WORK_MODE) ? (String)serverConfiguration.get(KALTURA_WOWZA_SERVER_WORK_MODE) : KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA;
+            Element workmodeElem = doc.createElement("workMode");
+            workmodeElem.appendChild(doc.createTextNode(workmode));
+            rootElement.appendChild(workmodeElem);
+
+            // write the content into xml file
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+
+            String xmlFilePath = buildXmlFilePath(entryId, assetId);
+            StreamResult result = new StreamResult(new File(xmlFilePath));
+
+            // Output to console for testing
+            // StreamResult result = new StreamResult(System.out);
+
+            transformer.transform(source, result);
+
+            logger.info("Upload XML saved at: " + xmlFilePath);
+            return true;
+        }
+        catch (Exception e) {
+            logger.error("Error occurred creating upload XML: " + e.getMessage());
+            return false;
+        }
+    }
+    private String buildXmlFilePath(String entryId, String assetId) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(serverConfiguration.get(UPLOAD_XML_SAVE_PATH));
+        sb.append("/");
+        sb.append(entryId);
+        sb.append("_");
+        sb.append(assetId);
+        sb.append("_");
+        sb.append(System.currentTimeMillis());
+        sb.append(".xml");
+        return sb.toString();
+    }
+
+
 }
 /*
 

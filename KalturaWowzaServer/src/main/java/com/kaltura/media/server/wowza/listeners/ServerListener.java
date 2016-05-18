@@ -22,14 +22,14 @@ public class ServerListener implements IServerNotify2 {
 	public void onServerCreate(IServer server) {
 	}
 
-	@SuppressWarnings("unchecked")
+
 	public void onServerInit(IServer server) {
 		WMSProperties config = server.getProperties();
 		try {
 			KalturaAPI= new KalturaAPI(config);
 			logger.info("ServerListener::onServerInit Initialized Kaltura server");
 		} catch (KalturaServerException e) {
-			logger.error("ServerListener::onServerInit Failed to initialize Kaltura server: " + e.getMessage());
+			logger.error("ServerListener::onServerInit Failed to initialize KalturaAPI: " + e.getMessage());
 		}
 		
 		loadAndLockAppInstance(IVHost.VHOST_DEFAULT, "kLive", IApplicationInstance.DEFAULT_APPINSTANCE_NAME);

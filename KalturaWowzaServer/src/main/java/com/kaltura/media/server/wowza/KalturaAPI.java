@@ -1,9 +1,6 @@
 package com.kaltura.media.server.wowza;
 
-import com.kaltura.client.KalturaApiException;
-import com.kaltura.client.KalturaClient;
-import com.kaltura.client.KalturaConfiguration;
-import com.kaltura.client.KalturaMultiResponse;
+import com.kaltura.client.*;
 import com.kaltura.client.enums.KalturaSessionType;
 import com.kaltura.client.types.*;
 import com.kaltura.media.server.KalturaServerException;
@@ -11,6 +8,8 @@ import com.kaltura.media.server.KalturaUncaughtExceptionHnadler;
 import com.kaltura.client.enums.KalturaEntryServerNodeType;
 import org.apache.log4j.Logger;
 
+import java.io.File;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -20,27 +19,30 @@ import java.util.TimerTask;
 /**
  * Created by ron.yadgar on 15/05/2016.
  */
-
+    //todo Is this class should be static? Singleton?
 public class KalturaAPI {
 
     protected final static String KALTURA_SERVER_URL = "KalturaServerURL";
     protected final static String KALTURA_SERVER_ADMIN_SECRET = "KalturaServerAdminSecret";
     protected final static String KALTURA_SERVER_PARTNER_ID = "KalturaPartnerId";
     protected final static String KALTURA_SERVER_TIMEOUT = "KalturaServerTimeout";
+    protected final static String KALTURA_WOWZA_SERVER_WORK_MODE = "KalturaWorkMode";
+    protected final static String KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA = "kaltura";
+
     public static int MEDIA_SERVER_PARTNER_ID = -5;
 
     // use the same session key for all Wowza sessions, so all (within a DC) will be directed to the same sphinx to prevent synchronization problems
     private final static String KALTURA_PERMANENT_SESSION_KEY = "kalturaWowzaPermanentSessionKey";
 
     protected static Logger logger = Logger.getLogger(KalturaAPI.class);
-    protected static Map<String, Object> config;
+    protected static Map<String, Object> serverConfiguration;
     protected static KalturaClient client;
     protected static String hostname;
     private   KalturaConfiguration clientConfig;
 
-    public KalturaAPI(Map<String, Object> config)  throws KalturaServerException {  //TODO CHECK THIS CODE
+    public KalturaAPI(Map<String, Object> serverConfiguration)  throws KalturaServerException {  //TODO CHECK THIS CODE
         logger.info("Initializing KalturaUncaughtException handler");
-        this.config=config;
+        this.serverConfiguration=serverConfiguration;
         Thread.setDefaultUncaughtExceptionHandler(new KalturaUncaughtExceptionHnadler());   //TODO CHECK THIS CODE
         try {
             hostname = InetAddress.getLocalHost().getHostName();
@@ -54,20 +56,20 @@ public class KalturaAPI {
     protected void initClient() throws KalturaServerException {
         clientConfig = new KalturaConfiguration();
 
-        int partnerId = config.containsKey(KALTURA_SERVER_PARTNER_ID) ? (int) config.get(KALTURA_SERVER_PARTNER_ID) : MEDIA_SERVER_PARTNER_ID;
+        int partnerId = serverConfiguration.containsKey(KALTURA_SERVER_PARTNER_ID) ? (int) serverConfiguration.get(KALTURA_SERVER_PARTNER_ID) : MEDIA_SERVER_PARTNER_ID;
 
 
-        if (!config.containsKey(KALTURA_SERVER_URL))
+        if (!serverConfiguration.containsKey(KALTURA_SERVER_URL))
             throw new KalturaServerException("Missing configuration [" + KALTURA_SERVER_URL + "]");
 
-        if (!config.containsKey(KALTURA_SERVER_ADMIN_SECRET))
+        if (!serverConfiguration.containsKey(KALTURA_SERVER_ADMIN_SECRET))
             throw new KalturaServerException("Missing configuration [" + KALTURA_SERVER_ADMIN_SECRET + "]");
 
-        clientConfig.setEndpoint((String) config.get(KALTURA_SERVER_URL));
+        clientConfig.setEndpoint((String) serverConfiguration.get(KALTURA_SERVER_URL));
         logger.debug("Initializing Kaltura client, URL: " + clientConfig.getEndpoint());
 
-        if (config.containsKey(KALTURA_SERVER_TIMEOUT))
-            clientConfig.setTimeout(Integer.parseInt((String) config.get(KALTURA_SERVER_TIMEOUT)) * 1000);
+        if (serverConfiguration.containsKey(KALTURA_SERVER_TIMEOUT))
+            clientConfig.setTimeout(Integer.parseInt((String) serverConfiguration.get(KALTURA_SERVER_TIMEOUT)) * 1000);
 
         client = new KalturaClient(clientConfig);
         client.setPartnerId(partnerId);
@@ -88,8 +90,8 @@ public class KalturaAPI {
         timer.schedule(generateSession, sessionGenerationInterval, sessionGenerationInterval);
     }
     protected void generateClientSession() {
-        int partnerId = config.containsKey(KALTURA_SERVER_PARTNER_ID) ? (int) config.get(KALTURA_SERVER_PARTNER_ID) : MEDIA_SERVER_PARTNER_ID;
-        String adminSecretForSigning = (String) config.get(KALTURA_SERVER_ADMIN_SECRET);
+        int partnerId = serverConfiguration.containsKey(KALTURA_SERVER_PARTNER_ID) ? (int) serverConfiguration.get(KALTURA_SERVER_PARTNER_ID) : MEDIA_SERVER_PARTNER_ID;
+        String adminSecretForSigning = (String) serverConfiguration.get(KALTURA_SERVER_ADMIN_SECRET);
         String userId = "MediaServer";
         KalturaSessionType type = KalturaSessionType.ADMIN;
         int expiry = 86400; // ~24 hours
@@ -171,7 +173,53 @@ public class KalturaAPI {
         return null;
     }
     public static Map<String, Object> getServerConfig(){
-        return config;
+        return serverConfiguration;
+    }
+
+    public KalturaLiveEntry appendRecording(int partnerId, String entryId, String assetId, KalturaEntryServerNodeType index, String filePath, double duration, boolean isLastChunk) throws Exception{
+        KalturaDataCenterContentResource resource = getContentResource(filePath, partnerId);
+        KalturaClient impersonateClient = impersonate(partnerId);
+        KalturaServiceBase liveServiceInstance = impersonateClient.getLiveStreamService();
+        Method method = liveServiceInstance.getClass().getMethod("appendRecording", String.class, String.class, KalturaEntryServerNodeType.class, KalturaDataCenterContentResource.class, double.class, boolean.class);
+        KalturaLiveEntry updatedEntry = (KalturaLiveEntry)method.invoke(liveServiceInstance, entryId, assetId, index, resource, duration, isLastChunk);
+
+        return updatedEntry;
+    }
+    protected KalturaDataCenterContentResource getContentResource (String filePath,  int partnerId) {
+        if (!this.serverConfiguration.containsKey(KALTURA_WOWZA_SERVER_WORK_MODE) || (this.serverConfiguration.get(KALTURA_WOWZA_SERVER_WORK_MODE).equals(KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA))) {
+            KalturaServerFileResource resource = new KalturaServerFileResource();
+            resource.localFilePath = filePath;
+            return resource;
+        }
+        else {
+            KalturaClient impersonateClient = impersonate(partnerId);
+            try {
+                impersonateClient.startMultiRequest();
+                impersonateClient.getUploadTokenService().add(new KalturaUploadToken());
+
+                File fileData = new File(filePath);
+                impersonateClient.getUploadTokenService().upload("{1:result:id}", new KalturaFile(fileData));
+                KalturaMultiResponse responses = impersonateClient.doMultiRequest();
+
+                KalturaUploadedFileTokenResource resource = new KalturaUploadedFileTokenResource();
+                Object response = responses.get(1);
+                if (response instanceof KalturaUploadToken)
+                    resource.token = ((KalturaUploadToken)response).id;
+                else {
+                    if (response instanceof KalturaApiException) {
+                    }
+                    logger.error("Content resource creation error: " + ((KalturaApiException)response).getMessage());
+                    return null;
+                }
+
+                return resource;
+
+            } catch (KalturaApiException e) {
+                logger.error("Content resource creation error: " + e.getMessage());
+            }
+        }
+
+        return null;
     }
 
 
