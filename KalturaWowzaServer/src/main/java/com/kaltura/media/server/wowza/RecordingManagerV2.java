@@ -134,13 +134,16 @@ public class RecordingManagerV2  extends ModuleBase {
 
         @Override
         public void onSegmentStart(ILiveStreamRecord ilivestreamrecord) {
+            // Receive a notification that a new file has been opened for writing.
             logger.info("New segment start: entry ID [" + entryId + "], asset ID [" + assetId + "], segment number [" + this.segmentNumber + "]");
         }
 
         @Override
         public void onSegmentEnd(ILiveStreamRecord liveStreamRecord) {
-            if (this.getCurrentDuration() != 0) {
-                logger.info("Stream [" + stream.getName() + "] segment number [" + this.getSegmentNumber() + "] duration [" + this.getCurrentDuration() + "]");
+            //Receive a notification that the current recorded file has been closed (data is no longer being written to the file).
+            logger.info("Stream [" + stream.getName() + "] segment number [" + this.getSegmentNumber() + "] duration [" + this.getCurrentDuration() + "]");
+            if (this.getCurrentDuration() == 0) {
+                logger.warn("Stream [" + stream.getName() + "] include  duration [" + this.getCurrentDuration() + "]");
             }
 
             AppendRecordingTimerTask appendRecording = new AppendRecordingTimerTask(file.getAbsolutePath(), isLastChunk, (double) this.getCurrentDuration() / 1000) {
@@ -256,77 +259,57 @@ public class RecordingManagerV2  extends ModuleBase {
     //todo Note that all streams (also all that are with out recording  insert to streams,
     public void onStreamCreate(IMediaStream stream) {
 
-        WMSProperties properties = getEntryProperties(stream);
-        if (properties==null){
-            return;
-        }
 
-        KalturaLiveEntry liveEntry= (KalturaLiveEntry) properties.getProperty(CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
-
-        if (liveEntry == null){
-            logger.error("Failed to retirive LiveEntry propery from stream  [" + stream.getName() + "]");
-            return ;
-        }
-
-        if(liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
-            logger.info("Entry [" + liveEntry.id + "] recording disabled");
-            return;
-        }
-
-        KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(properties.getPropertyStr(CLIENT_PROPERTY_SERVER_INDEX, INVALID_SERVER_INDEX));
-
-        RecordingManagerLiveStreamListener listener = new RecordingManagerLiveStreamListener(serverIndex, liveEntry);
+        RecordingManagerLiveStreamListener listener = new RecordingManagerLiveStreamListener();
         streams.put(stream, listener);
-        logger.debug("RecordingManager::onStreamCreate with stream.getName() " + stream.getName() + " and stream.getClientId() " + stream.getClientId());
+        logger.debug("Stream.getName() " + stream.getName() + " and stream.getClientId() " + stream.getClientId());
         stream.addClientListener(listener);
     }
 
     public void onStreamDestroy(IMediaStream stream) {
 
-        WMSProperties properties = getEntryProperties(stream);
-        if (properties==null){
-            return;
-        }
 
-        KalturaLiveEntry liveEntry= (KalturaLiveEntry) properties.getProperty(CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
-
-        if (liveEntry == null){
-            return ;
-        }
-        if(liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
-            logger.info("Entry [" + liveEntry.id + "] recording disabled");
-            return;
-        }
-
-        logger.debug("RecordingManager::onStreamDestroy with stream.getName() " + stream.getName() + " and stream.getClientId() " + stream.getClientId());
+        logger.debug("Stream.getName() " + stream.getName() + " and stream.getClientId() " + stream.getClientId());
 
         RecordingManagerLiveStreamListener listener = streams.remove(stream);
         if (listener != null) {
+            logger.debug("Remove clientListener: stream.getName() " + stream.getName() + " and stream.getClientId() " + stream.getClientId());
             stream.removeClientListener(listener);
         }
     }
 
     class RecordingManagerLiveStreamListener extends MediaStreamActionNotifyBase {
 
-        private KalturaLiveEntry liveEntry;
-        private KalturaEntryServerNodeType serverIndex;
 
-        public RecordingManagerLiveStreamListener(KalturaEntryServerNodeType serverIndex,  KalturaLiveEntry liveEntry){
-
-            this.liveEntry = liveEntry;
-            this.serverIndex=serverIndex;
-        }
         public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
-            int assetParamsId = Integer.MIN_VALUE;
-            WMSProperties properties;
-
-            logger.debug("Stream [" + streamName + "]");
-
             if (!stream.isTranscodeResult()) {
-                logger.error(" stream [" + streamName + "] is not transcoded");
                 return;
             }
+
+
+            WMSProperties properties = getEntryProperties(stream);
+            if (properties==null){
+                logger.error("Failed to retrieve property from stream  [" + stream.getName() + "]");
+                return;
+            }
+
+            KalturaLiveEntry liveEntry= (KalturaLiveEntry) properties.getProperty(CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
+
+            if (liveEntry == null){
+                logger.error("Failed to retrieve LiveEntry property from stream  [" + stream.getName() + "]");
+                return ;
+            }
+
+            if(liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
+                logger.info("Entry [" + liveEntry.id + "] recording disabled");
+                return;
+            }
+            //todo This code section should run for source steam that has recording
+            KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(properties.getPropertyStr(CLIENT_PROPERTY_SERVER_INDEX, INVALID_SERVER_INDEX));
+
+
+            int assetParamsId = Integer.MIN_VALUE;
 
             Matcher matcher = getStreamNameMatches(streamName);
             if (matcher == null) {
@@ -351,12 +334,12 @@ public class RecordingManagerV2  extends ModuleBase {
 
 
 
-                KalturaLiveAsset liveAsset = KalturaAPI.getKalturaAPI().getAssetParams(liveEntry);
+                KalturaLiveAsset liveAsset = KalturaAPI.getKalturaAPI().getAssetParams(liveEntry, assetParamsId);
                 if (liveAsset == null) {
                     logger.error("Entry [" + liveEntry.id + "] asset params id [" + assetParamsId + "] asset not found");
                     return;
                 }
-                String fileName = start(liveEntry, liveEntry.id, liveAsset.id, stream, serverIndex, true, true, true);
+                String fileName = startRecording(liveEntry, liveEntry.id, liveAsset.id, stream, serverIndex, true, true, true);
             }
 
 
@@ -414,10 +397,7 @@ public class RecordingManagerV2  extends ModuleBase {
 
 
 
-
-
-
-    public String start(KalturaLiveEntry liveEntry , String entryId, String assetId, IMediaStream stream, KalturaEntryServerNodeType index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
+    public String startRecording(KalturaLiveEntry liveEntry , String entryId, String assetId, IMediaStream stream, KalturaEntryServerNodeType index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
         logger.debug("Stream name [" + stream.getName() + "] entry [" + entryId + "]");
 
         // create a stream recorder and save it in a map of recorders
@@ -437,7 +417,7 @@ public class RecordingManagerV2  extends ModuleBase {
         }
 
 //		File writeFile = stream.getStreamFileForWrite(entryId, index.getHashCode() + ".flv", "");
-        File writeFile = stream.getStreamFileForWrite(entryId + "." + assetId, index.getHashCode() + ".mp4", "");
+        File writeFile = stream.getStreamFileForWrite(entryId + "." + assetId, index.getHashCode() + ".mp4", "");   //Check this function
         String filePath = writeFile.getAbsolutePath();
 
         logger.debug("Entry [" + entryId + "]  file path [" + filePath + "] version [" + versionFile + "] start on key frame [" + startOnKeyFrame + "] record data [" + recordData + "]");

@@ -142,7 +142,7 @@ public class KalturaAPI {
 
         return cloneClient;
     }
-    public KalturaLiveAsset getAssetParams(KalturaLiveEntry liveEntry) {
+    public KalturaLiveAsset getAssetParams(KalturaLiveEntry liveEntry, int assetParamsId) {
         //check this function
         if(liveEntry.conversionProfileId <= 0) {
             return null;
@@ -170,6 +170,9 @@ public class KalturaAPI {
             if(flavorAssetsList instanceof KalturaFlavorAssetListResponse){
                 for(KalturaFlavorAsset liveAsset : ((KalturaFlavorAssetListResponse) flavorAssetsList).objects){
                     if(liveAsset instanceof KalturaLiveAsset){
+                        if (liveAsset.flavorParamsId == assetParamsId){
+                            return (KalturaLiveAsset)liveAsset;
+                        }
                      //   liveAssets.put(liveAsset.flavorParamsId, (KalturaLiveAsset) liveAsset);
 
                      //   if(!liveAssetParams.containsKey(liveAsset.flavorParamsId)){
@@ -177,7 +180,7 @@ public class KalturaAPI {
                      //       if(liveParams instanceof KalturaLiveParams)
                      //           liveAssetParams.put(liveAsset.flavorParamsId, (KalturaLiveParams) liveParams);
                      //   }f
-                        return (KalturaLiveAsset)liveAsset;
+                    // ron     return (KalturaLiveAsset)liveAsset;
                     }
                 }
             }
