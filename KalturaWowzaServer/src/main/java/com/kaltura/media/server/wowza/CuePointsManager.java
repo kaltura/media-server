@@ -150,7 +150,7 @@ public class CuePointsManager  extends ModuleBase  {
 							String timezone = (String) data.get("tz").getValue();
 							datestring = datestring + " " + timezone;
 							sdf = new SimpleDateFormat("dd-MM-yyyy kk:mm:ss.SSS XXX");
-
+						}
 						else {
 							 sdf = new SimpleDateFormat("dd-MM-yyyy kk:mm:ss.SSS");
 						}
