@@ -18,9 +18,9 @@ import java.util.TimerTask;
 /**
  * Created by ron.yadgar on 15/05/2016.
  */
-    //todo Is this class should be static? Singleton?
-public class KalturaAPI {
 
+public class KalturaAPI {
+//todo remove all proteted
     protected final static String KALTURA_SERVER_URL = "KalturaServerURL";
     protected final static String KALTURA_SERVER_ADMIN_SECRET = "KalturaServerAdminSecret";
     protected final static String KALTURA_SERVER_PARTNER_ID = "KalturaPartnerId";
@@ -99,7 +99,7 @@ public class KalturaAPI {
             }
         };
 
-        long sessionGenerationInterval = 86000000;
+        long sessionGenerationInterval = 23*60*60*1000;// refresh every  23 hours  (KS is valid for a 24h);
 
         Timer timer = new Timer("clientSessionGeneration", true);
         timer.schedule(generateSession, sessionGenerationInterval, sessionGenerationInterval);
@@ -129,7 +129,7 @@ public class KalturaAPI {
 
         return liveStreamEntry;
     }
-    protected KalturaClient  impersonate(int partnerId) {
+    private KalturaClient  impersonate(int partnerId) {
 
         KalturaConfiguration impersonateConfig = new KalturaConfiguration();
         impersonateConfig.setEndpoint(clientConfig.getEndpoint());
@@ -191,15 +191,15 @@ public class KalturaAPI {
         return null;
     }
 
-    public KalturaLiveEntry appendRecording(int partnerId, String entryId, String assetId, KalturaEntryServerNodeType index, String filePath, double duration, boolean isLastChunk) throws Exception{
+    public KalturaLiveEntry appendRecording(int partnerId, String entryId, String assetId, KalturaEntryServerNodeType nodeType, String filePath, double duration, boolean isLastChunk) throws Exception{
         KalturaDataCenterContentResource resource = getContentResource(filePath, partnerId);
         KalturaClient impersonateClient = impersonate(partnerId);
-        KalturaLiveEntry updatedEntry = impersonateClient.getLiveStreamService().appendRecording(entryId, assetId, index, resource, duration, isLastChunk);
+        KalturaLiveEntry updatedEntry = impersonateClient.getLiveStreamService().appendRecording(entryId, assetId, nodeType, resource, duration, isLastChunk);
 
         return updatedEntry;
     }
 
-    protected KalturaDataCenterContentResource getContentResource (String filePath,  int partnerId) {
+    private KalturaDataCenterContentResource getContentResource (String filePath,  int partnerId) {
         if (!this.serverConfiguration.containsKey(KALTURA_WOWZA_SERVER_WORK_MODE) || (this.serverConfiguration.get(KALTURA_WOWZA_SERVER_WORK_MODE).equals(KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA))) {
             KalturaServerFileResource resource = new KalturaServerFileResource();
             resource.localFilePath = filePath;

@@ -51,11 +51,11 @@ public class ServerListener implements IServerNotify2 {
 
 	private void loadAndLockAppInstance(String vhostName, String appName, String appInstanceName)
 	{
-			IVHost vhost = VHostSingleton.getInstance(vhostName);
+		IVHost vhost = VHostSingleton.getInstance(vhostName);
 		if(vhost != null)
 		{
 			if (vhost.startApplicationInstance(appName, appInstanceName))	//invoke OnAppsrart in all managers
-			{
+			{//todo check it
 				vhost.getApplication(appName).getAppInstance(appInstanceName).setApplicationTimeout(0); //stop the instance from shutting down:
 			}
 			else
