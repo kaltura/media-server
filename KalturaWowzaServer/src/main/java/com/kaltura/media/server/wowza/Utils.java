@@ -2,6 +2,10 @@ package com.kaltura.media.server.wowza;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.kaltura.client.types.KalturaFlavorAsset;
+import com.kaltura.client.types.KalturaFlavorAssetListResponse;
+import com.kaltura.client.types.KalturaLiveAsset;
 import org.apache.log4j.Logger;
 
 import com.wowza.wms.stream.*;
@@ -99,5 +103,17 @@ public class Utils {
         logger.error("Cannot find properties for entry [" + entryId + "]  for stream [" + streamName + "]");
         return null;
 
+    }
+
+    public static KalturaLiveAsset getliveAsset(KalturaFlavorAssetListResponse liveAssetList, int assetParamsId){
+        //todo is there better way?
+        for(KalturaFlavorAsset liveAsset :  liveAssetList.objects){
+            if(liveAsset instanceof KalturaLiveAsset){
+                if (liveAsset.flavorParamsId == assetParamsId){
+                    return (KalturaLiveAsset)liveAsset;
+                }
+            }
+        }
+        return null;
     }
 }

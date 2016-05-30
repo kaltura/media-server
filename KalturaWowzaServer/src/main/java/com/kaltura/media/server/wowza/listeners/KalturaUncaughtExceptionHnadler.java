@@ -1,4 +1,4 @@
-package com.kaltura.media.server;
+package com.kaltura.media.server.wowza.listeners;
 
 import org.apache.log4j.Logger;
 

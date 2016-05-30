@@ -1,7 +1,6 @@
 package com.kaltura.media.server.wowza.listeners;
 
 import org.apache.log4j.Logger;
-import com.kaltura.media.server.KalturaServerException;
 import com.kaltura.media.server.wowza.KalturaAPI;
 
 import com.wowza.wms.application.IApplicationInstance;
@@ -31,19 +30,17 @@ public class ServerListener implements IServerNotify2 {
 		try {
 			KalturaAPI.initKalturaAPI(config);
 			logger.info("ServerListener::onServerInit Initialized Kaltura server");
+
+			loadAndLockAppInstance(IVHost.VHOST_DEFAULT, "kLive", IApplicationInstance.DEFAULT_APPINSTANCE_NAME);
+
 		} catch ( Exception e) {
 			logger.error("ServerListener::onServerInit Failed to initialize KalturaAPI: " + e.getMessage());
 		}
-		
-		loadAndLockAppInstance(IVHost.VHOST_DEFAULT, "kLive", IApplicationInstance.DEFAULT_APPINSTANCE_NAME);
+		Thread.setDefaultUncaughtExceptionHandler(new KalturaUncaughtExceptionHnadler());
 	}
 
 	public void onServerShutdownStart(IServer server) {
-		//todo should write here something?
-		/*
-		if(kalturaServer != null)
-			kalturaServer.stop();
-			*/
+
 	}
 
 	public void onServerShutdownComplete(IServer server) {
@@ -55,7 +52,7 @@ public class ServerListener implements IServerNotify2 {
 		if(vhost != null)
 		{
 			if (vhost.startApplicationInstance(appName, appInstanceName))	//invoke OnAppsrart in all managers
-			{//todo check it
+			{
 				vhost.getApplication(appName).getAppInstance(appInstanceName).setApplicationTimeout(0); //stop the instance from shutting down:
 			}
 			else

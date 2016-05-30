@@ -4,7 +4,6 @@ import com.kaltura.client.*;
 import com.kaltura.client.enums.KalturaSessionType;
 import com.kaltura.client.types.*;
 import com.kaltura.media.server.KalturaServerException;
-import com.kaltura.media.server.KalturaUncaughtExceptionHnadler;
 import com.kaltura.client.enums.KalturaEntryServerNodeType;
 import org.apache.log4j.Logger;
 
@@ -20,23 +19,22 @@ import java.util.TimerTask;
  */
 
 public class KalturaAPI {
-//todo remove all proteted
-    protected final static String KALTURA_SERVER_URL = "KalturaServerURL";
-    protected final static String KALTURA_SERVER_ADMIN_SECRET = "KalturaServerAdminSecret";
-    protected final static String KALTURA_SERVER_PARTNER_ID = "KalturaPartnerId";
-    protected final static String KALTURA_SERVER_TIMEOUT = "KalturaServerTimeout";
-    protected final static String KALTURA_WOWZA_SERVER_WORK_MODE = "KalturaWorkMode";
-    protected final static String KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA = "kaltura";
 
-    public static int MEDIA_SERVER_PARTNER_ID = -5;
+    private final static String KALTURA_SERVER_URL = "KalturaServerURL";
+    private final static String KALTURA_SERVER_ADMIN_SECRET = "KalturaServerAdminSecret";
+    private final static String KALTURA_SERVER_PARTNER_ID = "KalturaPartnerId";
+    private final static String KALTURA_SERVER_TIMEOUT = "KalturaServerTimeout";
+    private final static String KALTURA_WOWZA_SERVER_WORK_MODE = "KalturaWorkMode";
+    private final static String KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA = "kaltura";
+    private static int MEDIA_SERVER_PARTNER_ID = -5;
 
     // use the same session key for all Wowza sessions, so all (within a DC) will be directed to the same sphinx to prevent synchronization problems
     private final static String KALTURA_PERMANENT_SESSION_KEY = "kalturaWowzaPermanentSessionKey";
 
-    protected static Logger logger = Logger.getLogger(KalturaAPI.class);
-    protected static Map<String, Object> serverConfiguration;
-    protected static KalturaClient client;
-    protected static String hostname;
+    private static Logger logger = Logger.getLogger(KalturaAPI.class);
+    private static Map<String, Object> serverConfiguration;
+    private static KalturaClient client;
+    private static String hostname;
     private   KalturaConfiguration clientConfig;
     private  static KalturaAPI KalturaAPIInstance = null;
 
@@ -48,27 +46,29 @@ public class KalturaAPI {
         KalturaAPIInstance =  new KalturaAPI(serverConfiguration);
     }
 
-    public static synchronized KalturaAPI getKalturaAPI(){  //todo should check that instance is initialized?
+    public static synchronized KalturaAPI getKalturaAPI(){
         if (KalturaAPIInstance== null){
             throw new NullPointerException("KalturaAPI is not initialized");
         }
         return KalturaAPIInstance;
     }
 
-    private KalturaAPI(Map<String, Object> serverConfiguration)  throws KalturaServerException {  //TODO CHECK THIS CODE
+    private KalturaAPI(Map<String, Object> serverConfiguration)  throws KalturaServerException {
         logger.info("Initializing KalturaUncaughtException handler");
         this.serverConfiguration = serverConfiguration;
-        Thread.setDefaultUncaughtExceptionHandler(new KalturaUncaughtExceptionHnadler());   //TODO CHECK THIS CODE
         try {
             hostname = InetAddress.getLocalHost().getHostName();
             logger.debug("Kaltura server host name: " + hostname);
-        } catch (UnknownHostException e) {
-            throw new KalturaServerException("Failed to determine server host name: " + e.getMessage());
+            initClient();
+        } catch (Exception e) {
+            if (e instanceof UnknownHostException){
+                logger.error("Failed to determine server host name: ", e);
+            }
+            throw new KalturaServerException("Error while loading KalturaAPI: " + e.getMessage());
         }
-        initClient();
     }
 
-    protected void initClient() throws KalturaServerException {
+    private void initClient() throws KalturaServerException {
         clientConfig = new KalturaConfiguration();
 
         int partnerId = serverConfiguration.containsKey(KALTURA_SERVER_PARTNER_ID) ? (int) serverConfiguration.get(KALTURA_SERVER_PARTNER_ID) : MEDIA_SERVER_PARTNER_ID;
@@ -104,7 +104,7 @@ public class KalturaAPI {
         Timer timer = new Timer("clientSessionGeneration", true);
         timer.schedule(generateSession, sessionGenerationInterval, sessionGenerationInterval);
     }
-    protected void generateClientSession() {
+    private void generateClientSession() {
         int partnerId = serverConfiguration.containsKey(KALTURA_SERVER_PARTNER_ID) ? (int) serverConfiguration.get(KALTURA_SERVER_PARTNER_ID) : MEDIA_SERVER_PARTNER_ID;
         String adminSecretForSigning = (String) serverConfiguration.get(KALTURA_SERVER_ADMIN_SECRET);
         String userId = "MediaServer";
@@ -113,7 +113,7 @@ public class KalturaAPI {
         String privileges = "disableentitlement,sessionkey:" + KALTURA_PERMANENT_SESSION_KEY;
         String sessionId;
 
-        try {   //TODO maybe should be less then 24 hours
+        try {
             sessionId = client.generateSession(adminSecretForSigning, userId, type, partnerId, expiry, privileges);
         } catch (Exception e) {
             logger.error("Initializing Kaltura client, URL: " + client.getKalturaConfiguration().getEndpoint());
@@ -124,10 +124,15 @@ public class KalturaAPI {
         logger.debug("Kaltura client session id: " + sessionId);    //session id - KS
     }
     public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token, KalturaEntryServerNodeType serverIndex) throws KalturaApiException {
-        KalturaClient impersonateClient = impersonate(partnerId);
-        KalturaLiveStreamEntry liveStreamEntry = impersonateClient.getLiveStreamService().authenticate(entryId, token, hostname, serverIndex);  //todo note that before, hostname were passed by the function
+        KalturaClient Client = impersonate(-5);
 
-        return liveStreamEntry;
+        KalturaLiveStreamEntry liveStreamEntry = Client.getLiveStreamService().get(entryId);
+
+        KalturaClient impersonateClient = impersonate(liveStreamEntry.partnerId);
+
+        KalturaLiveStreamEntry updatedEntry = impersonateClient.getLiveStreamService().authenticate(entryId, token, hostname, serverIndex);
+
+        return updatedEntry;
     }
     private KalturaClient  impersonate(int partnerId) {
 
@@ -142,7 +147,7 @@ public class KalturaAPI {
 
         return cloneClient;
     }
-    public KalturaLiveAsset getAssetParams(KalturaLiveEntry liveEntry, int assetParamsId) {
+    public KalturaLiveAsset getAssetParams(KalturaLiveEntry liveEntry, int assetParamsId) { //todo change so it will be done only once!!!
         //check this function
         if(liveEntry.conversionProfileId <= 0) {
             return null;
@@ -160,12 +165,7 @@ public class KalturaAPI {
             impersonateClient.getFlavorAssetService().list(asstesFilter);
             KalturaMultiResponse responses = impersonateClient.doMultiRequest();
 
-
-            Object conversionProfileAssetParamsList = responses.get(0);
             Object flavorAssetsList = responses.get(1);
-
-            //if(conversionProfileAssetParamsList instanceof KalturaConversionProfileAssetParamsListResponse)
-            //    conversionProfileAssetParams = ((KalturaConversionProfileAssetParamsListResponse) conversionProfileAssetParamsList).objects;
 
             if(flavorAssetsList instanceof KalturaFlavorAssetListResponse){
                 for(KalturaFlavorAsset liveAsset : ((KalturaFlavorAssetListResponse) flavorAssetsList).objects){
@@ -173,23 +173,37 @@ public class KalturaAPI {
                         if (liveAsset.flavorParamsId == assetParamsId){
                             return (KalturaLiveAsset)liveAsset;
                         }
-                     //   liveAssets.put(liveAsset.flavorParamsId, (KalturaLiveAsset) liveAsset);
-
-                     //   if(!liveAssetParams.containsKey(liveAsset.flavorParamsId)){
-                     //       KalturaFlavorParams liveParams = impersonateClient.getFlavorParamsService().get(liveAsset.flavorParamsId);
-                     //       if(liveParams instanceof KalturaLiveParams)
-                     //           liveAssetParams.put(liveAsset.flavorParamsId, (KalturaLiveParams) liveParams);
-                     //   }f
-                    // ron     return (KalturaLiveAsset)liveAsset;
                     }
                 }
             }
 
         } catch (KalturaApiException e) {
-            logger.error("Failed to load asset params for live entry [" + liveEntry.id + "]:" + e.getMessage());
+            logger.error("Failed to load asset params for live entry [" + liveEntry.id + "]:" + e);
         }
         return null;
     }
+
+
+    public KalturaFlavorAssetListResponse getKalturaFlavorAssetListResponse(KalturaLiveEntry liveEntry) { //todo change so it will be done only once!!!
+        //check this function
+        if(liveEntry.conversionProfileId <= 0) {
+            return null;
+        }
+
+        KalturaLiveAssetFilter asstesFilter = new KalturaLiveAssetFilter();
+        asstesFilter.entryIdEqual = liveEntry.id;
+
+        KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
+
+        try {
+            KalturaFlavorAssetListResponse list = impersonateClient.getFlavorAssetService().list(asstesFilter);
+            return list;
+        } catch (KalturaApiException e) {
+            logger.error("Failed to load asset params for live entry [" + liveEntry.id + "]:" + e);
+        }
+        return null;
+    }
+
 
     public KalturaLiveEntry appendRecording(int partnerId, String entryId, String assetId, KalturaEntryServerNodeType nodeType, String filePath, double duration, boolean isLastChunk) throws Exception{
         KalturaDataCenterContentResource resource = getContentResource(filePath, partnerId);
@@ -229,11 +243,23 @@ public class KalturaAPI {
                 return resource;
 
             } catch (KalturaApiException e) {
-                logger.error("Content resource creation error: " + e.getMessage());
+                logger.error("Content resource creation error: " + e);
             }
         }
 
         return null;
+    }
+
+    public void cancelReplace(KalturaLiveEntry liveEntry){
+
+        try{
+            KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
+            impersonateClient.getMediaService().cancelReplace(liveEntry.recordedEntryId);
+        }
+        catch (Exception e) {
+
+            logger.error("Error occured: " + e);
+        }
     }
 
 
