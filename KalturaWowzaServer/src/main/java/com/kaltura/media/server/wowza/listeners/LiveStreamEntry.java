@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import com.wowza.util.URLUtils;
 import com.kaltura.client.enums.KalturaEntryServerNodeStatus;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.HTTPStreamerCupertinoLiveStreamPacketizerChunkIdContext;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.IHTTPStreamerCupertinoLiveStreamPacketizerChunkIdHandler;
@@ -561,7 +561,7 @@ public class LiveStreamEntry extends ModuleBase {
 		private String getRtmpUrlParameters(String rtmpUrl) {
 
 			final String OldPattern= "\\/kLive\\/\\?(p=[0-9]+)&(e=[01]_[\\d\\w]{8})&(i=[01])&(t=[\\d\\w]+)";
-			final String NewPattern= "rtmp:\\/\\/([01]_[\\d\\w]{8}).([pb])\\.kpublish\\.kaltura\\.com:\\d*\\/kLive\\/\\?(p=[0-9]+)&(t=[\\d\\w]+)";
+			final String NewPattern= "rtmp:\\/\\/([01]_[\\d\\w]{8}).([pb])\\.kpublish\\.kaltura\\.com:\\d*\\/kLive\\/?\\?(p=[0-9]+)?&?(t=[\\d\\w]+)";
 			Matcher matcher;
 
 
@@ -571,15 +571,24 @@ public class LiveStreamEntry extends ModuleBase {
 		if (matcher != null && matcher.groupCount() ==4) {
 			return  matcher.group(1)+'&'+matcher.group(2)+'&'+matcher.group(3)+'&'+matcher.group(4);
 		}
-		else{
+		else {
 			//if not match, try the new pattrn
-			 matcher = getMatches(rtmpUrl, NewPattern);
-			if (matcher != null  && matcher.groupCount() ==4) {
+			matcher = getMatches(rtmpUrl, NewPattern);
+			if (matcher != null) {
 
-				String i= matcher.group(2).equals("p") ? "i=0" : "i=1" ;
-				return  "e="+matcher.group(1)+'&'+i+'&'+matcher.group(3)+'&'+matcher.group(4);
+				String i = matcher.group(2).equals("p") ? "i=0" : "i=1";
+
+				if (matcher.groupCount() == 4) {
+
+					if ( matcher.group(3)==null){	//case that no partnerId
+						return "e=" + matcher.group(1) + '&' + i + '&' + matcher.group(4);
+					}
+					else{
+						return "e=" + matcher.group(1) + '&' + i + '&' + matcher.group(3) + '&' + matcher.group(4);
+					}
+
+				}
 			}
-
 		}
 			return null;
 	}
@@ -781,13 +790,21 @@ public class LiveStreamEntry extends ModuleBase {
 				requestParams.put(queryParamsParts[0], queryParamsParts[1]);
 		}
 
-		if (!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID) || !requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID) || !requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)){
+		if (!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_TOKEN) || !requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID) || !requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)){
 			throw new ClientConnectException("Missing arguments [" + queryString + "]");
 		}
 
-		int partnerId = Integer.parseInt(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID));
 		String entryId = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID);
 		String token = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_TOKEN);
+		String partnerIdString = requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID);
+		int partnerId;
+		if (partnerIdString == null ){	// parnterId is not appears in rtmpUrl
+			partnerId = -5;
+		}
+		else{
+			partnerId = Integer.parseInt(partnerIdString);
+		}
+
         KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX));
         String hostname = KalturaServer.getHostName();
 
