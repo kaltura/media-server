@@ -302,8 +302,6 @@ public class LiveChannelManager extends KalturaLiveChannelManager {
 			logger.info("LiveChannelContainer::start started channel [" + liveChannel.id + "] renditions [" + StringUtils.join(renditions) + "] start time [" + time + "]");
 			
 			SmilManager.generate(appInstance, liveChannel.id, liveChannel.id + "_all", bitrates);
-			
-			onPublish(liveChannel.id, KalturaEntryServerNodeType.LIVE_PRIMARY, appInstance.getApplication().getName()); // TODO support fallback
 		}
 	}
 

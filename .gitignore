@@ -19,4 +19,6 @@ KalturaWowzaServer/build
 **/node_modules
 
 Utils/CongestionTest/samples
-Utils/CongestionTest/logs
+Utils/CongestionTest/logs/Test.log
+Utils/CongestionTest/logs/testResult.log
+Utils/CongestionTest/config/local.json
