@@ -580,7 +580,7 @@ public class LiveStreamEntry extends ModuleBase {
 
 				if (matcher.groupCount() == 4) {
 
-					if ( matcher.group(3)==null){
+					if ( matcher.group(3)==null){	//case that no partnerId
 						return "e=" + matcher.group(1) + '&' + i + '&' + matcher.group(4);
 					}
 					else{
