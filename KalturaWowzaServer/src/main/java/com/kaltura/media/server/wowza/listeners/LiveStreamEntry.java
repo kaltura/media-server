@@ -804,7 +804,7 @@ public class LiveStreamEntry extends ModuleBase {
 
         KalturaLiveEntry entry = liveStreamManager.authenticate(entryId, partnerId, token, hostname, serverIndex);
 		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_PARTNER_ID, partnerId);
-		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, serverIndex);
+		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_SERVER_INDEX, queryParameters.get(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX));
 		properties.setProperty(LiveStreamEntry.CLIENT_PROPERTY_ENTRY_ID, entryId);
 		logger.info("Entry added [" + entryId + "]");
 
