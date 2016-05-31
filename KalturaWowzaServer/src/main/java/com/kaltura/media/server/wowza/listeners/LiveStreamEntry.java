@@ -562,7 +562,7 @@ public class LiveStreamEntry extends ModuleBase {
 		private HashMap<String, String>  getRtmpUrlParameters(String rtmpUrl, String queryString) throws ClientConnectException{
 
 
-			final String NewPattern= "rtmp:\\/\\/([01]_[\\d\\w]{8}).([pb])\\.kpublish\\.kaltura\\.com:\\d*\\/kLive";
+			final String NewPattern= "rtmp:\\/\\/([01]_[\\d\\w]{8}).([pb])\\.kpublish\\.kaltura\\.com:?\\d*\\/kLive";
 			Matcher matcher;
 
 			logger.info("Query-String [" + queryString + "]");
