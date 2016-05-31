@@ -595,13 +595,19 @@ public class LiveStreamEntry extends ModuleBase {
 				}
 			}
 
-			if (!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_TOKEN) ||
-				!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID) ||
-				!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID) ||
-				!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX) )
-			{//should check only 4 parameters ?
-				throw new ClientConnectException("Missing arguments ");
+			if (!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID)){
+				throw new ClientConnectException("Missing arguments: entryId");
 			}
+			if (!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_TOKEN)){
+				throw new ClientConnectException("Missing arguments: token");
+			}
+			if (!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID)){
+				throw new ClientConnectException("Missing arguments: partnerId");
+			}
+			if (!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)){
+				throw new ClientConnectException("Missing arguments: server index");
+			}
+
 			return requestParams;
 	}
 
@@ -693,12 +699,13 @@ public class LiveStreamEntry extends ModuleBase {
 
 		if (!setLiveStreamManager()) {
 			logger.error("Live Stream Manager is not loaded yet");
-			client.rejectConnection("Live Stream Manager is not loaded yet", "Live Stream Manager is not loaded yet");
+			client.rejectConnection("Live Stream Manager is not loaded yet");
 			client.shutdownClient();
 			return;
 		}
 
 		onClientConnect(client);
+		return;
 	}
 	public void publish(IClient client, RequestFunction function, AMFDataList params)
 	{
