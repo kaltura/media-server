@@ -78,6 +78,7 @@ import com.wowza.wms.vhost.IVHost;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.LiveStreamPacketizerCupertino;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizer;
 
+
 public class LiveStreamEntry extends ModuleBase {
 
 	protected final static String REQUEST_PROPERTY_PARTNER_ID = "p";
@@ -560,14 +561,13 @@ public class LiveStreamEntry extends ModuleBase {
 
 		private HashMap<String, String>  getRtmpUrlParameters(String rtmpUrl, String queryString) throws ClientConnectException{
 
-		//	final String OldPattern= "\\/kLive\\/\\?(p=[0-9]+)&(e=[01]_[\\d\\w]{8})&(i=[01])&(t=[\\d\\w]+)";
-	//		final String NewPattern= "rtmp:\\/\\/([01]_[\\d\\w]{8}).([pb])\\.kpublish\\.kaltura\\.com:\\d*\\/kLive\\/?\\?(p=[0-9]+)?&?(t=[\\d\\w]+)";
-			final String OldPattern= "\\/kLive\\/\\?(p=[0-9]+)&(e=[01]_[\\d\\w]{8})&(i=[01])&(t=[\\d\\w]+)";
+
 			final String NewPattern= "rtmp:\\/\\/([01]_[\\d\\w]{8}).([pb])\\.kpublish\\.kaltura\\.com:\\d*\\/kLive";
 			Matcher matcher;
 
 			logger.info("Query-String [" + queryString + "]");
 
+			//parse the Query-String into Hash map.
 			String[] queryParams = queryString.split("&");
 			HashMap<String, String> requestParams = new HashMap<String, String>();
 			String[] queryParamsParts;
@@ -577,34 +577,30 @@ public class LiveStreamEntry extends ModuleBase {
 					requestParams.put(queryParamsParts[0], queryParamsParts[1]);
 			}
 
-			//first, try the old url pattern
+			//Check if the Url is the new pattern, if so, parse the entryid and server index
 			 matcher = getMatches(rtmpUrl, NewPattern);
 
-		if (matcher != null && matcher.groupCount() ==2) {
+			if (matcher != null && matcher.groupCount() ==2) {
 
+				requestParams.put(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID, matcher.group(1));
 
+				//check if the parter id include in query string ...
+				if (!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID)){
+					requestParams.put(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID, "-5");
+				}
 
-			requestParams.put(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID, matcher.group(1));
-
-
-			if (!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID)){
-				requestParams.put(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID, "-5");
+				if (!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)){
+					String i = matcher.group(2).equals("p") ? "0" : "1";
+					requestParams.put(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX, i);
+				}
 			}
 
-			if (!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX)){
-				String i = matcher.group(2).equals("p") ? "0" : "1";
-				requestParams.put(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX, i);
-			}
-		}
-//		else {
-			//if not match, Assume old other pattren?
-//		}
 			if (!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_TOKEN) ||
 				!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_ENTRY_ID) ||
 				!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_PARTNER_ID) ||
 				!requestParams.containsKey(LiveStreamEntry.REQUEST_PROPERTY_SERVER_INDEX) )
 			{//should check only 4 parameters ?
-				throw new ClientConnectException("Missing arguments [" + queryString + "]");
+				throw new ClientConnectException("Missing arguments ");
 			}
 			return requestParams;
 	}
@@ -779,8 +775,9 @@ public class LiveStreamEntry extends ModuleBase {
 			HashMap<String, String>  queryParameters = getRtmpUrlParameters(rtmpUrl, client.getQueryStr());
 			return onClientConnect(properties, queryParameters);
 		} catch (KalturaApiException | ClientConnectException e) {
+
 			logger.error("Entry authentication failed with url [" + rtmpUrl + "]: " + e.getMessage());
-			client.rejectConnection("Unable to authenticate ur; [" + rtmpUrl + "]");
+			client.rejectConnection("Unable to authenticate ur; [" + rtmpUrl + "]" + e.getMessage());
 			client.shutdownClient();
 		}
 
