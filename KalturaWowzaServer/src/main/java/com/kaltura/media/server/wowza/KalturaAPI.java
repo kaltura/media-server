@@ -124,15 +124,22 @@ public class KalturaAPI {
         logger.debug("Kaltura client session id: " + sessionId);    //session id - KS
     }
     public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token, KalturaEntryServerNodeType serverIndex) throws KalturaApiException {
-        KalturaClient Client = impersonate(-5);
+        if (partnerId == -5){
+            KalturaClient Client= getClient();
+            KalturaLiveEntry liveEntry = Client.getLiveStreamService().get(entryId);
+            partnerId = liveEntry.partnerId;
+        }
 
-        KalturaLiveStreamEntry liveStreamEntry = Client.getLiveStreamService().get(entryId);
-
-        KalturaClient impersonateClient = impersonate(liveStreamEntry.partnerId);
+        KalturaClient impersonateClient = impersonate(partnerId);
 
         KalturaLiveStreamEntry updatedEntry = impersonateClient.getLiveStreamService().authenticate(entryId, token, hostname, serverIndex);
 
         return updatedEntry;
+    }
+    private KalturaClient getClient() {
+        KalturaClient cloneClient = new KalturaClient(clientConfig);
+        cloneClient.setSessionId(client.getSessionId());
+        return cloneClient;
     }
     private KalturaClient  impersonate(int partnerId) {
 
@@ -260,6 +267,17 @@ public class KalturaAPI {
 
             logger.error("Error occured: " + e);
         }
+    }
+    public static KalturaLiveAsset getliveAsset(KalturaFlavorAssetListResponse liveAssetList, int assetParamsId){
+
+        for(KalturaFlavorAsset liveAsset :  liveAssetList.objects){
+            if(liveAsset instanceof KalturaLiveAsset){
+                if (liveAsset.flavorParamsId == assetParamsId){
+                    return (KalturaLiveAsset)liveAsset;
+                }
+            }
+        }
+        return null;
     }
 
 

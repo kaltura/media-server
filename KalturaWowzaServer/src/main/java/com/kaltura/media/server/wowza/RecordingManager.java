@@ -41,6 +41,10 @@ import com.wowza.wms.stream.livetranscoder.*;
 import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.client.IClient;
+import com.wowza.wms.vhost.IVHost;
+import com.wowza.wms.vhost.VHostSingleton;
+import com.wowza.wms.livestreamrecord.manager.IStreamRecorder;
+
 
 import com.kaltura.media.server.wowza.listeners.ServerListener;
 import org.w3c.dom.Document;
@@ -87,7 +91,6 @@ public class RecordingManager  extends ModuleBase {
         private KalturaLiveAsset liveAsset;
         private KalturaEntryServerNodeType index;
         private boolean isLastChunk = false;
-
         abstract class AppendRecordingTimerTask extends TimerTask {
 
             protected String filePath;
@@ -189,6 +192,7 @@ public class RecordingManager  extends ModuleBase {
                 }
             }
 
+
             this.isLastChunk = true;
             super.onUnPublish();
 
@@ -238,45 +242,28 @@ public class RecordingManager  extends ModuleBase {
                 groupInitialized = true;
             }
         }
-
         logger.debug("Application started");
     }
 
     public void onConnectAccept(IClient client)
     {
         logger.debug("onConnectAccept");
-                //todo duplicateCode
-                try {
-                    WMSProperties properties = client.getProperties();
+        try {
+            WMSProperties properties = client.getProperties();
+            KalturaLiveEntry liveEntry = Utils.getLiveEntry(properties);
+            if(liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
+                return;
+            }
 
-                    if (properties==null){
-                        logger.error("Failed to retrieve property");
-                        return;
-                    }
-
-                    KalturaLiveEntry liveEntry= (KalturaLiveEntry) properties.getProperty(CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
-
-                    if (liveEntry == null){
-                        logger.error("Failed to retrieve LiveEntry property ");
-                        return ;
-                    }
-
-                    if(liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
-                        logger.info("Entry [" + liveEntry.id + "] recording disabled");
-                        return;
-                    }
-
-                    KalturaFlavorAssetListResponse  liveAssetList = KalturaAPI.getKalturaAPI().getKalturaFlavorAssetListResponse(liveEntry);
-                    if (liveAssetList != null){
-                        properties.setProperty(CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST, liveAssetList);
-                        logger.debug("Adding live asset list for entry"+liveEntry.id);
-                    }
-                }
-                catch (Exception e ){
-                    logger.error("not good");
-                }
-         //   }
-
+            KalturaFlavorAssetListResponse liveAssetList = KalturaAPI.getKalturaAPI().getKalturaFlavorAssetListResponse(liveEntry);
+            if (liveAssetList != null) {
+                properties.setProperty(CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST, liveAssetList);
+                logger.debug("Adding live asset list for entry" + liveEntry.id);
+            }
+        }
+        catch (Exception e ){
+            logger.error("Failed to load liveAssetList:",e);
+        }
     }
 
     public void onConnectReject(IClient client)
@@ -305,6 +292,7 @@ public class RecordingManager  extends ModuleBase {
             logger.debug("Remove clientListener: stream " + stream.getName() + " and clientId " + stream.getClientId());
             stream.removeClientListener(listener);
         }
+
     }
 
     class RecordingManagerLiveStreamListener extends MediaStreamActionNotifyBase {
@@ -312,24 +300,22 @@ public class RecordingManager  extends ModuleBase {
 
         public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
+            KalturaLiveEntry liveEntry;
+            WMSProperties properties;
             if (!stream.isTranscodeResult()) {
                 return;
             }
 
 
-            WMSProperties properties = Utils.getEntryProperties(stream);
-            if (properties==null){
-                logger.error("Failed to retrieve property from stream  [" + stream.getName() + "]");
+            try {
+                properties = Utils.getEntryProperties(stream);
+                liveEntry = Utils.getLiveEntry(properties);
+            }
+            catch(Exception e){
+                logger.error("Failed to retrieve liveEntry for "+ streamName+" :"+e);
                 return;
             }
 
-
-            KalturaLiveEntry liveEntry= (KalturaLiveEntry) properties.getProperty(CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
-
-            if (liveEntry == null){
-                logger.error("Failed to retrieve LiveEntry property from stream  [" + stream.getName() + "]");
-                return ;
-            }
 
             if(liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
                 logger.info("Entry [" + liveEntry.id + "] recording disabled");
@@ -352,9 +338,9 @@ public class RecordingManager  extends ModuleBase {
 
             KalturaLiveAsset liveAsset;
             KalturaFlavorAssetListResponse  liveAssetList= (KalturaFlavorAssetListResponse) properties.getProperty(CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST);
-            liveAsset = Utils.getliveAsset(liveAssetList, assetParamsId);
+            liveAsset = KalturaAPI.getliveAsset(liveAssetList, assetParamsId);
             if (liveAsset == null) {
-                logger.warn("Cannot find liveAsset"); //todo fix it
+                logger.warn("Cannot find liveAsset "+assetParamsId+"for stream [" + streamName + "]");
                 liveAsset = KalturaAPI.getKalturaAPI().getAssetParams(liveEntry, assetParamsId);
             }
 
@@ -406,7 +392,7 @@ public class RecordingManager  extends ModuleBase {
         recorder.startRecordingSegmentByDuration(stream, filePath, null, segmentDuration);
 
         // Add it to the recorders list -  necessary for instance if onUnPublish is not called.
-        synchronized (entryRecorders){      //todo check synchronized
+        synchronized (entryRecorders){
             entryRecorder = entryRecorders.get(liveEntry.id);
             if(entryRecorder==null){
                 entryRecorder = new ConcurrentHashMap<String, FlavorRecorder>();
