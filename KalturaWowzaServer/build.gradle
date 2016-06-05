@@ -23,7 +23,7 @@ compileJava.dependsOn validateWowzaDirExists
 dependencies {
     compile project(":KalturaMediaServer")
     provided files(
-            "$WMSINSTALL_HOME/lib/bcprov-jdk15on-152.jar",
+            "$WMSINSTALL_HOME/lib/bcprov-jdk15on-154.jar",
             "$WMSINSTALL_HOME/lib/joda-time-2.3.jar",
             "$WMSINSTALL_HOME/lib/commons-lang-2.6.jar",
             "$WMSINSTALL_HOME/lib/jid3lib-0.5.4.jar",
