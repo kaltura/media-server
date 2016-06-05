@@ -60,20 +60,7 @@ import javax.xml.transform.stream.StreamResult;
 
 public class RecordingManager  extends ModuleBase {
 
-    private final static String KALTURA_RECORDED_FILE_GROUP = "g";
-    private final static String DEFAULT_RECORDED_FILE_GROUP = "kaltura";
-    private final static String UPLOAD_XML_SAVE_PATH = "uploadXMLSavePath";
-    private final static String DEFAULT_RECORDED_SEGMENT_DURATION_FIELD_NAME = "DefaultRecordedSegmentDuration";
-    private final static String COPY_SEGMENT_TO_LOCATION_FIELD_NAME = "CopySegmentToLocation";
-    private final static String INVALID_SERVER_INDEX = "-1";
-    private final static String CLIENT_PROPERTY_SERVER_INDEX = "serverIndex";
-    private final static String LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION = "LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION";
-    private final static String KALTURA_WOWZA_SERVER_WORK_MODE = "KalturaWorkMode";
-    private final static String KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA = "kaltura";
-    private final static String CLIENT_PROPERTY_KALTURA_LIVE_ENTRY = "KalturaLiveEntry";
-    private final static String RECORDING_ANCHOR_TAG_VALUE = "recording_anchor";
-    private final static String CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST = "KalturaLiveAssetList";
-    private final static int DEFAULT_RECORDED_SEGMENT_DURATION = 900000; //~15 minutes
+
     private static Logger logger = Logger.getLogger(RecordingManager.class);
 
     static private Map<String, Map<String, FlavorRecorder>> entryRecorders = new ConcurrentHashMap<String, Map<String, FlavorRecorder>>();
@@ -129,6 +116,7 @@ public class RecordingManager  extends ModuleBase {
             logger.info("Stream [" + stream.getName() + "] segment number [" + this.getSegmentNumber() + "] duration [" + this.getCurrentDuration() + "]");
             if (this.getCurrentDuration() == 0) {
                 logger.warn("Stream [" + stream.getName() + "] include  duration [" + this.getCurrentDuration() + "]");
+                return; //todo checkit
             }
 
             AppendRecordingTimerTask appendRecording = new AppendRecordingTimerTask(file.getAbsolutePath(), isLastChunk, (double) this.getCurrentDuration() / 1000) {
@@ -142,8 +130,8 @@ public class RecordingManager  extends ModuleBase {
 
                     // copy the file to a diff location
                     String copyTarget = null;
-                    if (serverConfiguration.containsKey(COPY_SEGMENT_TO_LOCATION_FIELD_NAME)) {
-                        copyTarget = serverConfiguration.get(COPY_SEGMENT_TO_LOCATION_FIELD_NAME).toString() + File.separator + (new File(filePath).getName());
+                    if (serverConfiguration.containsKey(Constants.COPY_SEGMENT_TO_LOCATION_FIELD_NAME)) {//todo move to seperate function
+                        copyTarget = serverConfiguration.get(Constants.COPY_SEGMENT_TO_LOCATION_FIELD_NAME).toString() + File.separator + (new File(filePath).getName());
                         try {
                             if (copyTarget != null) {
                                 Files.move(Paths.get(filePath), Paths.get(copyTarget));
@@ -157,7 +145,7 @@ public class RecordingManager  extends ModuleBase {
                     Path path = Paths.get(filePath);
                     logger.info("Stream [" + stream.getName() + "] file [" + filePath + "] changing group name to [" + group.getName() + "]");
 
-                    if (group != null) {
+                    if (group != null) {//todo move to sepetate location
                         PosixFileAttributeView fileAttributes = Files.getFileAttributeView(path, PosixFileAttributeView.class);
 
                         try {
@@ -185,8 +173,8 @@ public class RecordingManager  extends ModuleBase {
             logger.info("Stop recording: entry Id [" + entryId + "], asset Id [" + assetId + "], current media server index: " + index);
 
 
-            if (liveAsset != null && liveAsset.tags.contains(RECORDING_ANCHOR_TAG_VALUE) && KalturaEntryServerNodeType.LIVE_PRIMARY.equals(index)) {
-                logger.info("Cancel replacement is required");      //todo ask Yossi
+            if (liveAsset != null && liveAsset.tags.contains(Constants.RECORDING_ANCHOR_TAG_VALUE) && KalturaEntryServerNodeType.LIVE_PRIMARY.equals(index)) {
+                logger.info("Cancel replacement is required");
                 if (liveEntry.recordedEntryId != null && liveEntry.recordedEntryId.length() > 0) {
                     KalturaAPI.getKalturaAPI().cancelReplace(liveEntry);
                 }
@@ -228,9 +216,9 @@ public class RecordingManager  extends ModuleBase {
         }
         synchronized (groupInitialized) {
             if (!groupInitialized) {
-                String groupName = DEFAULT_RECORDED_FILE_GROUP;
-                if (serverConfiguration.containsKey(KALTURA_RECORDED_FILE_GROUP)) {
-                    groupName = (String) serverConfiguration.get(KALTURA_RECORDED_FILE_GROUP);
+                String groupName = Constants.DEFAULT_RECORDED_FILE_GROUP;
+                if (serverConfiguration.containsKey(Constants.KALTURA_RECORDED_FILE_GROUP)) {
+                    groupName = (String) serverConfiguration.get(Constants.KALTURA_RECORDED_FILE_GROUP);
                 }
                 UserPrincipalLookupService lookupService = FileSystems.getDefault().getUserPrincipalLookupService();
                 try {
@@ -257,8 +245,8 @@ public class RecordingManager  extends ModuleBase {
 
             KalturaFlavorAssetListResponse liveAssetList = KalturaAPI.getKalturaAPI().getKalturaFlavorAssetListResponse(liveEntry);
             if (liveAssetList != null) {
-                properties.setProperty(CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST, liveAssetList);
-                logger.debug("Adding live asset list for entry" + liveEntry.id);
+                properties.setProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST, liveAssetList);
+                logger.debug("Adding live asset list for entry [" + liveEntry.id + "]" );
             }
         }
         catch (Exception e ){
@@ -268,7 +256,7 @@ public class RecordingManager  extends ModuleBase {
 
     public void onConnectReject(IClient client)
     {
-
+//todo add logs
     }
 
 
@@ -322,8 +310,8 @@ public class RecordingManager  extends ModuleBase {
                 return;
             }
             // This code section should run for source steam that has recording
-            KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(properties.getPropertyStr(CLIENT_PROPERTY_SERVER_INDEX, INVALID_SERVER_INDEX));
-
+            KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(properties.getPropertyStr(Constants.CLIENT_PROPERTY_SERVER_INDEX, Constants.INVALID_SERVER_INDEX));
+            //todo Ask yossi if need to chech serverIndex is primary
 
             int assetParamsId ;
             Matcher matcher = Utils.getStreamNameMatches(streamName);
@@ -337,17 +325,18 @@ public class RecordingManager  extends ModuleBase {
             logger.debug("Stream [" + streamName + "] entry [" + liveEntry.id + "] asset params id [" + assetParamsId + "]");
 
             KalturaLiveAsset liveAsset;
-            KalturaFlavorAssetListResponse  liveAssetList= (KalturaFlavorAssetListResponse) properties.getProperty(CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST);
+            KalturaFlavorAssetListResponse  liveAssetList= (KalturaFlavorAssetListResponse) properties.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST);
             liveAsset = KalturaAPI.getliveAsset(liveAssetList, assetParamsId);
-            if (liveAsset == null) {
+            if (liveAsset == null) {//todo ask yossi
                 logger.warn("Cannot find liveAsset "+assetParamsId+"for stream [" + streamName + "]");
                 liveAsset = KalturaAPI.getKalturaAPI().getAssetParams(liveEntry, assetParamsId);
+                if (liveAsset == null) {
+                    logger.error("Entry [" + liveEntry.id + "] asset params id [" + assetParamsId + "] asset not found");
+                    return;
+                }
             }
 
-            if (liveAsset == null) {
-                logger.error("Entry [" + liveEntry.id + "] asset params id [" + assetParamsId + "] asset not found");
-                return;
-            }
+
             startRecording(liveEntry, liveAsset, stream, serverIndex, true, true, true);
         }
     }
@@ -361,12 +350,13 @@ public class RecordingManager  extends ModuleBase {
 
 
         // remove existing recorder from the recorders list
-        Map<String, FlavorRecorder> entryRecorder = entryRecorders.get(liveEntry.id);
+        Map<String, FlavorRecorder> entryRecorder = entryRecorders.get(liveEntry.id);//todo changee name to recordings
         if(entryRecorder != null){
             ILiveStreamRecord prevRecorder = entryRecorder.get(liveAsset.id);
             if (prevRecorder != null){
                 prevRecorder.stopRecording();
                 entryRecorder.remove(liveAsset.id);
+                logger.debug("Stop recording previous recorder for stream name [" + stream.getName() + "] entry [" + liveEntry.id + "]");
             }
         }
 
@@ -384,9 +374,9 @@ public class RecordingManager  extends ModuleBase {
         // If recording only audio set this to false so the recording starts immediately
         recorder.setStartOnKeyFrame(startOnKeyFrame);
 
-        int segmentDuration = DEFAULT_RECORDED_SEGMENT_DURATION;
-        if (serverConfiguration.containsKey(DEFAULT_RECORDED_SEGMENT_DURATION_FIELD_NAME))
-            segmentDuration = (int) serverConfiguration.get(DEFAULT_RECORDED_SEGMENT_DURATION_FIELD_NAME);
+        int segmentDuration = Constants.DEFAULT_RECORDED_SEGMENT_DURATION;
+        if (serverConfiguration.containsKey(Constants.DEFAULT_RECORDED_SEGMENT_DURATION_FIELD_NAME))
+            segmentDuration = (int) serverConfiguration.get(Constants.DEFAULT_RECORDED_SEGMENT_DURATION_FIELD_NAME);
 
         // start recording
         recorder.startRecordingSegmentByDuration(stream, filePath, null, segmentDuration);
@@ -409,9 +399,10 @@ public class RecordingManager  extends ModuleBase {
         KalturaLiveEntry updateEntry= null;
         logger.info("Entry [" + entryId + "] asset [" + assetId + "] index [" + index + "] filePath [" + filePath + "] duration [" + duration + "] isLastChunk [" + isLastChunk + "]");
 
-        if (serverConfiguration.containsKey(UPLOAD_XML_SAVE_PATH))
+        if (serverConfiguration.containsKey(Constants.KALTURA_SERVER_UPLOAD_XML_SAVE_PATH))
         {
             //todo this function is related to ECDN, and therefore was not checked.
+            //todo guy said it not necessary
             boolean result = saveUploadAsXml (entryId, assetId, index, filePath, duration, isLastChunk, liveEntry.partnerId);
             if (result) {
                 liveEntry.msDuration += duration;
@@ -424,7 +415,7 @@ public class RecordingManager  extends ModuleBase {
             updateEntry = KalturaAPI.getKalturaAPI().appendRecording(liveEntry.partnerId,  entryId, assetId,  index,  filePath,  duration,  isLastChunk);
         }
         catch (Exception e) {
-            if(e instanceof KalturaApiException && ((KalturaApiException) e).code == LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION){
+            if(e instanceof KalturaApiException && ((KalturaApiException) e).code == Constants.LIVE_STREAM_EXCEEDED_MAX_RECORDED_DURATION){
                 logger.info("Entry [" + entryId + "] exceeded max recording duration: " + e.getMessage());
             }
             logger.error("Failed to appendRecording: Unexpected error occurred [" + entryId + "]", e);
@@ -477,7 +468,7 @@ public class RecordingManager  extends ModuleBase {
             rootElement.appendChild(filepathElem);
 
             // workmode element
-            String workmode = serverConfiguration.containsKey(KALTURA_WOWZA_SERVER_WORK_MODE) ? (String)serverConfiguration.get(KALTURA_WOWZA_SERVER_WORK_MODE) : KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA;
+            String workmode = serverConfiguration.containsKey(Constants.KALTURA_SERVER_WOWZA_WORK_MODE) ? (String)serverConfiguration.get(Constants.KALTURA_SERVER_WOWZA_WORK_MODE) : Constants.WOWZA_WORK_MODE_KALTURA;
             Element workmodeElem = doc.createElement("workMode");
             workmodeElem.appendChild(doc.createTextNode(workmode));
             rootElement.appendChild(workmodeElem);
@@ -505,7 +496,7 @@ public class RecordingManager  extends ModuleBase {
     }
     private String buildXmlFilePath(String entryId, String assetId) {
         StringBuilder sb = new StringBuilder();
-        sb.append(serverConfiguration.get(UPLOAD_XML_SAVE_PATH));
+        sb.append(serverConfiguration.get(Constants.KALTURA_SERVER_UPLOAD_XML_SAVE_PATH));
         sb.append("/");
         sb.append(entryId);
         sb.append("_");

@@ -20,14 +20,6 @@ import java.util.TimerTask;
 
 public class KalturaAPI {
 
-    private final static String KALTURA_SERVER_URL = "KalturaServerURL";
-    private final static String KALTURA_SERVER_ADMIN_SECRET = "KalturaServerAdminSecret";
-    private final static String KALTURA_SERVER_PARTNER_ID = "KalturaPartnerId";
-    private final static String KALTURA_SERVER_TIMEOUT = "KalturaServerTimeout";
-    private final static String KALTURA_WOWZA_SERVER_WORK_MODE = "KalturaWorkMode";
-    private final static String KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA = "kaltura";
-    private static int MEDIA_SERVER_PARTNER_ID = -5;
-
     // use the same session key for all Wowza sessions, so all (within a DC) will be directed to the same sphinx to prevent synchronization problems
     private final static String KALTURA_PERMANENT_SESSION_KEY = "kalturaWowzaPermanentSessionKey";
 
@@ -71,20 +63,20 @@ public class KalturaAPI {
     private void initClient() throws KalturaServerException {
         clientConfig = new KalturaConfiguration();
 
-        int partnerId = serverConfiguration.containsKey(KALTURA_SERVER_PARTNER_ID) ? (int) serverConfiguration.get(KALTURA_SERVER_PARTNER_ID) : MEDIA_SERVER_PARTNER_ID;
+        int partnerId = serverConfiguration.containsKey(Constants.KALTURA_SERVER_PARTNER_ID) ? (int) serverConfiguration.get(Constants.KALTURA_SERVER_PARTNER_ID) : Constants.MEDIA_SERVER_PARTNER_ID;
 
 
-        if (!serverConfiguration.containsKey(KALTURA_SERVER_URL))
-            throw new KalturaServerException("Missing configuration [" + KALTURA_SERVER_URL + "]");
+        if (!serverConfiguration.containsKey(Constants.KALTURA_SERVER_URL))
+            throw new KalturaServerException("Missing configuration [" + Constants.KALTURA_SERVER_URL + "]");
 
-        if (!serverConfiguration.containsKey(KALTURA_SERVER_ADMIN_SECRET))
-            throw new KalturaServerException("Missing configuration [" + KALTURA_SERVER_ADMIN_SECRET + "]");
+        if (!serverConfiguration.containsKey(Constants.KALTURA_SERVER_ADMIN_SECRET))
+            throw new KalturaServerException("Missing configuration [" + Constants.KALTURA_SERVER_ADMIN_SECRET + "]");
 
-        clientConfig.setEndpoint((String) serverConfiguration.get(KALTURA_SERVER_URL));
+        clientConfig.setEndpoint((String) serverConfiguration.get(Constants.KALTURA_SERVER_URL));
         logger.debug("Initializing Kaltura client, URL: " + clientConfig.getEndpoint());
 
-        if (serverConfiguration.containsKey(KALTURA_SERVER_TIMEOUT))
-            clientConfig.setTimeout(Integer.parseInt((String) serverConfiguration.get(KALTURA_SERVER_TIMEOUT)) * 1000);
+        if (serverConfiguration.containsKey(Constants.KALTURA_SERVER_TIMEOUT))
+            clientConfig.setTimeout(Integer.parseInt((String) serverConfiguration.get(Constants.KALTURA_SERVER_TIMEOUT)) * 1000);
 
         client = new KalturaClient(clientConfig);
         client.setPartnerId(partnerId);
@@ -105,8 +97,8 @@ public class KalturaAPI {
         timer.schedule(generateSession, sessionGenerationInterval, sessionGenerationInterval);
     }
     private void generateClientSession() {
-        int partnerId = serverConfiguration.containsKey(KALTURA_SERVER_PARTNER_ID) ? (int) serverConfiguration.get(KALTURA_SERVER_PARTNER_ID) : MEDIA_SERVER_PARTNER_ID;
-        String adminSecretForSigning = (String) serverConfiguration.get(KALTURA_SERVER_ADMIN_SECRET);
+        int partnerId = serverConfiguration.containsKey(Constants.KALTURA_SERVER_PARTNER_ID) ? (int) serverConfiguration.get(Constants.KALTURA_SERVER_PARTNER_ID) : Constants.MEDIA_SERVER_PARTNER_ID;
+        String adminSecretForSigning = (String) serverConfiguration.get(Constants.KALTURA_SERVER_ADMIN_SECRET);
         String userId = "MediaServer";
         KalturaSessionType type = KalturaSessionType.ADMIN;
         int expiry = 86400; // ~24 hours
@@ -154,7 +146,7 @@ public class KalturaAPI {
 
         return cloneClient;
     }
-    public KalturaLiveAsset getAssetParams(KalturaLiveEntry liveEntry, int assetParamsId) { //todo change so it will be done only once!!!
+    public KalturaLiveAsset getAssetParams(KalturaLiveEntry liveEntry, int assetParamsId) {
         //check this function
         if(liveEntry.conversionProfileId <= 0) {
             return null;
@@ -191,7 +183,7 @@ public class KalturaAPI {
     }
 
 
-    public KalturaFlavorAssetListResponse getKalturaFlavorAssetListResponse(KalturaLiveEntry liveEntry) { //todo change so it will be done only once!!!
+    public KalturaFlavorAssetListResponse getKalturaFlavorAssetListResponse(KalturaLiveEntry liveEntry) {
         //check this function
         if(liveEntry.conversionProfileId <= 0) {
             return null;
@@ -221,7 +213,7 @@ public class KalturaAPI {
     }
 
     private KalturaDataCenterContentResource getContentResource (String filePath,  int partnerId) {
-        if (!this.serverConfiguration.containsKey(KALTURA_WOWZA_SERVER_WORK_MODE) || (this.serverConfiguration.get(KALTURA_WOWZA_SERVER_WORK_MODE).equals(KALTURA_WOWZA_SERVER_WORK_MODE_KALTURA))) {
+        if (!this.serverConfiguration.containsKey(Constants.KALTURA_SERVER_WOWZA_WORK_MODE) || (this.serverConfiguration.get(Constants.KALTURA_SERVER_WOWZA_WORK_MODE).equals(Constants.WOWZA_WORK_MODE_KALTURA))) {
             KalturaServerFileResource resource = new KalturaServerFileResource();
             resource.localFilePath = filePath;
             return resource;

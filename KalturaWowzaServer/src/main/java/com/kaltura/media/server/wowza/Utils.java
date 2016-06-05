@@ -17,7 +17,7 @@ import com.wowza.wms.application.WMSProperties;
  */
 public class Utils {
 
-//todo what to do with all  final static String?
+
     private static Logger logger = Logger.getLogger(Utils.class);
 
     public static HashMap<String, String> getRtmpUrlParameters(String rtmpUrl, String queryString){
@@ -43,16 +43,16 @@ public class Utils {
 
         if (matcher != null && matcher.groupCount() ==2) {
 
-            requestParams.put(AuthenticationManager.REQUEST_PROPERTY_ENTRY_ID, matcher.group(1));
+            requestParams.put(Constants.REQUEST_PROPERTY_ENTRY_ID, matcher.group(1));
 
             //check if the parter id include in query string ...
-            if (!requestParams.containsKey(AuthenticationManager.REQUEST_PROPERTY_PARTNER_ID)){
-                requestParams.put(AuthenticationManager.REQUEST_PROPERTY_PARTNER_ID, "-5");
+            if (!requestParams.containsKey(Constants.REQUEST_PROPERTY_PARTNER_ID)){
+                requestParams.put(Constants.REQUEST_PROPERTY_PARTNER_ID, "-5");
             }
 
-            if (!requestParams.containsKey(AuthenticationManager.REQUEST_PROPERTY_SERVER_INDEX)){
+            if (!requestParams.containsKey(Constants.REQUEST_PROPERTY_SERVER_INDEX)){
                 String i = matcher.group(2).equals("p") ? "0" : "1";
-                requestParams.put(AuthenticationManager.REQUEST_PROPERTY_SERVER_INDEX, i);
+                requestParams.put(Constants.REQUEST_PROPERTY_SERVER_INDEX, i);
             }
         }
 
@@ -109,6 +109,7 @@ public class Utils {
         properties = getConnectionProperties(stream);
 
         if (properties != null) {
+            //todo addlog
             return properties;
         }
         // For loop over all published mediaStream (source and transcoded) in order to find the corresponding source stream
@@ -116,6 +117,7 @@ public class Utils {
             properties = getConnectionProperties(mediaStream);
 
             if (properties != null && mediaStream.getName().startsWith(entryId)) {
+                //todo addlog
                 return properties;
             }
         }
@@ -131,7 +133,7 @@ public class Utils {
             throw new Exception("Failed to retrieve property"); //todo which kind of excepiotn
         }
 
-        KalturaLiveEntry liveEntry= (KalturaLiveEntry) properties.getProperty(AuthenticationManager.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
+        KalturaLiveEntry liveEntry= (KalturaLiveEntry) properties.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
 
         if (liveEntry == null){
             throw new Exception("Failed to retrieve LiveEntry property ");
