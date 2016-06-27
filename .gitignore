@@ -9,12 +9,7 @@ bin
 *.war
 *.ear
 
-KalturaRed5Server/bin
-KalturaRed5Server/WEB-INF/classes/com
-KalturaMediaServer/build
-KalturaWowzaServer/release/xml
-KalturaWowzaServer/release/tmp
-KalturaWowzaServer/build
+build
 
 **/node_modules
 
