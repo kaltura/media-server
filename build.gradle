@@ -87,3 +87,58 @@ compileJava.dependsOn validateWowzaDirExists
 task wrapper(type: Wrapper) {
     gradleVersion = '2.3'
 }
+
+
+/**
+ * create a release - zip all needed jars.
+ * the jars should be copied to to wowza_installation_dir/lib
+ */
+task prepareRelease(type: Zip, dependsOn: build ) {
+    archiveName = "$project.name-install-$project.version" + ".zip"
+    from "$projectDir/release"
+    from (configurations.runtime.allArtifacts.files) {
+        into ("lib")
+    }
+    from(configurations.runtime - configurations.provided) {
+        into ("lib")
+    }
+    from(configurations.forInstaller) {
+        into ("lib")
+    }
+
+    doLast {
+        println "release path: $prepareRelease.archivePath"
+    }
+}
+
+task release(type:Exec, dependsOn: prepareRelease) {
+
+    //check if client library already exists
+    def user = System.getProperty("username")
+    def pass = System.getProperty("password")
+
+    //run the php release script
+    workingDir projectDir
+    commandLine "php", "$projectDir/release.php", user , pass, version
+
+    doFirst {
+        //validate username and password are set:
+        if (user == null || pass == null) {
+            throw new InvalidUserDataException("username or password arguments are null. use: 'gradle uploadRelease -Dusername=myuser -Dpassword=mypass'")
+        }
+
+        def clientLibs = new File("${buildDir}/tmp/github-php-client")
+
+        // If it doesn't exist, download it from Github
+        if (!clientLibs.exists()) {
+            println "Downloading PHP github client library..."
+            ant.get(src: "https://github.com/tan-tan-kanarek/github-php-client/archive/master.zip", dest: "${buildDir}/tmp/github-php-client.zip")
+            ant.unzip(src: "${buildDir}/tmp/github-php-client.zip", dest: "${buildDir}/tmp")
+            ant.delete(file: "${buildDir}/tmp/github-php-client.zip")
+            ant.move(file: "${buildDir}/tmp/github-php-client-master/client", tofile: "${buildDir}/tmp/github-php-client")
+            ant.delete(dir: "${buildDir}/tmp/github-php-client-master")
+        } else {
+            println "PHP Client exists. skip download."
+        }
+    }
+}
