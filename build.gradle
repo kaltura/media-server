@@ -1,4 +1,4 @@
-group 'media-server'
+group 'KalturaMediaServer'
 
 
 apply plugin: 'java'
