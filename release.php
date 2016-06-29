@@ -27,7 +27,7 @@ $name = "v$version";
 $body = "Release version $version";
 $draft = false;
 $prerelease = true;
-echo "Generate GitHubClient with parameters $repo, $tag_name, $target_commitish, $name, $body, $draft, $prerelease"
+echo "Generate GitHubClient with parameters $repo, $tag_name, $target_commitish, $name, $body, $draft, $prerelease";
 $client = new GitHubClient();
 $client->setCredentials($username, $password);
 
