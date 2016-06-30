@@ -1,144 +1,45 @@
-group 'KalturaMediaServer'
+subprojects {
 
+    apply plugin: 'java'
 
-apply plugin: 'java'
+    def javaVersion = JavaVersion.VERSION_1_7;
+    sourceCompatibility = javaVersion;
+    targetCompatibility = javaVersion;
 
-def javaVersion = JavaVersion.VERSION_1_7;
-sourceCompatibility = javaVersion;
-targetCompatibility = javaVersion;
-
-configurations {
-    forInstaller
-    provided
-    compile.extendsFrom provided
-}
-
-compileJava {
-    options.compilerArgs << "-Xlint:unchecked"
-}
-
-
-repositories {
-    mavenCentral()
-    maven {
-        url "https://raw.github.com/kaltura/KalturaGeneratedAPIClientsJava/PLAT-2504/maven"
+    configurations {
+        forInstaller
+        provided
+        compile.extendsFrom provided
     }
-}
 
-dependencies {
-    compile 'com.kaltura:KalturaClientLib:3.3.2'
-    provided 'log4j:log4j:1.2.17'
-    provided files(
-            "$WMSINSTALL_HOME/lib/bcprov-jdk15on-154.jar",
-            "$WMSINSTALL_HOME/lib/joda-time-2.3.jar",
-            "$WMSINSTALL_HOME/lib/commons-lang-2.6.jar",
-            "$WMSINSTALL_HOME/lib/jid3lib-0.5.4.jar",
-    )
-    provided fileTree(dir: "$WMSINSTALL_HOME/lib", includes: ['wms*.jar', 'jackson*.jar', 'slf4j*.jar'])
-    forInstaller "mysql:mysql-connector-java:5.1.34"
-}
-
-/**
- * copy all the needed media-server jars to wowza lib dir
- */
-task copyJarsToWowzaLibDir(type: Copy) {
-    def dest1 = "$WMSINSTALL_HOME/lib"
-    def dest2 = "$buildDir/tmp/artifacts"
-    println "media-server artifacts will be copied to:"
-    println dest1
-    println dest2
-
-    into dest1
-    into dest2
-    from configurations.runtime.allArtifacts.files
-    from (configurations.runtime - configurations.provided)
-
-    doFirst {
-        println "copying media-server jars to:"
-        println dest1
-        println dest2
+    compileJava {
+        options.compilerArgs << "-Xlint:unchecked"
     }
-}
-build.dependsOn(copyJarsToWowzaLibDir)
 
-task validateWowzaDirExists {
-    def fileExists = true
-    //search for wowza folder that is defined in gradle.properties
-    def folder = new File("${WMSINSTALL_HOME}")
-    if( !folder.exists() ) {
-        //if not exists, search for wowza folder defined by env variable
-        WMSINSTALL_HOME = System.env.WMSINSTALL_HOME
-        folder = new File("${WMSINSTALL_HOME}")
-        if( !folder.exists() ) {
-            fileExists = false
+    repositories {
+        mavenCentral()
+        maven {
+            //TODO replace to master
+            url "https://raw.github.com/kaltura/KalturaGeneratedAPIClientsJava/PLAT-2504/maven"
         }
     }
 
-    doFirst {
-        if (!fileExists) {
-            throw new InvalidUserDataException("Wowza dir: '${WMSINSTALL_HOME}' does not exist. Edit gradle.properties")
-        }
-        println "Build will be using wowza jars from: $WMSINSTALL_HOME"
+    dependencies {
+        //TODO use the + sign for latest version when we start to use repository manager
+        compile 'com.kaltura:KalturaClientLib:3.3.2'
+        provided 'log4j:log4j:1.2.17'
     }
-}
-compileJava.dependsOn validateWowzaDirExists
 
+    task enforceJavaVersion() {
+        def foundVersion = JavaVersion.current();
+        if (foundVersion != javaVersion)
+            throw new IllegalStateException("Wrong Java version; required is "
+                    + javaVersion + ", but found " + foundVersion);
+    }
+    compileJava.dependsOn(enforceJavaVersion);
+}
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.3'
 }
 
-
-/**
- * create a release - zip all needed jars.
- * the jars should be copied to to wowza_installation_dir/lib
- */
-task prepareRelease(type: Zip, dependsOn: build ) {
-    archiveName = "$project.name-install-$project.version" + ".zip"
-    from "$projectDir/release"
-    from (configurations.runtime.allArtifacts.files) {
-        into ("lib")
-    }
-    from(configurations.runtime - configurations.provided) {
-        into ("lib")
-    }
-    from(configurations.forInstaller) {
-        into ("lib")
-    }
-
-    doLast {
-        println "release path: $prepareRelease.archivePath"
-    }
-}
-
-task release(type:Exec, dependsOn: prepareRelease) {
-
-    //check if client library already exists
-    def user = System.getProperty("username")
-    def pass = System.getProperty("password")
-
-    //run the php release script
-    workingDir projectDir
-    commandLine "php", "$projectDir/release.php", user , pass, version
-
-    doFirst {
-        //validate username and password are set:
-        if (user == null || pass == null) {
-            throw new InvalidUserDataException("username or password arguments are null. use: 'gradle uploadRelease -Dusername=myuser -Dpassword=mypass'")
-        }
-
-        def clientLibs = new File("${buildDir}/tmp/github-php-client")
-
-        // If it doesn't exist, download it from Github
-        if (!clientLibs.exists()) {
-            println "Downloading PHP github client library..."
-            ant.get(src: "https://github.com/tan-tan-kanarek/github-php-client/archive/master.zip", dest: "${buildDir}/tmp/github-php-client.zip")
-            ant.unzip(src: "${buildDir}/tmp/github-php-client.zip", dest: "${buildDir}/tmp")
-            ant.delete(file: "${buildDir}/tmp/github-php-client.zip")
-            ant.move(file: "${buildDir}/tmp/github-php-client-master/client", tofile: "${buildDir}/tmp/github-php-client")
-            ant.delete(dir: "${buildDir}/tmp/github-php-client-master")
-        } else {
-            println "PHP Client exists. skip download."
-        }
-    }
-}
