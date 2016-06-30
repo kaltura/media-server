@@ -1,3 +1,41 @@
+   apply plugin: 'java'
+
+    def javaVersion = JavaVersion.VERSION_1_7;
+    sourceCompatibility = javaVersion;
+    targetCompatibility = javaVersion;
+
+    configurations {
+        forInstaller
+        provided
+        compile.extendsFrom provided
+    }
+
+    compileJava {
+        options.compilerArgs << "-Xlint:unchecked"
+    }
+
+    repositories {
+        mavenCentral()
+        maven {
+            //TODO replace to master
+            url "https://raw.github.com/kaltura/KalturaGeneratedAPIClientsJava/PLAT-2504/maven"
+        }
+    }
+
+    dependencies {
+        //TODO use the + sign for latest version when we start to use repository manager
+        compile 'com.kaltura:KalturaClientLib:3.3.2'
+        provided 'log4j:log4j:1.2.17'
+    }
+
+    task enforceJavaVersion() {
+        def foundVersion = JavaVersion.current();
+        if (foundVersion != javaVersion)
+            throw new IllegalStateException("Wrong Java version; required is "
+                    + javaVersion + ", but found " + foundVersion);
+    }
+    compileJava.dependsOn(enforceJavaVersion); 
+    
 task validateWowzaDirExists {
     def fileExists = true
     //search for wowza folder that is defined in gradle.properties
@@ -107,4 +145,5 @@ task release(type:Exec, dependsOn: prepareRelease) {
         }
     }
 }
+
 
