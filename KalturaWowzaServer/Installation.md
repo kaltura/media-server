@@ -217,9 +217,24 @@ media_servers.ini is optional and needed only for custom configurations.
  - /Root/Application/Modules, add:
 ```xml
 <Module>
-	<Name>LiveStreamEntry</Name>
-	<Description>LiveStreamEntry</Description>
-	<Class>com.kaltura.media.server.wowza.listeners.LiveStreamEntry</Class>
+        <Name>AuthenticationModule</Name>
+        <Description>AuthenticationModule</Description>
+        <Class>modules.AuthenticationModule</Class>
+</Module>
+ <Module>
+        <Name>CuePointsModule</Name>
+        <Description>CuePointsModule</Description>
+        <Class>modules.CuePointsModule</Class>
+</Module>
+<Module>
+        <Name>RecordingModule</Name>
+        <Description>RecordingModule</Description>
+        <Class>modules.RecordingModule</Class>
+</Module>
+<Module>
+        <Name>ModuleRTMPPublishDebug</Name>
+        <Description>ModuleRTMPPublishDebug</Description>
+        <Class>modules.RTMPPublishDebugModule</Class>
 </Module>
 ```
  
@@ -255,7 +270,7 @@ media_servers.ini is optional and needed only for custom configurations.
  - /Root/Server/ServerListeners:
 ```xml
 <ServerListener>
-	<BaseClass>com.kaltura.media.server.wowza.listeners.ServerListener</BaseClass>
+	<BaseClass>listeners.ServerListener</BaseClass>
 </ServerListener>
 ```
 
@@ -276,55 +291,10 @@ media_servers.ini is optional and needed only for custom configurations.
 	<Value>30</Value>
 </Property>
 <Property>
-	<!-- Kaltura server managers to be loaded -->
-	<Name>KalturaServerManagers</Name>
-	<Value>com.kaltura.media.server.wowza.StatusManager, com.kaltura.media.server.wowza.LiveStreamManager, com.kaltura.media.server.wowza.PushPublishManager</Value>
-</Property>
-<Property>
-	<!-- Kaltura web services to be loaded -->
-	<Name>KalturaServerWebServices</Name>
-	<Value>com.kaltura.media.server.api.services.KalturaLiveService</Value>
-</Property>
-<Property>
-	<!-- Kaltura server status reporting interval, in seconds -->
-	<Name>KalturaServerStatusInterval</Name>
-	<Value>300</Value>
-</Property>
-<Property>
-	<!-- Kaltura interval to update that live stream entry is still broadcasting, in seconds -->
-	<Name>KalturaLiveStreamKeepAliveInterval</Name>
-	<Value>60</Value>
-</Property>
-<Property>
-	<!-- Kaltura maximum DVR window, in seconds, should be 24 hours -->
-	<Name>KalturaLiveStreamMaxDvrWindow</Name>
-	<Value>7200</Value>
-</Property>
-<Property>
-	<!-- Kaltura maximum recorded chunk duration, in minutes, should be an hour -->
-	<Name>KalturaRecordedChunckMaxDuration</Name>
-	<Value>60</Value>
-</Property>
-<Property>
-	<!-- Kaltura web services http port -->
-	<Name>KalturaServerWebServicesPort</Name>
-	<Value>888</Value>
-</Property>
-<Property>
-	<!-- Kaltura web services binding host name -->
-	<Name>KalturaServerWebServicesHost</Name>
-	<Value>0.0.0.0</Value>
-</Property>
-<Property>
 	<!-- Kaltura recorded file group -->
 	<Name>KalturaRecordedFileGroup</Name>
 	<!-- kaltura (gid = 613) or any other group that apache user is associated with. -->
 	<Value>kaltura</Value>
-</Property>
-<Property>
-	<!-- Minimum buffering time before registering entry as is-live (in seconds) -->
-	<Name>KalturaIsLiveRegistrationMinBufferTime</Name>
-	<Value>60</Value>
 </Property>
 ```
 

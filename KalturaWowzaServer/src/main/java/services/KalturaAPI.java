@@ -1,5 +1,6 @@
 package services;
 
+import services.Constants;
 import com.kaltura.client.*;
 import com.kaltura.client.enums.KalturaSessionType;
 import com.kaltura.client.types.*;
@@ -20,7 +21,7 @@ import java.util.TimerTask;
 public class KalturaAPI {
 
     // use the same session key for all Wowza sessions, so all (within a DC) will be directed to the same sphinx to prevent synchronization problems
-    private final static String KALTURA_PERMANENT_SESSION_KEY = "kalturaWowzaPermanentSessionKey";
+
 
     private static Logger logger = Logger.getLogger(KalturaAPI.class);
     private static Map<String, Object> serverConfiguration;
@@ -101,7 +102,7 @@ public class KalturaAPI {
         String userId = "MediaServer";
         KalturaSessionType type = KalturaSessionType.ADMIN;
         int expiry = 86400; // ~24 hours
-        String privileges = "disableentitlement,sessionkey:" + KALTURA_PERMANENT_SESSION_KEY;
+        String privileges = "disableentitlement,sessionkey:" + Constants.KALTURA_PERMANENT_SESSION_KEY;
         String sessionId;
 
         try {
