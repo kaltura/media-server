@@ -140,7 +140,7 @@ public class RecordingModule  extends ModuleBase {
 
                     logger.info("Stream [" + stream.getName() + "] file [" + filePath + "] changing group name to [" + group.getName() + "]");
 
-                    if (group != nupswdll) {
+                    if (group != null) {
                         setGroupPermision(filePath);
                     }
 
