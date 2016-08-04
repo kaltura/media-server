@@ -34,7 +34,7 @@ public class AuthenticationModule extends ModuleBase  {
         logger.info("Initiallizing " +appInstance.getName());
     }
 
-    public void onConnect(IClient client, RequestFunction function, AMFDataList params) {//todo add comment when it should be called
+    public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
         WMSProperties properties = client.getProperties();
         String rtmpUrl = properties.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
         logger.debug("Geting url: " + rtmpUrl+ " from client "+client.getIp());
@@ -42,11 +42,10 @@ public class AuthenticationModule extends ModuleBase  {
         try {
             HashMap<String, String>  queryParameters = Utils.getRtmpUrlParameters(rtmpUrl, client.getQueryStr());
             onClientConnect(properties, queryParameters);
-        } catch (Exception  e) {//todo add reject rtmp
+        } catch (Exception  e) {
             logger.error("Entry authentication failed with url [" + rtmpUrl + "]: " + e.getMessage());
             client.rejectConnection();
             sendClientOnStatusError((IClient)client, "NetStream.Play.Failed","Unable to authenticate url; [" + rtmpUrl + "]: " + e.getMessage());
-           // client.shutdownClient();
         }
     }
 

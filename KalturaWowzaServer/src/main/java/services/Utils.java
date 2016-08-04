@@ -47,7 +47,7 @@ public class Utils {
                 requestParams.put(Constants.REQUEST_PROPERTY_PARTNER_ID, "-5");
             }
 
-            if (!requestParams.containsKey(Constants.REQUEST_PROPERTY_SERVER_INDEX)){//todo yossi said its not good
+            if (!requestParams.containsKey(Constants.REQUEST_PROPERTY_SERVER_INDEX)){
                 String i = matcher.group(2).equals("p") ? "0" : "1";
                 requestParams.put(Constants.REQUEST_PROPERTY_SERVER_INDEX, i);
             }
@@ -62,8 +62,7 @@ public class Utils {
     private static Matcher getMatches(String streamName, String regex) {
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(streamName);
-        if (!matcher.find()) {//todo remove loger
-            logger.info("Stream [" + streamName + "] does not match regex");
+        if (!matcher.find()) {
             return null;
         }
 
@@ -106,7 +105,7 @@ public class Utils {
         properties = getConnectionProperties(stream);
 
         if (properties != null) {
-            //todo addlog
+            logger.debug("Find properties for entry [" + entryId + "]  for stream [" + streamName + "]");
             return properties;
         }
         // For loop over all published mediaStream (source and transcoded) in order to find the corresponding source stream
@@ -114,7 +113,7 @@ public class Utils {
             properties = getConnectionProperties(mediaStream);
 
             if (properties != null && mediaStream.getName().startsWith(entryId)) {
-                //todo addlog
+                logger.debug("Find properties for entry [" + entryId + "]  for stream [" + streamName + "]");
                 return properties;
             }
         }
@@ -127,7 +126,7 @@ public class Utils {
     public static KalturaLiveEntry getLiveEntry(WMSProperties properties) throws Exception{
 
         if (properties==null){
-            throw new Exception("Failed to retrieve property"); //todo which kind of excepiotn
+            throw new Exception("Failed to retrieve property");
         }
 
         KalturaLiveEntry liveEntry= (KalturaLiveEntry) properties.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);

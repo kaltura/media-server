@@ -4,7 +4,8 @@ package services;
  * Created by ron.yadgar on 02/06/2016.
  */
 public class Constants {
-//todo ask yossi about server xml properties
+
+    public final static String KALTURA_PERMANENT_SESSION_KEY = "kalturaWowzaPermanentSessionKey";
     public final static String CLIENT_PROPERTY_CONNECT_URL = "connecttcUrl";
     public final static String CLIENT_PROPERTY_SERVER_INDEX = "serverIndex";
     public final static String CLIENT_PROPERTY_KALTURA_LIVE_ENTRY = "KalturaLiveEntry";

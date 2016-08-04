@@ -127,7 +127,7 @@ task release(type:Exec, dependsOn: prepareRelease) {
     doFirst {
         //validate username and password are set:
         if (user == null || pass == null) {
-            throw new InvalidUserDataException("username or password arguments are null. use: 'gradle uploadRelease -Dusername=myuser -Dpassword=mypass'")
+            throw new InvalidUserDataException("username or password arguments are null. use: 'gradle release -Dusername=myuser -Dpassword=mypass'")
         }
 
         def clientLibs = new File("${buildDir}/tmp/github-php-client")

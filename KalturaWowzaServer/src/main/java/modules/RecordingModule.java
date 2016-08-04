@@ -80,12 +80,12 @@ public class RecordingModule  extends ModuleBase {
         public FlavorRecorder(KalturaLiveEntry liveEntry, KalturaLiveAsset liveAsset, KalturaEntryServerNodeType index) {
             super();
 
-            this.liveEntry = liveEntry; //todo check if need to synchronize
+            this.liveEntry = liveEntry;
             this.liveAsset = liveAsset;
             this.index = index;
             this.isLastChunk = false;
 
-            this.addListener(this); //todo check what is it
+            this.addListener(this);
         }
 
         public void copySegmentToLocationFieldsName( String filePath){
@@ -123,7 +123,7 @@ public class RecordingModule  extends ModuleBase {
             logger.info("Stream [" + stream.getName() + "] segment number [" + this.getSegmentNumber() + "] duration [" + this.getCurrentDuration() + "]");
             if (this.getCurrentDuration() == 0) {
                 logger.warn("Stream [" + stream.getName() + "] include  duration [" + this.getCurrentDuration() + "]");
-                return; //todo checkit
+                return;
             }
             AppendRecordingTimerTask appendRecording = new AppendRecordingTimerTask(file.getAbsolutePath(), isLastChunk, (double) this.getCurrentDuration() / 1000) {
 
@@ -140,7 +140,7 @@ public class RecordingModule  extends ModuleBase {
 
                     logger.info("Stream [" + stream.getName() + "] file [" + filePath + "] changing group name to [" + group.getName() + "]");
 
-                    if (group != null) {
+                    if (group != nupswdll) {
                         setGroupPermision(filePath);
                     }
 
@@ -163,7 +163,7 @@ public class RecordingModule  extends ModuleBase {
 
 
             if (liveAsset.tags.contains(Constants.RECORDING_ANCHOR_TAG_VALUE) && KalturaEntryServerNodeType.LIVE_PRIMARY.equals(index)) {
-                logger.info("Cancel replacement is required");//todo should check if immediete after 30 minutes...maybe 15 and 20 seconds
+                logger.info("Cancel replacement is required");
                 if (liveEntry.recordedEntryId != null && liveEntry.recordedEntryId.length() > 0) {
                     KalturaAPI.getKalturaAPI().cancelReplace(liveEntry);
                 }
@@ -342,7 +342,7 @@ public class RecordingModule  extends ModuleBase {
 
 
         // remove existing recorder from the recorders list
-        Map<String, FlavorRecorder> entryRecorder = entryRecorders.get(liveEntry.id);//todo changee name to recordings
+        Map<String, FlavorRecorder> entryRecorder = entryRecorders.get(liveEntry.id);
         if(entryRecorder != null){  //todo check if this section is not called, then remove it
             ILiveStreamRecord prevRecorder = entryRecorder.get(liveAsset.id);
             if (prevRecorder != null){
@@ -351,7 +351,7 @@ public class RecordingModule  extends ModuleBase {
                 logger.warn("Stop recording previous recorder for stream name [" + stream.getName() + "] entry [" + liveEntry.id + "]");
             }
         }
-        //todo change file path
+
         File writeFile = stream.getStreamFileForWrite(liveEntry.id + "." + liveAsset.id, index.getHashCode() + ".mp4", "");   //Check this function
         String filePath = writeFile.getAbsolutePath();
 
@@ -393,7 +393,6 @@ public class RecordingModule  extends ModuleBase {
 
         if (serverConfiguration.containsKey(Constants.KALTURA_SERVER_UPLOAD_XML_SAVE_PATH))
         {
-            //todo this function is related to ECDN, and therefore was not checked.
 
             boolean result = saveUploadAsXml (liveEntry.id, assetId, index, filePath, duration, isLastChunk, liveEntry.partnerId);
             if (result) {
