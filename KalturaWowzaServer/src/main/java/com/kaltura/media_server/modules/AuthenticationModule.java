@@ -1,4 +1,4 @@
-package modules;
+package com.kaltura.media_server.modules;
 /**
  * Created by ron.yadgar on 09/05/2016.
  */
@@ -13,7 +13,7 @@ import com.wowza.wms.client.IClient;
 import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
 import org.apache.log4j.Logger;
-import services.*;
+import com.kaltura.media_server.services.*;
 
 import java.util.HashMap;
 

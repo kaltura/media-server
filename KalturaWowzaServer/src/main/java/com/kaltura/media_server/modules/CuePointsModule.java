@@ -1,4 +1,4 @@
-package modules;
+package com.kaltura.media_server.modules;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,6 +1,6 @@
-package services;
+package com.kaltura.media_server.services;
 
-import services.Constants;
+import com.kaltura.media_server.services.Constants;
 import com.kaltura.client.*;
 import com.kaltura.client.enums.KalturaSessionType;
 import com.kaltura.client.types.*;
