@@ -1,4 +1,4 @@
-package modules;
+package com.kaltura.media_server.modules;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -103,8 +103,7 @@ public class CuePointsModule  extends ModuleBase  {
 		}
 
 		public void onFillChunkDataPacket(CupertinoPacketHolder holder, AMFPacket packet, ID3Frames id3Frames) {
-
-			logger.debug("onFillChunkDataPacket");
+			
 			byte[] buffer = packet.getData();
 			if (buffer == null) {
 				logger.info("Empty buffer");
@@ -328,7 +327,6 @@ public class CuePointsModule  extends ModuleBase  {
 			String id = entryId+"_"+(runningId++);
 			double currentTime = new Date().getTime();
 
-			logger.debug("Sending sync point: entryId: " + entryId + " stream: " + stream.getName() + " id: " + id + " timestamp: " + currentTime );
 			sendSyncPoint(stream, id, currentTime);
 		}
 
@@ -345,7 +343,6 @@ public class CuePointsModule  extends ModuleBase  {
 			if (stream.getPlayPackets().size() > 0) {
 				stream.sendDirect(CuePointsModule.PUBLIC_METADATA, data);
 			}
-			logger.info("Sent sync-point: stream " + stream.getName() + "time: " + time  + "id: " + id);
 		}
 
 

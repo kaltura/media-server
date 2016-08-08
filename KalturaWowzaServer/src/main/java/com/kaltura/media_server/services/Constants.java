@@ -1,4 +1,4 @@
-package services;
+package com.kaltura.media_server.services;
 
 /**
  * Created by ron.yadgar on 02/06/2016.

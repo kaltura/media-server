@@ -1,4 +1,4 @@
-package services;
+package com.kaltura.media_server.services;
 
 import java.util.HashMap;
 import java.util.regex.Matcher;

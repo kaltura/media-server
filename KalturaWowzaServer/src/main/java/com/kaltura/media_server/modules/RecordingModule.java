@@ -1,4 +1,4 @@
-package modules;
+package com.kaltura.media_server.modules;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,8 +42,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import services.*;
-import listeners.ServerListener;
+import com.kaltura.media_server.services.*;
+import com.kaltura.media_server.listeners.ServerListener;
 
 
 public class RecordingModule  extends ModuleBase {
@@ -140,7 +140,7 @@ public class RecordingModule  extends ModuleBase {
 
                     logger.info("Stream [" + stream.getName() + "] file [" + filePath + "] changing group name to [" + group.getName() + "]");
 
-                    if (group != nupswdll) {
+                    if (group != null) {
                         setGroupPermision(filePath);
                     }
 

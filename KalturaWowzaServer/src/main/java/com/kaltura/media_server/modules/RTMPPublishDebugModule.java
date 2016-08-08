@@ -1,4 +1,4 @@
-package modules;
+package com.kaltura.media_server.modules;
 
 import com.wowza.wms.amf.*;
 import com.wowza.wms.application.*;

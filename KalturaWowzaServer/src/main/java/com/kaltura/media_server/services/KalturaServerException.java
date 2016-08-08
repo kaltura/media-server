@@ -1,4 +1,4 @@
-package services;
+package com.kaltura.media_server.services;
 
 @SuppressWarnings("serial")
 public class KalturaServerException extends Exception {

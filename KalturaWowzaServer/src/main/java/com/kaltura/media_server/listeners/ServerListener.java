@@ -1,4 +1,4 @@
-package listeners;
+package com.kaltura.media_server.listeners;
 
 import org.apache.log4j.Logger;
 
@@ -6,8 +6,8 @@ import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.server.*;
 import com.wowza.wms.vhost.IVHost;
 import com.wowza.wms.vhost.VHostSingleton;
-import services.KalturaAPI;
-import services.KalturaUncaughtExceptionHnadler;
+import com.kaltura.media_server.services.KalturaAPI;
+import com.kaltura.media_server.services.KalturaUncaughtExceptionHnadler;
 
 import java.util.Map;
 
