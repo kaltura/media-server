@@ -20,7 +20,7 @@ public class Utils {
     public static HashMap<String, String> getRtmpUrlParameters(String rtmpUrl, String queryString){
 
 
-        final String NewPattern= ":\\/\\/([01]_[\\d\\w]{8}).([pb])\\.(?:[^.]*\\.)*kpublish\\.kaltura\\.com:?\\d*\\/";
+        final String NewPattern= ":\\/\\/([01]_[\\d\\w]{8}).([pb])\\.(?:[^.]*\\.)*kpublish\\.kaltura\\.com";
         Matcher matcher;
 
         logger.info("Query-String [" + queryString + "]");
