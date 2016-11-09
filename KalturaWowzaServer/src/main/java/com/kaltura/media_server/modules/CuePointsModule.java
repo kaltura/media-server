@@ -343,6 +343,9 @@ public class CuePointsModule  extends ModuleBase  {
 			if (stream.getPlayPackets().size() > 0) {
 				stream.sendDirect(CuePointsModule.PUBLIC_METADATA, data);
 			}
+			else{
+				logger.error("Error while try to send sync point,  getPlayPackets "+ stream.getPlayPackets().size());
+			}
 		}
 
 
