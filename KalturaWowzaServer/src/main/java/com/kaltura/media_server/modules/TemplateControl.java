@@ -1,0 +1,237 @@
+package com.kaltura.media_server.modules;
+
+import com.wowza.wms.amf.*;
+import com.wowza.wms.application.*;
+import com.wowza.wms.media.model.MediaCodecInfoAudio;
+import com.wowza.wms.media.model.MediaCodecInfoVideo;
+import com.wowza.wms.module.*;
+import com.wowza.wms.stream.IMediaStreamActionNotify2;
+import com.wowza.wms.stream.IMediaStreamActionNotify3;
+import com.wowza.wms.stream.livetranscoder.LiveStreamTranscoderItem;
+import com.wowza.wms.transcoder.model.*;
+import org.apache.log4j.Logger;
+import com.wowza.wms.stream.IMediaStream;
+import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoder;
+import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoderNotify;
+import com.wowza.util.FLVUtils;
+
+public class TemplateControl extends ModuleBase {
+
+    private static final Logger logger = Logger.getLogger(TranscoderNotifier.class);
+    private TranscoderNotifier TransNotify = null;
+    public static final String AMFSETDATAFRAME = "amfsetdataframe";
+    public static final String ONMETADATA_VIDEOCODECIDSTR = "videocodecidstring";
+    public static final String ONMETADATA_AUDIOCODECIDSTR = "audiocodecidstring";
+
+    public class TranscoderNotifier implements ILiveStreamTranscoderNotify
+    {
+
+        public void onLiveStreamTranscoderCreate(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream stream) {
+            ((LiveStreamTranscoder)liveStreamTranscoder).addActionListener(
+                    new TranscoderActionNotifier(stream));
+        }
+        public void onLiveStreamTranscoderDestroy(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream stream) { }
+        public void onLiveStreamTranscoderInit(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream stream) { }
+    }
+
+
+    class TranscoderActionNotifier implements ILiveStreamTranscoderActionNotify
+    {
+        private IMediaStream TransSourceStream = null;
+        public static final String ONMETADATA_AUDIODATARATE = "audiodatarate";
+        public static final String ONMETADATA_VIDEODATARATE = "videodatarate";
+        public static final String ONMETADATA_WIDTH = "width";
+        public static final String ONMETADATA_HEIGHT = "height";
+        public static final String ONMETADATA_FRAMERATE= "framerate";
+
+
+        public  final String[] streamParams = {ONMETADATA_AUDIODATARATE, ONMETADATA_VIDEODATARATE, ONMETADATA_WIDTH,
+                ONMETADATA_HEIGHT, ONMETADATA_FRAMERATE, ONMETADATA_VIDEOCODECIDSTR, ONMETADATA_AUDIOCODECIDSTR};
+
+        public TranscoderActionNotifier (IMediaStream transsourcestream) {
+            this.TransSourceStream = transsourcestream;
+        }
+
+        public String updateTemplate(AMFDataObj obj, String key, String template){
+            return template + '/' + key + '/' + obj.getString(key);
+        }
+
+        public void onInitBeforeLoadTemplate(LiveStreamTranscoder liveStreamTranscoder) {
+
+            String template = liveStreamTranscoder.getTemplateName();
+            logger.info("Template name is "+template);
+
+
+            IMediaStream stream = liveStreamTranscoder.getStream();
+            WMSProperties props = stream.getProperties();
+            AMFDataObj obj;
+
+
+            synchronized (props)
+            {
+                obj = (AMFDataObj) props.getProperty(AMFSETDATAFRAME);
+            }
+
+            if (obj == null){
+                logger.info("Cant find property AMFDataObj for stream " + stream.getName());
+                return;
+            }
+
+            for (String streamParam: streamParams) {
+                if (obj.containsKey(streamParam)){
+                    template =  updateTemplate(obj, streamParam, template);
+                }
+            }
+
+
+            liveStreamTranscoder.setTemplateName(template);
+            logger.info("New Template name is "+liveStreamTranscoder.getTemplateName());
+        }
+
+        public void onInitStart(LiveStreamTranscoder liveStreamTranscoder, String streamName, String transcoderName,
+                                IApplicationInstance appInstance, LiveStreamTranscoderItem liveStreamTranscoderItem) { }
+        public void onInitAfterLoadTemplate(LiveStreamTranscoder liveStreamTranscoder) { }
+        public void onInitStop(LiveStreamTranscoder liveStreamTranscoder) { }
+        public void onCalculateSourceVideoBitrate(LiveStreamTranscoder liveStreamTranscoder, long bitrate) {}
+        public void onCalculateSourceAudioBitrate(LiveStreamTranscoder liveStreamTranscoder, long bitrate) {}
+        public void onSessionDestinationCreate(LiveStreamTranscoder liveStreamTranscoder,
+                                               TranscoderSessionDestination sessionDestination) { }
+        public void onSessionVideoEncodeCreate(LiveStreamTranscoder liveStreamTranscoder,
+                                               TranscoderSessionVideoEncode sessionVideoEncode) { }
+        public void onSessionAudioEncodeCreate(LiveStreamTranscoder liveStreamTranscoder,
+                                               TranscoderSessionAudioEncode sessionAudioEncode) {}
+        public void onSessionDataEncodeCreate(LiveStreamTranscoder liveStreamTranscoder,
+                                              TranscoderSessionDataEncode sessionDataEncode) {}
+        public void onSessionVideoEncodeInit(LiveStreamTranscoder liveStreamTranscoder,
+                                             TranscoderSessionVideoEncode sessionVideoEncode) { }
+        public void onSessionAudioEncodeInit(LiveStreamTranscoder liveStreamTranscoder,
+                                             TranscoderSessionAudioEncode sessionAudioEncode) {}
+        public void onSessionDataEncodeInit(LiveStreamTranscoder liveStreamTranscoder,
+                                            TranscoderSessionDataEncode sessionDataEncode) {}
+        public void onSessionVideoEncodeSetup(LiveStreamTranscoder liveStreamTranscoder,
+                                              TranscoderSessionVideoEncode sessionVideoEncode) {}
+        public void onSessionAudioEncodeSetup(LiveStreamTranscoder liveStreamTranscoder,
+                                              TranscoderSessionAudioEncode sessionAudioEncode) { }
+        public void onSessionVideoEncodeCodecInfo(LiveStreamTranscoder liveStreamTranscoder,
+                                                  TranscoderSessionVideoEncode sessionVideoEncode, MediaCodecInfoVideo codecInfoVideo) {}
+        public void onSessionAudioEncodeCodecInfo(LiveStreamTranscoder liveStreamTranscoder,
+                                                  TranscoderSessionAudioEncode sessionAudioEncode, MediaCodecInfoAudio codecInfoAudio) {}
+        public void onSessionVideoDecodeCodecInfo(LiveStreamTranscoder liveStreamTranscoder,
+                                                  MediaCodecInfoVideo codecInfoVideo) {}
+        public void onSessionAudioDecodeCodecInfo(LiveStreamTranscoder liveStreamTranscoder,
+                                                  MediaCodecInfoAudio codecInfoAudio) {}
+        public void onRegisterStreamNameGroup(LiveStreamTranscoder liveStreamTranscoder,
+                                              TranscoderStreamNameGroup streamNameGroup) { }
+        public void onUnregisterStreamNameGroup(LiveStreamTranscoder liveStreamTranscoder,
+                                                TranscoderStreamNameGroup streamNameGroup) { }
+        public void onShutdownStart(LiveStreamTranscoder liveStreamTranscoder) { }
+        public void onShutdownStop(LiveStreamTranscoder liveStreamTranscoder) { }
+        public void onResetStream(LiveStreamTranscoder liveStreamTranscoder) { }
+    }
+
+    class StreamListener implements IMediaStreamActionNotify3
+    {
+        public static final String ONMETADATA_VIDEOCODECID = "videocodecid";
+        public static final String ONMETADATA_AUDIOCODECID = "audiocodecid";
+
+        public void onMetaData(IMediaStream stream, AMFPacket metaDataPacket)
+        {
+            logger.info("onMetaData[" + stream.getContextStr() + "]: " + metaDataPacket.toString());
+            getMetaDataParams(metaDataPacket, stream);
+        }
+
+        public void getMetaDataParams(AMFPacket metaDataPacket, IMediaStream stream)
+        {
+
+                WMSProperties props = stream.getProperties();
+                AMFDataList dataList = new AMFDataList(metaDataPacket.getData());
+                IMediaStreamActionNotify2 actionNotify;
+                if (dataList.size() < 2)
+                    return;
+
+                if (dataList.get(1).getType() == AMFData.DATA_TYPE_OBJECT)
+                {
+                    AMFDataObj obj = (AMFDataObj) dataList.get(1);
+                    if (obj.containsKey(ONMETADATA_VIDEOCODECID)){
+                        obj.put(ONMETADATA_VIDEOCODECIDSTR, FLVUtils.videoCodecToString(obj.getInt(ONMETADATA_VIDEOCODECID)));
+                    }
+
+                    if (obj.containsKey(ONMETADATA_AUDIOCODECID)){
+                        obj.put(ONMETADATA_AUDIOCODECIDSTR, FLVUtils.audioCodecToString(obj.getInt(ONMETADATA_AUDIOCODECID)));
+                    }
+
+                    synchronized (props)
+                    {
+                        props.put(AMFSETDATAFRAME, obj);
+                        actionNotify = (IMediaStreamActionNotify2) stream.getProperties().get("streamActionNotifier");
+                    }
+
+                    if (actionNotify != null)
+                    {
+                        stream.removeClientListener(actionNotify);
+                        logger.info("removeClientListener: " + stream.getSrc());
+                    }
+
+                }
+        }
+
+        public void onPauseRaw(IMediaStream stream, boolean isPause, double location) {}
+
+        public void onPause(IMediaStream stream, boolean isPause, double location) {}
+
+        public void onPlay(IMediaStream stream, String streamName, double playStart, double playLen, int playReset) {}
+
+        public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) { }
+
+        public void onSeek(IMediaStream stream, double location) {}
+
+        public void onStop(IMediaStream stream){}
+
+        public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {}
+
+        public void onCodecInfoAudio(IMediaStream stream, MediaCodecInfoAudio codecInfoAudio) {}
+
+        public void onCodecInfoVideo(IMediaStream stream, MediaCodecInfoVideo codecInfoVideo) {}
+    }
+
+    public void onAppStart(IApplicationInstance appInstance) {
+        String fullname = appInstance.getApplication().getName() + "/"
+                + appInstance.getName();
+        this.TransNotify = new TranscoderNotifier();
+        appInstance.addLiveStreamTranscoderListener(this.TransNotify);
+        logger.info("onAppStart: " + fullname);
+    }
+
+
+    public void onStreamCreate(IMediaStream stream)
+    {
+        logger.info("onStreamCreate["+stream+"]: clientId:" + stream.getClientId());
+        IMediaStreamActionNotify2 actionNotify = new StreamListener();
+
+        WMSProperties props = stream.getProperties();
+        synchronized (props)
+        {
+            props.put("streamActionNotifier", actionNotify);
+        }
+        stream.addClientListener(actionNotify);
+    }
+
+    public void onStreamDestroy(IMediaStream stream)
+    {
+        logger.info("onStreamDestroy["+stream+"]: clientId:" + stream.getClientId());
+
+        IMediaStreamActionNotify2 actionNotify = null;
+        WMSProperties props = stream.getProperties();
+        synchronized (props)
+        {
+            actionNotify = (IMediaStreamActionNotify2) stream.getProperties().get("streamActionNotifier");
+        }
+        if (actionNotify != null)
+        {
+            stream.removeClientListener(actionNotify);
+            logger.info("removeClientListener: " + stream.getSrc());
+        }
+    }
+
+
+}
