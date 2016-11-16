@@ -52,9 +52,7 @@ public class TemplateControl extends ModuleBase {
             this.TransSourceStream = transsourcestream;
         }
 
-        public String updateTemplate(AMFDataObj obj, String key, String template){
-            return template + '/' + key + '/' + obj.getString(key);
-        }
+
 
         public void onInitBeforeLoadTemplate(LiveStreamTranscoder liveStreamTranscoder) {
 
@@ -79,7 +77,7 @@ public class TemplateControl extends ModuleBase {
 
             for (String streamParam: streamParams) {
                 if (obj.containsKey(streamParam)){
-                    template =  updateTemplate(obj, streamParam, template);
+                    template += '/' + streamParam + '/' + obj.getString(streamParam);
                 }
             }
 
