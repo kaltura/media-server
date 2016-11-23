@@ -162,6 +162,7 @@ public class CuePointsModule  extends ModuleBase  {
 					}
 					if (data.get(OBJECT_TYPE_KEY) != null) {
 						String json = jsonAMF(data);
+						//logger.debug("Stream [" + streamName + "] JSON: " + json);
 
 						ID3V2FrameBase frame;
 						frame = new ID3V2FrameObject();
