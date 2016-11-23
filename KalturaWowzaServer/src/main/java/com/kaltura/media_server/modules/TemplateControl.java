@@ -138,6 +138,7 @@ public class TemplateControl extends ModuleBase {
             getMetaDataParams(metaDataPacket, stream);
         }
 
+        @SuppressWarnings("unchecked")
         public void getMetaDataParams(AMFPacket metaDataPacket, IMediaStream stream)
         {
 
@@ -150,12 +151,25 @@ public class TemplateControl extends ModuleBase {
                 if (dataList.get(1).getType() == AMFData.DATA_TYPE_OBJECT)
                 {
                     AMFDataObj obj = (AMFDataObj) dataList.get(1);
+                    String videocodec, audiocodec;
                     if (obj.containsKey(ONMETADATA_VIDEOCODECID)){
-                        obj.put(ONMETADATA_VIDEOCODECIDSTR, FLVUtils.videoCodecToString(obj.getInt(ONMETADATA_VIDEOCODECID)));
+                        try {
+                             videocodec = FLVUtils.videoCodecToString(obj.getInt(ONMETADATA_VIDEOCODECID));
+                        }
+                        catch (NumberFormatException e){
+                             videocodec = obj.getString(ONMETADATA_VIDEOCODECID);
+                        }
+                        obj.put(ONMETADATA_VIDEOCODECIDSTR, videocodec);
                     }
 
                     if (obj.containsKey(ONMETADATA_AUDIOCODECID)){
-                        obj.put(ONMETADATA_AUDIOCODECIDSTR, FLVUtils.audioCodecToString(obj.getInt(ONMETADATA_AUDIOCODECID)));
+                        try{
+                            audiocodec = FLVUtils.audioCodecToString(obj.getInt(ONMETADATA_AUDIOCODECID));
+                        }
+                        catch (NumberFormatException e){
+                            audiocodec = obj.getString(ONMETADATA_VIDEOCODECID);
+                        }
+                        obj.put(ONMETADATA_AUDIOCODECIDSTR, audiocodec);
                     }
 
                     synchronized (props)
@@ -200,7 +214,7 @@ public class TemplateControl extends ModuleBase {
         logger.info("onAppStart: " + fullname);
     }
 
-
+    @SuppressWarnings("unchecked")
     public void onStreamCreate(IMediaStream stream)
     {
         logger.info("onStreamCreate["+stream+"]: clientId:" + stream.getClientId());
