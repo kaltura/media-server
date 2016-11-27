@@ -170,9 +170,10 @@ public class TemplateControl extends ModuleBase {
                 AMFDataList dataList = new AMFDataList(metaDataPacket.getData());
                 for (int i = 0 ; i < dataList.size(); i++ ){
                         logger.debug("[" + stream.getName() +" ] Found DATA_TYPE_OBJECT");
-                        if (dataList.get(i).getType() == AMFData.DATA_TYPE_OBJECT)
+                        AMFData amfData = dataList.get(i);
+                        if (amfData.getType() == AMFData.DATA_TYPE_OBJECT)
                         {
-                            AMFDataObj obj = (AMFDataObj) dataList.get(1);
+                            AMFDataObj obj = (AMFDataObj) amfData;
                             String videocodec, audiocodec;
                             if (obj.containsKey(ONMETADATA_VIDEOCODECID)){
                                 try {
@@ -198,9 +199,10 @@ public class TemplateControl extends ModuleBase {
                                 props.put(AMFSETDATAFRAME, obj);
                             }
                             removeListener(stream);
-                            break;
+                            return;
                     }
                 }
+                logger.warn("[" + stream.getName() +" ]  metadata not found");
         }
 
         public void onPauseRaw(IMediaStream stream, boolean isPause, double location) {}
