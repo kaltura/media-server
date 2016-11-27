@@ -27,10 +27,34 @@ public class TemplateControl extends ModuleBase {
     {
 
         public void onLiveStreamTranscoderCreate(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream stream) {
+
+            logger.info("onLiveStreamTranscoderCreate: " + stream.getSrc());
+            TranscoderActionNotifier transcoderActionNotifier = new TranscoderActionNotifier(stream);
             ((LiveStreamTranscoder)liveStreamTranscoder).addActionListener(
-                    new TranscoderActionNotifier(stream));
+                    transcoderActionNotifier);
+
+            WMSProperties props = stream.getProperties();
+            synchronized (props)
+            {
+                props.put("TranscoderActionNotifier", transcoderActionNotifier);
+            }
+
         }
-        public void onLiveStreamTranscoderDestroy(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream stream) { }
+        public void onLiveStreamTranscoderDestroy(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream stream) {
+
+            TranscoderActionNotifier transcoderActionNotifier;
+            WMSProperties props = stream.getProperties();
+            synchronized (props)
+            {
+                transcoderActionNotifier = (TranscoderActionNotifier) props.get("TranscoderActionNotifier");
+            }
+            if (transcoderActionNotifier != null)
+            {
+                ((LiveStreamTranscoder)liveStreamTranscoder).removeActionListener(transcoderActionNotifier);
+                logger.info("remove TranscoderActionNotifier: " + stream.getSrc());
+            }
+
+        }
         public void onLiveStreamTranscoderInit(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream stream) { }
     }
 
@@ -57,10 +81,11 @@ public class TemplateControl extends ModuleBase {
         public void onInitBeforeLoadTemplate(LiveStreamTranscoder liveStreamTranscoder) {
 
             String template = liveStreamTranscoder.getTemplateName();
-            logger.info("Template name is "+template);
-
-
             IMediaStream stream = liveStreamTranscoder.getStream();
+
+            logger.info("[" + stream.getName() +" ] Template name is "+template);
+
+
             WMSProperties props = stream.getProperties();
             AMFDataObj obj;
 
@@ -71,7 +96,7 @@ public class TemplateControl extends ModuleBase {
             }
 
             if (obj == null){
-                logger.info("Cant find property AMFDataObj for stream " + stream.getName());
+                logger.info("[" + stream.getName() +" ] Cant find property AMFDataObj for stream " + stream.getName());
                 return;
             }
 
@@ -83,7 +108,7 @@ public class TemplateControl extends ModuleBase {
 
 
             liveStreamTranscoder.setTemplateName(template);
-            logger.info("New Template name is "+liveStreamTranscoder.getTemplateName());
+            logger.info("[" + stream.getName() +" ] New Template name is "+liveStreamTranscoder.getTemplateName());
         }
 
         public void onInitStart(LiveStreamTranscoder liveStreamTranscoder, String streamName, String transcoderName,
@@ -142,48 +167,39 @@ public class TemplateControl extends ModuleBase {
         public void getMetaDataParams(AMFPacket metaDataPacket, IMediaStream stream)
         {
 
-                WMSProperties props = stream.getProperties();
                 AMFDataList dataList = new AMFDataList(metaDataPacket.getData());
-                IMediaStreamActionNotify2 actionNotify;
-                if (dataList.size() < 2)
-                    return;
+                for (int i = 0 ; i < dataList.size(); i++ ){
+                        logger.debug("[" + stream.getName() +" ] Found DATA_TYPE_OBJECT");
+                        if (dataList.get(i).getType() == AMFData.DATA_TYPE_OBJECT)
+                        {
+                            AMFDataObj obj = (AMFDataObj) dataList.get(1);
+                            String videocodec, audiocodec;
+                            if (obj.containsKey(ONMETADATA_VIDEOCODECID)){
+                                try {
+                                     videocodec = FLVUtils.videoCodecToString(obj.getInt(ONMETADATA_VIDEOCODECID));
+                                }
+                                catch (NumberFormatException e){
+                                     videocodec = obj.getString(ONMETADATA_VIDEOCODECID);
+                                }
+                                obj.put(ONMETADATA_VIDEOCODECIDSTR, videocodec);
+                            }
 
-                if (dataList.get(1).getType() == AMFData.DATA_TYPE_OBJECT)
-                {
-                    AMFDataObj obj = (AMFDataObj) dataList.get(1);
-                    String videocodec, audiocodec;
-                    if (obj.containsKey(ONMETADATA_VIDEOCODECID)){
-                        try {
-                             videocodec = FLVUtils.videoCodecToString(obj.getInt(ONMETADATA_VIDEOCODECID));
-                        }
-                        catch (NumberFormatException e){
-                             videocodec = obj.getString(ONMETADATA_VIDEOCODECID);
-                        }
-                        obj.put(ONMETADATA_VIDEOCODECIDSTR, videocodec);
+                            if (obj.containsKey(ONMETADATA_AUDIOCODECID)){
+                                try{
+                                    audiocodec = FLVUtils.audioCodecToString(obj.getInt(ONMETADATA_AUDIOCODECID));
+                                }
+                                catch (NumberFormatException e){
+                                    audiocodec = obj.getString(ONMETADATA_VIDEOCODECID);
+                                }
+                                obj.put(ONMETADATA_AUDIOCODECIDSTR, audiocodec);
+                            }
+                            WMSProperties props = stream.getProperties();
+                            synchronized (props) {
+                                props.put(AMFSETDATAFRAME, obj);
+                            }
+                            removeListener(stream);
+                            break;
                     }
-
-                    if (obj.containsKey(ONMETADATA_AUDIOCODECID)){
-                        try{
-                            audiocodec = FLVUtils.audioCodecToString(obj.getInt(ONMETADATA_AUDIOCODECID));
-                        }
-                        catch (NumberFormatException e){
-                            audiocodec = obj.getString(ONMETADATA_VIDEOCODECID);
-                        }
-                        obj.put(ONMETADATA_AUDIOCODECIDSTR, audiocodec);
-                    }
-
-                    synchronized (props)
-                    {
-                        props.put(AMFSETDATAFRAME, obj);
-                        actionNotify = (IMediaStreamActionNotify2) stream.getProperties().get("streamActionNotifier");
-                    }
-
-                    if (actionNotify != null)
-                    {
-                        stream.removeClientListener(actionNotify);
-                        logger.info("removeClientListener: " + stream.getSrc());
-                    }
-
                 }
         }
 
@@ -217,7 +233,7 @@ public class TemplateControl extends ModuleBase {
     @SuppressWarnings("unchecked")
     public void onStreamCreate(IMediaStream stream)
     {
-        logger.info("onStreamCreate["+stream+"]: clientId:" + stream.getClientId());
+        logger.info("onStreamCreate  clientId:" + stream.getClientId());
         IMediaStreamActionNotify2 actionNotify = new StreamListener();
 
         WMSProperties props = stream.getProperties();
@@ -228,21 +244,24 @@ public class TemplateControl extends ModuleBase {
         stream.addClientListener(actionNotify);
     }
 
-    public void onStreamDestroy(IMediaStream stream)
-    {
-        logger.info("onStreamDestroy["+stream+"]: clientId:" + stream.getClientId());
-
-        IMediaStreamActionNotify2 actionNotify = null;
+    public void removeListener(IMediaStream stream){
         WMSProperties props = stream.getProperties();
+        IMediaStreamActionNotify2 actionNotify = null;
         synchronized (props)
         {
-            actionNotify = (IMediaStreamActionNotify2) stream.getProperties().get("streamActionNotifier");
+            actionNotify = (IMediaStreamActionNotify2) props.get("streamActionNotifier");
         }
         if (actionNotify != null)
         {
             stream.removeClientListener(actionNotify);
             logger.info("removeClientListener: " + stream.getSrc());
         }
+    }
+    public void onStreamDestroy(IMediaStream stream)
+    {
+        logger.info("onStreamDestroy["+stream.getName()+"]: clientId:" + stream.getClientId());
+
+        removeListener(stream);
     }
 
 
