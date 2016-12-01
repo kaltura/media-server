@@ -37,7 +37,7 @@ public class TemplateControlModule extends ModuleBase {
 
             WMSProperties props = stream.getProperties();
             synchronized (props) {
-                props.put("TranscoderActionNotifier", transcoderActionNotifier);
+                props.setProperty("TranscoderActionNotifier", transcoderActionNotifier);
             }
 
         }
@@ -181,7 +181,6 @@ public class TemplateControlModule extends ModuleBase {
             getMetaDataParams(metaDataPacket, stream);
         }
 
-        @SuppressWarnings("unchecked")
         public void getMetaDataParams(AMFPacket metaDataPacket, IMediaStream stream)
         {
 
@@ -214,7 +213,7 @@ public class TemplateControlModule extends ModuleBase {
                             }
                             WMSProperties props = stream.getProperties();
                             synchronized (props) {
-                                props.put(AMFSETDATAFRAME, obj);
+                                props.setProperty(AMFSETDATAFRAME, obj);
                             }
                             return;
                     }
@@ -249,7 +248,7 @@ public class TemplateControlModule extends ModuleBase {
         logger.info("onAppStart: " + fullname);
     }
 
-    @SuppressWarnings("unchecked")
+
     public void onStreamCreate(IMediaStream stream)
     {
         logger.info("onStreamCreate  clientId:" + stream.getClientId());
@@ -258,7 +257,7 @@ public class TemplateControlModule extends ModuleBase {
         WMSProperties props = stream.getProperties();
         synchronized (props)
         {
-            props.put("streamActionNotifier", actionNotify);
+            props.setProperty("streamActionNotifier", actionNotify);
         }
         stream.addClientListener(actionNotify);
     }

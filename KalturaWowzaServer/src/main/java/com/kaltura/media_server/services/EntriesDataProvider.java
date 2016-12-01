@@ -27,24 +27,24 @@ public class EntriesDataProvider extends HTTProvider2Base
 
     private void outputIOPerformanceInfo( HashMap<String,Object> hashMapInstance, IOPerformanceCounter ioPerformance)
     {
-        hashMapInstance.put("total bitrate (actual)", ioPerformance.getMessagesInBytesRate() * 8 / 1000);
-        hashMapInstance.put("MessagesOutBytesRate", ioPerformance.getMessagesOutBytesRate());
-
+        HashMap<String,Object> IOPerformanceInfoHash =  new HashMap<>();
+        IOPerformanceInfoHash.put("bitrate", ioPerformance.getMessagesInBytesRate() * 8 / 1000);
+        hashMapInstance.put("IOPerformance", IOPerformanceInfoHash);
     }
 
     private void addStreamProperties(IMediaStream stream,  HashMap<String,Object> streamHash){
 
-        int src = stream.getSrc();
+        HashMap<String,Object> EncodersHash =  new HashMap<>();
         double videoBitrate = stream.getPublishBitrateVideo() / 1000;
         double audioBitrate = stream.getPublishBitrateAudio() / 1000;
         double totalBitrate =  videoBitrate + audioBitrate;
         double framerate = stream.getPublishFramerateVideo();
-        streamHash.put("src", src);
-        streamHash.put("video bitrate (publish)", videoBitrate);
-        streamHash.put("audio bitrate (publish)", audioBitrate);
-        streamHash.put("total bitrate (publish)", totalBitrate);
-        streamHash.put("framerate (publish)", framerate);
-        getMetaDataProperties(stream, streamHash);
+        EncodersHash.put("videoBitrate", videoBitrate);
+        EncodersHash.put("audioBitrate", audioBitrate);
+        EncodersHash.put("totalBitrate", totalBitrate);
+        EncodersHash.put("frameRate", framerate);
+        getMetaDataProperties(stream, EncodersHash);
+        streamHash.put("Encoder", EncodersHash);
         logger.debug(httpSessionId+"[" + stream.getName() + "] Add the following params: videoBitrate "+ videoBitrate +  ", audioBitrate " + audioBitrate + ", framerate "+ framerate);
     }
 
@@ -92,10 +92,12 @@ public class EntriesDataProvider extends HTTProvider2Base
         encoder = clientProps.getPropertyStr(Constants.CLIENT_PROPERTY_ENCODER);
         IP = client.getIp();
         int port = client.getServerHostPort().getPort();
-        hashMapInstance.put("rtmp url" , rtmpUrl);
-        hashMapInstance.put("encoder" , encoder);
-        hashMapInstance.put("IP" , IP);
-        hashMapInstance.put("port" , port);
+        HashMap<String,Object> ClientPropertiesHash =  new HashMap<>();
+        ClientPropertiesHash.put("rtmpUrl" , rtmpUrl);
+        ClientPropertiesHash.put("encoder" , encoder);
+        ClientPropertiesHash.put("IP" , IP);
+        ClientPropertiesHash.put("port" , port);
+        hashMapInstance.put("clientProperties", ClientPropertiesHash);
 
         logger.debug(httpSessionId + "[" + entryId + "] Add the following params: rtmpUrl "+ rtmpUrl +  ", encoder " + encoder + ", IP " + IP + ", port " + port);
 
@@ -118,15 +120,15 @@ public class EntriesDataProvider extends HTTProvider2Base
                 entryHashInstance = new HashMap<>();
                 inputEntryHashInstance  = new HashMap<>();
                 outputEntryHashInstance  = new HashMap<>();
-                entryHashInstance.put("input", inputEntryHashInstance);
-                entryHashInstance.put("output", outputEntryHashInstance);
+                entryHashInstance.put("inputs", inputEntryHashInstance);
+                entryHashInstance.put("outputs", outputEntryHashInstance);
                 entryHash.put(entryId, entryHashInstance);
             }
             else{
 
                 entryHashInstance = (HashMap<String, Object>) entryHash.get(entryId);
-                inputEntryHashInstance= (HashMap<String, Object>) entryHashInstance.get("input");
-                outputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("output");
+                inputEntryHashInstance= (HashMap<String, Object>) entryHashInstance.get("inputs");
+                outputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("outputs");
 
             }
 
