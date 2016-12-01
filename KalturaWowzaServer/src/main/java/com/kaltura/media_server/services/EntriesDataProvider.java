@@ -18,6 +18,7 @@ import com.wowza.wms.vhost.*;
 import com.wowza.wms.http.*;
 import com.wowza.util.*;
 import org.apache.log4j.Logger;
+import com.wowza.util.FLVUtils;
 import com.kaltura.media_server.services.Constants;
 
 public class EntriesDataProvider extends HTTProvider2Base
@@ -27,21 +28,23 @@ public class EntriesDataProvider extends HTTProvider2Base
 
     private void outputIOPerformanceInfo( HashMap<String,Object> hashMapInstance, IOPerformanceCounter ioPerformance)
     {
-        HashMap<String,Object> IOPerformanceInfoHash =  new HashMap<>();
+        HashMap<String,Object> IOPerformanceInfoHash =  new HashMap<String,Object>();
         IOPerformanceInfoHash.put("bitrate", ioPerformance.getMessagesInBytesRate() * 8 / 1000);
         hashMapInstance.put("IOPerformance", IOPerformanceInfoHash);
     }
 
     private void addStreamProperties(IMediaStream stream,  HashMap<String,Object> streamHash){
 
-        HashMap<String,Object> EncodersHash =  new HashMap<>();
+        HashMap<String,Object> EncodersHash =  new HashMap<String,Object>();
         double videoBitrate = stream.getPublishBitrateVideo() / 1000;
         double audioBitrate = stream.getPublishBitrateAudio() / 1000;
-        double totalBitrate =  videoBitrate + audioBitrate;
         double framerate = stream.getPublishFramerateVideo();
+        String audioCodec = FLVUtils.audioCodecToString(stream.getPublishAudioCodecId());
+        String videoCodec = FLVUtils.videoCodecToString(stream.getPublishVideoCodecId());
+        EncodersHash.put("videoCodec", videoCodec);
+        EncodersHash.put("audioCodec", audioCodec);
         EncodersHash.put("videoBitrate", videoBitrate);
         EncodersHash.put("audioBitrate", audioBitrate);
-        EncodersHash.put("totalBitrate", totalBitrate);
         EncodersHash.put("frameRate", framerate);
         getMetaDataProperties(stream, EncodersHash);
         streamHash.put("Encoder", EncodersHash);
@@ -71,13 +74,9 @@ public class EntriesDataProvider extends HTTProvider2Base
 
         for (String streamParam : Constants.streamParams) {
             if (obj.containsKey(streamParam)) {
-                if (streamParam.equals(Constants.ONMETADATA_VIDEOCODECIDSTR) ||  streamParam.equals(Constants.ONMETADATA_AUDIOCODECIDSTR)){
-                    streamHash.put(streamParam, obj.getString(streamParam));
-                }
-                else{
+                if (! streamParam.equals(Constants.ONMETADATA_VIDEOCODECIDSTR) &&  ! streamParam.equals(Constants.ONMETADATA_AUDIOCODECIDSTR)){
                     streamHash.put(streamParam, obj.getDouble(streamParam));
                 }
-
             }
         }
     }
@@ -87,16 +86,23 @@ public class EntriesDataProvider extends HTTProvider2Base
             return;
         }
         WMSProperties clientProps = client.getProperties();
+        if (clientProps == null){
+            logger.warn(httpSessionId + "[" + entryId + "] Can't get properties");
+            return;
+        }
+
         String rtmpUrl, encoder,IP;
         rtmpUrl =  clientProps.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
         encoder = clientProps.getPropertyStr(Constants.CLIENT_PROPERTY_ENCODER);
         IP = client.getIp();
-        int port = client.getServerHostPort().getPort();
-        HashMap<String,Object> ClientPropertiesHash =  new HashMap<>();
+        long pingRoundTripTime = client.getPingRoundTripTime();
+        double timeRunningSeconds = client.getTimeRunningSeconds();
+        HashMap<String,Object> ClientPropertiesHash =  new HashMap<String,Object>();
+        ClientPropertiesHash.put("pingRoundTripTime" , pingRoundTripTime);
+        ClientPropertiesHash.put("timeRunningSeconds" , timeRunningSeconds);
         ClientPropertiesHash.put("rtmpUrl" , rtmpUrl);
         ClientPropertiesHash.put("encoder" , encoder);
         ClientPropertiesHash.put("IP" , IP);
-        ClientPropertiesHash.put("port" , port);
         hashMapInstance.put("clientProperties", ClientPropertiesHash);
 
         logger.debug(httpSessionId + "[" + entryId + "] Add the following params: rtmpUrl "+ rtmpUrl +  ", encoder " + encoder + ", IP " + IP + ", port " + port);
@@ -105,46 +111,49 @@ public class EntriesDataProvider extends HTTProvider2Base
     @SuppressWarnings("unchecked")
     private void addAllStreamsProperties(List<IMediaStream> streamList, HashMap<String,Object> entryHash){
         for (IMediaStream stream : streamList) {
-            HashMap<String, Object> entryHashInstance, inputEntryHashInstance, outputEntryHashInstance ;
+
+            HashMap<String, Object> entryHashInstance, inputEntryHashInstance, outputEntryHashInstance;
             String streamName = stream.getName();
+            try {
+                Matcher matcher = Utils.getStreamNameMatches(streamName);
+                if (matcher == null) {
+                    logger.warn(httpSessionId + "Unknown published stream [" + streamName + "]");
+                    continue;
+                }
+                String entryId = matcher.group(1);
+                String flavor = matcher.group(2);
 
-            Matcher matcher = Utils.getStreamNameMatches(streamName);
-            if (matcher == null) {
-                logger.warn(httpSessionId+"Unknown published stream [" + streamName + "]");
-                continue;
+                if (!entryHash.containsKey(entryId)) {
+                    entryHashInstance = new HashMap<String, Object>();
+                    inputEntryHashInstance = new HashMap<String, Object>();
+                    outputEntryHashInstance = new HashMap<String, Object>();
+                    entryHashInstance.put("inputs", inputEntryHashInstance);
+                    entryHashInstance.put("outputs", outputEntryHashInstance);
+                    entryHash.put(entryId, entryHashInstance);
+                } else {
+
+                    entryHashInstance = (HashMap<String, Object>) entryHash.get(entryId);
+                    inputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("inputs");
+                    outputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("outputs");
+
+                }
+
+                HashMap<String, Object> streamHash = new HashMap<String, Object>();
+                addStreamProperties(stream, streamHash);
+                IOPerformanceCounter perf = stream.getMediaIOPerformance();
+                outputIOPerformanceInfo(streamHash, perf);
+
+                if (stream.isTranscodeResult()) {
+                    outputEntryHashInstance.put(flavor, streamHash);
+                } else {
+                    inputEntryHashInstance.put(flavor, streamHash);
+                    Client client = (Client) stream.getClient();
+                    addClientProperties(client, entryHashInstance, entryId);
+
+                }
             }
-            String entryId =  matcher.group(1);
-            String flavor = matcher.group(2);
-
-            if (!entryHash.containsKey(entryId)){
-                entryHashInstance = new HashMap<>();
-                inputEntryHashInstance  = new HashMap<>();
-                outputEntryHashInstance  = new HashMap<>();
-                entryHashInstance.put("inputs", inputEntryHashInstance);
-                entryHashInstance.put("outputs", outputEntryHashInstance);
-                entryHash.put(entryId, entryHashInstance);
-            }
-            else{
-
-                entryHashInstance = (HashMap<String, Object>) entryHash.get(entryId);
-                inputEntryHashInstance= (HashMap<String, Object>) entryHashInstance.get("inputs");
-                outputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("outputs");
-
-            }
-
-            HashMap<String, Object> streamHash = new HashMap<>();
-            addStreamProperties(stream, streamHash);
-            IOPerformanceCounter perf = stream.getMediaIOPerformance();
-            outputIOPerformanceInfo(streamHash, perf);
-
-            if ( stream.isTranscodeResult()){
-                outputEntryHashInstance.put(flavor, streamHash);
-            }
-            else {
-                inputEntryHashInstance.put(flavor, streamHash);
-                Client client = (Client) stream.getClient();
-                addClientProperties(client, entryHashInstance, entryId);
-
+            catch (Exception e){
+                logger.debug(httpSessionId+"[" + stream.getName() + "] Error while try to add stream to JSON: " + e.toString());
             }
         }
     }
@@ -169,7 +178,7 @@ public class EntriesDataProvider extends HTTProvider2Base
         httpSessionId = "[" + System.currentTimeMillis() / 1000L + "]";
 
 
-        HashMap<String, Object> entryData = new HashMap<>();
+        HashMap<String, Object> entryData = new HashMap<String,Object>();
         try
         {
             List<String> vhostNames = VHostSingleton.getVHostNames();
