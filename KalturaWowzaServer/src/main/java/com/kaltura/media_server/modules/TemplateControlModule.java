@@ -14,8 +14,11 @@ import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoder;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoderNotify;
 import com.wowza.util.FLVUtils;
+import com.wowza.wms.transcoder.model.LiveStreamTranscoder;
+import com.wowza.wms.transcoder.model.TranscoderStreamNameGroup;
+import com.kaltura.media_server.services.*;
 
-public class TemplateControl extends ModuleBase {
+public class TemplateControlModule extends ModuleBase {
 
     private static final Logger logger = Logger.getLogger(TranscoderNotifier.class);
     private TranscoderNotifier TransNotify = null;
@@ -23,59 +26,47 @@ public class TemplateControl extends ModuleBase {
     public static final String ONMETADATA_VIDEOCODECIDSTR = "videocodecidstring";
     public static final String ONMETADATA_AUDIOCODECIDSTR = "audiocodecidstring";
 
-    public class TranscoderNotifier implements ILiveStreamTranscoderNotify
-    {
+    public class TranscoderNotifier implements ILiveStreamTranscoderNotify {
 
         public void onLiveStreamTranscoderCreate(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream stream) {
 
             logger.info("onLiveStreamTranscoderCreate: " + stream.getSrc());
             TranscoderActionNotifier transcoderActionNotifier = new TranscoderActionNotifier(stream);
-            ((LiveStreamTranscoder)liveStreamTranscoder).addActionListener(
+            ((LiveStreamTranscoder) liveStreamTranscoder).addActionListener(
                     transcoderActionNotifier);
 
             WMSProperties props = stream.getProperties();
-            synchronized (props)
-            {
+            synchronized (props) {
                 props.put("TranscoderActionNotifier", transcoderActionNotifier);
             }
 
         }
+
         public void onLiveStreamTranscoderDestroy(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream stream) {
 
             TranscoderActionNotifier transcoderActionNotifier;
             WMSProperties props = stream.getProperties();
-            synchronized (props)
-            {
+            synchronized (props) {
                 transcoderActionNotifier = (TranscoderActionNotifier) props.get("TranscoderActionNotifier");
             }
-            if (transcoderActionNotifier != null)
-            {
-                ((LiveStreamTranscoder)liveStreamTranscoder).removeActionListener(transcoderActionNotifier);
+            if (transcoderActionNotifier != null) {
+                ((LiveStreamTranscoder) liveStreamTranscoder).removeActionListener(transcoderActionNotifier);
                 logger.info("remove TranscoderActionNotifier: " + stream.getSrc());
             }
 
         }
-        public void onLiveStreamTranscoderInit(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream stream) { }
+
+        public void onLiveStreamTranscoderInit(ILiveStreamTranscoder liveStreamTranscoder, IMediaStream stream) {
+        }
     }
 
 
-    class TranscoderActionNotifier implements ILiveStreamTranscoderActionNotify
-    {
+    class TranscoderActionNotifier implements ILiveStreamTranscoderActionNotify {
         private IMediaStream TransSourceStream = null;
-        public static final String ONMETADATA_AUDIODATARATE = "audiodatarate";
-        public static final String ONMETADATA_VIDEODATARATE = "videodatarate";
-        public static final String ONMETADATA_WIDTH = "width";
-        public static final String ONMETADATA_HEIGHT = "height";
-        public static final String ONMETADATA_FRAMERATE= "framerate";
 
-
-        public  final String[] streamParams = {ONMETADATA_AUDIODATARATE, ONMETADATA_VIDEODATARATE, ONMETADATA_WIDTH,
-                ONMETADATA_HEIGHT, ONMETADATA_FRAMERATE, ONMETADATA_VIDEOCODECIDSTR, ONMETADATA_AUDIOCODECIDSTR};
-
-        public TranscoderActionNotifier (IMediaStream transsourcestream) {
+        public TranscoderActionNotifier(IMediaStream transsourcestream) {
             this.TransSourceStream = transsourcestream;
         }
-
 
 
         public void onInitBeforeLoadTemplate(LiveStreamTranscoder liveStreamTranscoder) {
@@ -83,58 +74,85 @@ public class TemplateControl extends ModuleBase {
             String template = liveStreamTranscoder.getTemplateName();
             IMediaStream stream = liveStreamTranscoder.getStream();
 
-            logger.info("[" + stream.getName() +" ] Template name is "+template);
+            logger.info("[" + stream.getName() + " ] Template name is " + template);
 
 
             WMSProperties props = stream.getProperties();
             AMFDataObj obj;
 
 
-            synchronized (props)
-            {
+            synchronized (props) {
                 obj = (AMFDataObj) props.getProperty(AMFSETDATAFRAME);
             }
 
-            if (obj == null){
-                logger.info("[" + stream.getName() +" ] Cant find property AMFDataObj for stream " + stream.getName());
+            if (obj == null) {
+                logger.info("[" + stream.getName() + " ] Cant find property AMFDataObj for stream " + stream.getName());
                 return;
             }
 
-            for (String streamParam: streamParams) {
-                if (obj.containsKey(streamParam)){
+            for (String streamParam : Constants.streamParams) {
+                if (obj.containsKey(streamParam)) {
                     template += '/' + streamParam + '/' + obj.getString(streamParam);
                 }
             }
 
 
             liveStreamTranscoder.setTemplateName(template);
-            logger.info("[" + stream.getName() +" ] New Template name is "+liveStreamTranscoder.getTemplateName());
+            logger.info("[" + stream.getName() + " ] New Template name is " + liveStreamTranscoder.getTemplateName());
         }
 
         public void onInitStart(LiveStreamTranscoder liveStreamTranscoder, String streamName, String transcoderName,
-                                IApplicationInstance appInstance, LiveStreamTranscoderItem liveStreamTranscoderItem) { }
-        public void onInitAfterLoadTemplate(LiveStreamTranscoder liveStreamTranscoder) { }
-        public void onInitStop(LiveStreamTranscoder liveStreamTranscoder) { }
-        public void onCalculateSourceVideoBitrate(LiveStreamTranscoder liveStreamTranscoder, long bitrate) {}
-        public void onCalculateSourceAudioBitrate(LiveStreamTranscoder liveStreamTranscoder, long bitrate) {}
+                                IApplicationInstance appInstance, LiveStreamTranscoderItem liveStreamTranscoderItem) {
+        }
+
+        public void onInitAfterLoadTemplate(LiveStreamTranscoder liveStreamTranscoder) {
+        }
+
+        public void onInitStop(LiveStreamTranscoder liveStreamTranscoder) {
+        }
+
+        public void onCalculateSourceVideoBitrate(LiveStreamTranscoder liveStreamTranscoder, long bitrate) {
+        }
+
+        public void onCalculateSourceAudioBitrate(LiveStreamTranscoder liveStreamTranscoder, long bitrate) {
+        }
+
         public void onSessionDestinationCreate(LiveStreamTranscoder liveStreamTranscoder,
-                                               TranscoderSessionDestination sessionDestination) { }
+                                               TranscoderSessionDestination sessionDestination) {
+        }
+
         public void onSessionVideoEncodeCreate(LiveStreamTranscoder liveStreamTranscoder,
-                                               TranscoderSessionVideoEncode sessionVideoEncode) { }
+                                               TranscoderSessionVideoEncode sessionVideoEncode) {
+        }
+
         public void onSessionAudioEncodeCreate(LiveStreamTranscoder liveStreamTranscoder,
-                                               TranscoderSessionAudioEncode sessionAudioEncode) {}
+                                               TranscoderSessionAudioEncode sessionAudioEncode) {
+        }
+
         public void onSessionDataEncodeCreate(LiveStreamTranscoder liveStreamTranscoder,
-                                              TranscoderSessionDataEncode sessionDataEncode) {}
+                                              TranscoderSessionDataEncode sessionDataEncode) {
+        }
+
         public void onSessionVideoEncodeInit(LiveStreamTranscoder liveStreamTranscoder,
-                                             TranscoderSessionVideoEncode sessionVideoEncode) { }
+                                             TranscoderSessionVideoEncode sessionVideoEncode) {
+        }
+
         public void onSessionAudioEncodeInit(LiveStreamTranscoder liveStreamTranscoder,
-                                             TranscoderSessionAudioEncode sessionAudioEncode) {}
+                                             TranscoderSessionAudioEncode sessionAudioEncode) {
+        }
+
         public void onSessionDataEncodeInit(LiveStreamTranscoder liveStreamTranscoder,
-                                            TranscoderSessionDataEncode sessionDataEncode) {}
+                                            TranscoderSessionDataEncode sessionDataEncode) {
+        }
+
         public void onSessionVideoEncodeSetup(LiveStreamTranscoder liveStreamTranscoder,
-                                              TranscoderSessionVideoEncode sessionVideoEncode) {}
+                                              TranscoderSessionVideoEncode sessionVideoEncode) {
+        }
+
         public void onSessionAudioEncodeSetup(LiveStreamTranscoder liveStreamTranscoder,
-                                              TranscoderSessionAudioEncode sessionAudioEncode) { }
+                                              TranscoderSessionAudioEncode sessionAudioEncode) {
+        }
+
         public void onSessionVideoEncodeCodecInfo(LiveStreamTranscoder liveStreamTranscoder,
                                                   TranscoderSessionVideoEncode sessionVideoEncode, MediaCodecInfoVideo codecInfoVideo) {}
         public void onSessionAudioEncodeCodecInfo(LiveStreamTranscoder liveStreamTranscoder,
@@ -144,7 +162,7 @@ public class TemplateControl extends ModuleBase {
         public void onSessionAudioDecodeCodecInfo(LiveStreamTranscoder liveStreamTranscoder,
                                                   MediaCodecInfoAudio codecInfoAudio) {}
         public void onRegisterStreamNameGroup(LiveStreamTranscoder liveStreamTranscoder,
-                                              TranscoderStreamNameGroup streamNameGroup) { }
+                                              TranscoderStreamNameGroup streamNameGroup) {}
         public void onUnregisterStreamNameGroup(LiveStreamTranscoder liveStreamTranscoder,
                                                 TranscoderStreamNameGroup streamNameGroup) { }
         public void onShutdownStart(LiveStreamTranscoder liveStreamTranscoder) { }
@@ -198,7 +216,6 @@ public class TemplateControl extends ModuleBase {
                             synchronized (props) {
                                 props.put(AMFSETDATAFRAME, obj);
                             }
-                            removeListener(stream);
                             return;
                     }
                 }

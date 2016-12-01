@@ -7,6 +7,7 @@ public class Constants {
 
     public final static String KALTURA_PERMANENT_SESSION_KEY = "kalturaWowzaPermanentSessionKey";
     public final static String CLIENT_PROPERTY_CONNECT_URL = "connecttcUrl";
+    public final static String CLIENT_PROPERTY_ENCODER = "connectflashVer";
     public final static String CLIENT_PROPERTY_SERVER_INDEX = "serverIndex";
     public final static String CLIENT_PROPERTY_KALTURA_LIVE_ENTRY = "KalturaLiveEntry";
     public final static String CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST = "KalturaLiveAssetList";
@@ -30,4 +31,14 @@ public class Constants {
     public final static String RECORDING_ANCHOR_TAG_VALUE = "recording_anchor";
     public final static int DEFAULT_RECORDED_SEGMENT_DURATION = 900000; //~15 minutes
     public final static int MEDIA_SERVER_PARTNER_ID = -5;
+    public static final String AMFSETDATAFRAME = "amfsetdataframe";
+    public static final String ONMETADATA_AUDIODATARATE = "audiodatarate";
+    public static final String ONMETADATA_VIDEODATARATE = "videodatarate";
+    public static final String ONMETADATA_WIDTH = "width";
+    public static final String ONMETADATA_HEIGHT = "height";
+    public static final String ONMETADATA_FRAMERATE= "framerate";
+    public static final String ONMETADATA_VIDEOCODECIDSTR = "videocodecidstring";
+    public static final String ONMETADATA_AUDIOCODECIDSTR = "audiocodecidstring";
+    public static final String[] streamParams = {ONMETADATA_AUDIODATARATE, ONMETADATA_VIDEODATARATE, ONMETADATA_WIDTH,
+            ONMETADATA_HEIGHT, ONMETADATA_FRAMERATE, ONMETADATA_VIDEOCODECIDSTR, ONMETADATA_AUDIOCODECIDSTR};
 }
