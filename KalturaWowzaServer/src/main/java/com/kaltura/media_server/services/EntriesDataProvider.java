@@ -105,7 +105,7 @@ public class EntriesDataProvider extends HTTProvider2Base
         ClientPropertiesHash.put("IP" , IP);
         hashMapInstance.put("clientProperties", ClientPropertiesHash);
 
-        logger.debug(httpSessionId + "[" + entryId + "] Add the following params: rtmpUrl "+ rtmpUrl +  ", encoder " + encoder + ", IP " + IP + ", port " + port);
+        logger.debug(httpSessionId + "[" + entryId + "] Add the following params: rtmpUrl "+ rtmpUrl +  ", encoder " + encoder + ", IP " + IP );
 
     }
     @SuppressWarnings("unchecked")
