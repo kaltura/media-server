@@ -24,34 +24,35 @@ function initClient ($xml_file_path, $admin_secret) {
  * @param $xml_file_path
  * @param $client
  */
-function registerMediaServer ($xml_file_path, $client) {
-    $sys_hostname = php_uname('n');
+function registerMediaServer ($xml_file_path, $client, $sys_hostname) {
     $media_server_tag = "_media_server";
     $media_server_default_port = 1935;
     $media_server_default_protocol = "http";
 
-    $config = new KalturaConfiguration();
-    $config->serviceUrl = getValueFromXml($xml_file_path,"Server/Properties/Property[1]/Value").'/';
     $serverNode = new KalturaWowzaMediaServerNode();
     $serverNode->name = $sys_hostname.$media_server_tag;
     $serverNode->systemName = '';
-    $serverNode->description = '';
+    $serverNode->description = 'Registered using '. __FILE__;
     $serverNode->hostName = $sys_hostname;
     $serverNode->liveServicePort = $media_server_default_port;
     $serverNode->liveServiceProtocol = $media_server_default_protocol;
     try {
         (array)$res = $client->serverNode->add($serverNode);
     } catch (KalturaException $ex) {
-        logToFIle('The server ['.$sys_hostname.'] is already registered.');
-        print PHP_EOL;
-        exit (0);
+                if ($ex->getCode() == 'HOST_NAME_ALREADY_EXISTS'){
+                        logToFIle($ex->getMessage());
+                        exit(0);
+                }else{
+                        logToFIle('ERROR! CODE: ' .$ex->getCode() . ' Message: '. $ex->getMessage());
+                        exit(1);
+                }
     }
     $client->serverNode->enable($res->id);
-    logToFIle ('['.php_uname('n')."] registered with id: ".$res->id.PHP_EOL);
+    logToFIle ('['.$sys_hostname."] registered with id: ".$res->id.PHP_EOL);
 }
 
 function logToFIle ($message) {
-    print $message;
+    echo "$message\n";
 }
 
 
@@ -69,5 +70,10 @@ function getValueFromXml ($xml_file, $xml_path) {
 // main
 $xml_admin_secret = getValueFromXml($xml_file_path, "Server/Properties/Property[2]/Value");
 $new_client = initClient($xml_file_path, $xml_admin_secret);
-registerMediaServer ($xml_file_path, $new_client);
+if(isset($argv[1])){
+        $node_hostname=$argv[1];
+}else{
+    $node_hostname = php_uname('n');
+}
+registerMediaServer ($xml_file_path, $new_client,$node_hostname);
 
