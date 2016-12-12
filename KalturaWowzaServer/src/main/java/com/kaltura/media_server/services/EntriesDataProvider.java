@@ -108,6 +108,13 @@ public class EntriesDataProvider extends HTTProvider2Base
         logger.debug(httpSessionId + "[" + entryId + "] Add the following params: rtmpUrl "+ rtmpUrl +  ", encoder " + encoder + ", IP " + IP );
 
     }
+
+    private void addAllRejectedSession(ArrayList <HashMap<String,String> > streamList, HashMap<String,Object> entryHash){
+        for (  HashMap<String,String> errorSession : streamList) {
+            String time = errorSession.get("Time");
+            entryHash.put(time, errorSession);
+        }
+    }
     @SuppressWarnings("unchecked")
     private void addAllStreamsProperties(List<IMediaStream> streamList, HashMap<String,Object> entryHash){
         for (IMediaStream stream : streamList) {
@@ -212,8 +219,19 @@ public class EntriesDataProvider extends HTTProvider2Base
                         if (appInstance == null)
                             continue;
 
-                        List<IMediaStream> streamList = appInstance.getStreams().getStreams();
-                        addAllStreamsProperties(streamList, entryData);
+                        String queryStr = req.getQueryString();
+                        if (queryStr.equals("errors")) {
+                            WMSProperties props = appInstance.getProperties();
+                            if (props == null || ! props.containsKey(Constants.KALTURA_REJECTED_STREAMS)){
+                                return;
+                            }
+                            ArrayList <HashMap<String,String> > rejectedStreams = (ArrayList <HashMap<String,String> >) props.getProperty(Constants.KALTURA_REJECTED_STREAMS);
+                            addAllRejectedSession(rejectedStreams, entryData);
+
+                            } else {
+                            List<IMediaStream> streamList = appInstance.getStreams().getStreams();
+                            addAllStreamsProperties(streamList, entryData);
+                        }
                     }
                 }
             }

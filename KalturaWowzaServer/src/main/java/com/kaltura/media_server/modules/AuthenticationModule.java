@@ -14,13 +14,14 @@ import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
 import org.apache.log4j.Logger;
 import com.kaltura.media_server.services.*;
+import java.util.ArrayList;
 
 import java.util.HashMap;
 
 public class AuthenticationModule extends ModuleBase  {
 
 
-
+    ArrayList <HashMap<String,String> >rejectedStreams = new ArrayList <HashMap<String,String> >();
     private static final Logger logger = Logger.getLogger(AuthenticationModule.class);
 
     @SuppressWarnings("serial")
@@ -31,13 +32,17 @@ public class AuthenticationModule extends ModuleBase  {
         }
     }
     public void onAppStart(IApplicationInstance appInstance) {
+        WMSProperties properties = appInstance.getProperties();
+        properties.setProperty(Constants.KALTURA_REJECTED_STREAMS, rejectedStreams);
         logger.info("Initiallizing " +appInstance.getName());
     }
 
     public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
+
         WMSProperties properties = client.getProperties();
         String rtmpUrl = properties.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
-        logger.debug("Geting url: " + rtmpUrl+ " from client "+client.getIp());
+        String IP = client.getIp();
+        logger.debug("Geting url: " + rtmpUrl+ " from client "+ IP);
 
         try {
             HashMap<String, String>  queryParameters = Utils.getRtmpUrlParameters(rtmpUrl, client.getQueryStr());
@@ -46,9 +51,27 @@ public class AuthenticationModule extends ModuleBase  {
             logger.error("Entry authentication failed with url [" + rtmpUrl + "]: " + e.getMessage());
             client.rejectConnection();
             sendClientOnStatusError((IClient)client, "NetStream.Play.Failed","Unable to authenticate url; [" + rtmpUrl + "]: " + e.getMessage());
+
         }
     }
 
+    private void addRejectedStream(Exception  e, IClient client){
+
+        WMSProperties properties = client.getProperties();
+        String rtmpUrl = properties.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
+        String IP = client.getIp();
+
+        HashMap<String,String> rejcetedStream =  new HashMap<String,String>();
+        rejcetedStream.put("rtmpUrl", rtmpUrl);
+        rejcetedStream.put("message", e.getMessage());
+        rejcetedStream.put("IP", IP);
+        String timeStamp = Long.toString(System.currentTimeMillis());
+        rejcetedStream.put("Time" , timeStamp);
+        if (rejectedStreams.size() >= Constants.KALTURA_REJECTED_STEAMS_SIZE){
+            rejectedStreams.remove(0);
+        }
+        rejectedStreams.add(rejcetedStream);
+    }
     private KalturaLiveEntry onClientConnect(WMSProperties properties, HashMap<String, String> requestParams) throws KalturaApiException, ClientConnectException, Exception {
 
 
