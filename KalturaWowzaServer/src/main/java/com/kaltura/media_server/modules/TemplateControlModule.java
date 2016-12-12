@@ -1,5 +1,6 @@
 package com.kaltura.media_server.modules;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wowza.wms.amf.*;
 import com.wowza.wms.application.*;
 import com.wowza.wms.media.model.MediaCodecInfoAudio;
@@ -17,6 +18,10 @@ import com.wowza.util.FLVUtils;
 import com.wowza.wms.transcoder.model.LiveStreamTranscoder;
 import com.wowza.wms.transcoder.model.TranscoderStreamNameGroup;
 import com.kaltura.media_server.services.*;
+import java.io.*;
+import java.net.URLEncoder;
+import java.util.*;
+
 
 public class TemplateControlModule extends ModuleBase {
 
@@ -89,17 +94,38 @@ public class TemplateControlModule extends ModuleBase {
                 logger.info("[" + stream.getName() + " ] Cant find property AMFDataObj for stream " + stream.getName());
                 return;
             }
-
-            for (String streamParam : Constants.streamParams) {
-                if (obj.containsKey(streamParam)) {
-                    template += '/' + streamParam + '/' + obj.getString(streamParam);
-                }
+            try{
+                String queryString = getQueryString(obj);
+                template = template + queryString;
+                liveStreamTranscoder.setTemplateName(template);
+                logger.info("[" + stream.getName() + " ] New Template name is " + liveStreamTranscoder.getTemplateName());
+            }
+            catch (Exception e){
+                logger.error("Failed to retrieve query params of entry: "+e.toString());
             }
 
 
-            liveStreamTranscoder.setTemplateName(template);
-            logger.info("[" + stream.getName() + " ] New Template name is " + liveStreamTranscoder.getTemplateName());
         }
+
+        public  String getQueryString(AMFDataObj obj) throws Exception{
+            String data;
+            String dataEncode;
+            HashMap<String, String> entryProperties = new HashMap<String, String>();
+            for (String key : Constants.streamParams) {
+                if (obj.containsKey(key)) {
+
+                    String value = obj.get(key).toString();
+                    entryProperties.put(key, value);
+                }
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            data = mapper.writeValueAsString(entryProperties);
+            dataEncode = URLEncoder.encode(data, "UTF-8") ;
+            String result = "/extraParams/" + dataEncode;
+            return result;
+        }
+
 
         public void onInitStart(LiveStreamTranscoder liveStreamTranscoder, String streamName, String transcoderName,
                                 IApplicationInstance appInstance, LiveStreamTranscoderItem liveStreamTranscoderItem) {
