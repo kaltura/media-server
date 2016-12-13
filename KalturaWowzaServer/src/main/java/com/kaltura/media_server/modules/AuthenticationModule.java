@@ -51,11 +51,11 @@ public class AuthenticationModule extends ModuleBase  {
             logger.error("Entry authentication failed with url [" + rtmpUrl + "]: " + e.getMessage());
             client.rejectConnection();
             sendClientOnStatusError((IClient)client, "NetStream.Play.Failed","Unable to authenticate url; [" + rtmpUrl + "]: " + e.getMessage());
-
+            addRejectedStream(e.getMessage(), client);
         }
     }
 
-    private void addRejectedStream(Exception  e, IClient client){
+    private void addRejectedStream(String message, IClient client){
 
         WMSProperties properties = client.getProperties();
         String rtmpUrl = properties.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
@@ -63,7 +63,7 @@ public class AuthenticationModule extends ModuleBase  {
 
         HashMap<String,String> rejcetedStream =  new HashMap<String,String>();
         rejcetedStream.put("rtmpUrl", rtmpUrl);
-        rejcetedStream.put("message", e.getMessage());
+        rejcetedStream.put("message", message);
         rejcetedStream.put("IP", IP);
         String timeStamp = Long.toString(System.currentTimeMillis());
         rejcetedStream.put("Time" , timeStamp);
