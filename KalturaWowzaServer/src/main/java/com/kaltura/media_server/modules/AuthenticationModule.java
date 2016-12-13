@@ -27,8 +27,6 @@ import java.util.regex.Matcher;
 
 public class AuthenticationModule extends ModuleBase  {
 
-
-    ArrayList <HashMap<String,String> >rejectedStreams = new ArrayList <HashMap<String,String> >();
     private static final Logger logger = Logger.getLogger(AuthenticationModule.class);
 
     @SuppressWarnings("serial")
@@ -40,7 +38,6 @@ public class AuthenticationModule extends ModuleBase  {
     }
     public void onAppStart(IApplicationInstance appInstance) {
         WMSProperties properties = appInstance.getProperties();
-        properties.setProperty(Constants.KALTURA_REJECTED_STREAMS, rejectedStreams);
         logger.info("Initiallizing " +appInstance.getName());
     }
 
@@ -58,27 +55,10 @@ public class AuthenticationModule extends ModuleBase  {
             logger.error("Entry authentication failed with url [" + rtmpUrl + "]: " + e.getMessage());
             client.rejectConnection();
             sendClientOnStatusError((IClient)client, "NetStream.Play.Failed","Unable to authenticate url; [" + rtmpUrl + "]: " + e.getMessage());
-            addRejectedStream(e.getMessage(), client);
+            EntriesDataProvider.addRejectedStream(e.getMessage(), client);
         }
     }
 
-    private void addRejectedStream(String message, IClient client){
-
-        WMSProperties properties = client.getProperties();
-        String rtmpUrl = properties.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
-        String IP = client.getIp();
-
-        HashMap<String,String> rejcetedStream =  new HashMap<String,String>();
-        rejcetedStream.put("rtmpUrl", rtmpUrl);
-        rejcetedStream.put("message", message);
-        rejcetedStream.put("IP", IP);
-        String timeStamp = Long.toString(System.currentTimeMillis());
-        rejcetedStream.put("Time" , timeStamp);
-        if (rejectedStreams.size() >= Constants.KALTURA_REJECTED_STEAMS_SIZE){
-            rejectedStreams.remove(0);
-        }
-        rejectedStreams.add(rejcetedStream);
-    }
     private KalturaLiveEntry onClientConnect(WMSProperties properties, HashMap<String, String> requestParams) throws KalturaApiException, ClientConnectException, Exception {
 
 
@@ -154,7 +134,7 @@ public class AuthenticationModule extends ModuleBase  {
                 }
 
                 if (! entryId.equals(liveEntry.id  )){
-                    String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryId + "]");
+                    String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryId + "]";
                     logger.error(msg);
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
                     client.setShutdownClient(true);

@@ -25,6 +25,7 @@ public class EntriesDataProvider extends HTTProvider2Base
 {
     private static final Logger logger = Logger.getLogger(HTTPConnectionCountsXML.class);
     private String httpSessionId;
+    static ArrayList <HashMap<String,String> >errorDiagnostics  = new ArrayList <HashMap<String,String> >();
 
     private void outputIOPerformanceInfo( HashMap<String,Object> hashMapInstance, IOPerformanceCounter ioPerformance)
     {
@@ -50,6 +51,25 @@ public class EntriesDataProvider extends HTTProvider2Base
         streamHash.put("Encoder", EncodersHash);
         logger.debug(httpSessionId+"[" + stream.getName() + "] Add the following params: videoBitrate "+ videoBitrate +  ", audioBitrate " + audioBitrate + ", framerate "+ framerate);
     }
+
+    public static void  addRejectedStream(String message, IClient client){
+
+        WMSProperties properties = client.getProperties();
+        String rtmpUrl = properties.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
+        String IP = client.getIp();
+
+        HashMap<String,String> rejcetedStream =  new HashMap<String,String>();
+        rejcetedStream.put("rtmpUrl", rtmpUrl);
+        rejcetedStream.put("message", message);
+        rejcetedStream.put("IP", IP);
+        String timeStamp = Long.toString(System.currentTimeMillis());
+        rejcetedStream.put("Time" , timeStamp);
+        if (errorDiagnostics.size() >= Constants.KALTURA_REJECTED_STEAMS_SIZE){
+            errorDiagnostics.remove(0);
+        }
+        errorDiagnostics.add(rejcetedStream);
+    }
+
 
     private void getMetaDataProperties(IMediaStream stream,  HashMap<String,Object> streamHash){
 
