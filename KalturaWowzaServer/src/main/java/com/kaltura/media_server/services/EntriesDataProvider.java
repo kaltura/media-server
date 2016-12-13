@@ -19,13 +19,19 @@ import com.wowza.wms.http.*;
 import com.wowza.util.*;
 import org.apache.log4j.Logger;
 import com.wowza.util.FLVUtils;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Collections;
 import com.kaltura.media_server.services.Constants;
 
 public class EntriesDataProvider extends HTTProvider2Base
 {
+    static List <HashMap<String,String> >errorDiagnostics= Collections.synchronizedList(new ArrayList <HashMap<String,String> >());
     private static final Logger logger = Logger.getLogger(HTTPConnectionCountsXML.class);
     private String httpSessionId;
-    static ArrayList <HashMap<String,String> >errorDiagnostics  = new ArrayList <HashMap<String,String> >();
+
 
     private void outputIOPerformanceInfo( HashMap<String,Object> hashMapInstance, IOPerformanceCounter ioPerformance)
     {
@@ -129,10 +135,14 @@ public class EntriesDataProvider extends HTTProvider2Base
 
     }
 
-    private void addAllRejectedSession(ArrayList <HashMap<String,String> > streamList, HashMap<String,Object> entryHash){
-        for (  HashMap<String,String> errorSession : streamList) {
-            String time = errorSession.get("Time");
-            entryHash.put(time, errorSession);
+    private void addAllRejectedSession(HashMap<String,Object> entryHash){
+        synchronized(errorDiagnostics){
+            Iterator<HashMap<String,String> > myIterator = errorDiagnostics.iterator();
+            while(myIterator.hasNext()){
+                HashMap<String,String> errorSession = myIterator.next();
+                String time = errorSession.get("Time");
+                entryHash.put(time, errorSession);
+            }
         }
     }
     @SuppressWarnings("unchecked")
@@ -241,12 +251,8 @@ public class EntriesDataProvider extends HTTProvider2Base
 
                         String queryStr = req.getQueryString();
                         if (queryStr.equals("errors")) {
-                            WMSProperties props = appInstance.getProperties();
-                            if (props == null || ! props.containsKey(Constants.KALTURA_REJECTED_STREAMS)){
-                                return;
-                            }
-                            ArrayList <HashMap<String,String> > rejectedStreams = (ArrayList <HashMap<String,String> >) props.getProperty(Constants.KALTURA_REJECTED_STREAMS);
-                            addAllRejectedSession(rejectedStreams, entryData);
+
+                            addAllRejectedSession(entryData);
 
                             } else {
                             List<IMediaStream> streamList = appInstance.getStreams().getStreams();
