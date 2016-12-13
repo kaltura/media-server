@@ -13,14 +13,19 @@ import com.wowza.wms.client.IClient;
 import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.stream.IMediaStream;
+import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import org.apache.log4j.Logger;
 import com.kaltura.media_server.services.*;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+
+
 
 
 public class AuthenticationModule extends ModuleBase  {
 
     private static final Logger logger = Logger.getLogger(AuthenticationModule.class);
+    private LiveStreamListener  actionListener = new LiveStreamListener();
 
     @SuppressWarnings("serial")
     public class ClientConnectException extends Exception{
@@ -91,4 +96,63 @@ public class AuthenticationModule extends ModuleBase  {
             logger.info("Error" + e.getMessage());
         }
     }
+
+    public void onStreamCreate(IMediaStream stream) {
+        logger.debug("onStreamCreate - [" + stream.getName() + "]");
+        stream.addClientListener(actionListener);
+
+    }
+
+    public void onStreamDestroy(IMediaStream stream) {
+        logger.debug("onStreamDestroy - [" + stream.getName() + "]");
+        stream.removeClientListener(actionListener);
+    }
+
+
+    class LiveStreamListener extends  MediaStreamActionNotifyBase{
+        public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
+            if (stream.isTranscodeResult()){
+                return;
+            }
+            try {
+                IClient client = stream.getClient();
+                KalturaLiveEntry liveEntry = Utils.getKalturaLiveEntry(client);
+                Matcher matcher = Utils.getStreamNameMatches(streamName);
+
+                if (matcher == null) {
+                    String msg = "Unknown published stream [" + streamName + "]";
+                    logger.error(msg);
+                    sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
+                    stream.getClient().setShutdownClient(true);
+                    EntriesDataProvider.addRejectedStream(msg, client);
+                    return;
+                }
+                String entryId = matcher.group(1);
+                String flavor = matcher.group(2);
+
+
+                if (! entryId.equals(liveEntry.id  )){
+                    String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryId + "]";
+                    logger.error(msg);
+                    sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
+                    stream.getClient().setShutdownClient(true);
+                    EntriesDataProvider.addRejectedStream(msg, client);
+                    return;
+                }
+                if (! Utils.isNumeric(flavor)) {
+                    String msg = "Published  stream name [" + streamName + "], Wrong suffix stream name:  "+flavor;
+                    logger.error(msg);
+                    sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
+                    stream.getClient().setShutdownClient(true);
+                    EntriesDataProvider.addRejectedStream(msg, client);
+                    return;
+                }
+
+            }
+            catch (Exception  e) {
+                logger.error("Exception in onPublish: ", e);
+            }
+        }
+    }
+
 }
