@@ -52,8 +52,6 @@ public class AuthenticationModule extends ModuleBase  {
 
     private KalturaLiveEntry onClientConnect(WMSProperties properties, HashMap<String, String> requestParams) throws KalturaApiException, ClientConnectException, Exception {
 
-
-
         if (!requestParams.containsKey(Constants.REQUEST_PROPERTY_ENTRY_ID)){
             throw new ClientConnectException("Missing argument: entryId");
         }
