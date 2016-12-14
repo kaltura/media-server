@@ -77,7 +77,10 @@ public class EntriesDataProvider extends HTTProvider2Base
     public static void  addRejectedStream(String message, IClient client){
 
         WMSProperties properties = client.getProperties();
-        String rtmpUrl = properties.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
+        String rtmpUrl;
+        synchronized(properties) {
+            rtmpUrl = properties.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
+        }
         String IP = client.getIp();
 
         HashMap<String,String> rejcetedStream =  new HashMap<String,String>();
