@@ -11,26 +11,49 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wowza.wms.amf.AMFDataObj;
 import com.wowza.wms.application.*;
 import com.wowza.wms.client.*;
-import com.wowza.wms.logging.*;
-import com.wowza.wms.server.*;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.vhost.*;
 import com.wowza.wms.http.*;
 import com.wowza.util.*;
 import org.apache.log4j.Logger;
 import com.wowza.util.FLVUtils;
-import com.kaltura.media_server.services.Constants;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Pattern;
+
 
 public class EntriesDataProvider extends HTTProvider2Base
 {
+    private String requestRegex = Constants.HTTP_PROVIDER_KEY + "/(.+)";
+    private static final String DIAGNOSTICS_ERROR = "errors";
+    private static final String DIAGNOSTICS_LIVE_ENTRIES = "entries";
+    private static List <HashMap<String,String> >errorDiagnostics= Collections.synchronizedList(new ArrayList <HashMap<String,String> >());
     private static final Logger logger = Logger.getLogger(HTTPConnectionCountsXML.class);
     private String httpSessionId;
+
 
     private void outputIOPerformanceInfo( HashMap<String,Object> hashMapInstance, IOPerformanceCounter ioPerformance)
     {
         HashMap<String,Object> IOPerformanceInfoHash =  new HashMap<String,Object>();
         IOPerformanceInfoHash.put("bitrate", ioPerformance.getMessagesInBytesRate() * 8 / 1000);
         hashMapInstance.put("IOPerformance", IOPerformanceInfoHash);
+    }
+    private void writeError(HashMap<String,Object> entryHash, String arg){
+
+        entryHash.put("Error", "Got argument: "+ arg + ", valid arguments:["  + DIAGNOSTICS_ERROR + " ," + DIAGNOSTICS_LIVE_ENTRIES+ "]");
+    }
+
+    private void writeRejectedSession(HashMap<String,Object> entryHash){
+        synchronized(errorDiagnostics){
+            Iterator<HashMap<String,String> > myIterator = errorDiagnostics.iterator();
+            while(myIterator.hasNext()){
+                HashMap<String,String> errorSession = myIterator.next();
+                String time = errorSession.get("Time");
+                entryHash.put(time, errorSession);
+            }
+        }
     }
 
     private void addStreamProperties(IMediaStream stream,  HashMap<String,Object> streamHash){
@@ -50,6 +73,28 @@ public class EntriesDataProvider extends HTTProvider2Base
         streamHash.put("Encoder", EncodersHash);
         logger.debug(httpSessionId+"[" + stream.getName() + "] Add the following params: videoBitrate "+ videoBitrate +  ", audioBitrate " + audioBitrate + ", framerate "+ framerate);
     }
+
+    public static void  addRejectedStream(String message, IClient client){
+
+        WMSProperties properties = client.getProperties();
+        String rtmpUrl;
+        synchronized(properties) {
+            rtmpUrl = properties.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
+        }
+        String IP = client.getIp();
+
+        HashMap<String,String> rejcetedStream =  new HashMap<String,String>();
+        rejcetedStream.put("rtmpUrl", rtmpUrl);
+        rejcetedStream.put("message", message);
+        rejcetedStream.put("IP", IP);
+        String timeStamp = Long.toString(System.currentTimeMillis());
+        rejcetedStream.put("Time" , timeStamp);
+        if (errorDiagnostics.size() >= Constants.KALTURA_REJECTED_STEAMS_SIZE){
+            errorDiagnostics.remove(0);
+        }
+        errorDiagnostics.add(rejcetedStream);
+    }
+
 
     private void getMetaDataProperties(IMediaStream stream,  HashMap<String,Object> streamHash){
 
@@ -108,8 +153,9 @@ public class EntriesDataProvider extends HTTProvider2Base
         logger.debug(httpSessionId + "[" + entryId + "] Add the following params: rtmpUrl "+ rtmpUrl +  ", encoder " + encoder + ", IP " + IP );
 
     }
+
     @SuppressWarnings("unchecked")
-    private void addAllStreamsProperties(List<IMediaStream> streamList, HashMap<String,Object> entryHash){
+    private void writeStreamsProperties(List<IMediaStream> streamList, HashMap<String,Object> entryHash){
         for (IMediaStream stream : streamList) {
 
             HashMap<String, Object> entryHashInstance, inputEntryHashInstance, outputEntryHashInstance;
@@ -172,27 +218,40 @@ public class EntriesDataProvider extends HTTProvider2Base
             logger.error(httpSessionId+"Failed to write answer: "+e.toString());
         }
     }
+
+    private static String getArgument(String requestURL, String regex) throws Exception{
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(requestURL);
+        if (!matcher.find()) {
+            return null;
+        }
+
+        return matcher.group(1);
+    }
+
     @SuppressWarnings("unchecked")
     public void onHTTPRequest(IVHost inVhost, IHTTPRequest req, IHTTPResponse resp)
     {
         httpSessionId = "[" + System.currentTimeMillis() / 1000L + "]";
-
-
         HashMap<String, Object> entryData = new HashMap<String,Object>();
-        try
-        {
+        try {
+            String requestURL = req.getRequestURL();
+            String arg = getArgument(requestURL, requestRegex);
+            if (arg == null){
+                logger.error("Wrong requestURL, should be " + requestRegex + ", got "+ requestURL);
+                return;
+            }
             List<String> vhostNames = VHostSingleton.getVHostNames();
             logger.debug(httpSessionId + "Getting vhostNames" + vhostNames);
             Iterator<String> iter = vhostNames.iterator();
-            while (iter.hasNext())
-            {
+            while (iter.hasNext()) {
                 String vhostName = iter.next();
-                IVHost vhost = (IVHost)VHostSingleton.getInstance(vhostName);
+                IVHost vhost = (IVHost) VHostSingleton.getInstance(vhostName);
                 if (vhost == null) {
                     continue;
                 }
 
-                List<String> appNames =  vhost.getApplicationNames();
+                List<String> appNames = vhost.getApplicationNames();
                 logger.debug(httpSessionId + "Getting appNames" + appNames);
                 Iterator<String> appNameIterator = appNames.iterator();
 
@@ -211,9 +270,17 @@ public class EntriesDataProvider extends HTTProvider2Base
                         IApplicationInstance appInstance = application.getAppInstance(appInstanceName);
                         if (appInstance == null)
                             continue;
-
-                        List<IMediaStream> streamList = appInstance.getStreams().getStreams();
-                        addAllStreamsProperties(streamList, entryData);
+                        switch (arg) {
+                            case DIAGNOSTICS_ERROR:
+                                writeRejectedSession(entryData);
+                                break;
+                            case DIAGNOSTICS_LIVE_ENTRIES:
+                                List<IMediaStream> streamList = appInstance.getStreams().getStreams();
+                                writeStreamsProperties(streamList, entryData);
+                                break;
+                            default:
+                                writeError(entryData, arg);
+                        }
                     }
                 }
             }

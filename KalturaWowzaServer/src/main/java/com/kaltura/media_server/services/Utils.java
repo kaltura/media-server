@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.kaltura.client.types.KalturaLiveEntry;
+import com.wowza.wms.client.IClient;
 import org.apache.log4j.Logger;
 import com.wowza.wms.stream.*;
 import com.wowza.wms.application.WMSProperties;
@@ -124,17 +125,39 @@ public class Utils {
 
 
     public static KalturaLiveEntry getLiveEntry(WMSProperties properties) throws Exception{
+        KalturaLiveEntry liveEntry;
+        synchronized (properties) {
+            if (properties == null) {
+                throw new Exception("Failed to retrieve property");
+            }
 
-        if (properties==null){
-            throw new Exception("Failed to retrieve property");
-        }
+            liveEntry = (KalturaLiveEntry) properties.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
 
-        KalturaLiveEntry liveEntry= (KalturaLiveEntry) properties.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
+            if (liveEntry == null) {
+                throw new Exception("Failed to retrieve LiveEntry property ");
 
-        if (liveEntry == null){
-            throw new Exception("Failed to retrieve LiveEntry property ");
-
+            }
         }
         return liveEntry;
     }
+
+    public static KalturaLiveEntry getKalturaLiveEntry(IClient client) throws Exception{
+
+        WMSProperties clientProperties = client.getProperties();
+        return getLiveEntry(clientProperties);
+    }
+
+    public static boolean isNumeric(String str)
+    {
+        try
+        {
+            double d = Integer.parseInt(str);
+        }
+        catch(NumberFormatException nfe)
+        {
+            return false;
+        }
+        return true;
+    }
+
 }
