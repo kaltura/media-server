@@ -12,6 +12,7 @@ import com.wowza.wms.amf.AMFDataObj;
 import com.wowza.wms.application.*;
 import com.wowza.wms.client.*;
 import com.wowza.wms.stream.IMediaStream;
+import com.wowza.wms.stream.live.MediaStreamLive;
 import com.wowza.wms.vhost.*;
 import com.wowza.wms.http.*;
 import com.wowza.util.*;
@@ -157,7 +158,10 @@ public class EntriesDataProvider extends HTTProvider2Base
     @SuppressWarnings("unchecked")
     private void writeStreamsProperties(List<IMediaStream> streamList, HashMap<String,Object> entryHash){
         for (IMediaStream stream : streamList) {
-
+            if (!( stream instanceof MediaStreamLive)){
+                logger.warn(httpSessionId + "[" + stream.getName() + "] Stream is not instance of MediaStreamLive");
+                return;
+            }
             HashMap<String, Object> entryHashInstance, inputEntryHashInstance, outputEntryHashInstance;
             String streamName = stream.getName();
             try {
@@ -170,6 +174,7 @@ public class EntriesDataProvider extends HTTProvider2Base
                 String flavor = matcher.group(2);
 
                 if (!entryHash.containsKey(entryId)) {
+                    logger.debug(httpSessionId + "[" + streamName + "] Create new entryId key on entryHash");
                     entryHashInstance = new HashMap<String, Object>();
                     inputEntryHashInstance = new HashMap<String, Object>();
                     outputEntryHashInstance = new HashMap<String, Object>();
@@ -177,7 +182,7 @@ public class EntriesDataProvider extends HTTProvider2Base
                     entryHashInstance.put("outputs", outputEntryHashInstance);
                     entryHash.put(entryId, entryHashInstance);
                 } else {
-
+                    logger.debug(httpSessionId + "[" + streamName + "] entryHash exist on hashMap");
                     entryHashInstance = (HashMap<String, Object>) entryHash.get(entryId);
                     inputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("inputs");
                     outputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("outputs");
@@ -190,8 +195,10 @@ public class EntriesDataProvider extends HTTProvider2Base
                 outputIOPerformanceInfo(streamHash, perf);
 
                 if (stream.isTranscodeResult()) {
+                    logger.debug(httpSessionId + "[" + streamName + "] isTranscodeResult: true, add to output");
                     outputEntryHashInstance.put(flavor, streamHash);
                 } else {
+                    logger.debug(httpSessionId + "[" + streamName + "] isTranscodeResult: false, add to input");
                     inputEntryHashInstance.put(flavor, streamHash);
                     Client client = (Client) stream.getClient();
                     addClientProperties(client, entryHashInstance, entryId);
@@ -232,6 +239,7 @@ public class EntriesDataProvider extends HTTProvider2Base
     @SuppressWarnings("unchecked")
     public void onHTTPRequest(IVHost inVhost, IHTTPRequest req, IHTTPResponse resp)
     {
+
         httpSessionId = "[" + System.currentTimeMillis() / 1000L + "]";
         HashMap<String, Object> entryData = new HashMap<String,Object>();
         try {
