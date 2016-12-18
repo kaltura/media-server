@@ -30,6 +30,7 @@ public class TemplateControlModule extends ModuleBase {
     public static final String AMFSETDATAFRAME = "amfsetdataframe";
     public static final String ONMETADATA_VIDEOCODECIDSTR = "videocodecidstring";
     public static final String ONMETADATA_AUDIOCODECIDSTR = "audiocodecidstring";
+    public static final String STREAM_ACTION_PROPERTY = "TemplateControStreamActionNotifier";
 
     public class TranscoderNotifier implements ILiveStreamTranscoderNotify {
 
@@ -201,6 +202,7 @@ public class TemplateControlModule extends ModuleBase {
         public static final String ONMETADATA_VIDEOCODECID = "videocodecid";
         public static final String ONMETADATA_AUDIOCODECID = "audiocodecid";
 
+
         public void onMetaData(IMediaStream stream, AMFPacket metaDataPacket)
         {
             logger.info("onMetaData[" + stream.getContextStr() + "]: " + metaDataPacket.toString());
@@ -283,7 +285,7 @@ public class TemplateControlModule extends ModuleBase {
         WMSProperties props = stream.getProperties();
         synchronized (props)
         {
-            props.setProperty("streamActionNotifier", actionNotify);
+            props.setProperty(STREAM_ACTION_PROPERTY, actionNotify);
         }
         stream.addClientListener(actionNotify);
     }
@@ -293,7 +295,7 @@ public class TemplateControlModule extends ModuleBase {
         IMediaStreamActionNotify2 actionNotify = null;
         synchronized (props)
         {
-            actionNotify = (IMediaStreamActionNotify2) props.get("streamActionNotifier");
+            actionNotify = (IMediaStreamActionNotify2) props.get(STREAM_ACTION_PROPERTY);
         }
         if (actionNotify != null)
         {

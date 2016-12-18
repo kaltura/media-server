@@ -25,7 +25,7 @@ import java.util.regex.Matcher;
 public class AuthenticationModule extends ModuleBase  {
 
     private static final Logger logger = Logger.getLogger(AuthenticationModule.class);
-    private LiveStreamListener  actionListener = new LiveStreamListener();
+    public static final String STREAM_ACTION_PROPERTY = "AuthenticatioStreamActionNotifier";
 
     @SuppressWarnings("serial")
     public class ClientConnectException extends Exception{
@@ -98,14 +98,30 @@ public class AuthenticationModule extends ModuleBase  {
     }
 
     public void onStreamCreate(IMediaStream stream) {
+        LiveStreamListener  actionListener = new LiveStreamListener();
         logger.debug("onStreamCreate - [" + stream.getName() + "]");
+        WMSProperties props = stream.getProperties();
+        synchronized (props)
+        {
+            props.put(STREAM_ACTION_PROPERTY, actionListener);
+        }
         stream.addClientListener(actionListener);
 
     }
 
     public void onStreamDestroy(IMediaStream stream) {
         logger.debug("onStreamDestroy - [" + stream.getName() + "]");
-        stream.removeClientListener(actionListener);
+        LiveStreamListener actionListener = null;
+        WMSProperties props = stream.getProperties();
+        synchronized (props)
+        {
+            actionListener = (LiveStreamListener) stream.getProperties().get(STREAM_ACTION_PROPERTY);
+        }
+        if (actionListener != null)
+        {
+            stream.removeClientListener(actionListener);
+            logger.info("removeClientListener: " + stream.getSrc());
+        }
     }
 
 
