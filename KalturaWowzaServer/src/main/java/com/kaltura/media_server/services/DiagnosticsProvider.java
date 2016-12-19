@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 
 
-public class EntriesDataProvider extends HTTProvider2Base
+public class DiagnosticsProvider extends HTTProvider2Base
 {
     static List <HashMap<String,String> >errorDiagnostics= Collections.synchronizedList(new ArrayList <HashMap<String,String> >());
     private static final Logger logger = Logger.getLogger(HTTPConnectionCountsXML.class);

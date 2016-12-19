@@ -5,7 +5,7 @@ package com.kaltura.media_server.services;
  */
 public class Constants {
 
-    public final static int KALTURA_REJECTED_STEAMS_SIZE = 5;
+    public final static int KALTURA_REJECTED_STEAMS_SIZE = 100;
     public final static String KALTURA_PERMANENT_SESSION_KEY = "kalturaWowzaPermanentSessionKey";
     public final static String CLIENT_PROPERTY_CONNECT_URL = "connecttcUrl";
     public final static String CLIENT_PROPERTY_ENCODER = "connectflashVer";
