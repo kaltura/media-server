@@ -2,6 +2,8 @@ package com.kaltura.media_server.modules;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kaltura.client.types.KalturaLiveEntry;
+import com.kaltura.media_server.services.Utils;
 import com.wowza.wms.amf.*;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.CupertinoPacketHolder;
@@ -14,39 +16,41 @@ import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizer;
 import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
-import org.apache.log4j.Logger;
+import com.wowza.wms.client.IClient;
+import com.wowza.wms.application.WMSProperties;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
+import org.apache.log4j.Logger;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.text.SimpleDateFormat;
 
-public class CuePointsModule  extends ModuleBase  {
+public class LiveStreamSettingsModule extends ModuleBase {
 
 	private static final String OBJECT_TYPE_KEY = "objectType";
 	private static final String OBJECT_TYPE_SYNCPOINT = "KalturaSyncPoint";
 	private static final String OBJECT_TYPE_TIMECODE = "KalturaSyncTimecode";
 	private static final String TIMESTAMP_KEY = "timestamp";
 	private static final String ID_KEY = "id";
-	private static final String META_DATA_TIMECODE= "onFI";
+	private static final String META_DATA_TIMECODE = "onFI";
 
 
-	private static final Logger logger = Logger.getLogger(CuePointsModule.class);
+	private static final Logger logger = Logger.getLogger(LiveStreamSettingsModule.class);
 	private static final String PUBLIC_METADATA = "onMetaData";
 	private final static int DEFAULT_SYNC_POINTS_INTERVAL_IN_MS = 8000;
 	private final static String KALTURA_SYNC_POINTS_INTERVAL_PROPERTY = "KalturaSyncPointsInterval";
 	private static final long START_SYNC_POINTS_DELAY = 0;
-	private final ConcurrentHashMap<IMediaStream,CuePointManagerLiveStreamListener> streams;
+	private final ConcurrentHashMap<IMediaStream, CuePointManagerLiveStreamListener> streams;
 
 	private LiveStreamPacketizerListener liveStreamPacketizerListener;
 	private int syncPointsInterval;
 
-	public CuePointsModule() {
+	public LiveStreamSettingsModule() {
 		logger.debug("Creating a new instance of Modules.CuePointsManager");
-		this.liveStreamPacketizerListener = new LiveStreamPacketizerListener();
-		this.streams = new ConcurrentHashMap<IMediaStream,CuePointManagerLiveStreamListener>();
+		this.streams = new ConcurrentHashMap<IMediaStream, CuePointManagerLiveStreamListener>();
 	}
 
-	class ID3V2FrameObject extends ID3V2FrameRawBytes{
+	class ID3V2FrameObject extends ID3V2FrameRawBytes {
 
 		private int textEncoding = ID3V2FrameBase.TEXTENCODING_UTF8;
 		private String text = null;
@@ -59,13 +63,13 @@ public class CuePointsModule  extends ModuleBase  {
 			return 1 + serializeStringLen(text, TEXTENCODING_DEFAULT, true);
 		}
 
-		public int serializeBody(byte bytes[], int pos){
+		public int serializeBody(byte bytes[], int pos) {
 
 			int length = 0;
-			bytes[pos] = (byte)(textEncoding & 255);
+			bytes[pos] = (byte) (textEncoding & 255);
 			length += 1;
 
-			if(text != null)
+			if (text != null)
 				length += serializeString(text, bytes, pos + length, TEXTENCODING_DEFAULT, true);
 
 			return length;
@@ -88,8 +92,7 @@ public class CuePointsModule  extends ModuleBase  {
 			AMFData obj = o.get(key);
 			if (obj != null) {
 				map.put(key, obj.getValue());
-			}
-			else {
+			} else {
 				throw new NoSuchElementException(key + " is not found in AMFDataObj");
 			}
 		}
@@ -103,7 +106,7 @@ public class CuePointsModule  extends ModuleBase  {
 		}
 
 		public void onFillChunkDataPacket(CupertinoPacketHolder holder, AMFPacket packet, ID3Frames id3Frames) {
-			
+
 			byte[] buffer = packet.getData();
 			if (buffer == null) {
 				logger.info("Empty buffer");
@@ -134,27 +137,26 @@ public class CuePointsModule  extends ModuleBase  {
 			String metaDataStr = amfList.getString(0);
 			AMFDataObj data = amfList.getObject(1);
 
-			if (metaDataStr.equals(CuePointsModule.PUBLIC_METADATA) || metaDataStr.equals(CuePointsModule.META_DATA_TIMECODE)) {
+			if (metaDataStr.equals(LiveStreamSettingsModule.PUBLIC_METADATA) || metaDataStr.equals(LiveStreamSettingsModule.META_DATA_TIMECODE)) {
 
 
 				try {
 					if (data == null) {
 						return;
 					}
-					if (data.get("sd")!=null && data.get("st")!=null){	//Check if AMFdata containing Timecode
-						String datestring=(String)data.get("sd").getValue();
-						datestring+=" "+(String)data.get("st").getValue();
+					if (data.get("sd") != null && data.get("st") != null) {    //Check if AMFdata containing Timecode
+						String datestring = (String) data.get("sd").getValue();
+						datestring += " " + (String) data.get("st").getValue();
 						SimpleDateFormat sdf;
-						if (data.get("tz")!=null) {
+						if (data.get("tz") != null) {
 							String timezone = (String) data.get("tz").getValue();
 							datestring = datestring + " " + timezone;
 							sdf = new SimpleDateFormat("dd-MM-yyyy kk:mm:ss.SSS XXX");
-						}
-						else {
-							 sdf = new SimpleDateFormat("dd-MM-yyyy kk:mm:ss.SSS");
+						} else {
+							sdf = new SimpleDateFormat("dd-MM-yyyy kk:mm:ss.SSS");
 						}
 						Date dateObj = sdf.parse(datestring);
-						long UnixTime =dateObj.getTime();
+						long UnixTime = dateObj.getTime();
 						// Add following fields to the AMFDataObj
 						data.put(OBJECT_TYPE_KEY, OBJECT_TYPE_TIMECODE);
 						data.put(TIMESTAMP_KEY, UnixTime);
@@ -173,8 +175,7 @@ public class CuePointsModule  extends ModuleBase  {
 				} catch (Exception e) {
 					logger.error("Stream [" + streamName + "] failed to add sync points data to ID3Tag", e);
 				}
-			}
-			else {
+			} else {
 				logger.info("Stream [" + streamName + "] metadata [" + metaDataStr + "]");
 				return;
 			}
@@ -183,8 +184,13 @@ public class CuePointsModule  extends ModuleBase  {
 
 	class LiveStreamPacketizerListener implements ILiveStreamPacketizerActionNotify {
 
-		public LiveStreamPacketizerListener() {
+		private IApplicationInstance appInstance = null;
+		private LiveStreamEntrySettingsHandler liveStreamEntrySettingsHandler = null;
+
+		public LiveStreamPacketizerListener(IApplicationInstance appInstance) {
 			logger.debug("creating new LiveStreamPacketizerListener");
+			this.liveStreamEntrySettingsHandler = new LiveStreamEntrySettingsHandler();
+			this.appInstance = appInstance;
 		}
 
 		public void onLiveStreamPacketizerCreate(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {
@@ -192,9 +198,16 @@ public class CuePointsModule  extends ModuleBase  {
 			if (!(liveStreamPacketizer instanceof LiveStreamPacketizerCupertino))
 				return;
 
+			LiveStreamPacketizerCupertino cupertinoPacketizer = (LiveStreamPacketizerCupertino) liveStreamPacketizer;
+
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
-			((LiveStreamPacketizerCupertino) liveStreamPacketizer).setDataHandler(new LiveStreamPacketizerDataHandler(streamName));
+			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(streamName));
+
+			IMediaStream stream = this.appInstance.getStreams().getStream(streamName);
+			this.liveStreamEntrySettingsHandler.checkAndUpdateSettings(cupertinoPacketizer, stream, streamName);
+
 		}
+
 
 		public void onLiveStreamPacketizerDestroy(ILiveStreamPacketizer liveStreamPacketizer) {
 			logger.debug("onLiveStreamPacketizerDestroy");
@@ -206,40 +219,41 @@ public class CuePointsModule  extends ModuleBase  {
 	}
 
 	public void onAppStart(IApplicationInstance applicationInstance) {
+		this.liveStreamPacketizerListener = new LiveStreamPacketizerListener(applicationInstance);
 		applicationInstance.addLiveStreamPacketizerListener(liveStreamPacketizerListener);
 		syncPointsInterval = applicationInstance.getProperties().getPropertyInt(KALTURA_SYNC_POINTS_INTERVAL_PROPERTY, DEFAULT_SYNC_POINTS_INTERVAL_IN_MS);
 		logger.info("Modules.CuePointsManager application instance started. Sync points interval: " + syncPointsInterval);
 	}
 
 	public void onStreamCreate(IMediaStream stream) {
-		if(stream.getClientId() < 0){ //transcoded rendition
+		if (stream.getClientId() < 0) { //transcoded rendition
 			return;
 		}
 
-		CuePointManagerLiveStreamListener listener=new CuePointManagerLiveStreamListener();
-		streams.put(stream,listener);
-		logger.debug("Modules.CuePointsManager::onStreamCreate with stream.getName() "+stream.getName()+" and stream.getClientId() "+stream.getClientId());
+		CuePointManagerLiveStreamListener listener = new CuePointManagerLiveStreamListener();
+		streams.put(stream, listener);
+		logger.debug("Modules.CuePointsManager::onStreamCreate with stream.getName() " + stream.getName() + " and stream.getClientId() " + stream.getClientId());
 		stream.addClientListener(listener);
 	}
 
-	public void onStreamDestroy(IMediaStream stream)
-	{
-		logger.debug("Modules.CuePointsManager::onStreamDestroy with stream.getName() "+stream.getName()+" and stream.getClientId() "+stream.getClientId());
+	public void onStreamDestroy(IMediaStream stream) {
+		logger.debug("Modules.CuePointsManager::onStreamDestroy with stream.getName() " + stream.getName() + " and stream.getClientId() " + stream.getClientId());
 
-		CuePointManagerLiveStreamListener listener=streams.remove(stream);
-		if (listener!=null) {
+		CuePointManagerLiveStreamListener listener = streams.remove(stream);
+		if (listener != null) {
 			listener.dispose();
 			stream.removeClientListener(listener);
 		}
 	}
 
-	class CuePointManagerLiveStreamListener extends MediaStreamActionNotifyBase  {
+	class CuePointManagerLiveStreamListener extends MediaStreamActionNotifyBase {
 
-		private long runningId=0;
-		private final Map<String,Timer> listenerStreams;
+		private long runningId = 0;
+		private final Map<String, Timer> listenerStreams;
+
 		public CuePointManagerLiveStreamListener() {
 			logger.debug("Creating a new instance of CuePointManagerLiveStreamListener");
-			this.listenerStreams = new ConcurrentHashMap<String,Timer>();
+			this.listenerStreams = new ConcurrentHashMap<String, Timer>();
 		}
 
 		@Override
@@ -248,11 +262,11 @@ public class CuePointsModule  extends ModuleBase  {
 			synchronized (listenerStreams) {
 				t = listenerStreams.remove(streamName);
 			}
-			cancelScheduledTask(t,streamName);
+			cancelScheduledTask(t, streamName);
 		}
 
-		public void cancelScheduledTask(Timer t,String streamName){
-			if (t!=null) {
+		public void cancelScheduledTask(Timer t, String streamName) {
+			if (t != null) {
 				logger.debug("Stopping CuePoints timer for stream " + streamName);
 				t.cancel();
 				t.purge();
@@ -267,7 +281,7 @@ public class CuePointsModule  extends ModuleBase  {
 
 				for (String streamName : listenerStreams.keySet()) {
 					Timer t = listenerStreams.get(streamName);
-					cancelScheduledTask(t,streamName);
+					cancelScheduledTask(t, streamName);
 				}
 				listenerStreams.clear();
 			}
@@ -279,7 +293,7 @@ public class CuePointsModule  extends ModuleBase  {
 			logger.debug("Stream [" + streamName + "]");
 
 
-			if(stream.getClientId() < 0){
+			if (stream.getClientId() < 0) {
 				logger.debug("Stream [" + stream.getName() + "] entry [" + streamName + "] is a transcoded rendition");
 				return;
 			}
@@ -291,9 +305,8 @@ public class CuePointsModule  extends ModuleBase  {
 				if (listenerStreams.containsKey(streamName)) {
 					logger.error("Stream with name " + streamName + " already exists in streams map, cancelling old one");
 					t = listenerStreams.remove(streamName);
-					cancelScheduledTask(t,streamName);
-				}
-				else {
+					cancelScheduledTask(t, streamName);
+				} else {
 					logger.debug("Stream with name " + streamName + " does not exist in streams map. creating a new map entry.");
 				}
 				t = new Timer();
@@ -317,14 +330,14 @@ public class CuePointsModule  extends ModuleBase  {
 				}
 			};
 			try {
-				t.schedule(tt,START_SYNC_POINTS_DELAY, syncPointsInterval);
+				t.schedule(tt, START_SYNC_POINTS_DELAY, syncPointsInterval);
 			} catch (Exception e) {
-				logger.error("Error occurred while scheduling a timer task",e);
+				logger.error("Error occurred while scheduling a timer task", e);
 			}
 		}
 
 		private void createSyncPoint(IMediaStream stream, String entryId) {
-			String id = entryId+"_"+(runningId++);
+			String id = entryId + "_" + (runningId++);
 			double currentTime = new Date().getTime();
 
 			sendSyncPoint(stream, id, currentTime);
@@ -341,13 +354,40 @@ public class CuePointsModule  extends ModuleBase  {
 			//This condition is due to huge duration time (invalid) in the first chunk after stop-start on FMLE.
 			//According to Wowza calling sendDirect() before stream contains any packets causes problems.
 			if (stream.getPlayPackets().size() > 0) {
-				stream.sendDirect(CuePointsModule.PUBLIC_METADATA, data);
-			}
-			else{
-				logger.info("[" + stream.getName() + "] sync point cancelled  [" +id + "],  getPlayPackets = " + stream.getPlayPackets().size());
+				stream.sendDirect(LiveStreamSettingsModule.PUBLIC_METADATA, data);
+			} else {
+				logger.info("[" + stream.getName() + "] sync point cancelled  [" + id + "],  getPlayPackets = " + stream.getPlayPackets().size());
 			}
 		}
 
 
 	}
+
+	class LiveStreamEntrySettingsHandler {
+
+		private final static int DEFAULT_LOW_LATENCY_CHUNK_DURATION_MILLISECONDS = 4000;
+
+		public void checkAndUpdateSettings(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream, String streamName) {
+			KalturaLiveEntry liveEntry;
+			WMSProperties properties;
+			if (!stream.isTranscodeResult()) {
+				return;
+			}
+
+			try {
+				IClient client = stream.getClient();
+				properties = client.getProperties();
+				liveEntry = Utils.getLiveEntry(properties);
+			} catch (Exception e) {
+				logger.error("Failed to retrieve liveEntry for " + streamName + " :" + e);
+				return;
+			}
+
+			if (liveEntry.enableLowLatency) {
+				cupertinoPacketizer.getProperties().setProperty("cupertinoChunkDurationTarget", this.DEFAULT_LOW_LATENCY_CHUNK_DURATION_MILLISECONDS);
+			}
+		}
+
+	}
+
 }
