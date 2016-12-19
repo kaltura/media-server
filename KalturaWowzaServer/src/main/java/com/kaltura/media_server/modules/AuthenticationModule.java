@@ -51,7 +51,7 @@ public class AuthenticationModule extends ModuleBase  {
             logger.error("Entry authentication failed with url [" + rtmpUrl + "]: " + e.getMessage());
             client.rejectConnection();
             sendClientOnStatusError((IClient)client, "NetStream.Play.Failed","Unable to authenticate url; [" + rtmpUrl + "]: " + e.getMessage());
-            EntriesDataProvider.addRejectedStream(e.getMessage(), client);
+            DiagnosticsProvider.addRejectedStream(e.getMessage(), client);
         }
     }
 
@@ -103,7 +103,7 @@ public class AuthenticationModule extends ModuleBase  {
         WMSProperties props = stream.getProperties();
         synchronized (props)
         {
-            props.put(STREAM_ACTION_PROPERTY, actionListener);
+            props.setProperty(STREAM_ACTION_PROPERTY, actionListener);
         }
         stream.addClientListener(actionListener);
 
@@ -140,7 +140,7 @@ public class AuthenticationModule extends ModuleBase  {
                     logger.error(msg);
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
                     stream.getClient().setShutdownClient(true);
-                    EntriesDataProvider.addRejectedStream(msg, client);
+                    DiagnosticsProvider.addRejectedStream(msg, client);
                     return;
                 }
                 String entryId = matcher.group(1);
@@ -152,7 +152,7 @@ public class AuthenticationModule extends ModuleBase  {
                     logger.error(msg);
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
                     stream.getClient().setShutdownClient(true);
-                    EntriesDataProvider.addRejectedStream(msg, client);
+                    DiagnosticsProvider.addRejectedStream(msg, client);
                     return;
                 }
                 if (! Utils.isNumeric(flavor)) {
@@ -160,7 +160,7 @@ public class AuthenticationModule extends ModuleBase  {
                     logger.error(msg);
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
                     stream.getClient().setShutdownClient(true);
-                    EntriesDataProvider.addRejectedStream(msg, client);
+                    DiagnosticsProvider.addRejectedStream(msg, client);
                     return;
                 }
 
