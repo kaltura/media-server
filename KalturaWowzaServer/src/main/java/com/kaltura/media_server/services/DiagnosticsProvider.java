@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 
-public class EntriesDataProvider extends HTTProvider2Base
+public class DiagnosticsProvider extends HTTProvider2Base
 {
     private String requestRegex = Constants.HTTP_PROVIDER_KEY + "/(.+)";
     private static final String DIAGNOSTICS_ERROR = "errors";
