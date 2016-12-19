@@ -23,7 +23,7 @@ public class Constants {
     public final static String KALTURA_SERVER_UPLOAD_XML_SAVE_PATH = "uploadXMLSavePath";
     public final static String KALTURA_SERVER_WOWZA_WORK_MODE = "KalturaWorkMode";
     public final static String WOWZA_WORK_MODE_KALTURA = "kaltura";
-    public final static String KALTURA_RECORDED_FILE_GROUP = "g";
+    public final static String KALTURA_RECORDED_FILE_GROUP = "KalturaRecordedFileGroup";
     public final static String DEFAULT_RECORDED_FILE_GROUP = "kaltura";
     public final static String DEFAULT_RECORDED_SEGMENT_DURATION_FIELD_NAME = "DefaultRecordedSegmentDuration";
     public final static String COPY_SEGMENT_TO_LOCATION_FIELD_NAME = "CopySegmentToLocation";

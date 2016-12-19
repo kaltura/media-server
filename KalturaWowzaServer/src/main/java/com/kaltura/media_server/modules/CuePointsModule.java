@@ -162,7 +162,7 @@ public class CuePointsModule  extends ModuleBase  {
 					}
 					if (data.get(OBJECT_TYPE_KEY) != null) {
 						String json = jsonAMF(data);
-						logger.debug("Stream [" + streamName + "] JSON: " + json);
+						//logger.debug("Stream [" + streamName + "] JSON: " + json);
 
 						ID3V2FrameBase frame;
 						frame = new ID3V2FrameObject();
@@ -342,6 +342,9 @@ public class CuePointsModule  extends ModuleBase  {
 			//According to Wowza calling sendDirect() before stream contains any packets causes problems.
 			if (stream.getPlayPackets().size() > 0) {
 				stream.sendDirect(CuePointsModule.PUBLIC_METADATA, data);
+			}
+			else{
+				logger.info("[" + stream.getName() + "] sync point cancelled  [" +id + "],  getPlayPackets = " + stream.getPlayPackets().size());
 			}
 		}
 
