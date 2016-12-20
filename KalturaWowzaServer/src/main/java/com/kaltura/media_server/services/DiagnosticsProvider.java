@@ -26,13 +26,135 @@ import java.util.regex.Pattern;
 
 public class DiagnosticsProvider extends HTTProvider2Base
 {
+
+    public interface CommandProvider {
+        public abstract void execute (HashMap<String,Object> data, IApplicationInstance appInstance );
+    }
+
+    class ErrorProvider implements CommandProvider {
+
+        public void execute(HashMap<String,Object> data, IApplicationInstance appInstance) {
+                synchronized(DiagnosticsProvider.errorDiagnostics){
+                    Iterator<HashMap<String,String> > myIterator = DiagnosticsProvider.errorDiagnostics.iterator();
+                    while(myIterator.hasNext()){
+                        HashMap<String,String> errorSession = myIterator.next();
+                        String time = errorSession.get("Time");
+                        data.put(time, errorSession);
+                    }
+                }
+            }
+    }
+
+    class InfoProvider implements CommandProvider {
+
+        public String getVersion(String jarName){
+
+            final String regex = "KalturaWowzaServer-(.+).jar";
+            Pattern pattern = Pattern.compile(regex);
+            String version ;
+
+            Matcher matcher = pattern.matcher(jarName);
+            if (matcher != null && matcher.find()){
+                version = matcher.group(1);
+            }
+            else{
+                version = "UNKNOWN";
+            }
+            return version;
+
+        }
+
+        public String getJarName(){
+            return  new java.io.File(InfoProvider.class.getProtectionDomain()
+                    .getCodeSource()
+                    .getLocation()
+                    .getPath())
+                    .getName();
+        }
+        public void execute(HashMap<String,Object> data, IApplicationInstance appInstance) {
+
+            String jarName = getJarName();
+            String version = getVersion(jarName);
+            String dateStarted = appInstance.getDateStarted();
+            String timeRunning = Double.toString(appInstance.getTimeRunningSeconds());
+            data.put("jarName", jarName);
+            data.put("version", version);
+            data.put("dateStarted", dateStarted);
+            data.put("timeRunning", timeRunning);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    class EntriesProvider implements CommandProvider {
+
+        public void execute(HashMap<String,Object> data, IApplicationInstance appInstance) {
+
+
+            List<IMediaStream> streamList = appInstance.getStreams().getStreams();
+                for (IMediaStream stream : streamList) {
+
+                    HashMap<String, HashMap<String, Object>> entryHashInstance;
+                    HashMap<String, Object > inputEntryHashInstance, outputEntryHashInstance;
+                    String streamName = stream.getName();
+                    try {
+                        Matcher matcher = Utils.getStreamNameMatches(streamName);
+                        if (matcher == null) {
+                            logger.warn(httpSessionId + "Unknown published stream [" + streamName + "]");
+                            continue;
+                        }
+                        String entryId = matcher.group(1);
+                        String flavor = matcher.group(2);
+
+                        if (!data.containsKey(entryId)) {
+                            entryHashInstance = new HashMap<String, HashMap<String, Object>>();
+                            inputEntryHashInstance = new HashMap<String, Object>();
+                            outputEntryHashInstance = new HashMap<String, Object>();
+                            entryHashInstance.put("inputs", inputEntryHashInstance);
+                            entryHashInstance.put("outputs", outputEntryHashInstance);
+                            data.put(entryId, entryHashInstance);
+                        } else {
+                            entryHashInstance = (HashMap<String, HashMap<String, Object>>) data.get(entryId);
+                            inputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("inputs");
+                            outputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("outputs");
+
+                        }
+
+                        HashMap<String, Object> streamHash = new HashMap<String, Object>();
+                        addStreamProperties(stream, streamHash);
+                        IOPerformanceCounter perf = stream.getMediaIOPerformance();
+                        outputIOPerformanceInfo(streamHash, perf);
+
+                        if (stream.isTranscodeResult()) {
+                            outputEntryHashInstance.put(flavor, streamHash);
+                        } else {
+                            inputEntryHashInstance.put(flavor, streamHash);
+                            Client client = (Client) stream.getClient();
+                            addClientProperties(client, entryHashInstance, entryId);
+
+                        }
+                    }
+                    catch (Exception e){
+                        logger.debug(httpSessionId+"[" + stream.getName() + "] Error while try to add stream to JSON: " + e.toString());
+                    }
+                }
+            }
+        }
+
+
     private String requestRegex = Constants.HTTP_PROVIDER_KEY + "/(.+)";
     private static final String DIAGNOSTICS_ERROR = "errors";
     private static final String DIAGNOSTICS_LIVE_ENTRIES = "entries";
+    private static final String DIAGNOSTICS_LIVE_INFO = "info";
     private static List <HashMap<String,String> >errorDiagnostics= Collections.synchronizedList(new ArrayList <HashMap<String,String> >());
     private static final Logger logger = Logger.getLogger(HTTPConnectionCountsXML.class);
     private String httpSessionId;
-
+    private final Map<String, CommandProvider> CommandHash;
+    {
+        CommandHash = new HashMap<String, CommandProvider>();
+        CommandHash.put(DIAGNOSTICS_ERROR, new ErrorProvider());
+        CommandHash.put(DIAGNOSTICS_LIVE_ENTRIES, new EntriesProvider());
+        CommandHash.put(DIAGNOSTICS_LIVE_INFO, new InfoProvider());
+    }
 
     private void outputIOPerformanceInfo( HashMap<String,Object> hashMapInstance, IOPerformanceCounter ioPerformance)
     {
@@ -45,16 +167,6 @@ public class DiagnosticsProvider extends HTTProvider2Base
         entryHash.put("Error", "Got argument: "+ arg + ", valid arguments:["  + DIAGNOSTICS_ERROR + " ," + DIAGNOSTICS_LIVE_ENTRIES+ "]");
     }
 
-    private void writeRejectedSession(HashMap<String,Object> entryHash){
-        synchronized(errorDiagnostics){
-            Iterator<HashMap<String,String> > myIterator = errorDiagnostics.iterator();
-            while(myIterator.hasNext()){
-                HashMap<String,String> errorSession = myIterator.next();
-                String time = errorSession.get("Time");
-                entryHash.put(time, errorSession);
-            }
-        }
-    }
 
     private void addStreamProperties(IMediaStream stream,  HashMap<String,Object> streamHash){
 
@@ -126,7 +238,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
         }
     }
 
-    private void addClientProperties(Client client, HashMap<String,Object> hashMapInstance, String entryId){
+    private void addClientProperties(Client client, HashMap<String, HashMap<String,Object>> hashMapInstance, String entryId){
         if (client == null){
             return;
         }
@@ -154,55 +266,6 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
     }
 
-    @SuppressWarnings("unchecked")
-    private void writeStreamsProperties(List<IMediaStream> streamList, HashMap<String,Object> entryHash){
-        for (IMediaStream stream : streamList) {
-
-            HashMap<String, Object> entryHashInstance, inputEntryHashInstance, outputEntryHashInstance;
-            String streamName = stream.getName();
-            try {
-                Matcher matcher = Utils.getStreamNameMatches(streamName);
-                if (matcher == null) {
-                    logger.warn(httpSessionId + "Unknown published stream [" + streamName + "]");
-                    continue;
-                }
-                String entryId = matcher.group(1);
-                String flavor = matcher.group(2);
-
-                if (!entryHash.containsKey(entryId)) {
-                    entryHashInstance = new HashMap<String, Object>();
-                    inputEntryHashInstance = new HashMap<String, Object>();
-                    outputEntryHashInstance = new HashMap<String, Object>();
-                    entryHashInstance.put("inputs", inputEntryHashInstance);
-                    entryHashInstance.put("outputs", outputEntryHashInstance);
-                    entryHash.put(entryId, entryHashInstance);
-                } else {
-
-                    entryHashInstance = (HashMap<String, Object>) entryHash.get(entryId);
-                    inputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("inputs");
-                    outputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("outputs");
-
-                }
-
-                HashMap<String, Object> streamHash = new HashMap<String, Object>();
-                addStreamProperties(stream, streamHash);
-                IOPerformanceCounter perf = stream.getMediaIOPerformance();
-                outputIOPerformanceInfo(streamHash, perf);
-
-                if (stream.isTranscodeResult()) {
-                    outputEntryHashInstance.put(flavor, streamHash);
-                } else {
-                    inputEntryHashInstance.put(flavor, streamHash);
-                    Client client = (Client) stream.getClient();
-                    addClientProperties(client, entryHashInstance, entryId);
-
-                }
-            }
-            catch (Exception e){
-                logger.debug(httpSessionId+"[" + stream.getName() + "] Error while try to add stream to JSON: " + e.toString());
-            }
-        }
-    }
 
     private void writeAnswer(IHTTPResponse resp, HashMap<String, Object>  entryData){
         try {
@@ -233,7 +296,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
     public void onHTTPRequest(IVHost inVhost, IHTTPRequest req, IHTTPResponse resp)
     {
         httpSessionId = "[" + System.currentTimeMillis() / 1000L + "]";
-        HashMap<String, Object> entryData = new HashMap<String,Object>();
+        HashMap<String, Object> data = new HashMap<String,Object>();
         try {
             String requestURL = req.getRequestURL();
             String arg = getArgument(requestURL, requestRegex);
@@ -270,16 +333,11 @@ public class DiagnosticsProvider extends HTTProvider2Base
                         IApplicationInstance appInstance = application.getAppInstance(appInstanceName);
                         if (appInstance == null)
                             continue;
-                        switch (arg) {
-                            case DIAGNOSTICS_ERROR:
-                                writeRejectedSession(entryData);
-                                break;
-                            case DIAGNOSTICS_LIVE_ENTRIES:
-                                List<IMediaStream> streamList = appInstance.getStreams().getStreams();
-                                writeStreamsProperties(streamList, entryData);
-                                break;
-                            default:
-                                writeError(entryData, arg);
+                        if ( CommandHash.containsKey(arg)){
+                             CommandHash.get(arg).execute(data, appInstance);
+                        }
+                        else{
+                            writeError(data, arg);
                         }
                     }
                 }
@@ -289,6 +347,6 @@ public class DiagnosticsProvider extends HTTProvider2Base
         {
             logger.error(httpSessionId+"HTTPServerInfoXML.onHTTPRequest: "+e.toString());
         }
-        writeAnswer(resp, entryData);
+        writeAnswer(resp, data);
     }
 }
