@@ -214,7 +214,6 @@ public class TemplateControlModule extends ModuleBase {
 
                 AMFDataList dataList = new AMFDataList(metaDataPacket.getData());
                 for (int i = 0 ; i < dataList.size(); i++ ){
-                        logger.debug("[" + stream.getName() +" ] Found DATA_TYPE_OBJECT");
                         AMFData amfData = dataList.get(i);
                         if (amfData.getType() == AMFData.DATA_TYPE_OBJECT)
                         {
@@ -243,6 +242,7 @@ public class TemplateControlModule extends ModuleBase {
                             synchronized (props) {
                                 props.setProperty(AMFSETDATAFRAME, obj);
                             }
+                            removeListener(stream);
                             return;
                     }
                 }
