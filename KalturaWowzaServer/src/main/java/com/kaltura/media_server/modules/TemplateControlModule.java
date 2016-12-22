@@ -242,6 +242,7 @@ public class TemplateControlModule extends ModuleBase {
                             synchronized (props) {
                                 props.setProperty(AMFSETDATAFRAME, obj);
                             }
+                            removeListener(stream);
                             return;
                     }
                 }
