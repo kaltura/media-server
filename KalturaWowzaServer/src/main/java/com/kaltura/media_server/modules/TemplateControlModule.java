@@ -133,18 +133,16 @@ public class TemplateControlModule extends ModuleBase {
         }
 
         public void onInitAfterLoadTemplate(LiveStreamTranscoder liveStreamTranscoder) {
-            TranscoderStream tTranscoderStream =  liveStreamTranscoder.getTranscodingStream();
-            java.util.List<com.wowza.wms.transcoder.model.TranscoderStreamDestination> a =  tTranscoderStream.getDestinations();
-            TranscoderStreamNameGroups transcoderStreamNameGroups =  tTranscoderStream.getNameGroups() ;
+            TranscoderStream transcoderStream =  liveStreamTranscoder.getTranscodingStream();
+            java.util.List<com.wowza.wms.transcoder.model.TranscoderStreamDestination> transcoderStreamsMap =  transcoderStream.getDestinations();
             IMediaStream stream = liveStreamTranscoder.getStream();
-            if (a.size() == 0){
+            if (transcoderStreamsMap.size() == 0){
                 String msg = "Stream " + stream.getName() + " has no ingest in conversion profile";
                 logger.error(msg);
                 DiagnosticsProvider.addRejectedStream(msg, stream.getClient());
                 stream.shutdown();
                 stream.stopPublishing();
             }
-            logger.info("onSessionVideoEncodeSetup");
         }
 
         public void onInitStop(LiveStreamTranscoder liveStreamTranscoder) {
@@ -218,38 +216,15 @@ public class TemplateControlModule extends ModuleBase {
         public void onMetaData(IMediaStream stream, AMFPacket metaDataPacket)
         {
             logger.info("onMetaData[" + stream.getContextStr() + "]: " + metaDataPacket.toString());
-            printAMF(stream,  metaDataPacket);
             getMetaDataParams(metaDataPacket, stream);
         }
 
-        public void printAMF(IMediaStream stream, AMFPacket metaDataPacket){
-
-            AMFDataList dataList = new AMFDataList(metaDataPacket.getData());
-            String id = null;
-            String objectType = null;
-            String timestamp = null;
-            for (int i = 0 ; i < dataList.size(); i++ ) {
-                AMFData amfData = dataList.get(i);
-                if (amfData.getType() == AMFData.DATA_TYPE_OBJECT) {
-                    AMFDataObj obj = (AMFDataObj) amfData;
-                    if (obj.containsKey("id")){
-                         id = obj.getString("id");
-                    }
-                    if (obj.containsKey("objectType")){
-                         objectType = obj.getString("objectType");
-                    }
-                    if (obj.containsKey("timestamp")){
-                         timestamp = obj.getString("timestamp");
-                    }
-                }
-            }
-        }
         public void getMetaDataParams(AMFPacket metaDataPacket, IMediaStream stream)
         {
 
                 AMFDataList dataList = new AMFDataList(metaDataPacket.getData());
-
                 for (int i = 0 ; i < dataList.size(); i++ ){
+                        logger.debug("[" + stream.getName() +" ] Found DATA_TYPE_OBJECT");
                         AMFData amfData = dataList.get(i);
                         if (amfData.getType() == AMFData.DATA_TYPE_OBJECT)
                         {
@@ -278,7 +253,7 @@ public class TemplateControlModule extends ModuleBase {
                             synchronized (props) {
                                 props.setProperty(AMFSETDATAFRAME, obj);
                             }
-                            //removeListener(stream);
+                            removeListener(stream);
                             return;
                     }
                 }

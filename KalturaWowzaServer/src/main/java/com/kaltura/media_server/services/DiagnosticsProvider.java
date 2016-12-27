@@ -8,6 +8,7 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wowza.wms.amf.AMFData;
 import com.wowza.wms.amf.AMFDataObj;
 import com.wowza.wms.application.*;
 import com.wowza.wms.client.*;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
+import com.wowza.wms.stream.live.MediaStreamLive;
 
 
 public class DiagnosticsProvider extends HTTProvider2Base
@@ -92,7 +94,10 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
             List<IMediaStream> streamList = appInstance.getStreams().getStreams();
                 for (IMediaStream stream : streamList) {
-
+                    if (!( stream instanceof MediaStreamLive)){
+                      logger.warn(httpSessionId + "[" + stream.getName() + "] Stream is not instance of MediaStreamLive");
+                        continue;
+                    }
                     HashMap<String, HashMap<String, Object>> entryHashInstance;
                     HashMap<String, Object > inputEntryHashInstance, outputEntryHashInstance;
                     String streamName = stream.getName();
@@ -127,14 +132,14 @@ public class DiagnosticsProvider extends HTTProvider2Base
                         if (stream.isTranscodeResult()) {
                             outputEntryHashInstance.put(flavor, streamHash);
                         } else {
-                            inputEntryHashInstance.put(flavor, streamHash);
                             Client client = (Client) stream.getClient();
-                            addClientProperties(client, entryHashInstance, entryId);
+                            addClientProperties(client, streamHash, entryId);
+                            inputEntryHashInstance.put(flavor, streamHash);
 
                         }
                     }
                     catch (Exception e){
-                        logger.debug(httpSessionId+"[" + stream.getName() + "] Error while try to add stream to JSON: " + e.toString());
+                        logger.error(httpSessionId+"[" + stream.getName() + "] Error while try to add stream to JSON: " + e.toString());
                     }
                 }
             }
@@ -229,17 +234,26 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
         logger.info(httpSessionId+"[" + stream.getName() + " ] Find property AMFDataObj for stream");
 
-        for (String streamParam : Constants.streamParams) {
-            if (obj.containsKey(streamParam)) {
-                if (! streamParam.equals(Constants.ONMETADATA_VIDEOCODECIDSTR) &&  ! streamParam.equals(Constants.ONMETADATA_AUDIOCODECIDSTR)){
-                    streamHash.put(streamParam, obj.getDouble(streamParam));
+        for (int i = 0 ;  i < obj.size() ;  i++){
+            String key = obj.getKey(i);
+            try{
+                if ( obj.get(key).getType() == AMFData.DATA_TYPE_ARRAY || obj.get(key).getType() == AMFData.DATA_TYPE_OBJECT){
+                    continue;
+                }
+                if (! key.equals(Constants.ONMETADATA_VIDEOCODECIDSTR) &&  ! key.equals(Constants.ONMETADATA_AUDIOCODECIDSTR)){
+                    streamHash.put(key, obj.getString(key));
                 }
             }
+            catch (Exception e){
+                logger.info(httpSessionId+"[" + stream.getName() + " ] Fail to add property " + key + ": " + e.getMessage());
+            }
+
         }
     }
 
-    private void addClientProperties(Client client, HashMap<String, HashMap<String,Object>> hashMapInstance, String entryId){
+    private void addClientProperties(Client client, HashMap<String, Object> hashMapInstance, String entryId){
         if (client == null){
+            logger.warn(httpSessionId + "[" + entryId + "] client is null");
             return;
         }
         WMSProperties clientProps = client.getProperties();
