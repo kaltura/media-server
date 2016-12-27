@@ -222,7 +222,7 @@ media_servers.ini is optional and needed only for custom configurations.
         <Class>modules.AuthenticationModule</Class>
 </Module>
  <Module>
-        <Name>CuePointsModule</Name>
+        <Name>LiveStreamSettingsModule</Name>
         <Description>CuePointsModule</Description>
         <Class>modules.CuePointsModule</Class>
 </Module>
