@@ -4,18 +4,26 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media_server.services.Utils;
+
 import com.wowza.wms.amf.*;
-import com.wowza.wms.application.IApplicationInstance;
-import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.CupertinoPacketHolder;
-import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.IHTTPStreamerCupertinoLivePacketizerDataHandler;
-import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.LiveStreamPacketizerCupertino;
-import com.wowza.wms.media.mp3.model.idtags.ID3Frames;
-import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameBase;
-import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameRawBytes;
-import com.wowza.wms.module.ModuleBase;
+import com.wowza.wms.application.*;
+import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.*;
+import com.wowza.wms.media.mp3.model.idtags.*;
+import com.wowza.wms.module.*;
+import com.wowza.wms.stream.livepacketizer.*;
+
+//import com.wowza.wms.application.IApplicationInstance;
+//import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.CupertinoPacketHolder2;
+//import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.LiveStreamPacketizerCupertinoChunk;
+//import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.IHTTPStreamerCupertinoLivePacketizerDataHandler;
+//import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.LiveStreamPacketizerCupertino;
+//import com.wowza.wms.media.mp3.model.idtags.ID3Frames;
+//import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameBase;
+//import com.wowza.wms.media.mp3.model.idtags.ID3V2FrameRawBytes;
+//import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.stream.IMediaStream;
-import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizer;
-import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
+//import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizer;
+//import com.wowza.wms.stream.livepacketizer.ILiveStreamPacketizerActionNotify;
 import com.wowza.wms.client.IClient;
 import com.wowza.wms.application.WMSProperties;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
@@ -24,12 +32,17 @@ import org.apache.log4j.Logger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.text.SimpleDateFormat;
+import java.lang.Thread;
 
+
+// Todo Lilach: idea, to extract entry Id and manage single ID3 tag obj per Live stream entry and not per audio/video and flavor
+// this way the exact ID3 tag will be reported for all at almost same time using single timer/timestamp
 public class LiveStreamSettingsModule extends ModuleBase {
 
 	private static final String OBJECT_TYPE_KEY = "objectType";
 	private static final String OBJECT_TYPE_SYNCPOINT = "KalturaSyncPoint";
 	private static final String OBJECT_TYPE_TIMECODE = "KalturaSyncTimecode";
+	private static final String HEADER_TAG_TIMECODE = "KALTURA_SYNC_TIMESTAMP";
 	private static final String TIMESTAMP_KEY = "timestamp";
 	private static final String ID_KEY = "id";
 	private static final String META_DATA_TIMECODE = "onFI";
@@ -40,14 +53,14 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	private final static int DEFAULT_SYNC_POINTS_INTERVAL_IN_MS = 8000;
 	private final static String KALTURA_SYNC_POINTS_INTERVAL_PROPERTY = "KalturaSyncPointsInterval";
 	private static final long START_SYNC_POINTS_DELAY = 0;
-	private final ConcurrentHashMap<IMediaStream, CuePointManagerLiveStreamListener> streams;
+	//private final ConcurrentHashMap<IMediaStream, CuePointManagerLiveStreamListener> streams;
 
 	private LiveStreamPacketizerListener liveStreamPacketizerListener;
 	private int syncPointsInterval;
 
 	public LiveStreamSettingsModule() {
 		logger.debug("Creating a new instance of Modules.CuePointsManager");
-		this.streams = new ConcurrentHashMap<IMediaStream, CuePointManagerLiveStreamListener>();
+		//this.streams = new ConcurrentHashMap<IMediaStream, CuePointManagerLiveStreamListener>();
 	}
 
 	class ID3V2FrameObject extends ID3V2FrameRawBytes {
@@ -80,14 +93,21 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		}
 	}
 
-	class LiveStreamPacketizerDataHandler implements IHTTPStreamerCupertinoLivePacketizerDataHandler {
-		String streamName = null;
+	class LiveStreamPacketizerDataHandler implements IHTTPStreamerCupertinoLivePacketizerDataHandler2 {
 
-		public LiveStreamPacketizerDataHandler(String streamName) {
+		private LiveStreamPacketizerCupertino liveStreamPacketizer = null;
+		private String streamName = null;
+		private long runningId;
+
+
+		public LiveStreamPacketizerDataHandler(LiveStreamPacketizerCupertino liveStreamPacketizer, String streamName) {
 			logger.debug("creating LiveStreamPacketizerDataHandler for stream name: " + streamName);
 			this.streamName = streamName;
+			this.runningId = 1;
+			this.liveStreamPacketizer = liveStreamPacketizer;
 		}
 
+/*
 		private void addToMap(Map<String, Object> map, AMFDataObj o, String key) {
 			AMFData obj = o.get(key);
 			if (obj != null) {
@@ -104,17 +124,74 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			addToMap(map, dataObj, ID_KEY);
 			return new ObjectMapper().writeValueAsString(map);
 		}
+*/
+		public void onFillChunkStart(LiveStreamPacketizerCupertinoChunk chunk)
+		{
 
-		public void onFillChunkDataPacket(CupertinoPacketHolder holder, AMFPacket packet, ID3Frames id3Frames) {
+			logger.info("ModuleCupertinoVODOnTextToID3.onFillChunkStart["+chunk.getRendition().toString()+":"+this.liveStreamPacketizer.getContextStr()+"]: chunkId:"+chunk.getChunkIndexForPlaylist());
 
-			byte[] buffer = packet.getData();
+			String now =Double.toString( new Date().getTime());
+
+			// Add custom M3U tag to chunklist header
+			CupertinoUserManifestHeaders userManifestHeaders = this.liveStreamPacketizer.getUserManifestHeaders(chunk.getRendition());
+			if (userManifestHeaders != null) {
+				userManifestHeaders.addHeader(HEADER_TAG_TIMECODE, TIMESTAMP_KEY, now);
+			}
+
+			try {
+
+
+				Map<String, Object> map = new HashMap<>();
+				map.put(OBJECT_TYPE_KEY, OBJECT_TYPE_SYNCPOINT);
+				map.put(TIMESTAMP_KEY, now);
+				String id = this.streamName + "_" + (runningId++);
+				map.put(ID_KEY, id);
+				ObjectMapper mapper = new ObjectMapper();
+				String json = mapper.writeValueAsString(map);
+				// Add ID3 tag to start of chunk
+				ID3Frames id3Frames = this.liveStreamPacketizer.getID3FramesHeader();
+				ID3V2FrameTextInformation id3Tag = new ID3V2FrameTextInformation(ID3V2FrameBase.TAG_TEXT);
+				logger.info("<< update KalturaSyncPoint >> adding new id3Frame [" + this.streamName + "] " + json);
+				id3Tag.setValue(json);
+				// todo: Lilach check the purpose of below
+				id3Frames.clear();
+				id3Frames.putFrame(id3Tag);
+
+				/*// based on the old code
+				ID3V2FrameBase frame = new ID3V2FrameObject();
+				((ID3V2FrameObject) frame).setText(json);
+
+				id3Frames.clear();
+				id3Frames.putFrame(frame);*/
+			} catch (JsonProcessingException e) {
+				logger.error("<< update KalturaSyncPoint >> Stream [" + this.streamName + "] failed to add sync points data to ID3Tag", e);
+			}
+			//textId = 1;
+		}
+
+		public void onFillChunkEnd(LiveStreamPacketizerCupertinoChunk chunk, long timecode)
+		{
+			logger.info("<< update KalturaSyncPoint >>  ModuleCupertinoVODOnTextToID3.onFillChunkEnd["+chunk.getRendition().toString()+":"+liveStreamPacketizer.getContextStr()+"]: chunkId:"+chunk.getChunkIndexForPlaylist());
+		}
+
+		public void onFillChunkMediaPacket(LiveStreamPacketizerCupertinoChunk chunk, CupertinoPacketHolder holder, AMFPacket packet)
+		{
+			//logger.info("<< update KalturaSyncPoint >>  ModuleCupertinoVODOnTextToID3.onFillChunkEnd["+chunk.getRendition().toString()+":"+liveStreamPacketizer.getContextStr()+"]: chunkId:"+chunk.getChunkIndexForPlaylist());
+		}
+
+	  //public void onFillDataChunkPacket(LiveStreamPacketizerCupertinoChunk chunk, AMFPacket packet, ID3Frames id3Frames) {
+		public void onFillChunkDataPacket(LiveStreamPacketizerCupertinoChunk chunk, CupertinoPacketHolder holder, AMFPacket packet, ID3Frames id3Frames) {
+
+			//logger.info("<< update KalturaSyncPoint >> started Stream [ "+ streamName + "] for ");
+
+		/*	byte[] buffer = packet.getData();
 			if (buffer == null) {
-				logger.info("Empty buffer");
+				logger.info("<< update KalturaSyncPoint >> Empty buffer");
 				return;
 			}
 
 			if (packet.getSize() <= 2) {
-				logger.info("Packet size [" + packet.getSize() + "]");
+				logger.info("<< update KalturaSyncPoint >> Packet size [" + packet.getSize() + "]");
 				return;
 			}
 
@@ -125,12 +202,12 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			AMFDataList amfList = new AMFDataList(buffer, offset, buffer.length - offset);
 
 			if (amfList.size() <= 1) {
-				logger.info("Stream [" + streamName + "] AMFList size [" + amfList.size() + "]");
+				logger.info("<< update KalturaSyncPoint >> Stream [" + streamName + "] AMFList size [" + amfList.size() + "]");
 				return;
 			}
 
 			if (amfList.get(0).getType() != AMFData.DATA_TYPE_STRING) {
-				logger.info("Stream [" + streamName + "] AMFList type [" + amfList.get(0).getType() + ", " + amfList.get(1).getType() + "]");
+				logger.info("<< update KalturaSyncPoint >> Stream [" + streamName + "] AMFList type [" + amfList.get(0).getType() + ", " + amfList.get(1).getType() + "]");
 				return;
 			}
 
@@ -170,15 +247,16 @@ public class LiveStreamSettingsModule extends ModuleBase {
 						frame = new ID3V2FrameObject();
 						((ID3V2FrameObject) frame).setText(json);
 						id3Frames.putFrame(frame);
+						logger.info("<< update KalturaSyncPoint >> ID3 tag set to data [" + json + "] for stream [ "+ streamName + "]");
 					}
 
 				} catch (Exception e) {
-					logger.error("Stream [" + streamName + "] failed to add sync points data to ID3Tag", e);
+					logger.error("<< update KalturaSyncPoint >> Stream [" + streamName + "] failed to add sync points data to ID3Tag", e);
 				}
 			} else {
-				logger.info("Stream [" + streamName + "] metadata [" + metaDataStr + "]");
+				logger.info("<< update KalturaSyncPoint >> ID3TAG not set check if bug??? Stream [" + streamName + "] metadata [" + metaDataStr + "]");
 				return;
-			}
+			}*/
 		}
 	}
 
@@ -201,7 +279,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			LiveStreamPacketizerCupertino cupertinoPacketizer = (LiveStreamPacketizerCupertino) liveStreamPacketizer;
 
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
-			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(streamName));
+			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(cupertinoPacketizer, streamName));
 
 			IMediaStream stream = this.appInstance.getStreams().getStream(streamName);
 			this.liveStreamEntrySettingsHandler.checkAndUpdateSettings(cupertinoPacketizer, stream, streamName);
@@ -220,40 +298,51 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	public void onAppStart(IApplicationInstance applicationInstance) {
 		this.liveStreamPacketizerListener = new LiveStreamPacketizerListener(applicationInstance);
-		applicationInstance.addLiveStreamPacketizerListener(liveStreamPacketizerListener);
+		applicationInstance.addLiveStreamPacketizerListener(this.liveStreamPacketizerListener);
 		syncPointsInterval = applicationInstance.getProperties().getPropertyInt(KALTURA_SYNC_POINTS_INTERVAL_PROPERTY, DEFAULT_SYNC_POINTS_INTERVAL_IN_MS);
 		logger.info("Modules.CuePointsManager application instance started. Sync points interval: " + syncPointsInterval);
 	}
 
-	public void onStreamCreate(IMediaStream stream) {
+/*	public void onStreamCreate(IMediaStream stream) {
 		if (stream.getClientId() < 0) { //transcoded rendition
 			return;
 		}
 
+		// Todo Lilach: need check first if an object of CuePointManagerLiveStreamListener already exists for the new stream
+		// Todo Lilach: check how many times is onStreamCreate called per live stream entry. Only once? once per flavor?
 		CuePointManagerLiveStreamListener listener = new CuePointManagerLiveStreamListener();
+		// Todo Lilach: changed with replace
 		streams.put(stream, listener);
-		logger.debug("Modules.CuePointsManager::onStreamCreate with stream.getName() " + stream.getName() + " and stream.getClientId() " + stream.getClientId());
+		logger.debug("<< KalturaSyncPoint >> Modules.CuePointsManager::onStreamCreate with stream.getName() " + stream.getName() + " and stream.getClientId() " + stream.getClientId());
 		stream.addClientListener(listener);
 	}
 
 	public void onStreamDestroy(IMediaStream stream) {
-		logger.debug("Modules.CuePointsManager::onStreamDestroy with stream.getName() " + stream.getName() + " and stream.getClientId() " + stream.getClientId());
 
+	*//*	try {
+			// thread to sleep for 1000 milliseconds
+			Thread.sleep(5000);
+		} catch (Exception e) {
+			logger.error("<< KalturaSyncPoint >> " + e);
+		}*//*
+
+		// Todo Lilach: check before remove
 		CuePointManagerLiveStreamListener listener = streams.remove(stream);
 		if (listener != null) {
+			logger.debug("<< KalturaSyncPoint >> Modules.CuePointsManager::onStreamDestroy with stream.getName() " + stream.getName() + " and stream.getClientId() " + stream.getClientId());
 			listener.dispose();
 			stream.removeClientListener(listener);
 		}
-	}
+	}*/
 
-	class CuePointManagerLiveStreamListener extends MediaStreamActionNotifyBase {
+/*	class CuePointManagerLiveStreamListener extends MediaStreamActionNotifyBase {
 
 		private long runningId = 0;
-		private final Map<String, Timer> listenerStreams;
+		//private final Map<String, Timer> listenerStreams;
 
 		public CuePointManagerLiveStreamListener() {
 			logger.debug("Creating a new instance of CuePointManagerLiveStreamListener");
-			this.listenerStreams = new ConcurrentHashMap<String, Timer>();
+			//this.listenerStreams = new ConcurrentHashMap<String, Timer>();
 		}
 
 		@Override
@@ -303,12 +392,13 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			Timer t;
 			synchronized (listenerStreams) {
 				if (listenerStreams.containsKey(streamName)) {
-					logger.error("Stream with name " + streamName + " already exists in streams map, cancelling old one");
+					logger.error("<< KalturaSyncPoint >> Stream with name " + streamName + " already exists in streams map, cancelling old one");
 					t = listenerStreams.remove(streamName);
 					cancelScheduledTask(t, streamName);
 				} else {
-					logger.debug("Stream with name " + streamName + " does not exist in streams map. creating a new map entry.");
+					logger.debug("<< KalturaSyncPoint >> Stream with name " + streamName + " does not exist in streams map. creating a new map entry.");
 				}
+				// todo Lilach: use single timer. Suggest to report ID3 tag immediatly
 				t = new Timer();
 				listenerStreams.put(streamName, t);
 
@@ -318,6 +408,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			startSyncPoints(t, stream, streamName);
 		}
 
+		// todo Lilach: suggesting to craete new class that extends Timer task and when object is ceated
+		// pass stream and entryId and save it internally as private members.
 		private void startSyncPoints(Timer t, final IMediaStream stream, final String entryId) {
 			TimerTask tt = new TimerTask() {
 				@Override
@@ -344,24 +436,27 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		}
 
 		public void sendSyncPoint(final IMediaStream stream, String id, double time) {
+			logger.info("<< update KalturaSyncPoint >> skipping sendSyncPoint");
+			return;
 
 			AMFDataObj data = new AMFDataObj();
 
 			data.put(OBJECT_TYPE_KEY, OBJECT_TYPE_SYNCPOINT);
 			data.put(ID_KEY, id);
 			data.put(TIMESTAMP_KEY, time);
+			logger.info("<< update KalturaSyncPoint >> [" + stream.getName() + "] sync point [" + id + "],  getPlayPackets = " + stream.getPlayPackets().size());
 
 			//This condition is due to huge duration time (invalid) in the first chunk after stop-start on FMLE.
 			//According to Wowza calling sendDirect() before stream contains any packets causes problems.
 			if (stream.getPlayPackets().size() > 0) {
 				stream.sendDirect(LiveStreamSettingsModule.PUBLIC_METADATA, data);
 			} else {
-				logger.info("[" + stream.getName() + "] sync point cancelled  [" + id + "],  getPlayPackets = " + stream.getPlayPackets().size());
+				logger.info("<< update KalturaSyncPoint >> [" + stream.getName() + "] sync point cancelled  [" + id + "],  getPlayPackets = " + stream.getPlayPackets().size());
 			}
 		}
 
 
-	}
+	}*/
 
 	class LiveStreamEntrySettingsHandler {
 
@@ -383,9 +478,9 @@ public class LiveStreamSettingsModule extends ModuleBase {
 				return;
 			}
 
-			if (liveEntry.enableLowLatency) {
+			/*if (liveEntry.enableLowLatency) {
 				cupertinoPacketizer.getProperties().setProperty("cupertinoChunkDurationTarget", this.DEFAULT_LOW_LATENCY_CHUNK_DURATION_MILLISECONDS);
-			}
+			}*/
 		}
 
 	}
