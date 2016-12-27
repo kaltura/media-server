@@ -17,3 +17,7 @@ Utils/CongestionTest/samples
 Utils/CongestionTest/logs/Test.log
 Utils/CongestionTest/logs/testResult.log
 Utils/CongestionTest/config/local.json
+
+KalturaWowzaServer/gradle.properties
+
+KalturaWowzaServer/src/main/java/com/kaltura/media_server/modules/LiveActionNotify.java
