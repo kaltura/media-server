@@ -1,5 +1,4 @@
    apply plugin: 'java'
-
     def javaVersion = JavaVersion.VERSION_1_7;
     sourceCompatibility = javaVersion;
     targetCompatibility = javaVersion;
@@ -145,5 +144,12 @@ task release(type:Exec, dependsOn: prepareRelease) {
         }
     }
 }
+   jar {
+       manifest {
+           attributes("Implementation-Title": "Gradle",
+                   "Implementation-Version": version)
+       }
+   }
+
 
 

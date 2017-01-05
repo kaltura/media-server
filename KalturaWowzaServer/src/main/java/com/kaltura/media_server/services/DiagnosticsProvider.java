@@ -69,29 +69,17 @@ public class DiagnosticsProvider extends HTTProvider2Base
         }
 
         public String getJarName(){
-            String JarName;
-            try{
-                URL url = InfoProvider.class.getProtectionDomain().getCodeSource()
-                        .getLocation();
-                String WowzaJarPathString = url.getPath();
-                Path WowzaJarPath = Paths.get(WowzaJarPathString);
-                if (Files.isSymbolicLink(WowzaJarPath)){
-                    JarName = Files.readSymbolicLink(WowzaJarPath).getFileName().toString();
-                }
-                else{
-                    JarName = WowzaJarPath.getFileName().toString();
-                }
-                return JarName;
-            }
-            catch (Exception e){
-                logger.error("Failed to get JarName ", e);
-            }
-            return "KalturaWowzaServer";
+            return  new java.io.File(InfoProvider.class.getProtectionDomain()
+                    .getCodeSource()
+                    .getLocation()
+                    .getPath())
+                    .getName();
         }
+
         public void execute(HashMap<String,Object> data, IApplicationInstance appInstance) {
 
             String jarName = getJarName();
-            String version = getVersion(jarName);
+            String version = this.getClass().getPackage().getImplementationVersion();
             String dateStarted = appInstance.getDateStarted();
             String timeRunning = Double.toString(appInstance.getTimeRunningSeconds());
             String hostName;
