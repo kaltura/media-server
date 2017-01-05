@@ -5,6 +5,8 @@ package com.kaltura.media_server.services;
  */
 
 import java.io.*;
+import java.net.URL;
+import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 import com.wowza.wms.stream.live.MediaStreamLive;
-
+import java.net.InetAddress;
 
 public class DiagnosticsProvider extends HTTProvider2Base
 {
@@ -67,11 +69,24 @@ public class DiagnosticsProvider extends HTTProvider2Base
         }
 
         public String getJarName(){
-            return  new java.io.File(InfoProvider.class.getProtectionDomain()
-                    .getCodeSource()
-                    .getLocation()
-                    .getPath())
-                    .getName();
+            String JarName;
+            try{
+                URL url = InfoProvider.class.getProtectionDomain().getCodeSource()
+                        .getLocation();
+                String WowzaJarPathString = url.getPath();
+                Path WowzaJarPath = Paths.get(WowzaJarPathString);
+                if (Files.isSymbolicLink(WowzaJarPath)){
+                    JarName = Files.readSymbolicLink(WowzaJarPath).getFileName().toString();
+                }
+                else{
+                    JarName = WowzaJarPath.getFileName().toString();
+                }
+                return JarName;
+            }
+            catch (Exception e){
+                logger.error("Failed to get JarName ", e);
+            }
+            return "KalturaWowzaServer";
         }
         public void execute(HashMap<String,Object> data, IApplicationInstance appInstance) {
 
@@ -79,10 +94,18 @@ public class DiagnosticsProvider extends HTTProvider2Base
             String version = getVersion(jarName);
             String dateStarted = appInstance.getDateStarted();
             String timeRunning = Double.toString(appInstance.getTimeRunningSeconds());
+            String hostName;
+            try{
+                hostName = InetAddress.getLocalHost().getHostName();
+            }
+            catch (java.net.UnknownHostException e){
+                hostName = "UNKNOWN";
+            }
             data.put("jarName", jarName);
             data.put("version", version);
             data.put("dateStarted", dateStarted);
             data.put("timeRunning", timeRunning);
+            data.put("hostName", hostName);
         }
     }
 
