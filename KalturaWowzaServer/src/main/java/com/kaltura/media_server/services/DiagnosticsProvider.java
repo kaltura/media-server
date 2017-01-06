@@ -5,8 +5,6 @@ package com.kaltura.media_server.services;
  */
 
 import java.io.*;
-import java.net.URL;
-import java.nio.file.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,22 +49,6 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
     class InfoProvider implements CommandProvider {
 
-        public String getVersion(String jarName){
-
-            final String regex = "KalturaWowzaServer-(.+).jar";
-            Pattern pattern = Pattern.compile(regex);
-            String version ;
-
-            Matcher matcher = pattern.matcher(jarName);
-            if (matcher != null && matcher.find()){
-                version = matcher.group(1);
-            }
-            else{
-                version = "UNKNOWN";
-            }
-            return version;
-
-        }
 
         public String getJarName(){
             return  new java.io.File(InfoProvider.class.getProtectionDomain()
