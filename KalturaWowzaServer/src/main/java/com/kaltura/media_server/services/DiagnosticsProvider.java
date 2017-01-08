@@ -24,7 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 import com.wowza.wms.stream.live.MediaStreamLive;
-
+import java.net.InetAddress;
 
 public class DiagnosticsProvider extends HTTProvider2Base
 {
@@ -49,22 +49,6 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
     class InfoProvider implements CommandProvider {
 
-        public String getVersion(String jarName){
-
-            final String regex = "KalturaWowzaServer-(.+).jar";
-            Pattern pattern = Pattern.compile(regex);
-            String version ;
-
-            Matcher matcher = pattern.matcher(jarName);
-            if (matcher != null && matcher.find()){
-                version = matcher.group(1);
-            }
-            else{
-                version = "UNKNOWN";
-            }
-            return version;
-
-        }
 
         public String getJarName(){
             return  new java.io.File(InfoProvider.class.getProtectionDomain()
@@ -73,16 +57,25 @@ public class DiagnosticsProvider extends HTTProvider2Base
                     .getPath())
                     .getName();
         }
+
         public void execute(HashMap<String,Object> data, IApplicationInstance appInstance) {
 
             String jarName = getJarName();
-            String version = getVersion(jarName);
+            String version = this.getClass().getPackage().getImplementationVersion();
             String dateStarted = appInstance.getDateStarted();
             String timeRunning = Double.toString(appInstance.getTimeRunningSeconds());
+            String hostName;
+            try{
+                hostName = InetAddress.getLocalHost().getHostName();
+            }
+            catch (java.net.UnknownHostException e){
+                hostName = "UNKNOWN";
+            }
             data.put("jarName", jarName);
             data.put("version", version);
             data.put("dateStarted", dateStarted);
             data.put("timeRunning", timeRunning);
+            data.put("hostName", hostName);
         }
     }
 
