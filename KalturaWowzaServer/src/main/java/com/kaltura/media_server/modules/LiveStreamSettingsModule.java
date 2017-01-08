@@ -8,9 +8,10 @@ import com.wowza.wms.amf.*;
 import com.wowza.wms.application.*;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.*;
 import com.wowza.wms.media.mp3.model.idtags.*;
-import com.wowza.wms.module.*;
 import com.wowza.wms.stream.livepacketizer.*;
 import com.wowza.wms.stream.IMediaStream;
+import com.wowza.wms.module.*;
+import com.wowza.wms.stream.*;
 import com.wowza.wms.client.IClient;
 import com.wowza.wms.application.WMSProperties;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
@@ -47,81 +48,40 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		logger.debug("Creating a new instance of Modules.CuePointsManager");
 	}
 
-	class ID3V2FrameObject extends ID3V2FrameRawBytes {
-
-		private int textEncoding = ID3V2FrameBase.TEXTENCODING_UTF8;
-		private String text = null;
-
-		public ID3V2FrameObject() {
-			super(ID3V2FrameBase.TAG_TEXT);
-		}
-
-		public int getBodySize() {
-			return 1 + serializeStringLen(text, TEXTENCODING_DEFAULT, true);
-		}
-
-		public int serializeBody(byte bytes[], int pos) {
-
-			int length = 0;
-			bytes[pos] = (byte) (textEncoding & 255);
-			length += 1;
-
-			if (text != null)
-				length += serializeString(text, bytes, pos + length, TEXTENCODING_DEFAULT, true);
-
-			return length;
-		}
-
-		public void setText(String text) {
-			this.text = text;
-		}
-	}
-
 	class LiveStreamPacketizerDataHandler implements IHTTPStreamerCupertinoLivePacketizerDataHandler2 {
 
 		private LiveStreamPacketizerCupertino liveStreamPacketizer = null;
 		private String streamName = null;
-		private long runningId;
-		private double lastSyncPointInsertTime = 0;
-
 
 		public LiveStreamPacketizerDataHandler(LiveStreamPacketizerCupertino liveStreamPacketizer, String streamName) {
 			logger.debug("creating LiveStreamPacketizerDataHandler for stream name: " + streamName);
 			this.streamName = streamName;
-			this.runningId = 1;
 			this.liveStreamPacketizer = liveStreamPacketizer;
 		}
 
 		public void onFillChunkStart(LiveStreamPacketizerCupertinoChunk chunk)
 		{
-
-			double now = new Date().getTime();
-			String currentTime = Double.toString(now);
+			double packetStartTime = (double)chunk.getStartTimecode();
+			String startTimeStr = Double.toString(packetStartTime);
 
 			logger.info("ModuleCupertinoVODOnTextToID3.onFillChunkStart["+chunk.getRendition().toString()+":"+this.liveStreamPacketizer.getContextStr()+"]: chunkId:"+chunk.getChunkIndexForPlaylist());
 
 			//todo: Lilach, check if it is important that the trailing id will be the same as ts id in filename.
-			String id = this.streamName + "_" + (runningId++);
+			String id = this.streamName + "_" + chunk.getChunkIndexForPlaylist();
 
-			// check if it's time to insert sync point (ID3 tag)
-			if ( now - this.lastSyncPointInsertTime < syncPointsInterval) {
-				return;
-			}
-
-			this.lastSyncPointInsertTime = now;
+			logger.info("ModuleCupertinoVODOnTextToID3.onFillChunkStart elapsed " + syncPointsInterval + " milliseconds. Adding ID3 frame (timestamp=" + startTimeStr+ ") to chunk ["+chunk.getRendition().toString()+":"+this.liveStreamPacketizer.getContextStr()+"]: chunkId:"+chunk.getChunkIndexForPlaylist());
 
 			// Add custom M3U tag to chunklist header
 			CupertinoUserManifestHeaders userManifestHeaders = this.liveStreamPacketizer.getUserManifestHeaders(chunk.getRendition());
 			if (userManifestHeaders != null) {
-				userManifestHeaders.addHeader(HEADER_TAG_TIMECODE, TIMESTAMP_KEY, now);
+				userManifestHeaders.addHeader(HEADER_TAG_TIMECODE, TIMESTAMP_KEY, packetStartTime);
 			}
 
 			try {
 
 				Map<String, Object> map = new HashMap<>();
 				map.put(OBJECT_TYPE_KEY, OBJECT_TYPE_SYNCPOINT);
-				map.put(TIMESTAMP_KEY, now);
-				//String id = this.streamName + "_" + (runningId++);
+				map.put(TIMESTAMP_KEY, packetStartTime);
 				map.put(ID_KEY, id);
 				ObjectMapper mapper = new ObjectMapper();
 				String json = mapper.writeValueAsString(map);
@@ -130,15 +90,11 @@ public class LiveStreamSettingsModule extends ModuleBase {
 				ID3V2FrameTextInformation id3Tag = new ID3V2FrameTextInformation(ID3V2FrameBase.TAG_TEXT);
 				logger.info("<< update KalturaSyncPoint >> adding new id3Frame [" + this.streamName + "] " + json);
 				id3Tag.setValue(json);
-				// todo: Lilach check the purpose of below
+				// it is essential to call clear. This method is used to indicate ID3 is set in specified chunk
+				// if clear() is not called multiple ID3 tag frame will be inserted to each chunk.
 				id3Frames.clear();
 				id3Frames.putFrame(id3Tag);
 
-				// based on the old code
-				/*ID3V2FrameBase id3TagFrame = new ID3V2FrameObject();
-				((ID3V2FrameObject) id3TagFrame).setText(json);
-				id3Frames.clear();
-				id3Frames.putFrame(id3TagFrame);*/
 			} catch (JsonProcessingException e) {
 				logger.error("<< update KalturaSyncPoint >> Stream [" + this.streamName + "] failed to add sync points data to ID3Tag", e);
 			}
@@ -159,11 +115,9 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	class LiveStreamPacketizerListener implements ILiveStreamPacketizerActionNotify {
 
 		private IApplicationInstance appInstance = null;
-		//private LiveStreamEntrySettingsHandler liveStreamEntrySettingsHandler = null;
 
 		public LiveStreamPacketizerListener(IApplicationInstance appInstance) {
 			logger.debug("creating new LiveStreamPacketizerListener");
-			//this.liveStreamEntrySettingsHandler = new LiveStreamEntrySettingsHandler();
 			this.appInstance = appInstance;
 		}
 
@@ -178,10 +132,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(cupertinoPacketizer, streamName));
 
 			IMediaStream stream = this.appInstance.getStreams().getStream(streamName);
-			//this.liveStreamEntrySettingsHandler.checkAndUpdateSettings(cupertinoPacketizer, stream, streamName);
 
 		}
-
 
 		public void onLiveStreamPacketizerDestroy(ILiveStreamPacketizer liveStreamPacketizer) {
 			logger.debug("onLiveStreamPacketizerDestroy");
@@ -199,31 +151,22 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		logger.info("Modules.LiveStreamSettingsModule application instance started");
 	}
 
-/*	class LiveStreamEntrySettingsHandler {
+	public void onStreamCreate(IMediaStream stream)
+	{
+		stream.addLivePacketListener(new PacketListener());
+	}
 
-		private final static int DEFAULT_LOW_LATENCY_CHUNK_DURATION_MILLISECONDS = 4000;
+	class PacketListener implements IMediaStreamLivePacketNotify {
 
-		public void checkAndUpdateSettings(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream, String streamName) {
-			KalturaLiveEntry liveEntry;
-			WMSProperties properties;
-			if (!stream.isTranscodeResult()) {
-				return;
-			}
-
-			try {
-				IClient client = stream.getClient();
-				properties = client.getProperties();
-				liveEntry = Utils.getLiveEntry(properties);
-			} catch (Exception e) {
-				logger.error("Failed to retrieve liveEntry for " + streamName + " :" + e);
-				return;
-			}
-
-			*//*if (liveEntry.enableLowLatency) {
-				cupertinoPacketizer.getProperties().setProperty("cupertinoChunkDurationTarget", this.DEFAULT_LOW_LATENCY_CHUNK_DURATION_MILLISECONDS);
-			}*//*
+		public PacketListener() {
 		}
 
-	}*/
+		public void onLivePacket(IMediaStream stream, AMFPacket thisPacket) {
 
+			thisPacket.setAbsTimecode(System.currentTimeMillis());
+
+		}
+
+
+	}
 }
