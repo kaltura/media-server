@@ -154,9 +154,6 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		public void onLivePacket(IMediaStream stream, AMFPacket thisPacket) {
 			long now = System.currentTimeMillis();
 			thisPacket.setAbsTimecode(now);
-			// do not remove ... unless you know what you're doing log file will be flooded
-			//logger.debug("stream: " + stream.getName() + " time: " + Long.toString(now) + " [" + stream.getProperties().getAllAsStrings() + "]");
-
 		}
 
 	}
