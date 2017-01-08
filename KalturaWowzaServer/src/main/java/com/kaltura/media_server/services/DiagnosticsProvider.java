@@ -95,7 +95,6 @@ public class DiagnosticsProvider extends HTTProvider2Base
             List<IMediaStream> streamList = appInstance.getStreams().getStreams();
                 for (IMediaStream stream : streamList) {
                     if (!( stream instanceof MediaStreamLive)){
-                      logger.warn(httpSessionId + "[" + stream.getName() + "] Stream is not instance of MediaStreamLive");
                         continue;
                     }
                     HashMap<String, HashMap<String, Object>> entryHashInstance;
@@ -188,7 +187,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
         EncodersHash.put("frameRate", framerate);
         getMetaDataProperties(stream, EncodersHash);
         streamHash.put("Encoder", EncodersHash);
-        logger.debug(httpSessionId+"[" + stream.getName() + "] Add the following params: videoBitrate "+ videoBitrate +  ", audioBitrate " + audioBitrate + ", framerate "+ framerate);
+        //logger.debug(httpSessionId+"[" + stream.getName() + "] Add the following params: videoBitrate "+ videoBitrate +  ", audioBitrate " + audioBitrate + ", framerate "+ framerate);
     }
 
     public static void  addRejectedStream(String message, IClient client){
@@ -232,8 +231,6 @@ public class DiagnosticsProvider extends HTTProvider2Base
             return;
         }
 
-        logger.info(httpSessionId+"[" + stream.getName() + " ] Find property AMFDataObj for stream");
-
         for (int i = 0 ;  i < obj.size() ;  i++){
             String key = obj.getKey(i);
             try{
@@ -245,7 +242,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
                 }
             }
             catch (Exception e){
-                logger.info(httpSessionId+"[" + stream.getName() + " ] Fail to add property " + key + ": " + e.getMessage());
+                logger.error(httpSessionId+"[" + stream.getName() + " ] Fail to add property " + key + ": " + e.getMessage());
             }
 
         }
@@ -276,7 +273,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
         ClientPropertiesHash.put("IP" , IP);
         hashMapInstance.put("clientProperties", ClientPropertiesHash);
 
-        logger.debug(httpSessionId + "[" + entryId + "] Add the following params: rtmpUrl "+ rtmpUrl +  ", encoder " + encoder + ", IP " + IP );
+     //   logger.debug(httpSessionId + "[" + entryId + "] Add the following params: rtmpUrl "+ rtmpUrl +  ", encoder " + encoder + ", IP " + IP );
 
     }
 
@@ -319,7 +316,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
                 return;
             }
             List<String> vhostNames = VHostSingleton.getVHostNames();
-            logger.debug(httpSessionId + "Getting vhostNames" + vhostNames);
+            //logger.debug(httpSessionId + "Getting vhostNames" + vhostNames);
             Iterator<String> iter = vhostNames.iterator();
             while (iter.hasNext()) {
                 String vhostName = iter.next();
@@ -329,7 +326,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
                 }
 
                 List<String> appNames = vhost.getApplicationNames();
-                logger.debug(httpSessionId + "Getting appNames" + appNames);
+                //logger.debug(httpSessionId + "Getting appNames" + appNames);
                 Iterator<String> appNameIterator = appNames.iterator();
 
                 while (appNameIterator.hasNext()) {
@@ -339,7 +336,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
                         continue;
 
                     List<String> appInstances = application.getAppInstanceNames();
-                    logger.debug(httpSessionId + "Getting appInstances" + appInstances);
+                    //logger.debug(httpSessionId + "Getting appInstances" + appInstances);
                     Iterator<String> iterAppInstances = appInstances.iterator();
 
                     while (iterAppInstances.hasNext()) {

@@ -133,6 +133,16 @@ public class TemplateControlModule extends ModuleBase {
         }
 
         public void onInitAfterLoadTemplate(LiveStreamTranscoder liveStreamTranscoder) {
+            TranscoderStream transcoderStream =  liveStreamTranscoder.getTranscodingStream();
+            java.util.List<com.wowza.wms.transcoder.model.TranscoderStreamDestination> transcoderStreamsMap =  transcoderStream.getDestinations();
+            IMediaStream stream = liveStreamTranscoder.getStream();
+            if (transcoderStreamsMap.size() == 0){
+                String msg = "Stream " + stream.getName() + " has no ingest in conversion profile";
+                logger.error(msg);
+                DiagnosticsProvider.addRejectedStream(msg, stream.getClient());
+                stream.shutdown();
+                stream.stopPublishing();
+            }
         }
 
         public void onInitStop(LiveStreamTranscoder liveStreamTranscoder) {
@@ -214,6 +224,7 @@ public class TemplateControlModule extends ModuleBase {
 
                 AMFDataList dataList = new AMFDataList(metaDataPacket.getData());
                 for (int i = 0 ; i < dataList.size(); i++ ){
+                        logger.debug("[" + stream.getName() +" ] Found DATA_TYPE_OBJECT");
                         AMFData amfData = dataList.get(i);
                         if (amfData.getType() == AMFData.DATA_TYPE_OBJECT)
                         {
