@@ -29,11 +29,9 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	private static final String OBJECT_TYPE_KEY = "objectType";
 	private static final String OBJECT_TYPE_SYNCPOINT = "KalturaSyncPoint";
-	private static final String OBJECT_TYPE_TIMECODE = "KalturaSyncTimecode";
 	private static final String HEADER_TAG_TIMECODE = "EXT-KALTURA-SYNC-POINT";
 	private static final String TIMESTAMP_KEY = "timestamp";
 	private static final String ID_KEY = "id";
-	private static final String META_DATA_TIMECODE = "onFI";
 	private static final Logger logger = Logger.getLogger(LiveStreamSettingsModule.class);
 
 	private LiveStreamPacketizerListener liveStreamPacketizerListener;
@@ -152,10 +150,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		}
 
 		public void onLivePacket(IMediaStream stream, AMFPacket thisPacket) {
-			long now = System.currentTimeMillis();
-			thisPacket.setAbsTimecode(now);
-			// do not uncomment ... unless you know what you're doing log file will be flooded
-			//logger.debug("stream: " + stream.getName() + " time: " + Long.toString(now) + " [" + stream.getProperties().getAllAsStrings() + "]");
+			thisPacket.setAbsTimecode(System.currentTimeMillis());
 
 		}
 
