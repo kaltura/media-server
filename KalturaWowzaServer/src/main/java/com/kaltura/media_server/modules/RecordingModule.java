@@ -235,7 +235,9 @@ public class RecordingModule  extends ModuleBase {
 
             KalturaFlavorAssetListResponse liveAssetList = KalturaAPI.getKalturaAPI().getKalturaFlavorAssetListResponse(liveEntry);
             if (liveAssetList != null) {
-                properties.setProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST, liveAssetList);
+                synchronized(properties) {
+                    properties.setProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST, liveAssetList);
+                }
                 logger.debug("Adding live asset list for entry [" + liveEntry.id + "]" );
             }
         }
@@ -300,9 +302,12 @@ public class RecordingModule  extends ModuleBase {
                 logger.info("Entry [" + liveEntry.id + "] recording disabled");
                 return;
             }
-            // This code section should run for source steam that has recording
-            KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(properties.getPropertyStr(Constants.CLIENT_PROPERTY_SERVER_INDEX, Constants.INVALID_SERVER_INDEX));
+            KalturaEntryServerNodeType serverIndex;
 
+            // This code section should run for source steam that has recording
+            synchronized(properties) {
+                 serverIndex = KalturaEntryServerNodeType.get(properties.getPropertyStr(Constants.CLIENT_PROPERTY_SERVER_INDEX, Constants.INVALID_SERVER_INDEX));
+            }
 
 
             int assetParamsId ;
@@ -317,7 +322,10 @@ public class RecordingModule  extends ModuleBase {
             logger.debug("Stream [" + streamName + "] entry [" + liveEntry.id + "] asset params id [" + assetParamsId + "]");
 
             KalturaLiveAsset liveAsset;
-            KalturaFlavorAssetListResponse  liveAssetList= (KalturaFlavorAssetListResponse) properties.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST);
+            KalturaFlavorAssetListResponse liveAssetList;
+            synchronized(properties) {
+                 liveAssetList = (KalturaFlavorAssetListResponse) properties.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST);
+            }
             liveAsset = KalturaAPI.getliveAsset(liveAssetList, assetParamsId);
             if (liveAsset == null) {
                 logger.warn("Cannot find liveAsset "+assetParamsId+"for stream [" + streamName + "]");

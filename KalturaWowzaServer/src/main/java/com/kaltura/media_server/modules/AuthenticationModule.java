@@ -12,16 +12,20 @@ import com.wowza.wms.application.WMSProperties;
 import com.wowza.wms.client.IClient;
 import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
+import com.wowza.wms.stream.IMediaStream;
+import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import org.apache.log4j.Logger;
 import com.kaltura.media_server.services.*;
-
 import java.util.HashMap;
+import java.util.regex.Matcher;
+
+
+
 
 public class AuthenticationModule extends ModuleBase  {
 
-
-
     private static final Logger logger = Logger.getLogger(AuthenticationModule.class);
+    public static final String STREAM_ACTION_PROPERTY = "AuthenticatioStreamActionNotifier";
 
     @SuppressWarnings("serial")
     public class ClientConnectException extends Exception{
@@ -37,7 +41,8 @@ public class AuthenticationModule extends ModuleBase  {
     public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
         WMSProperties properties = client.getProperties();
         String rtmpUrl = properties.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
-        logger.debug("Geting url: " + rtmpUrl+ " from client "+client.getIp());
+        String IP = client.getIp();
+        logger.debug("Geting url: " + rtmpUrl+ " from client "+ IP);
 
         try {
             HashMap<String, String>  queryParameters = Utils.getRtmpUrlParameters(rtmpUrl, client.getQueryStr());
@@ -46,12 +51,11 @@ public class AuthenticationModule extends ModuleBase  {
             logger.error("Entry authentication failed with url [" + rtmpUrl + "]: " + e.getMessage());
             client.rejectConnection();
             sendClientOnStatusError((IClient)client, "NetStream.Play.Failed","Unable to authenticate url; [" + rtmpUrl + "]: " + e.getMessage());
+            DiagnosticsProvider.addRejectedStream(e.getMessage(), client);
         }
     }
 
     private KalturaLiveEntry onClientConnect(WMSProperties properties, HashMap<String, String> requestParams) throws KalturaApiException, ClientConnectException, Exception {
-
-
 
         if (!requestParams.containsKey(Constants.REQUEST_PROPERTY_ENTRY_ID)){
             throw new ClientConnectException("Missing argument: entryId");
@@ -72,9 +76,10 @@ public class AuthenticationModule extends ModuleBase  {
 
         KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
         KalturaLiveEntry liveEntry = KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
-
-        properties.setProperty(Constants.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
-        properties.setProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
+        synchronized(properties) {
+            properties.setProperty(Constants.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
+            properties.setProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
+        }
         logger.info("Entry added [" + entryId + "]");
 
         return liveEntry;
@@ -82,10 +87,87 @@ public class AuthenticationModule extends ModuleBase  {
 
 
     public void onDisconnect(IClient client) {
-        WMSProperties clientProperties = client.getProperties();
-        if (clientProperties.containsKey(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY)) {
-            KalturaLiveEntry liveEntry = (KalturaLiveEntry) clientProperties.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
+        try{
+            KalturaLiveEntry liveEntry = Utils.getKalturaLiveEntry(client);
             logger.info("Entry removed [" + liveEntry.id + "]");
         }
+        catch (Exception  e){
+            logger.info("Error" + e.getMessage());
+        }
     }
+
+    public void onStreamCreate(IMediaStream stream) {
+        LiveStreamListener  actionListener = new LiveStreamListener();
+        logger.debug("onStreamCreate - [" + stream.getName() + "]");
+        WMSProperties props = stream.getProperties();
+        synchronized (props)
+        {
+            props.setProperty(STREAM_ACTION_PROPERTY, actionListener);
+        }
+        stream.addClientListener(actionListener);
+
+    }
+
+    public void onStreamDestroy(IMediaStream stream) {
+        logger.debug("onStreamDestroy - [" + stream.getName() + "]");
+        LiveStreamListener actionListener = null;
+        WMSProperties props = stream.getProperties();
+        synchronized (props)
+        {
+            actionListener = (LiveStreamListener) stream.getProperties().get(STREAM_ACTION_PROPERTY);
+        }
+        if (actionListener != null)
+        {
+            stream.removeClientListener(actionListener);
+            logger.info("removeClientListener: " + stream.getSrc());
+        }
+    }
+
+
+    class LiveStreamListener extends  MediaStreamActionNotifyBase{
+        public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
+            if (stream.isTranscodeResult()){
+                return;
+            }
+            try {
+                IClient client = stream.getClient();
+                KalturaLiveEntry liveEntry = Utils.getKalturaLiveEntry(client);
+                Matcher matcher = Utils.getStreamNameMatches(streamName);
+
+                if (matcher == null) {
+                    String msg = "Unknown published stream [" + streamName + "]";
+                    logger.error(msg);
+                    sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
+                    stream.getClient().setShutdownClient(true);
+                    DiagnosticsProvider.addRejectedStream(msg, client);
+                    return;
+                }
+                String entryId = matcher.group(1);
+                String flavor = matcher.group(2);
+
+
+                if (! entryId.equals(liveEntry.id  )){
+                    String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryId + "]";
+                    logger.error(msg);
+                    sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
+                    stream.getClient().setShutdownClient(true);
+                    DiagnosticsProvider.addRejectedStream(msg, client);
+                    return;
+                }
+                if (! Utils.isNumeric(flavor)) {
+                    String msg = "Published  stream name [" + streamName + "], Wrong suffix stream name:  "+flavor;
+                    logger.error(msg);
+                    sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
+                    stream.getClient().setShutdownClient(true);
+                    DiagnosticsProvider.addRejectedStream(msg, client);
+                    return;
+                }
+
+            }
+            catch (Exception  e) {
+                logger.error("Exception in onPublish: ", e);
+            }
+        }
+    }
+
 }
