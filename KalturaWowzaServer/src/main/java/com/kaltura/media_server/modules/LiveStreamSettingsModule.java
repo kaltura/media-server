@@ -37,15 +37,18 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	private static final Logger logger = Logger.getLogger(LiveStreamSettingsModule.class);
 	private static final String MAX_ALLOWED_PTS_DRIFT_MILLISEC = "KalturaMaxAllowedPTSDriftiMillisec";
 	private static final int DEFAULT_MAX_ALLOWED_PTS_DRIFT_MILLISEC = 1000;
-	private static final Pattern LIVE_ENTRY_ID_PATTERN = Pattern.compile("(^[0-1]_[a-zA-Z0-9]+)");
 
 	private LiveStreamPacketizerListener liveStreamPacketizerListener;
 	private int maxAllowedPTSDriftMillisec;
-	private Map<String, Long> mapLiveEntryToBaseSystemTime = null;
+	private ConcurrentHashMap<String, Long> mapLiveEntryToBaseSystemTime = null;
+	private ConcurrentHashMap<String, Long> mapLiveEntryStreamsCount = null;
+	private ConcurrentHashMap<String, PacketListener> packetListeners = null;
 
 	public LiveStreamSettingsModule() {
 		logger.debug("Creating a new instance of Modules.CuePointsManager");
-		mapLiveEntryToBaseSystemTime = new HashMap<>();
+		mapLiveEntryToBaseSystemTime = new ConcurrentHashMap<>();
+		mapLiveEntryStreamsCount = new ConcurrentHashMap<>();
+		packetListeners = new ConcurrentHashMap<>();
 	}
 
 
@@ -130,11 +133,13 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
 			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(cupertinoPacketizer, streamName));
+			incrementStreams(streamName);
 		}
 
 		public void onLiveStreamPacketizerDestroy(ILiveStreamPacketizer liveStreamPacketizer) {
 			String streamName = liveStreamPacketizer.getAndSetStartStream(null).getName();
 			logger.debug("(" + streamName + ") onLiveStreamPacketizerDestroy");
+			decrementStreams(streamName);
 		}
 
 		public void onLiveStreamPacketizerInit(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {
@@ -154,6 +159,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	}
 
 	public void onStreamDestroy(IMediaStream stream) {
+		String streamName = stream.getName();
+		unregisterPacketListener(streamName, stream);
 	}
 
 	class PacketListener implements IMediaStreamLivePacketNotify {
@@ -179,16 +186,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			String streamName = stream.getName();
 
 			if (this.entryId == null) {
-
-				Matcher m = LIVE_ENTRY_ID_PATTERN.matcher(streamName);
-
-				if (m.find()) {
-					this.entryId = m.group(1);
-					logger.debug("stream: " + streamName + " entryId: " + this.entryId);
-				} else {
-					logger.error("failed to extract entryId from " + streamName);
-				}
-
+				this.entryId = extractEntryId(streamName);
+				registerPacketListener(streamName, this);
 			}
 
 			// get global entry baseSystemTime
@@ -239,5 +238,71 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		return baseSystemTime;
 	}
 
+	public void incrementStreams(String streamName) {
+		String entryId = extractEntryId(streamName);
+		if (mapLiveEntryStreamsCount.containsKey(entryId)) {
+			mapLiveEntryStreamsCount.put(streamName, mapLiveEntryStreamsCount.get(entryId) + 1);
+		} else {
+			mapLiveEntryStreamsCount.put(streamName, new Long(1));
+		}
+	}
+
+	public void decrementStreams(String streamName) {
+		String entryId = extractEntryId(streamName);
+		if (mapLiveEntryStreamsCount.containsKey(entryId)) {
+			if (mapLiveEntryStreamsCount.put(streamName, mapLiveEntryStreamsCount.get(entryId) - 1) <= 1) {
+				mapLiveEntryToBaseSystemTime.remove(entryId);
+			}
+		} else {
+			logger.warn("didn't find " + entryId + " in map");
+		}
+	}
+
+	public String extractEntryId(String streamName) {
+		if (streamName == null) {
+			logger.error("NULL stream name. Failed to extract entryId");
+			return null;
+		}
+
+		String entryId = streamName;
+		Pattern entryIdPattern = Pattern.compile("(^[0-1]_[a-zA-Z0-9]+)");
+		Matcher m = entryIdPattern.matcher(streamName);
+
+		if (m.find()) {
+			streamName = m.group(1);
+			logger.debug("stream: " + streamName + " entryId: " + entryId);
+		} else {
+			logger.error("failed to extract entryId from " + streamName);
+		}
+
+		return entryId;
+	}
+
+	public void registerPacketListener(String streamName, PacketListener listener) {
+		if (streamName == null) {
+			logger.error("NULL stream name. Failed to register packet listener.");
+			return;
+		}
+		try {
+			packetListeners.put(streamName, listener);
+		} catch (Exception e) {
+			logger.error("(" + streamName + ") failed to register packet listerner. " + e.toString());
+		}
+	}
+
+	public void unregisterPacketListener(String streamName, IMediaStream stream) {
+		if (streamName == null) {
+			logger.error("NULL stream name. Failed to register packet listener.");
+			return;
+		}
+		try {
+			if (stream != null) {
+				stream.removeLivePacketListener(packetListeners.get(streamName));
+			}
+			packetListeners.remove(streamName);
+		} catch (Exception e) {
+			logger.error("(" + streamName + ") failed to register packet listerner. " + e.toString());
+		}
+	}
 
 }
