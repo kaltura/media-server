@@ -42,13 +42,10 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	private LiveStreamPacketizerListener liveStreamPacketizerListener;
 	private int maxAllowedPTSDriftMillisec;
 	private ConcurrentHashMap<String, Long> mapLiveEntryToBaseSystemTime = null;
-	private ConcurrentHashMap<String, Long> mapLiveEntryStreamsCount = null;
 
 	public LiveStreamSettingsModule() {
 		logger.debug("Creating a new instance of Modules.CuePointsManager");
 		mapLiveEntryToBaseSystemTime = new ConcurrentHashMap<>();
-		mapLiveEntryStreamsCount = new ConcurrentHashMap<>();
-		//packetListeners = new ConcurrentHashMap<>();
 	}
 
 
@@ -133,13 +130,11 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
 			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(cupertinoPacketizer, streamName));
-			incrementStreams(streamName);
 		}
 
 		public void onLiveStreamPacketizerDestroy(ILiveStreamPacketizer liveStreamPacketizer) {
 			String streamName = liveStreamPacketizer.getAndSetStartStream(null).getName();
 			logger.debug("(" + streamName + ") onLiveStreamPacketizerDestroy");
-			decrementStreams(streamName);
 		}
 
 		public void onLiveStreamPacketizerInit(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {
@@ -167,12 +162,15 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	public void onStreamDestroy(IMediaStream stream) {
 		PacketListener listener = null;
+		String streamName =  stream.getName();
 		WMSProperties props = stream.getProperties();
 		synchronized (props) {
 			listener = (PacketListener) props.get(STREAM_ACTION_LISTENER_PROPERTY);
 		}
 		if (listener != null) {
 			stream.removeLivePacketListener(listener);
+			String entryId = Utils.getEntryIdFromStreamName(streamName);
+			this.removeEntryBaseSystemTime(entryId);
 			logger.info("remove PacketListener: " + stream.getSrc());
 		}
 
@@ -201,7 +199,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			String streamName = stream.getName();
 
 			if (this.entryId == null) {
-				this.entryId = extractEntryId(streamName);
+				this.entryId = Utils.getEntryIdFromStreamName(streamName);
 			}
 
 			// get global entry baseSystemTime
@@ -217,6 +215,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 					// update globe entry base timestamp
 					liveEntryBaseTimestamp = setLiveEntryBaseSystemTime(this.entryId, currentTime);
+
+					// Todo: handle time code that went back in time
 				}
 				this.basePacketTimeCode = currentPacketTimeCode;
 				this.baseSystemTime = liveEntryBaseTimestamp;
@@ -224,7 +224,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			this.lastPacketTimeCode = currentPacketTimeCode;
 
 			long packetTimeCode = currentPacketTimeCode - this.basePacketTimeCode + this.baseSystemTime;
-			// Todo: handle time code that went back in time
+
 
 			thisPacket.setAbsTimecode(packetTimeCode);
 		}
@@ -232,17 +232,19 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	}
 
 	public long getLiveEntryBaseSystemTime(String entryId, long baseSystemTime) {
-		try {
-			if (!this.mapLiveEntryToBaseSystemTime.containsKey(entryId)) {
-				this.mapLiveEntryToBaseSystemTime.put(entryId, baseSystemTime);
-			} else {
-				baseSystemTime = this.mapLiveEntryToBaseSystemTime.get(entryId);
-			}
-		} catch (Exception e) {
-			if (Boolean.valueOf(entryId)) {
-				logger.error("(" + entryId + ") fail to get base timestamp for live entry." + e.toString());
-			} else {
-				logger.error("( UNDEFIMED ENTRY ID ) could not get base timestamp, entryId is invalid. " + e.toString());
+		synchronized (this.mapLiveEntryToBaseSystemTime) {
+			try {
+				if (!this.mapLiveEntryToBaseSystemTime.containsKey(entryId)) {
+					this.mapLiveEntryToBaseSystemTime.put(entryId, baseSystemTime);
+				} else {
+					baseSystemTime = this.mapLiveEntryToBaseSystemTime.get(entryId);
+				}
+			} catch (Exception e) {
+				if (Boolean.valueOf(entryId)) {
+					logger.error("(" + entryId + ") fail to get base timestamp for live entry." + e.toString());
+				} else {
+					logger.error("( UNDEFIMED ENTRY ID ) could not get base timestamp, entryId is invalid. " + e.toString());
+				}
 			}
 		}
 
@@ -250,48 +252,18 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	}
 
 	public long setLiveEntryBaseSystemTime(String entryId, long baseSystemTime) {
-		this.mapLiveEntryToBaseSystemTime.put(entryId, baseSystemTime);
+		synchronized (this.mapLiveEntryToBaseSystemTime) {
+			this.mapLiveEntryToBaseSystemTime.put(entryId, baseSystemTime);
+		}
 		return baseSystemTime;
 	}
 
-	public void incrementStreams(String streamName) {
-		String entryId = extractEntryId(streamName);
-		if (mapLiveEntryStreamsCount.containsKey(entryId)) {
-			mapLiveEntryStreamsCount.put(streamName, mapLiveEntryStreamsCount.get(entryId) + 1);
-		} else {
-			mapLiveEntryStreamsCount.put(streamName, new Long(1));
-		}
-	}
-
-	public void decrementStreams(String streamName) {
-		String entryId = extractEntryId(streamName);
-		if (mapLiveEntryStreamsCount.containsKey(entryId)) {
-			if (mapLiveEntryStreamsCount.put(streamName, mapLiveEntryStreamsCount.get(entryId) - 1) <= 1) {
-				mapLiveEntryToBaseSystemTime.remove(entryId);
+	public void removeEntryBaseSystemTime(String entryId) {
+		synchronized (this.mapLiveEntryToBaseSystemTime) {
+			if (this.mapLiveEntryToBaseSystemTime.containsKey(entryId)) {
+				this.mapLiveEntryToBaseSystemTime.remove(entryId);
 			}
-		} else {
-			logger.warn("didn't find " + entryId + " in map");
 		}
-	}
-
-	public String extractEntryId(String streamName) {
-		if (streamName == null) {
-			logger.error("NULL stream name. Failed to extract entryId");
-			return null;
-		}
-
-		String entryId = streamName;
-		Pattern entryIdPattern = Pattern.compile("(^[0-1]_[a-zA-Z0-9]+)");
-		Matcher m = entryIdPattern.matcher(streamName);
-
-		if (m.find()) {
-			streamName = m.group(1);
-			logger.debug("stream: " + streamName + " entryId: " + entryId);
-		} else {
-			logger.error("failed to extract entryId from " + streamName);
-		}
-
-		return entryId;
 	}
 
 }
