@@ -37,18 +37,18 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	private static final Logger logger = Logger.getLogger(LiveStreamSettingsModule.class);
 	private static final String MAX_ALLOWED_PTS_DRIFT_MILLISEC = "KalturaMaxAllowedPTSDriftiMillisec";
 	private static final int DEFAULT_MAX_ALLOWED_PTS_DRIFT_MILLISEC = 1000;
+	private static final String STREAM_ACTION_LISTENER_PROPERTY = "KalturaSyncPTS";
 
 	private LiveStreamPacketizerListener liveStreamPacketizerListener;
 	private int maxAllowedPTSDriftMillisec;
 	private ConcurrentHashMap<String, Long> mapLiveEntryToBaseSystemTime = null;
 	private ConcurrentHashMap<String, Long> mapLiveEntryStreamsCount = null;
-	private ConcurrentHashMap<String, PacketListener> packetListeners = null;
 
 	public LiveStreamSettingsModule() {
 		logger.debug("Creating a new instance of Modules.CuePointsManager");
 		mapLiveEntryToBaseSystemTime = new ConcurrentHashMap<>();
 		mapLiveEntryStreamsCount = new ConcurrentHashMap<>();
-		packetListeners = new ConcurrentHashMap<>();
+		//packetListeners = new ConcurrentHashMap<>();
 	}
 
 
@@ -155,12 +155,27 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	}
 
 	public void onStreamCreate(IMediaStream stream) {
-		stream.addLivePacketListener(new PacketListener());
+		PacketListener listener = new PacketListener();
+		WMSProperties props = stream.getProperties();
+		synchronized (props)
+		{
+			props.setProperty(STREAM_ACTION_LISTENER_PROPERTY, listener);
+		}
+
+		stream.addLivePacketListener(listener);
 	}
 
 	public void onStreamDestroy(IMediaStream stream) {
-		String streamName = stream.getName();
-		unregisterPacketListener(streamName, stream);
+		PacketListener listener = null;
+		WMSProperties props = stream.getProperties();
+		synchronized (props) {
+			listener = (PacketListener) props.get(STREAM_ACTION_LISTENER_PROPERTY);
+		}
+		if (listener != null) {
+			stream.removeLivePacketListener(listener);
+			logger.info("remove PacketListener: " + stream.getSrc());
+		}
+
 	}
 
 	class PacketListener implements IMediaStreamLivePacketNotify {
@@ -187,7 +202,6 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 			if (this.entryId == null) {
 				this.entryId = extractEntryId(streamName);
-				registerPacketListener(streamName, this);
 			}
 
 			// get global entry baseSystemTime
@@ -210,6 +224,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			this.lastPacketTimeCode = currentPacketTimeCode;
 
 			long packetTimeCode = currentPacketTimeCode - this.basePacketTimeCode + this.baseSystemTime;
+			// Todo: handle time code that went back in time
+
 			thisPacket.setAbsTimecode(packetTimeCode);
 		}
 
@@ -276,33 +292,6 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		}
 
 		return entryId;
-	}
-
-	public void registerPacketListener(String streamName, PacketListener listener) {
-		if (streamName == null) {
-			logger.error("NULL stream name. Failed to register packet listener.");
-			return;
-		}
-		try {
-			packetListeners.put(streamName, listener);
-		} catch (Exception e) {
-			logger.error("(" + streamName + ") failed to register packet listerner. " + e.toString());
-		}
-	}
-
-	public void unregisterPacketListener(String streamName, IMediaStream stream) {
-		if (streamName == null) {
-			logger.error("NULL stream name. Failed to register packet listener.");
-			return;
-		}
-		try {
-			if (stream != null) {
-				stream.removeLivePacketListener(packetListeners.get(streamName));
-			}
-			packetListeners.remove(streamName);
-		} catch (Exception e) {
-			logger.error("(" + streamName + ") failed to register packet listerner. " + e.toString());
-		}
 	}
 
 }
