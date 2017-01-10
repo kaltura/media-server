@@ -178,24 +178,22 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	class PacketListener implements IMediaStreamLivePacketNotify {
 
-		private long lastPacketTimeCode;
 		private long baseSystemTime;
 		private long basePacketTimeCode;
 		private String entryId = null;
 
 		public PacketListener() {
-			this.lastPacketTimeCode = 0;
 			this.basePacketTimeCode = 0;
 			this.baseSystemTime = 0;
 		}
 
 		public void onLivePacket(IMediaStream stream, AMFPacket thisPacket) {
 
+			if (!stream.isTranscodeResult()){
+				return;
+			}
 			long currentTime = System.currentTimeMillis();
-			long currentPacketTimeCode = thisPacket.getAbsTimecode();
-			long currentPTS = thisPacket.getTimecode();
-			boolean isAudio = thisPacket.isAudio();
-			boolean isVideo = thisPacket.isVideo();
+			long ptsDiff = thisPacket.getTimecode();
 			String streamName = stream.getName();
 
 			if (this.entryId == null) {
@@ -204,15 +202,16 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 			// get global entry baseSystemTime
 			long liveEntryBaseTimestamp = getLiveEntryBaseSystemTime(this.entryId, currentTime);
-
-			logger.debug("Stream name: " + streamName + " currentTime: " + currentTime + " current TimeCode: " + currentPacketTimeCode + " currentPTS " + currentPTS + " Audio " + Boolean.toString(isAudio) + " Video " + Boolean.toString(isVideo));
+			long absPTSTimecodeDiff = Math.abs(ptsDiff);
+			long currentPacketTimeCode = thisPacket.getAbsTimecode();
+			long packetTimeCode = currentPacketTimeCode - this.basePacketTimeCode + this.baseSystemTime;
 
 			if (liveEntryBaseTimestamp != this.baseSystemTime ||
-					this.baseSystemTime == 0 || this.lastPacketTimeCode == 0
-					|| Math.abs(currentPacketTimeCode - this.lastPacketTimeCode) > maxAllowedPTSDriftMillisec) {
+					this.baseSystemTime == 0 || absPTSTimecodeDiff > maxAllowedPTSDriftMillisec) {
 
-				if (this.baseSystemTime == liveEntryBaseTimestamp && currentTime != this.baseSystemTime) {
-
+				// check if there was PTS jump
+				if (absPTSTimecodeDiff > maxAllowedPTSDriftMillisec) {
+					logger.debug("(" + streamName + ") PTS diff[" + ptsDiff + "] > threshold [" + maxAllowedPTSDriftMillisec + "] ");
 					// update globe entry base timestamp
 					liveEntryBaseTimestamp = setLiveEntryBaseSystemTime(this.entryId, currentTime);
 
@@ -220,11 +219,10 @@ public class LiveStreamSettingsModule extends ModuleBase {
 				}
 				this.basePacketTimeCode = currentPacketTimeCode;
 				this.baseSystemTime = liveEntryBaseTimestamp;
+				packetTimeCode = currentPacketTimeCode - this.basePacketTimeCode + this.baseSystemTime;
+
+				logger.debug("(" + streamName + ") PTS timecode will change from [" + currentPacketTimeCode + "] to [" + packetTimeCode + "] ");
 			}
-			this.lastPacketTimeCode = currentPacketTimeCode;
-
-			long packetTimeCode = currentPacketTimeCode - this.basePacketTimeCode + this.baseSystemTime;
-
 
 			thisPacket.setAbsTimecode(packetTimeCode);
 		}
