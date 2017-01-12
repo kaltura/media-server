@@ -29,15 +29,15 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	private static final String OBJECT_TYPE_KEY = "objectType";
 	private static final String OBJECT_TYPE_SYNCPOINT = "KalturaSyncPoint";
-	private static final String HEADER_TAG_TIMECODE = "EXT-KALTURA-SYNC-POINT";
+	//private static final String HEADER_TAG_TIMECODE = "EXT-KALTURA-SYNC-POINT";
 	private static final String TIMESTAMP_KEY = "timestamp";
 	private static final String ID_KEY = "id";
 	private static final Logger logger = Logger.getLogger(LiveStreamSettingsModule.class);
 	private static final String MAX_ALLOWED_PTS_DRIFT_MILLISEC = "KalturaMaxAllowedPTSDriftiMillisec";
 	private static final int DEFAULT_MAX_ALLOWED_PTS_DRIFT_MILLISEC = 10000;
 	private static final String STREAM_ACTION_LISTENER_PROPERTY = "KalturaSyncPTS";
-	private static final int BASE_SYSTEM_TIME = 0;
-	private static final int BASE_PTS = 1;
+	private static final int GLOBAL_SYSTEM_TIME_INDEX = 0;
+	private static final int GLOBAL_BASE_PTS_INDEX = 1;
 
 	private LiveStreamPacketizerListener liveStreamPacketizerListener;
 	private int maxAllowedPTSDriftMillisec;
@@ -68,10 +68,12 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			logger.info("adding ID3 frame (timestamp=" + startTimeStr + ") to chunk [" + chunk.getRendition().toString() + ":" + this.liveStreamPacketizer.getContextStr() + "]: chunkId:" + chunk.getChunkIndexForPlaylist());
 
 			// Add custom M3U tag to chunklist header
+/*
 			CupertinoUserManifestHeaders userManifestHeaders = this.liveStreamPacketizer.getUserManifestHeaders(chunk.getRendition());
 			if (userManifestHeaders != null) {
 				userManifestHeaders.addHeader(HEADER_TAG_TIMECODE, TIMESTAMP_KEY, packetStartTime);
 			}
+*/
 
 			try {
 
@@ -150,14 +152,16 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	}
 
 	public void onStreamCreate(IMediaStream stream) {
-		if (!stream.isTranscodeResult()) {
-			PacketListener listener = new PacketListener();
-			WMSProperties props = stream.getProperties();
-			synchronized (props) {
-				props.setProperty(STREAM_ACTION_LISTENER_PROPERTY, listener);
-			}
-			stream.addLivePacketListener(listener);
+		if (stream.isTranscodeResult()) {
+			return;
 		}
+		PacketListener listener = new PacketListener();
+		WMSProperties props = stream.getProperties();
+		synchronized (props) {
+			props.setProperty(STREAM_ACTION_LISTENER_PROPERTY, listener);
+		}
+		stream.addLivePacketListener(listener);
+
 	}
 
 	public void onStreamDestroy(IMediaStream stream) {
@@ -219,7 +223,6 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			String streamType = TYPE_STR[typeIndex];
 
 			// get data from input packet
-			long currentTime = System.currentTimeMillis();
 			long inPTS = thisPacket.getAbsTimecode();
 
 			baseSystemTime = syncPTSData[typeIndex][BASE_TIME_INDEX];
@@ -227,20 +230,21 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			lastInPTS = syncPTSData[typeIndex][LAST_IN_PTS_INDEX];
 
 			// init local parameters used to calculate output PTS
-			boolean firstPacket = (baseSystemTime == 0) ? true : false;
-			boolean ptsJumped = (lastInPTS - maxAllowedPTSDriftMillisec > inPTS || inPTS - maxAllowedPTSDriftMillisec > lastInPTS) ? true : false;
 			long inPTSDiff = lastInPTS - inPTS;
 			long absPTSTimeCodeDiff = Math.abs(inPTSDiff);
+			boolean ptsJumped = (absPTSTimeCodeDiff > maxAllowedPTSDriftMillisec) ? true : false;
+			boolean firstPacket = (baseSystemTime == 0) ? true : false;
 
 			//=================================================================
 			// handle first packet & PTS jump
 			//=================================================================
-			if (baseSystemTime == 0 || ptsJumped) {
+			if (firstPacket || ptsJumped) {
 
+				long currentTime = System.currentTimeMillis();
 				long[] globalPTSData = setLiveEntryBaseSystemTime(this.entryId, currentTime, inPTS);
 
-				baseSystemTime = globalPTSData[0];
-				baseInPTS = globalPTSData[1];
+				baseSystemTime = globalPTSData[GLOBAL_SYSTEM_TIME_INDEX];
+				baseInPTS = globalPTSData[GLOBAL_BASE_PTS_INDEX];
 				syncPTSData[typeIndex][BASE_TIME_INDEX] = baseSystemTime;
 				syncPTSData[typeIndex][BASE_PTS_INDEX] = baseInPTS;
 				syncPTSData[typeIndex][LAST_IN_PTS_INDEX] = baseInPTS;
@@ -278,7 +282,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 					syncData = this.mapLiveEntryToBaseSystemTime.get(entryId);
 				}
 
-				if (Math.abs(basePTS - syncData[BASE_PTS]) > maxAllowedPTSDriftMillisec) {
+				if (Math.abs(basePTS - syncData[GLOBAL_BASE_PTS_INDEX]) > maxAllowedPTSDriftMillisec) {
 					this.mapLiveEntryToBaseSystemTime.put(entryId, syncData);
 				}
 			}
