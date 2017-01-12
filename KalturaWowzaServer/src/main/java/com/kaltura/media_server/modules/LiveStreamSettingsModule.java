@@ -100,15 +100,15 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		}
 
 		public void onFillChunkEnd(LiveStreamPacketizerCupertinoChunk chunk, long timecode) {
-			logger.info("[" + chunk.getRendition().toString() + ":" + liveStreamPacketizer.getContextStr() + "]: chunkId:" + chunk.getChunkIndexForPlaylist());
+			//logger.info("[" + chunk.getRendition().toString() + ":" + liveStreamPacketizer.getContextStr() + "]: chunkId:" + chunk.getChunkIndexForPlaylist());
 		}
 
 		public void onFillChunkMediaPacket(LiveStreamPacketizerCupertinoChunk chunk, CupertinoPacketHolder holder, AMFPacket packet) {
-			logger.info("[" + chunk.getRendition().toString() + ":" + liveStreamPacketizer.getContextStr() + "]: chunkId:" + chunk.getChunkIndexForPlaylist());
+			//logger.info("[" + chunk.getRendition().toString() + ":" + liveStreamPacketizer.getContextStr() + "]: chunkId:" + chunk.getChunkIndexForPlaylist());
 		}
 
 		public void onFillChunkDataPacket(LiveStreamPacketizerCupertinoChunk chunk, CupertinoPacketHolder holder, AMFPacket packet, ID3Frames id3Frames) {
-			logger.info("[" + chunk.getRendition().toString() + ":" + liveStreamPacketizer.getContextStr() + "]: chunkId:" + chunk.getChunkIndexForPlaylist());
+			//logger.info("[" + chunk.getRendition().toString() + ":" + liveStreamPacketizer.getContextStr() + "]: chunkId:" + chunk.getChunkIndexForPlaylist());
 		}
 
 	}
@@ -174,7 +174,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		if (listener != null) {
 			stream.removeLivePacketListener(listener);
 			String entryId = Utils.getEntryIdFromStreamName(streamName);
-			this.removeEntryBaseSystemTime(entryId);
+			this.removeGlobalPTSSyncData(entryId);
 			logger.info("remove PacketListener: " + stream.getSrc());
 		}
 
@@ -241,7 +241,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			if (firstPacket || ptsJumped) {
 
 				long currentTime = System.currentTimeMillis();
-				long[] globalPTSData = setLiveEntryBaseSystemTime(this.entryId, currentTime, inPTS);
+				long[] globalPTSData = updateGlobalPTSSyncData(this.entryId, currentTime, inPTS);
 
 				baseSystemTime = globalPTSData[GLOBAL_SYSTEM_TIME_INDEX];
 				baseInPTS = globalPTSData[GLOBAL_BASE_PTS_INDEX];
@@ -271,7 +271,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		}
 	}
 
-	public long[] setLiveEntryBaseSystemTime(String entryId, long baseSystemTime, long basePTS) {
+	public long[] updateGlobalPTSSyncData(String entryId, long baseSystemTime, long basePTS) {
 
 		long[] newSyncData = {baseSystemTime, basePTS};
 		try {
@@ -296,7 +296,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		return newSyncData;
 	}
 
-	public void removeEntryBaseSystemTime(String entryId) {
+	public void removeGlobalPTSSyncData(String entryId) {
 		synchronized (this.mapLiveEntryToBaseSystemTime) {
 			if (this.mapLiveEntryToBaseSystemTime.containsKey(entryId)) {
 				this.mapLiveEntryToBaseSystemTime.remove(entryId);
