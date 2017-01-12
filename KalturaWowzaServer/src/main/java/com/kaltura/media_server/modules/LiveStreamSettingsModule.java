@@ -280,10 +280,9 @@ public class LiveStreamSettingsModule extends ModuleBase {
 					this.mapLiveEntryToBaseSystemTime.put(entryId, syncData);
 				} else {
 					syncData = this.mapLiveEntryToBaseSystemTime.get(entryId);
-				}
-
-				if (Math.abs(basePTS - syncData[GLOBAL_BASE_PTS_INDEX]) > maxAllowedPTSDriftMillisec) {
-					this.mapLiveEntryToBaseSystemTime.put(entryId, syncData);
+					if (Math.abs(basePTS - syncData[GLOBAL_BASE_PTS_INDEX]) > maxAllowedPTSDriftMillisec) {
+						this.mapLiveEntryToBaseSystemTime.put(entryId, syncData);
+					}
 				}
 			}
 		} catch (Exception e) {
