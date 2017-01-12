@@ -229,42 +229,42 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			}
 
 			// init local parameters used to calculate output PTS
+			boolean firstPacket = (baseSystemTime == 0) ? true : false;
+			boolean ptsJumped = (lastInPTS - maxAllowedPTSDriftMillisec > inPTS || inPTS - maxAllowedPTSDriftMillisec > lastInPTS) ? true : false;
 			long inPTSDiff = lastInPTS - inPTS;
 			long absPTSTimeCodeDiff = Math.abs(inPTSDiff);
-			boolean firstPacket = (baseInPTS == 0) ? true : false;
 
 			//=================================================================
-			// handle first packet in stream or handle PTS jump
+			// handle first packet & PTS jump
 			//=================================================================
-			if (baseSystemTime == 0 || absPTSTimeCodeDiff > maxAllowedPTSDriftMillisec) {
+			if (baseSystemTime == 0 || ptsJumped) {
 
 				long[] globalPTSData = setLiveEntryBaseSystemTime(this.entryId, currentTime, inPTS);
 
 				baseSystemTime = globalPTSData[0];
 				baseInPTS = globalPTSData[1];
-				lastInPTS = baseInPTS;
 
 				if (thisPacket.isAudio()) {
 					properties.setProperty(Constants.AUDIO_BASE_SYSTEM_TIME, baseSystemTime);
 					properties.setProperty(Constants.AUDIO_BASE_PTS, baseInPTS);
-					properties.setProperty(Constants.AUDIO_LAST_IN_PTS, lastInPTS);
+					properties.setProperty(Constants.AUDIO_LAST_IN_PTS, baseInPTS);
 
 				} else if (thisPacket.isVideo()) {
 					properties.setProperty(Constants.VIDEO_BASE_SYSTEM_TIME, baseSystemTime);
 					properties.setProperty(Constants.VIDEO_BASE_PTS, baseInPTS);
-					properties.setProperty(Constants.VIDEO_LAST_IN_PTS, lastInPTS);
+					properties.setProperty(Constants.VIDEO_LAST_IN_PTS, baseInPTS);
 				} else {
 					properties.setProperty(Constants.DATA_BASE_SYSTEM_TIME, baseSystemTime);
 					properties.setProperty(Constants.DATA_BASE_PTS, baseInPTS);
-					properties.setProperty(Constants.DATA_LAST_IN_PTS, lastInPTS);
+					properties.setProperty(Constants.DATA_LAST_IN_PTS, baseInPTS);
 				}
 			} else {
 				if (thisPacket.isAudio()) {
-					properties.setProperty(Constants.AUDIO_LAST_IN_PTS, lastInPTS);
+					properties.setProperty(Constants.AUDIO_LAST_IN_PTS, inPTS);
 				} else if (thisPacket.isVideo()) {
-					properties.setProperty(Constants.VIDEO_LAST_IN_PTS, lastInPTS);
+					properties.setProperty(Constants.VIDEO_LAST_IN_PTS, inPTS);
 				} else {
-					properties.setProperty(Constants.DATA_LAST_IN_PTS, lastInPTS);
+					properties.setProperty(Constants.DATA_LAST_IN_PTS, inPTS);
 				}
 			}
 
@@ -309,24 +309,24 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		return refData;
 	}
 
-	public long[] setLiveEntryBaseSystemTime(String entryId, long baseSystemTime, long basePTSTimeCode) {
+	public long[] setLiveEntryBaseSystemTime(String entryId, long baseSystemTime, long basePTS) {
 
-		long[] refData = {baseSystemTime, basePTSTimeCode};
+		long[] globalData = this.getLiveEntryBaseSystemTime(entryId, baseSystemTime, basePTS);
+		long[] newData = {baseSystemTime, basePTS};
+		long globalBasePTS = globalData[1];
 
 		try {
 			synchronized (this.mapLiveEntryToBaseSystemTime) {
-				long[] currentRefData = this.mapLiveEntryToBaseSystemTime.get(entryId);
-				if (Math.abs(basePTSTimeCode - currentRefData[0]) > maxAllowedPTSDriftMillisec) {
-					this.mapLiveEntryToBaseSystemTime.put(entryId, refData);
-				} else {
-					refData = currentRefData;
+				if (Math.abs(basePTS - globalBasePTS) > maxAllowedPTSDriftMillisec) {
+					this.mapLiveEntryToBaseSystemTime.put(entryId, newData);
+					globalData = newData;
 				}
 			}
 		} catch (Exception e) {
 			logger.error("(" + entryId + ") fail to sync PTS base timestamp for live entry." + e.toString());
 		}
 
-		return refData;
+		return globalData;
 	}
 
 	public void removeEntryBaseSystemTime(String entryId) {
