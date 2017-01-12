@@ -2,8 +2,6 @@ package com.kaltura.media_server.modules;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kaltura.client.types.KalturaLiveEntry;
-import com.kaltura.media_server.services.Constants;
 import com.kaltura.media_server.services.Utils;
 import com.wowza.wms.amf.*;
 import com.wowza.wms.application.*;
@@ -19,13 +17,9 @@ import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import com.wowza.wms.vhost.*;
 import org.apache.log4j.Logger;
 
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.text.SimpleDateFormat;
-import java.lang.Thread;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 
 // todo: test and add relevant code ofr ptsTimeCode moving back in time and PTS wrap arround are supported.
 
@@ -42,9 +36,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	private static final String MAX_ALLOWED_PTS_DRIFT_MILLISEC = "KalturaMaxAllowedPTSDriftiMillisec";
 	private static final int DEFAULT_MAX_ALLOWED_PTS_DRIFT_MILLISEC = 10000;
 	private static final String STREAM_ACTION_LISTENER_PROPERTY = "KalturaSyncPTS";
-//	private static final int BASE_SYSTEM_TIME = 0;
-//	private static final int BASE_PTS = 1;
-//	private static final int LAST_IN_PTS = 2;
+	private static final int BASE_SYSTEM_TIME = 0;
+	private static final int BASE_PTS = 1;
 
 	private LiveStreamPacketizerListener liveStreamPacketizerListener;
 	private int maxAllowedPTSDriftMillisec;
@@ -157,13 +150,14 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	}
 
 	public void onStreamCreate(IMediaStream stream) {
-		PacketListener listener = new PacketListener();
-		WMSProperties props = stream.getProperties();
-		synchronized (props) {
-			props.setProperty(STREAM_ACTION_LISTENER_PROPERTY, listener);
+		if (!stream.isTranscodeResult()) {
+			PacketListener listener = new PacketListener();
+			WMSProperties props = stream.getProperties();
+			synchronized (props) {
+				props.setProperty(STREAM_ACTION_LISTENER_PROPERTY, listener);
+			}
+			stream.addLivePacketListener(listener);
 		}
-
-		stream.addLivePacketListener(listener);
 	}
 
 	public void onStreamDestroy(IMediaStream stream) {
@@ -184,16 +178,36 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	class PacketListener implements IMediaStreamLivePacketNotify {
 
+		private static final int BASE_TIME_INDEX = 0;
+		private static final int BASE_PTS_INDEX = 1;
+		private static final int LAST_IN_PTS_INDEX = 2;
+		private static final int VIDEO_INDEX = 0;
+		private static final int AUDIO_INDEX = 1;
+		private static final int DATA_INDEX = 2;
+		private static final int NUM_TYPES = 3;
+		private static final int SYNC_PARAMS_COUNT = 3;
+		private final String[] TYPE_STR = {"video", "audio", "data"};
+
 		private String entryId = null;
+		private long[][] syncPTSData = null;
+
 
 		public PacketListener() {
+			this.syncPTSData = new long[NUM_TYPES][SYNC_PARAMS_COUNT];
+		}
+
+		private int getIndex(AMFPacket thisPacket) {
+			if (thisPacket.isVideo()) {
+				return VIDEO_INDEX;
+			} else if (thisPacket.isAudio()) {
+				return AUDIO_INDEX;
+			}
+
+			return DATA_INDEX;
 		}
 
 		public void onLivePacket(IMediaStream stream, AMFPacket thisPacket) {
 
-			if (stream.isTranscodeResult()) {
-				return;
-			}
 			long baseSystemTime = 0;
 			long baseInPTS = 0;
 			long lastInPTS = 0;
@@ -201,32 +215,16 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			if (this.entryId == null) {
 				this.entryId = Utils.getEntryIdFromStreamName(streamName);
 			}
-
-			WMSProperties properties = stream.getProperties();
+			int typeIndex = this.getIndex(thisPacket);
+			String streamType = TYPE_STR[typeIndex];
 
 			// get data from input packet
 			long currentTime = System.currentTimeMillis();
 			long inPTS = thisPacket.getAbsTimecode();
 
-			int type = thisPacket.getType();
-			String streamType = null;
-			if (thisPacket.isAudio()) {
-				streamType = "audio";
-				baseSystemTime = properties.getPropertyLong(Constants.AUDIO_BASE_SYSTEM_TIME, 0);
-				baseInPTS = properties.getPropertyLong(Constants.AUDIO_BASE_PTS, 0);
-				lastInPTS = properties.getPropertyLong(Constants.AUDIO_LAST_IN_PTS, 0);
-
-			} else if (thisPacket.isVideo()) {
-				streamType = "video";
-				baseSystemTime = properties.getPropertyLong(Constants.VIDEO_BASE_SYSTEM_TIME, 0);
-				baseInPTS = properties.getPropertyLong(Constants.VIDEO_BASE_PTS, 0);
-				lastInPTS = properties.getPropertyLong(Constants.VIDEO_LAST_IN_PTS, 0);
-			} else {
-				streamType = "data";
-				baseSystemTime = properties.getPropertyLong(Constants.DATA_BASE_SYSTEM_TIME, 0);
-				baseInPTS = properties.getPropertyLong(Constants.DATA_BASE_PTS, 0);
-				lastInPTS = properties.getPropertyLong(Constants.DATA_LAST_IN_PTS, 0);
-			}
+			baseSystemTime = syncPTSData[typeIndex][BASE_TIME_INDEX];
+			baseInPTS = syncPTSData[typeIndex][BASE_PTS_INDEX];
+			lastInPTS = syncPTSData[typeIndex][LAST_IN_PTS_INDEX];
 
 			// init local parameters used to calculate output PTS
 			boolean firstPacket = (baseSystemTime == 0) ? true : false;
@@ -243,29 +241,12 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 				baseSystemTime = globalPTSData[0];
 				baseInPTS = globalPTSData[1];
+				syncPTSData[typeIndex][BASE_TIME_INDEX] = baseSystemTime;
+				syncPTSData[typeIndex][BASE_PTS_INDEX] = baseInPTS;
+				syncPTSData[typeIndex][LAST_IN_PTS_INDEX] = baseInPTS;
 
-				if (thisPacket.isAudio()) {
-					properties.setProperty(Constants.AUDIO_BASE_SYSTEM_TIME, baseSystemTime);
-					properties.setProperty(Constants.AUDIO_BASE_PTS, baseInPTS);
-					properties.setProperty(Constants.AUDIO_LAST_IN_PTS, baseInPTS);
-
-				} else if (thisPacket.isVideo()) {
-					properties.setProperty(Constants.VIDEO_BASE_SYSTEM_TIME, baseSystemTime);
-					properties.setProperty(Constants.VIDEO_BASE_PTS, baseInPTS);
-					properties.setProperty(Constants.VIDEO_LAST_IN_PTS, baseInPTS);
-				} else {
-					properties.setProperty(Constants.DATA_BASE_SYSTEM_TIME, baseSystemTime);
-					properties.setProperty(Constants.DATA_BASE_PTS, baseInPTS);
-					properties.setProperty(Constants.DATA_LAST_IN_PTS, baseInPTS);
-				}
 			} else {
-				if (thisPacket.isAudio()) {
-					properties.setProperty(Constants.AUDIO_LAST_IN_PTS, inPTS);
-				} else if (thisPacket.isVideo()) {
-					properties.setProperty(Constants.VIDEO_LAST_IN_PTS, inPTS);
-				} else {
-					properties.setProperty(Constants.DATA_LAST_IN_PTS, inPTS);
-				}
+				syncPTSData[typeIndex][LAST_IN_PTS_INDEX] = inPTS;
 			}
 
 			//=================================================================
@@ -286,47 +267,26 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		}
 	}
 
-	public long[] getLiveEntryBaseSystemTime(String entryId, long baseSystemTime, long basePTSTimeCode) {
-
-		long[] refData = {baseSystemTime, basePTSTimeCode};
-
-		synchronized (this.mapLiveEntryToBaseSystemTime) {
-			try {
-				if (!this.mapLiveEntryToBaseSystemTime.containsKey(entryId)) {
-					this.mapLiveEntryToBaseSystemTime.put(entryId, refData);
-				} else {
-					refData = this.mapLiveEntryToBaseSystemTime.get(entryId);
-				}
-			} catch (Exception e) {
-				if (Boolean.valueOf(entryId)) {
-					logger.error("(" + entryId + ") fail to get base timestamp for live entry." + e.toString());
-				} else {
-					logger.error("( undefined entryId ) could not get base timestamp, entryId is invalid. " + e.toString());
-				}
-			}
-		}
-
-		return refData;
-	}
-
 	public long[] setLiveEntryBaseSystemTime(String entryId, long baseSystemTime, long basePTS) {
 
-		long[] globalData = this.getLiveEntryBaseSystemTime(entryId, baseSystemTime, basePTS);
-		long[] newData = {baseSystemTime, basePTS};
-		long globalBasePTS = globalData[1];
-
+		long[] syncData = {baseSystemTime, basePTS};
 		try {
 			synchronized (this.mapLiveEntryToBaseSystemTime) {
-				if (Math.abs(basePTS - globalBasePTS) > maxAllowedPTSDriftMillisec) {
-					this.mapLiveEntryToBaseSystemTime.put(entryId, newData);
-					globalData = newData;
+				if (!this.mapLiveEntryToBaseSystemTime.containsKey(entryId)) {
+					this.mapLiveEntryToBaseSystemTime.put(entryId, syncData);
+				} else {
+					syncData = this.mapLiveEntryToBaseSystemTime.get(entryId);
+				}
+
+				if (Math.abs(basePTS - syncData[BASE_PTS]) > maxAllowedPTSDriftMillisec) {
+					this.mapLiveEntryToBaseSystemTime.put(entryId, syncData);
 				}
 			}
 		} catch (Exception e) {
 			logger.error("(" + entryId + ") fail to sync PTS base timestamp for live entry." + e.toString());
 		}
 
-		return globalData;
+		return syncData;
 	}
 
 	public void removeEntryBaseSystemTime(String entryId) {

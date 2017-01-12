@@ -43,13 +43,6 @@ public class Constants {
     public static final String ONMETADATA_AUDIOCODECIDSTR = "audiocodecidstring";
     public static final String[] streamParams = {ONMETADATA_AUDIODATARATE, ONMETADATA_VIDEODATARATE, ONMETADATA_WIDTH,
             ONMETADATA_HEIGHT, ONMETADATA_FRAMERATE, ONMETADATA_VIDEOCODECIDSTR, ONMETADATA_AUDIOCODECIDSTR};
-    public static final String AUDIO_BASE_SYSTEM_TIME = "audioBaseSystemTime";
-    public static final String AUDIO_BASE_PTS = "audioBasePTS";
-    public static final String AUDIO_LAST_IN_PTS = "audioLastInPTS";
-    public static final String VIDEO_BASE_SYSTEM_TIME = "videoBaseSystemTime";
-    public static final String VIDEO_BASE_PTS = "videoBasePTS";
-    public static final String VIDEO_LAST_IN_PTS = "videoLastInPTS";
-    public static final String DATA_BASE_SYSTEM_TIME = "dataBaseSystemTime";
-    public static final String DATA_BASE_PTS = "dataBasePTS";
-    public static final String DATA_LAST_IN_PTS = "dataLastInPTS";
+    public static final String GLOBAL_BASE_SYSTEM_TIME = "globalBaseSystemTime";
+    public static final String GLOBAL_BASE_PTS = "globalBasePTS";
 }
