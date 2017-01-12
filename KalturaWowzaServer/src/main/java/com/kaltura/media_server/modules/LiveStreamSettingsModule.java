@@ -230,10 +230,10 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			lastInPTS = syncPTSData[typeIndex][LAST_IN_PTS_INDEX];
 
 			// init local parameters used to calculate output PTS
-			long inPTSDiff = lastInPTS - inPTS;
+			boolean firstPacket = (baseSystemTime == 0) ? true : false;
+			long inPTSDiff = (!firstPacket) ? (lastInPTS - inPTS) : 0;
 			long absPTSTimeCodeDiff = Math.abs(inPTSDiff);
 			boolean ptsJumped = (absPTSTimeCodeDiff > maxAllowedPTSDriftMillisec) ? true : false;
-			boolean firstPacket = (baseSystemTime == 0) ? true : false;
 
 			//=================================================================
 			// handle first packet & PTS jump
@@ -263,8 +263,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 			if (firstPacket) {
 				logger.debug("(" + streamName + ") [" + streamType + "] first PTS updated to [" + outPTS + "] PTS was [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "]");
-			} else if (absPTSTimeCodeDiff > maxAllowedPTSDriftMillisec) {
-				logger.warn("(" + streamName + ") [" + streamType + "] PTS diff[" + inPTSDiff + "] > threshold [" + maxAllowedPTSDriftMillisec + "] last PTS [" + lastInPTS + "] current PTS [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "]");
+			} else if (ptsJumped) {
+				logger.warn("(" + streamName + ") [" + streamType + "] PTS diff [" + inPTSDiff + "] > threshold [" + maxAllowedPTSDriftMillisec + "] last PTS [" + lastInPTS + "] current PTS [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "]");
 			} else {
 				logger.debug("(" + streamName + ") [" + streamType + "] updated PTS [" + outPTS + "] in PTS [" + inPTS + "]");
 			}
@@ -273,15 +273,19 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	public long[] setLiveEntryBaseSystemTime(String entryId, long baseSystemTime, long basePTS) {
 
-		long[] syncData = {baseSystemTime, basePTS};
+		long[] newSyncData = {baseSystemTime, basePTS};
 		try {
 			synchronized (this.mapLiveEntryToBaseSystemTime) {
 				if (!this.mapLiveEntryToBaseSystemTime.containsKey(entryId)) {
-					this.mapLiveEntryToBaseSystemTime.put(entryId, syncData);
+					this.mapLiveEntryToBaseSystemTime.put(entryId, newSyncData);
 				} else {
-					syncData = this.mapLiveEntryToBaseSystemTime.get(entryId);
-					if (Math.abs(basePTS - syncData[GLOBAL_BASE_PTS_INDEX]) > maxAllowedPTSDriftMillisec) {
-						this.mapLiveEntryToBaseSystemTime.put(entryId, syncData);
+
+					long[] globalSyncData = this.mapLiveEntryToBaseSystemTime.get(entryId);
+
+					if (Math.abs(basePTS - globalSyncData[GLOBAL_BASE_PTS_INDEX]) > maxAllowedPTSDriftMillisec) {
+						this.mapLiveEntryToBaseSystemTime.put(entryId, newSyncData);
+					} else {
+						newSyncData = globalSyncData;
 					}
 				}
 			}
@@ -289,7 +293,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			logger.error("(" + entryId + ") fail to sync PTS base timestamp for live entry." + e.toString());
 		}
 
-		return syncData;
+		return newSyncData;
 	}
 
 	public void removeEntryBaseSystemTime(String entryId) {
