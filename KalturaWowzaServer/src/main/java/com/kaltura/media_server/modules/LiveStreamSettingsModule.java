@@ -265,9 +265,9 @@ public class LiveStreamSettingsModule extends ModuleBase {
 				logger.debug("(" + streamName + ") [" + streamType + "] first PTS updated to [" + outPTS + "] PTS was [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "]");
 			} else if (ptsJumped) {
 				logger.warn("(" + streamName + ") [" + streamType + "] PTS diff [" + inPTSDiff + "] > threshold [" + maxAllowedPTSDriftMillisec + "] last PTS [" + lastInPTS + "] current PTS [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "]");
-			} else {
+			}/* else {
 				logger.debug("(" + streamName + ") [" + streamType + "] updated PTS [" + outPTS + "] in PTS [" + inPTS + "]");
-			}
+			}*/
 		}
 	}
 
