@@ -153,6 +153,10 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	public void onStreamCreate(IMediaStream stream) {
 
+		if(stream.getClientId() < 0){ //transcoded rendition
+			return;
+		}
+
 		PacketListener listener = new PacketListener();
 		WMSProperties props = stream.getProperties();
 		synchronized (props) {
@@ -214,10 +218,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 		public void onLivePacket(IMediaStream stream, AMFPacket thisPacket) {
 
-			if (stream.isTranscodeResult()){
-				removeListener(stream);
-				return;
-			}
+
 			long baseSystemTime = 0;
 			long baseInPTS = 0;
 			long lastInPTS = 0;
