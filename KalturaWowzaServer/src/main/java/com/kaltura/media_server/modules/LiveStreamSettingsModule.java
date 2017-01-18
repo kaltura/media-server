@@ -152,9 +152,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	}
 
 	public void onStreamCreate(IMediaStream stream) {
-		if (stream.isTranscodeResult()) {
-			return;
-		}
+
 		PacketListener listener = new PacketListener();
 		WMSProperties props = stream.getProperties();
 		synchronized (props) {
@@ -165,6 +163,10 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	}
 
 	public void onStreamDestroy(IMediaStream stream) {
+
+		removeListener(stream);
+	}
+	private void removeListener(IMediaStream stream){
 		PacketListener listener = null;
 		String streamName = stream.getName();
 		WMSProperties props = stream.getProperties();
@@ -177,7 +179,6 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			this.removeGlobalPTSSyncData(entryId);
 			logger.info("remove PacketListener: " + stream.getSrc());
 		}
-
 	}
 
 	class PacketListener implements IMediaStreamLivePacketNotify {
@@ -185,19 +186,20 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		private static final int BASE_TIME_INDEX = 0;
 		private static final int BASE_PTS_INDEX = 1;
 		private static final int LAST_IN_PTS_INDEX = 2;
+		private static final int SHOULD_SYNC = 3;
 		private static final int VIDEO_INDEX = 0;
 		private static final int AUDIO_INDEX = 1;
 		private static final int DATA_INDEX = 2;
 		private static final int NUM_TYPES = 3;
-		private static final int SYNC_PARAMS_COUNT = 3;
+		private static final int SYNC_PARAMS_COUNT = 4;
 		private final String[] TYPE_STR = {"video", "audio", "data"};
-
 		private String entryId = null;
 		private long[][] syncPTSData = null;
 
 
 		public PacketListener() {
 			this.syncPTSData = new long[NUM_TYPES][SYNC_PARAMS_COUNT];
+
 		}
 
 		private int getIndex(AMFPacket thisPacket) {
@@ -212,6 +214,10 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 		public void onLivePacket(IMediaStream stream, AMFPacket thisPacket) {
 
+			if (stream.isTranscodeResult()){
+				removeListener(stream);
+				return;
+			}
 			long baseSystemTime = 0;
 			long baseInPTS = 0;
 			long lastInPTS = 0;
@@ -234,12 +240,15 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			long inPTSDiff = (!firstPacket) ? (lastInPTS - inPTS) : 0;
 			long absPTSTimeCodeDiff = Math.abs(inPTSDiff);
 			boolean ptsJumped = (absPTSTimeCodeDiff > maxAllowedPTSDriftMillisec) ? true : false;
+			boolean shouldSync = checkIfShouldSync(typeIndex, streamName);
 
 			//=================================================================
 			// handle first packet & PTS jump
 			//=================================================================
-			if (firstPacket || ptsJumped) {
-
+			if (firstPacket || ptsJumped || shouldSync) {
+				if (ptsJumped){
+					turnOnShouldSyncFlag(typeIndex);
+				}
 				long currentTime = System.currentTimeMillis();
 				long[] globalPTSData = updateGlobalPTSSyncData(this.entryId, currentTime, inPTS);
 
@@ -248,6 +257,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 				syncPTSData[typeIndex][BASE_TIME_INDEX] = baseSystemTime;
 				syncPTSData[typeIndex][BASE_PTS_INDEX] = baseInPTS;
 				syncPTSData[typeIndex][LAST_IN_PTS_INDEX] = baseInPTS;
+
 
 			} else {
 				syncPTSData[typeIndex][LAST_IN_PTS_INDEX] = inPTS;
@@ -265,13 +275,35 @@ public class LiveStreamSettingsModule extends ModuleBase {
 				logger.debug("(" + streamName + ") [" + streamType + "] first PTS updated to [" + outPTS + "] PTS was [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "]");
 			} else if (ptsJumped) {
 				logger.warn("(" + streamName + ") [" + streamType + "] PTS diff [" + inPTSDiff + "] > threshold [" + maxAllowedPTSDriftMillisec + "] last PTS [" + lastInPTS + "] current PTS [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "]");
-			}/* else {
-				logger.debug("(" + streamName + ") [" + streamType + "] updated PTS [" + outPTS + "] in PTS [" + inPTS + "]");
-			}*/
+			}
+			//else {
+		//		logger.debug("(" + streamName + ") [" + streamType + "] updated PTS [" + outPTS + "] in PTS [" + inPTS + "] correction " + correction);
+	//		}
 		}
+
+		public void turnOnShouldSyncFlag(int typeIndex){
+			for (int i=0; i<NUM_TYPES; i++){
+				if (i != typeIndex){
+					syncPTSData[i][SHOULD_SYNC] = 1;
+				}
+			}
+		}
+
+		public boolean checkIfShouldSync(int typeIndex, String streamName){
+			if (syncPTSData[typeIndex][SHOULD_SYNC] == 1 ){
+				syncPTSData[typeIndex][SHOULD_SYNC] = 0 ;	//turn off flag
+				String streamType = TYPE_STR[typeIndex];
+				logger.debug("(" + streamName + ") [" + streamType + "] Found that streamType shouldSync");
+				return true;
+			}
+			return false;
+		}
+
 	}
 
-	public long[] updateGlobalPTSSyncData(String entryId, long baseSystemTime, long basePTS) {
+
+	public long[] updateGlobalPTSSyncData(String entryId, long baseSystemTime, long basePTS) { //its not upldate its gett and updatrte
+
 
 		long[] newSyncData = {baseSystemTime, basePTS};
 		try {
@@ -282,7 +314,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 					long[] globalSyncData = this.mapLiveEntryToBaseSystemTime.get(entryId);
 
-					if (Math.abs(basePTS - globalSyncData[GLOBAL_BASE_PTS_INDEX]) > maxAllowedPTSDriftMillisec) {
+					if (Math.abs(basePTS - globalSyncData[GLOBAL_BASE_PTS_INDEX]) > maxAllowedPTSDriftMillisec) {		//todo better to put it on the place when foud jump
 						this.mapLiveEntryToBaseSystemTime.put(entryId, newSyncData);
 					} else {
 						newSyncData = globalSyncData;
