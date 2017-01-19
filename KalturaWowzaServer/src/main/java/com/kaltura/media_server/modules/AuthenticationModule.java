@@ -17,6 +17,7 @@ import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import org.apache.log4j.Logger;
 import com.kaltura.media_server.services.*;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 
 
@@ -24,6 +25,7 @@ import java.util.regex.Matcher;
 
 public class AuthenticationModule extends ModuleBase  {
 
+    private ConcurrentHashMap<String, Object> authenticationMutex = new ConcurrentHashMap<>();
     private static final Logger logger = Logger.getLogger(AuthenticationModule.class);
     public static final String STREAM_ACTION_PROPERTY = "AuthenticatioStreamActionNotifier";
 
@@ -46,6 +48,13 @@ public class AuthenticationModule extends ModuleBase  {
 
         try {
             HashMap<String, String>  queryParameters = Utils.getRtmpUrlParameters(rtmpUrl, client.getQueryStr());
+            String entryId = queryParameters.get(Constants.REQUEST_PROPERTY_ENTRY_ID);
+            // Create mutex for entry only if it doesn't exist.
+            Object entryMutex = authenticationMutex.putIfAbsent(entryId, new Object());
+            if (entryMutex == null) {
+                // Method will only return null on the first call, therefore only the first thread should print to log
+                logger.debug("Created \"Authentication Mutex\" for entry [" + entryId + "]");
+            }
             onClientConnect(properties, queryParameters);
         } catch (Exception  e) {
             logger.error("Entry authentication failed with url [" + rtmpUrl + "]: " + e.getMessage());
@@ -75,7 +84,13 @@ public class AuthenticationModule extends ModuleBase  {
         String token = requestParams.get(Constants.REQUEST_PROPERTY_TOKEN);
 
         KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
-        KalturaLiveEntry liveEntry = KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
+        KalturaLiveEntry liveEntry;
+        // Lock entry's specific mutex and call authenticate
+        synchronized (authenticationMutex.get(entryId)) {
+            logger.debug("Locked mutex, calling Authenticate for entry [" + entryId + "]");
+            liveEntry = KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
+            logger.debug("Authentication finished for entry [" + entryId + "]. Releasing mutex");
+        }
         synchronized(properties) {
             properties.setProperty(Constants.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
             properties.setProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
@@ -90,6 +105,11 @@ public class AuthenticationModule extends ModuleBase  {
         try{
             KalturaLiveEntry liveEntry = Utils.getKalturaLiveEntry(client);
             logger.info("Entry removed [" + liveEntry.id + "]");
+            // Remove the mutex from Map. NOTE: method does nothing if key doesn't exist
+            Object entryMutex = authenticationMutex.remove(liveEntry.id);
+            if (entryMutex != null) {
+                logger.debug("Removed \"Authentication Mutex\" for entry [" + liveEntry.id + "]");
+            }
         }
         catch (Exception  e){
             logger.info("Error" + e.getMessage());
