@@ -26,7 +26,6 @@ public class AuthenticationModule extends ModuleBase  {
 
     private static final Logger logger = Logger.getLogger(AuthenticationModule.class);
     public static final String STREAM_ACTION_PROPERTY = "AuthenticatioStreamActionNotifier";
-
     @SuppressWarnings("serial")
     public class ClientConnectException extends Exception{
 
@@ -135,7 +134,7 @@ public class AuthenticationModule extends ModuleBase  {
                 Matcher matcher = Utils.getStreamNameMatches(streamName);
 
                 if (matcher == null) {
-                    String msg = "Unknown published stream [" + streamName + "]";
+                    String msg = "Published stream invalid [" + streamName + "]";
                     logger.error(msg);
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
                     stream.getClient().setShutdownClient(true);
@@ -147,7 +146,7 @@ public class AuthenticationModule extends ModuleBase  {
 
 
                 if (! entryId.equals(liveEntry.id  )){
-                    String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryId + "]";
+                    String msg = "Published  stream name [" + streamName + "] does not match entry id [" + liveEntry.id  + "]";
                     logger.error(msg);
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
                     stream.getClient().setShutdownClient(true);
