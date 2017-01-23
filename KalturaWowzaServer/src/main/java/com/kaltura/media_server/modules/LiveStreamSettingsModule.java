@@ -346,7 +346,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	class LiveStreamEntrySettingsHandler {
 
-		private final static int DEFAULT_LOW_LATENCY_CHUNK_DURATION_MILLISECONDS = 10000;
+		private final static int DEFAULT_SEGMENT_DURATION_MILLISECONDS = 10000;
 
 		public void checkAndUpdateSettings(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream, String streamName) {
 			KalturaLiveEntry liveEntry;
@@ -364,8 +364,11 @@ public class LiveStreamSettingsModule extends ModuleBase {
 				return;
 			}
 
-			if (liveEntry.enableLowLatency) {
-				cupertinoPacketizer.getProperties().setProperty("cupertinoChunkDurationTarget", this.DEFAULT_LOW_LATENCY_CHUNK_DURATION_MILLISECONDS);
+			try {
+				cupertinoPacketizer.getProperties().setProperty("cupertinoChunkDurationTarget", liveEntry.segmentDuration);
+			} catch (Exception e) {
+				cupertinoPacketizer.getProperties().setProperty("cupertinoChunkDurationTarget", this.DEFAULT_SEGMENT_DURATION_MILLISECONDS);
+				logger.error("(" + streamName + ") fail to read \'segmentDuration\' value for live entry." + e.toString());
 			}
 		}
 
