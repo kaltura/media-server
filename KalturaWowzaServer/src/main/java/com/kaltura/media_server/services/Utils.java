@@ -25,7 +25,7 @@ public class Utils {
         Matcher matcher;
 
         logger.info("Query-String [" + queryString + "]");
-
+        queryString = queryString.replaceAll("/+$", "");
         //parse the Query-String into Hash map.
         String[] queryParams = queryString.split("&");
         HashMap<String, String> requestParams = new HashMap<String, String>();
