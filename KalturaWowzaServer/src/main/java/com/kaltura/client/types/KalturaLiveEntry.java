@@ -78,6 +78,9 @@ public abstract class KalturaLiveEntry extends KalturaMediaEntry {
     public KalturaLiveEntryRecordingOptions recordingOptions;
 	/**  the status of the entry of type EntryServerNodeStatus  */
     public KalturaEntryServerNodeStatus liveStatus;
+    /** the chunk duration in milliseconds */
+    public int segmentDuration = Integer.MIN_VALUE;
+
 
     public KalturaLiveEntry() {
     }
@@ -131,7 +134,11 @@ public abstract class KalturaLiveEntry extends KalturaMediaEntry {
             } else if (nodeName.equals("liveStatus")) {
                 this.liveStatus = KalturaEntryServerNodeStatus.get(ParseUtils.parseInt(txt));
                 continue;
-            } 
+            }
+            if (nodeName.equals("segmentDuration")) {
+                this.segmentDuration = ParseUtils.parseInt(txt);
+                continue;
+            }
         }
     }
 
@@ -149,6 +156,7 @@ public abstract class KalturaLiveEntry extends KalturaMediaEntry {
         kparams.add("publishConfigurations", this.publishConfigurations);
         kparams.add("currentBroadcastStartTime", this.currentBroadcastStartTime);
         kparams.add("recordingOptions", this.recordingOptions);
+        kparams.add("segmentDuration", this.segmentDuration);
         return kparams;
     }
 
