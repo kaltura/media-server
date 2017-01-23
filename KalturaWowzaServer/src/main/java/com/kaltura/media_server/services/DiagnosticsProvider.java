@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wowza.wms.amf.AMFData;
 import com.wowza.wms.amf.AMFDataObj;
+import com.wowza.wms.amf.AMFPacket;
 import com.wowza.wms.application.*;
 import com.wowza.wms.client.*;
 import com.wowza.wms.stream.IMediaStream;
@@ -25,7 +26,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import com.wowza.wms.stream.live.MediaStreamLive;
 import java.net.InetAddress;
-
+import com.kaltura.media_server.modules.LiveStreamSettingsModule.PacketListener;
 public class DiagnosticsProvider extends HTTProvider2Base
 {
 
@@ -167,6 +168,10 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
     private void addStreamProperties(IMediaStream stream,  HashMap<String,Object> streamHash){
 
+        AMFPacket lastKeyFrame = stream.getLastKeyFrame();
+        AMFPacket lastPacket = stream.getLastPacket();
+
+        boolean isVideo = lastPacket.isVideo();
         HashMap<String,Object> EncodersHash =  new HashMap<String,Object>();
         double videoBitrate = stream.getPublishBitrateVideo() / 1000;
         double audioBitrate = stream.getPublishBitrateAudio() / 1000;
@@ -180,6 +185,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
         EncodersHash.put("frameRate", framerate);
         getMetaDataProperties(stream, EncodersHash);
         streamHash.put("Encoder", EncodersHash);
+
         //logger.debug(httpSessionId+"[" + stream.getName() + "] Add the following params: videoBitrate "+ videoBitrate +  ", audioBitrate " + audioBitrate + ", framerate "+ framerate);
     }
 
@@ -210,18 +216,29 @@ public class DiagnosticsProvider extends HTTProvider2Base
         WMSProperties props = stream.getProperties();
 
         AMFDataObj obj;
-
+        PacketListener listener;
         if (props == null){
             logger.warn(httpSessionId+"[" + stream.getName() + "] Can't find properties");
             return;
         }
 
+
+
+
+
         synchronized (props) {
             obj = (AMFDataObj) props.getProperty(Constants.AMFSETDATAFRAME);
+            listener= (PacketListener) props.getProperty(Constants.STREAM_ACTION_LISTENER_PROPERTY);
         }
         if (obj == null) {
             logger.warn(httpSessionId+"[" + stream.getName() + "] Can't find meta data");
+
             return;
+        }
+
+        if (listener != null){
+            long [][] syncPTSData =listener.getLiveEntryToBaseSystemTime();
+            streamHash.put("syncPTSData", syncPTSData);
         }
 
         for (int i = 0 ;  i < obj.size() ;  i++){
