@@ -160,4 +160,24 @@ public class Utils {
         return true;
     }
 
+    public static HashMap<String, String> getQueryMap(String query)
+    {
+        HashMap<String, String> map = new HashMap<String, String>();
+        if (!query.equals("")){
+            String[] params = query.split("&");
+            for (String param : params)
+            {
+                String[] paramArr = param.split("=");
+                if (paramArr.length!=2){
+                    continue;
+                }
+                String name =paramArr[0];
+                String value = paramArr[1];
+                map.put(name, value);
+            }
+        }
+
+        return map;
+    }
+
 }
