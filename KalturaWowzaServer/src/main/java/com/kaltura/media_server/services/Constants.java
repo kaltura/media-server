@@ -5,6 +5,8 @@ package com.kaltura.media_server.services;
  */
 public class Constants {
 
+    public final static String HTTP_PROVIDER_KEY = "diagnostics";
+    public final static int KALTURA_REJECTED_STEAMS_SIZE = 100;
     public final static String KALTURA_PERMANENT_SESSION_KEY = "kalturaWowzaPermanentSessionKey";
     public final static String CLIENT_PROPERTY_CONNECT_URL = "connecttcUrl";
     public final static String CLIENT_PROPERTY_ENCODER = "connectflashVer";
@@ -41,4 +43,6 @@ public class Constants {
     public static final String ONMETADATA_AUDIOCODECIDSTR = "audiocodecidstring";
     public static final String[] streamParams = {ONMETADATA_AUDIODATARATE, ONMETADATA_VIDEODATARATE, ONMETADATA_WIDTH,
             ONMETADATA_HEIGHT, ONMETADATA_FRAMERATE, ONMETADATA_VIDEOCODECIDSTR, ONMETADATA_AUDIOCODECIDSTR};
+    public static final String GLOBAL_BASE_SYSTEM_TIME = "globalBaseSystemTime";
+    public static final String GLOBAL_BASE_PTS = "globalBasePTS";
 }
