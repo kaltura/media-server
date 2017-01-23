@@ -45,4 +45,5 @@ public class Constants {
             ONMETADATA_HEIGHT, ONMETADATA_FRAMERATE, ONMETADATA_VIDEOCODECIDSTR, ONMETADATA_AUDIOCODECIDSTR};
     public static final String GLOBAL_BASE_SYSTEM_TIME = "globalBaseSystemTime";
     public static final String GLOBAL_BASE_PTS = "globalBasePTS";
+    public static final String STREAM_ACTION_LISTENER_PROPERTY = "KalturaStreamActionListenerProperty";
 }

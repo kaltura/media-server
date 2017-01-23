@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import com.wowza.wms.stream.live.MediaStreamLive;
 import java.net.InetAddress;
+import com.kaltura.media_server.modules.LiveStreamSettingsModule.PacketListener;
 
 public class DiagnosticsProvider extends HTTProvider2Base
 {
@@ -210,7 +211,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
         WMSProperties props = stream.getProperties();
 
         AMFDataObj obj;
-
+        PacketListener listener;
         if (props == null){
             logger.warn(httpSessionId+"[" + stream.getName() + "] Can't find properties");
             return;
@@ -218,12 +219,17 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
         synchronized (props) {
             obj = (AMFDataObj) props.getProperty(Constants.AMFSETDATAFRAME);
+            listener = (PacketListener) props.getProperty(Constants.STREAM_ACTION_LISTENER_PROPERTY);
         }
         if (obj == null) {
             logger.warn(httpSessionId+"[" + stream.getName() + "] Can't find meta data");
             return;
         }
 
+        if (listener != null){
+            long[][] syncPTSData = listener.getSyncPTSData();
+            streamHash.put("syncPTSData", syncPTSData);
+        }
         for (int i = 0 ;  i < obj.size() ;  i++){
             String key = obj.getKey(i);
             try{
