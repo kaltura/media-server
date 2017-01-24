@@ -116,6 +116,36 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	}
 
+	class LiveStreamEntrySettingsHandler {
+
+		public LiveStreamEntrySettingsHandler() {
+		}
+
+		public void checkAndUpdateSettings(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream, String streamName) {
+
+			if(stream.getClientId() < 0) { // transcode rendition
+				return;
+			}
+
+			try {
+				int clientId = stream.getClientId();
+				IClient client = stream.getClient();
+				WMSProperties properties = client.getProperties();
+				KalturaLiveEntry liveEntry = Utils.getLiveEntry(properties);
+
+				// set the duration of each chunk in milliseconds.
+
+				cupertinoPacketizer.getProperties().setProperty("cupertinoChunkDurationTarget", liveEntry.segmentDuration);
+
+				logger.debug("(" + streamName + ") (" + clientId + ") successfully set \"cupertinoChunkDurationTarget\" to " + liveEntry.segmentDuration + " milliseconds");
+
+			} catch (Exception e) {
+				logger.error("(" + streamName + ") failed to set \"cupertinoChunkDurationTarget\" value." + e.toString());
+			}
+		}
+
+	}
+
 	class LiveStreamPacketizerListener implements ILiveStreamPacketizerActionNotify {
 
 		private IApplicationInstance appInstance = null;
@@ -134,10 +164,9 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 			LiveStreamPacketizerCupertino cupertinoPacketizer = (LiveStreamPacketizerCupertino) liveStreamPacketizer;
 			IMediaStream stream = this.appInstance.getStreams().getStream(streamName);
-
+			this.liveStreamEntrySettingsHandler.checkAndUpdateSettings(cupertinoPacketizer, stream, streamName);
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
 			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(cupertinoPacketizer, streamName));
-			this.liveStreamEntrySettingsHandler.checkAndUpdateSettings(cupertinoPacketizer, stream, streamName);
 
 		}
 
@@ -342,36 +371,6 @@ public class LiveStreamSettingsModule extends ModuleBase {
 				this.mapLiveEntryToBaseSystemTime.remove(entryId);
 			}
 		}
-	}
-
-	class LiveStreamEntrySettingsHandler {
-
-		private final static int DEFAULT_SEGMENT_DURATION_MILLISECONDS = 10000;
-
-		public void checkAndUpdateSettings(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream, String streamName) {
-			KalturaLiveEntry liveEntry;
-			WMSProperties properties;
-			if (!stream.isTranscodeResult()) {
-				return;
-			}
-
-			try {
-				IClient client = stream.getClient();
-				properties = client.getProperties();
-				liveEntry = Utils.getLiveEntry(properties);
-			} catch (Exception e) {
-				logger.error("Failed to retrieve liveEntry for " + streamName + " :" + e);
-				return;
-			}
-
-			try {
-				cupertinoPacketizer.getProperties().setProperty("cupertinoChunkDurationTarget", liveEntry.segmentDuration);
-			} catch (Exception e) {
-				cupertinoPacketizer.getProperties().setProperty("cupertinoChunkDurationTarget", this.DEFAULT_SEGMENT_DURATION_MILLISECONDS);
-				logger.error("(" + streamName + ") fail to read \'segmentDuration\' value for live entry." + e.toString());
-			}
-		}
-
 	}
 
 }

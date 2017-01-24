@@ -134,8 +134,7 @@ public abstract class KalturaLiveEntry extends KalturaMediaEntry {
             } else if (nodeName.equals("liveStatus")) {
                 this.liveStatus = KalturaEntryServerNodeStatus.get(ParseUtils.parseInt(txt));
                 continue;
-            }
-            if (nodeName.equals("segmentDuration")) {
+            } else if (nodeName.equals("segmentDuration")) {
                 this.segmentDuration = ParseUtils.parseInt(txt);
                 continue;
             }
