@@ -147,7 +147,7 @@ public class Utils {
         synchronized (stream) {
             client = stream.getClient();
             if (client == null) {
-                throw new Exception("Failed to retrieve property");
+                throw new NullPointerException("Null IClient");
             }
         }
         liveEntry = getLiveEntry(client.getProperties());
