@@ -2,6 +2,7 @@ package com.kaltura.media_server.modules;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kaltura.media_server.services.Constants;
 import com.kaltura.media_server.services.Utils;
 import com.wowza.wms.amf.*;
 import com.wowza.wms.application.*;
@@ -20,8 +21,8 @@ import org.apache.log4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import com.kaltura.client.types.KalturaLiveEntry;
 
+import com.kaltura.client.types.KalturaLiveEntry;
 
 
 // todo: test and add relevant code ofr ptsTimeCode moving back in time and PTS wrap arround are supported.
@@ -119,29 +120,51 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	class LiveStreamEntrySettingsHandler {
 
 		public LiveStreamEntrySettingsHandler() {
+
+		}
+
+		private void setSegmentDuration(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream, String streamName) {
+			int segmentDuration = 0;
+			try {
+				MediaStreamMap streams = stream.getStreams();
+				java.util.List streamNames = streams.getPublishStreamNames();
+				Iterator<String> it = streamNames.iterator();
+
+				while (segmentDuration == 0 && it.hasNext()) {
+					IMediaStream nextStream = streams.getStream(it.next());
+					if (!nextStream.isTranscodeResult()) {
+						IClient client = nextStream.getClient();
+						WMSProperties properties = client.getProperties();
+						KalturaLiveEntry liveEntry = Utils.getLiveEntry(properties);
+						segmentDuration = liveEntry.segmentDuration;
+					}
+				}
+
+				if (segmentDuration == 0) {
+					logger.error("(" + streamName + ") A bug found. Failed to get \"segmentDuration\". Using default value, " + Constants.DEFAULT_RECORDED_SEGMENT_DURATION + " milliseconds. ");
+					// set the duration of each chunk to default.
+					cupertinoPacketizer.getProperties().setProperty(Constants.CUPERTINO_CHUNK_DURATION_TARGET, Constants.DEFAULT_RECORDED_SEGMENT_DURATION);
+				}
+
+				// set the duration of each chunk in milliseconds.
+				cupertinoPacketizer.getProperties().setProperty(Constants.CUPERTINO_CHUNK_DURATION_TARGET, segmentDuration);
+
+				logger.debug("(" + streamName + ") successfully set \"cupertinoChunkDurationTarget\" to " + segmentDuration + " milliseconds");
+
+			} catch (Exception e) {
+				logger.error("(" + streamName + ") failed to set \"cupertinoChunkDurationTarget\" according to entry settings. Using default value, " + Constants.DEFAULT_RECORDED_SEGMENT_DURATION + " milliseconds. " + e.toString());
+
+				// set the duration of each chunk to default.
+				cupertinoPacketizer.getProperties().setProperty(Constants.CUPERTINO_CHUNK_DURATION_TARGET, Constants.DEFAULT_RECORDED_SEGMENT_DURATION);
+			}
 		}
 
 		public void checkAndUpdateSettings(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream, String streamName) {
 
-			if(stream.getClientId() < 0) { // transcode rendition
+			if (stream.getClientId() >= 0) {
 				return;
 			}
-
-			try {
-				int clientId = stream.getClientId();
-				IClient client = stream.getClient();
-				WMSProperties properties = client.getProperties();
-				KalturaLiveEntry liveEntry = Utils.getLiveEntry(properties);
-
-				// set the duration of each chunk in milliseconds.
-
-				cupertinoPacketizer.getProperties().setProperty("cupertinoChunkDurationTarget", liveEntry.segmentDuration);
-
-				logger.debug("(" + streamName + ") (" + clientId + ") successfully set \"cupertinoChunkDurationTarget\" to " + liveEntry.segmentDuration + " milliseconds");
-
-			} catch (Exception e) {
-				logger.error("(" + streamName + ") failed to set \"cupertinoChunkDurationTarget\" value." + e.toString());
-			}
+			setSegmentDuration(cupertinoPacketizer, stream, streamName);
 		}
 
 	}
@@ -164,7 +187,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 			LiveStreamPacketizerCupertino cupertinoPacketizer = (LiveStreamPacketizerCupertino) liveStreamPacketizer;
 			IMediaStream stream = this.appInstance.getStreams().getStream(streamName);
-			this.liveStreamEntrySettingsHandler.checkAndUpdateSettings(cupertinoPacketizer, stream, streamName);
+			liveStreamEntrySettingsHandler.checkAndUpdateSettings(cupertinoPacketizer, stream, streamName);
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
 			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(cupertinoPacketizer, streamName));
 
@@ -189,7 +212,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	public void onStreamCreate(IMediaStream stream) {
 
-		if(stream.getClientId() < 0){ //transcoded rendition
+		if (stream.getClientId() < 0) { //transcoded rendition
 			return;
 		}
 
@@ -206,7 +229,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 		removeListener(stream);
 	}
-	private void removeListener(IMediaStream stream){
+
+	private void removeListener(IMediaStream stream) {
 		PacketListener listener = null;
 		String streamName = stream.getName();
 		WMSProperties props = stream.getProperties();
@@ -283,7 +307,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			// handle first packet & PTS jump
 			//=================================================================
 			if (firstPacket || ptsJumped || shouldSync) {
-				if (ptsJumped){
+				if (ptsJumped) {
 					turnOnShouldSyncFlag(typeIndex);
 				}
 				long currentTime = System.currentTimeMillis();
@@ -314,21 +338,21 @@ public class LiveStreamSettingsModule extends ModuleBase {
 				logger.warn("(" + streamName + ") [" + streamType + "] PTS diff [" + inPTSDiff + "] > threshold [" + maxAllowedPTSDriftMillisec + "] last PTS [" + lastInPTS + "] current PTS [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "]");
 			}
 			//else {
-		//		logger.debug("(" + streamName + ") [" + streamType + "] updated PTS [" + outPTS + "] in PTS [" + inPTS + "] correction " + correction);
-	//		}
+			//		logger.debug("(" + streamName + ") [" + streamType + "] updated PTS [" + outPTS + "] in PTS [" + inPTS + "] correction " + correction);
+			//		}
 		}
 
-		public void turnOnShouldSyncFlag(int typeIndex){
-			for (int i=0; i<NUM_TYPES; i++){
-				if (i != typeIndex){
+		public void turnOnShouldSyncFlag(int typeIndex) {
+			for (int i = 0; i < NUM_TYPES; i++) {
+				if (i != typeIndex) {
 					syncPTSData[i][SHOULD_SYNC] = 1;
 				}
 			}
 		}
 
-		public boolean checkIfShouldSync(int typeIndex, String streamName){
-			if (syncPTSData[typeIndex][SHOULD_SYNC] == 1 ){
-				syncPTSData[typeIndex][SHOULD_SYNC] = 0 ;	//turn off flag
+		public boolean checkIfShouldSync(int typeIndex, String streamName) {
+			if (syncPTSData[typeIndex][SHOULD_SYNC] == 1) {
+				syncPTSData[typeIndex][SHOULD_SYNC] = 0;    //turn off flag
 				String streamType = TYPE_STR[typeIndex];
 				logger.debug("(" + streamName + ") [" + streamType + "] Found that streamType shouldSync");
 				return true;
@@ -351,7 +375,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 					long[] globalSyncData = this.mapLiveEntryToBaseSystemTime.get(entryId);
 
-					if (Math.abs(basePTS - globalSyncData[GLOBAL_BASE_PTS_INDEX]) > maxAllowedPTSDriftMillisec) {		//todo better to put it on the place when foud jump
+					if (Math.abs(basePTS - globalSyncData[GLOBAL_BASE_PTS_INDEX]) > maxAllowedPTSDriftMillisec) {        //todo better to put it on the place when foud jump
 						this.mapLiveEntryToBaseSystemTime.put(entryId, newSyncData);
 					} else {
 						newSyncData = globalSyncData;

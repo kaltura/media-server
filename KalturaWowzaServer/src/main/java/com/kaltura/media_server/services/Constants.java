@@ -43,6 +43,6 @@ public class Constants {
     public static final String ONMETADATA_AUDIOCODECIDSTR = "audiocodecidstring";
     public static final String[] streamParams = {ONMETADATA_AUDIODATARATE, ONMETADATA_VIDEODATARATE, ONMETADATA_WIDTH,
             ONMETADATA_HEIGHT, ONMETADATA_FRAMERATE, ONMETADATA_VIDEOCODECIDSTR, ONMETADATA_AUDIOCODECIDSTR};
-    public static final String GLOBAL_BASE_SYSTEM_TIME = "globalBaseSystemTime";
-    public static final String GLOBAL_BASE_PTS = "globalBasePTS";
+    public static final String CUPERTINO_CHUNK_DURATION_TARGET = "cupertinoChunkDurationTarget";
+    public static final int DEFAULT_CHUNK_DURATION_MILLISECONDS = 10000;
 }
