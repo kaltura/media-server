@@ -117,67 +117,15 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	}
 
-	class LiveStreamEntrySettingsHandler {
-
-		public LiveStreamEntrySettingsHandler() {
-
-		}
-
-		private void setSegmentDuration(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream, String streamName) {
-			int segmentDuration = 0;
-			try {
-				MediaStreamMap streams = stream.getStreams();
-				java.util.List streamNames = streams.getPublishStreamNames();
-				Iterator<String> it = streamNames.iterator();
-
-				while (segmentDuration == 0 && it.hasNext()) {
-					IMediaStream nextStream = streams.getStream(it.next());
-					if (!nextStream.isTranscodeResult()) {
-						IClient client = nextStream.getClient();
-						WMSProperties properties = client.getProperties();
-						KalturaLiveEntry liveEntry = Utils.getLiveEntry(properties);
-						segmentDuration = liveEntry.segmentDuration;
-					}
-				}
-
-				if (segmentDuration == 0) {
-					logger.error("(" + streamName + ") A bug found. Failed to get \"segmentDuration\". Using default value, " + Constants.DEFAULT_RECORDED_SEGMENT_DURATION + " milliseconds. ");
-					// set the duration of each chunk to default.
-					cupertinoPacketizer.getProperties().setProperty(Constants.CUPERTINO_CHUNK_DURATION_TARGET, Constants.DEFAULT_RECORDED_SEGMENT_DURATION);
-				}
-
-				// set the duration of each chunk in milliseconds.
-				cupertinoPacketizer.getProperties().setProperty(Constants.CUPERTINO_CHUNK_DURATION_TARGET, segmentDuration);
-
-				logger.debug("(" + streamName + ") successfully set \"cupertinoChunkDurationTarget\" to " + segmentDuration + " milliseconds");
-
-			} catch (Exception e) {
-				logger.error("(" + streamName + ") failed to set \"cupertinoChunkDurationTarget\" according to entry settings. Using default value, " + Constants.DEFAULT_RECORDED_SEGMENT_DURATION + " milliseconds. " + e.toString());
-
-				// set the duration of each chunk to default.
-				cupertinoPacketizer.getProperties().setProperty(Constants.CUPERTINO_CHUNK_DURATION_TARGET, Constants.DEFAULT_RECORDED_SEGMENT_DURATION);
-			}
-		}
-
-		public void checkAndUpdateSettings(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream, String streamName) {
-
-			if (stream.getClientId() >= 0) {
-				return;
-			}
-			setSegmentDuration(cupertinoPacketizer, stream, streamName);
-		}
-
-	}
-
 	class LiveStreamPacketizerListener implements ILiveStreamPacketizerActionNotify {
 
 		private IApplicationInstance appInstance = null;
-		private LiveStreamEntrySettingsHandler liveStreamEntrySettingsHandler = null;
+		private DynamicStreamSettings liveStreamEntrySettingsHandler = null;
 
 		public LiveStreamPacketizerListener(IApplicationInstance appInstance) {
 			logger.debug("creating new LiveStreamPacketizerListener");
 			this.appInstance = appInstance;
-			this.liveStreamEntrySettingsHandler = new LiveStreamEntrySettingsHandler();
+			this.liveStreamEntrySettingsHandler = new DynamicStreamSettings();
 		}
 
 		public void onLiveStreamPacketizerCreate(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {

@@ -141,6 +141,19 @@ public class Utils {
         return liveEntry;
     }
 
+    public static KalturaLiveEntry getLiveEntryFromStream(IMediaStream stream)  throws Exception{
+        KalturaLiveEntry liveEntry;
+        IClient client = null;
+        synchronized (stream) {
+            client = stream.getClient();
+            if (client == null) {
+                throw new Exception("Failed to retrieve property");
+            }
+        }
+        liveEntry = getLiveEntry(client.getProperties());
+        return liveEntry;
+    }
+
     public static KalturaLiveEntry getKalturaLiveEntry(IClient client) throws Exception{
 
         WMSProperties clientProperties = client.getProperties();
