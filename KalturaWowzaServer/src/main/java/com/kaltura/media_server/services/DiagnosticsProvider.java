@@ -25,17 +25,18 @@ import java.util.List;
 import java.util.regex.Pattern;
 import com.wowza.wms.stream.live.MediaStreamLive;
 import java.net.InetAddress;
+import com.kaltura.media_server.modules.LiveStreamSettingsModule.PacketListener;
 
 public class DiagnosticsProvider extends HTTProvider2Base
 {
 
     public interface CommandProvider {
-        public abstract void execute (HashMap<String,Object> data, IApplicationInstance appInstance );
+        public abstract void execute (HashMap<String,Object> data, HashMap<String,String > quaryString, IApplicationInstance appInstance );
     }
 
     class ErrorProvider implements CommandProvider {
 
-        public void execute(HashMap<String,Object> data, IApplicationInstance appInstance) {
+        public void execute(HashMap<String,Object> data, HashMap<String,String > quaryString, IApplicationInstance appInstance) {
                 synchronized(DiagnosticsProvider.errorDiagnostics){
                     Iterator<HashMap<String,String> > myIterator = DiagnosticsProvider.errorDiagnostics.iterator();
                     while(myIterator.hasNext()){
@@ -58,7 +59,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
                     .getName();
         }
 
-        public void execute(HashMap<String,Object> data, IApplicationInstance appInstance) {
+        public void execute(HashMap<String,Object> data, HashMap<String,String > quaryString, IApplicationInstance appInstance) {
 
             String jarName = getJarName();
             String version = this.getClass().getPackage().getImplementationVersion();
@@ -79,10 +80,33 @@ public class DiagnosticsProvider extends HTTProvider2Base
         }
     }
 
+    class killConnectionAction implements CommandProvider {
+
+        public void execute(HashMap<String,Object> data, HashMap<String,String > quaryString, IApplicationInstance appInstance){
+            String clientId = quaryString.get("clientId");
+            if (clientId ==null){
+                String msg = "Can't find clientId on query string";
+                data.put("Error", msg);
+                logger.error(msg);
+                return;
+            }
+            int clientIdInt = Integer.parseInt(clientId);
+            IClient client  = appInstance.getClientById(clientIdInt);
+            if (client ==null){
+                String msg = "Can't find client for clientId "+ clientId;
+                data.put("Error", msg);
+                logger.error(msg);
+                return;
+            }
+            client.setShutdownClient(true);
+            data.put("Succeed", true);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     class EntriesProvider implements CommandProvider {
 
-        public void execute(HashMap<String,Object> data, IApplicationInstance appInstance) {
+        public void execute(HashMap<String,Object> data, HashMap<String,String > quaryString, IApplicationInstance appInstance) {
 
 
             List<IMediaStream> streamList = appInstance.getStreams().getStreams();
@@ -142,6 +166,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
     private static final String DIAGNOSTICS_ERROR = "errors";
     private static final String DIAGNOSTICS_LIVE_ENTRIES = "entries";
     private static final String DIAGNOSTICS_LIVE_INFO = "info";
+    private static final String DIAGNOSTICS_KILL_CONNECTION = "killConnection";
     private static List <HashMap<String,String> >errorDiagnostics= Collections.synchronizedList(new ArrayList <HashMap<String,String> >());
     private static final Logger logger = Logger.getLogger(HTTPConnectionCountsXML.class);
     private String httpSessionId;
@@ -151,6 +176,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
         CommandHash.put(DIAGNOSTICS_ERROR, new ErrorProvider());
         CommandHash.put(DIAGNOSTICS_LIVE_ENTRIES, new EntriesProvider());
         CommandHash.put(DIAGNOSTICS_LIVE_INFO, new InfoProvider());
+        CommandHash.put(DIAGNOSTICS_KILL_CONNECTION, new killConnectionAction());
     }
 
     private void outputIOPerformanceInfo( HashMap<String,Object> hashMapInstance, IOPerformanceCounter ioPerformance)
@@ -161,7 +187,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
     }
     private void writeError(HashMap<String,Object> entryHash, String arg){
 
-        entryHash.put("Error", "Got argument: "+ arg + ", valid arguments:["  + DIAGNOSTICS_ERROR + " ," + DIAGNOSTICS_LIVE_ENTRIES+ "]");
+        entryHash.put("Error", "Got argument: "+ arg + ", valid arguments: "  +CommandHash.keySet());
     }
 
 
@@ -210,7 +236,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
         WMSProperties props = stream.getProperties();
 
         AMFDataObj obj;
-
+        PacketListener listener;
         if (props == null){
             logger.warn(httpSessionId+"[" + stream.getName() + "] Can't find properties");
             return;
@@ -218,12 +244,17 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
         synchronized (props) {
             obj = (AMFDataObj) props.getProperty(Constants.AMFSETDATAFRAME);
+            listener = (PacketListener) props.getProperty(Constants.STREAM_ACTION_LISTENER_PROPERTY);
         }
         if (obj == null) {
             logger.warn(httpSessionId+"[" + stream.getName() + "] Can't find meta data");
             return;
         }
 
+        if (listener != null){
+            long[][] syncPTSData = listener.getSyncPTSData();
+            streamHash.put("syncPTSData", syncPTSData);
+        }
         for (int i = 0 ;  i < obj.size() ;  i++){
             String key = obj.getKey(i);
             try{
@@ -264,6 +295,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
         ClientPropertiesHash.put("rtmpUrl" , rtmpUrl);
         ClientPropertiesHash.put("encoder" , encoder);
         ClientPropertiesHash.put("IP" , IP);
+        ClientPropertiesHash.put("clientId" , client.getClientId());
         hashMapInstance.put("clientProperties", ClientPropertiesHash);
 
      //   logger.debug(httpSessionId + "[" + entryId + "] Add the following params: rtmpUrl "+ rtmpUrl +  ", encoder " + encoder + ", IP " + IP );
@@ -300,6 +332,8 @@ public class DiagnosticsProvider extends HTTProvider2Base
     public void onHTTPRequest(IVHost inVhost, IHTTPRequest req, IHTTPResponse resp)
     {
         httpSessionId = "[" + System.currentTimeMillis() / 1000L + "]";
+        String queryStr = req.getQueryString();
+        HashMap<String, String> queryStrMap = Utils.getQueryMap(queryStr);
         HashMap<String, Object> data = new HashMap<String,Object>();
         try {
             String requestURL = req.getRequestURL();
@@ -338,7 +372,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
                         if (appInstance == null)
                             continue;
                         if ( CommandHash.containsKey(arg)){
-                             CommandHash.get(arg).execute(data, appInstance);
+                             CommandHash.get(arg).execute(data, queryStrMap, appInstance);
                         }
                         else{
                             writeError(data, arg);

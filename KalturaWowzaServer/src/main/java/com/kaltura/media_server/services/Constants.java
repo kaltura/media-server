@@ -43,6 +43,7 @@ public class Constants {
     public static final String ONMETADATA_AUDIOCODECIDSTR = "audiocodecidstring";
     public static final String[] streamParams = {ONMETADATA_AUDIODATARATE, ONMETADATA_VIDEODATARATE, ONMETADATA_WIDTH,
             ONMETADATA_HEIGHT, ONMETADATA_FRAMERATE, ONMETADATA_VIDEOCODECIDSTR, ONMETADATA_AUDIOCODECIDSTR};
+    public static final String STREAM_ACTION_LISTENER_PROPERTY = "KalturaStreamActionListenerProperty";
     public static final int DEFAULT_CHUNK_DURATION_MILLISECONDS = 10000;
     public static final int MAX_ALLOwED_CHUNK_DURATION_MILLISECONDS = 20000;
     public static final int MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS = 1000;
