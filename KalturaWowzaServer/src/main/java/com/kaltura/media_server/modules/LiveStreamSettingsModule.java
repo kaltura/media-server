@@ -22,8 +22,6 @@ import org.apache.log4j.Logger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.kaltura.client.types.KalturaLiveEntry;
-
 
 // todo: test and add relevant code ofr ptsTimeCode moving back in time and PTS wrap arround are supported.
 
@@ -120,7 +118,6 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	class LiveStreamPacketizerListener implements ILiveStreamPacketizerActionNotify {
 
 		private IApplicationInstance appInstance = null;
-		// todo: move the member to top hierarchy class
 		private DynamicStreamSettings liveStreamEntrySettingsHandler = null;
 
 		public LiveStreamPacketizerListener(IApplicationInstance appInstance) {
@@ -139,7 +136,6 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			liveStreamEntrySettingsHandler.addLiveEntrySettings(cupertinoPacketizer, stream, streamName);
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
 			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(cupertinoPacketizer, streamName));
-
 		}
 
 		public void onLiveStreamPacketizerDestroy(ILiveStreamPacketizer liveStreamPacketizer) {
@@ -162,34 +158,10 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	public void onStreamCreate(IMediaStream stream) {
 
-		if (stream.getClientId() < 0) { //transcoded rendition
-
-			// todo: get stream property "KalturaSegmentDuration"
-			// todo: get packetizer listener
-			// todo: set "cupertinoChunkDurationTarget" propertyr of packetizer
-			// todo: do all above in new method of DynamicStreamSettings
-			/*WMSProperties props = stream.getProperties();
-			synchronized (props) {
-				props.setProperty(STREAM_ACTION_LISTENER_PROPERTY, listener);
-			}*/
-
+		if(stream.getClientId() < 0){ //transcoded rendition
 			return;
 		}
 
-	/*	try {
-			int segmentDuration = Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS;
-			// todo:  get segmentDuration property of the stream
-
-			KalturaLiveEntry liveEntry = Utils.getLiveEntryFromStream(stream);
-
-			// todo: set stream property "KalturaSegmentDuration"
-
-			// todo: do all above in new method of DynamicStreamSettings
-
-
-		} catch (Exception e) {
-			logger.error("stream [" + stream.getName() + "] failed to get segmentDuration value from KalturaLiveEntry. " + e);
-		}*/
 		PacketListener listener = new PacketListener();
 		WMSProperties props = stream.getProperties();
 		synchronized (props) {
@@ -203,8 +175,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 		removeListener(stream);
 	}
-
-	private void removeListener(IMediaStream stream) {
+	private void removeListener(IMediaStream stream){
 		PacketListener listener = null;
 		String streamName = stream.getName();
 		WMSProperties props = stream.getProperties();
@@ -219,7 +190,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		}
 	}
 
-	class PacketListener implements IMediaStreamLivePacketNotify {
+	public class PacketListener implements IMediaStreamLivePacketNotify {
 
 		private static final int BASE_TIME_INDEX = 0;
 		private static final int BASE_PTS_INDEX = 1;
@@ -281,7 +252,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			// handle first packet & PTS jump
 			//=================================================================
 			if (firstPacket || ptsJumped || shouldSync) {
-				if (ptsJumped) {
+				if (ptsJumped){
 					turnOnShouldSyncFlag(typeIndex);
 				}
 				long currentTime = System.currentTimeMillis();
@@ -312,21 +283,21 @@ public class LiveStreamSettingsModule extends ModuleBase {
 				logger.warn("(" + streamName + ") [" + streamType + "] PTS diff [" + inPTSDiff + "] > threshold [" + maxAllowedPTSDriftMillisec + "] last PTS [" + lastInPTS + "] current PTS [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "]");
 			}
 			//else {
-			//		logger.debug("(" + streamName + ") [" + streamType + "] updated PTS [" + outPTS + "] in PTS [" + inPTS + "] correction " + correction);
-			//		}
+		//		logger.debug("(" + streamName + ") [" + streamType + "] updated PTS [" + outPTS + "] in PTS [" + inPTS + "] correction " + correction);
+	//		}
 		}
 
-		public void turnOnShouldSyncFlag(int typeIndex) {
-			for (int i = 0; i < NUM_TYPES; i++) {
-				if (i != typeIndex) {
+		public void turnOnShouldSyncFlag(int typeIndex){
+			for (int i=0; i<NUM_TYPES; i++){
+				if (i != typeIndex){
 					syncPTSData[i][SHOULD_SYNC] = 1;
 				}
 			}
 		}
 
-		public boolean checkIfShouldSync(int typeIndex, String streamName) {
-			if (syncPTSData[typeIndex][SHOULD_SYNC] == 1) {
-				syncPTSData[typeIndex][SHOULD_SYNC] = 0;    //turn off flag
+		public boolean checkIfShouldSync(int typeIndex, String streamName){
+			if (syncPTSData[typeIndex][SHOULD_SYNC] == 1 ){
+				syncPTSData[typeIndex][SHOULD_SYNC] = 0 ;	//turn off flag
 				String streamType = TYPE_STR[typeIndex];
 				logger.debug("(" + streamName + ") [" + streamType + "] Found that streamType shouldSync");
 				return true;
@@ -349,7 +320,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 					long[] globalSyncData = this.mapLiveEntryToBaseSystemTime.get(entryId);
 
-					if (Math.abs(basePTS - globalSyncData[GLOBAL_BASE_PTS_INDEX]) > maxAllowedPTSDriftMillisec) {        //todo better to put it on the place when foud jump
+					if (Math.abs(basePTS - globalSyncData[GLOBAL_BASE_PTS_INDEX]) > maxAllowedPTSDriftMillisec) {		//todo better to put it on the place when foud jump
 						this.mapLiveEntryToBaseSystemTime.put(entryId, newSyncData);
 					} else {
 						newSyncData = globalSyncData;

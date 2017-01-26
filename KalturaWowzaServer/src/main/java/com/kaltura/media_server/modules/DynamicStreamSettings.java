@@ -38,47 +38,6 @@ public class DynamicStreamSettings {
 		return true;
 	}
 
-/*	private void setSegmentDuration(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream, String streamName) {
-		int segmentDuration = Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS;
-		boolean durationUpdated = false;
-		String entryId = Utils.getEntryIdFromStreamName(streamName);
-		MediaStreamMap streamsObj = stream.getStreams();
-		java.util.List<IMediaStream> streams = streamsObj.getStreams();
-		Iterator<IMediaStream> it = streams.iterator();
-
-		// todo: filter all streams that according to entryID
-
-
-		while (!durationUpdated && it.hasNext()) {
-			IMediaStream nextStream = it.next();
-			String currentEntryId = Utils.getEntryIdFromStreamName(nextStream.getName());
-			if (!Objects.equals(currentEntryId, entryId)) continue;
-			try {
-				KalturaLiveEntry liveEntry = Utils.getLiveEntryFromStream(nextStream);
-				segmentDuration = liveEntry.segmentDuration;
-				durationUpdated = isValidSegmentDuration(segmentDuration);
-			} catch (Exception e) {
-				if (!(e instanceof NullPointerException)) {
-					logger.error("stream [" + nextStream.getName() + "] failed to get segmentDuration value from KalturaLiveEntry. " + e);
-					break;
-				}
-			}
-		}
-
-		cupertinoPacketizer.getProperties().setProperty("cupertinoChunkDurationTarget", segmentDuration);
-		durationUpdated = true;
-
-		if (durationUpdated)
-		{
-			logger.debug("(" + streamName + ") successfully set \"cupertinoChunkDurationTarget\" to " + segmentDuration + " milliseconds");
-		} else
-		{
-			logger.error("(" + streamName + ") failed to get \"segmentDuration\". Using default value, " + Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS + " milliseconds. Call developer.");
-		}
-
-	}*/
-
-	// Todo: in future, replace the map value from in to hash, thus enabling multiple properties set/get per entry
 	// todo: consult whether to always replace value or add only if doesn't exist yet
 	private void addLiveEntryDynamicSettings(String streamName, int[] dynamicSettings) {
 
