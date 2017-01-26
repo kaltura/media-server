@@ -17,13 +17,13 @@
         mavenCentral()
         maven {
             //TODO replace to master
-            url "https://raw.github.com/kaltura/KalturaGeneratedAPIClientsJava/PLAT-2504/maven"
+            url "https://raw.github.com/kaltura/KalturaGeneratedAPIClientsJava/wowza-releases/maven"
         }
     }
 
     dependencies {
         //TODO use the + sign for latest version when we start to use repository manager
-        compile 'com.kaltura:KalturaClientLib:3.3.2'
+        compile 'com.kaltura:KalturaClientLib:3.3.3'
         provided 'log4j:log4j:1.2.17'
     }
 
