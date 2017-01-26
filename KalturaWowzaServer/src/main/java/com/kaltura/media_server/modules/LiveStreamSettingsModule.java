@@ -120,6 +120,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	class LiveStreamPacketizerListener implements ILiveStreamPacketizerActionNotify {
 
 		private IApplicationInstance appInstance = null;
+		// todo: move the member to top hierarchy class
 		private DynamicStreamSettings liveStreamEntrySettingsHandler = null;
 
 		public LiveStreamPacketizerListener(IApplicationInstance appInstance) {
@@ -135,7 +136,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 			LiveStreamPacketizerCupertino cupertinoPacketizer = (LiveStreamPacketizerCupertino) liveStreamPacketizer;
 			IMediaStream stream = this.appInstance.getStreams().getStream(streamName);
-			liveStreamEntrySettingsHandler.checkAndUpdateSettings(cupertinoPacketizer, stream, streamName);
+			liveStreamEntrySettingsHandler.addLiveEntrySettings(cupertinoPacketizer, stream, streamName);
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
 			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(cupertinoPacketizer, streamName));
 
@@ -144,6 +145,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		public void onLiveStreamPacketizerDestroy(ILiveStreamPacketizer liveStreamPacketizer) {
 			String streamName = liveStreamPacketizer.getAndSetStartStream(null).getName();
 			logger.debug("(" + streamName + ") onLiveStreamPacketizerDestroy");
+			liveStreamEntrySettingsHandler.removeLiveEntrySettings(streamName);
 		}
 
 		public void onLiveStreamPacketizerInit(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {
@@ -161,9 +163,33 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	public void onStreamCreate(IMediaStream stream) {
 
 		if (stream.getClientId() < 0) { //transcoded rendition
+
+			// todo: get stream property "KalturaSegmentDuration"
+			// todo: get packetizer listener
+			// todo: set "cupertinoChunkDurationTarget" propertyr of packetizer
+			// todo: do all above in new method of DynamicStreamSettings
+			/*WMSProperties props = stream.getProperties();
+			synchronized (props) {
+				props.setProperty(STREAM_ACTION_LISTENER_PROPERTY, listener);
+			}*/
+
 			return;
 		}
 
+	/*	try {
+			int segmentDuration = Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS;
+			// todo:  get segmentDuration property of the stream
+
+			KalturaLiveEntry liveEntry = Utils.getLiveEntryFromStream(stream);
+
+			// todo: set stream property "KalturaSegmentDuration"
+
+			// todo: do all above in new method of DynamicStreamSettings
+
+
+		} catch (Exception e) {
+			logger.error("stream [" + stream.getName() + "] failed to get segmentDuration value from KalturaLiveEntry. " + e);
+		}*/
 		PacketListener listener = new PacketListener();
 		WMSProperties props = stream.getProperties();
 		synchronized (props) {
