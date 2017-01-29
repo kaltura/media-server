@@ -2,6 +2,7 @@ package com.kaltura.media_server.modules;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media_server.services.Constants;
 import com.kaltura.media_server.services.Utils;
 import com.wowza.wms.amf.*;
@@ -54,11 +55,13 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 		private LiveStreamPacketizerCupertino liveStreamPacketizer = null;
 		private String streamName = null;
+		private KalturaLiveEntry entry = null;
 
-		public LiveStreamPacketizerDataHandler(LiveStreamPacketizerCupertino liveStreamPacketizer, String streamName) {
+		public LiveStreamPacketizerDataHandler(LiveStreamPacketizerCupertino liveStreamPacketizer, String streamName, KalturaLiveEntry entry) {
 			logger.debug("creating LiveStreamPacketizerDataHandler for stream name: " + streamName);
 			this.streamName = streamName;
 			this.liveStreamPacketizer = liveStreamPacketizer;
+			this.entry = entry;
 		}
 
 		public void onFillChunkStart(LiveStreamPacketizerCupertinoChunk chunk) {
@@ -117,12 +120,12 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	class LiveStreamPacketizerListener implements ILiveStreamPacketizerActionNotify {
 
 		private IApplicationInstance appInstance = null;
-		private DynamicStreamSettings liveStreamEntrySettingsHandler = null;
+		private DynamicStreamSettings streamSettings = null;
 
 		public LiveStreamPacketizerListener(IApplicationInstance appInstance) {
 			logger.debug("creating new LiveStreamPacketizerListener");
 			this.appInstance = appInstance;
-			this.liveStreamEntrySettingsHandler = new DynamicStreamSettings();
+			this.streamSettings = new DynamicStreamSettings();
 		}
 
 		public void onLiveStreamPacketizerCreate(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {
@@ -131,16 +134,21 @@ public class LiveStreamSettingsModule extends ModuleBase {
 				return;
 
 			LiveStreamPacketizerCupertino cupertinoPacketizer = (LiveStreamPacketizerCupertino) liveStreamPacketizer;
-			IMediaStream stream = this.appInstance.getStreams().getStream(streamName);
-			liveStreamEntrySettingsHandler.addLiveEntrySettings(cupertinoPacketizer, stream, streamName);
+			IMediaStream stream = appInstance.getStreams().getStream(streamName);
+			KalturaLiveEntry entry = null;
+			try {
+				entry = Utils.getEntry(streamName);
+			} catch(Exception e) {
+				logger.error("(" + streamName + ") failed to get entry.");
+			}
+			streamSettings.onStreamCreate(cupertinoPacketizer, stream, streamName, entry);
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
-			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(cupertinoPacketizer, streamName));
+			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(cupertinoPacketizer, streamName, entry));
 		}
 
 		public void onLiveStreamPacketizerDestroy(ILiveStreamPacketizer liveStreamPacketizer) {
 			String streamName = liveStreamPacketizer.getAndSetStartStream(null).getName();
 			logger.debug("(" + streamName + ") onLiveStreamPacketizerDestroy");
-			liveStreamEntrySettingsHandler.removeLiveEntrySettings(streamName);
 		}
 
 		public void onLiveStreamPacketizerInit(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {

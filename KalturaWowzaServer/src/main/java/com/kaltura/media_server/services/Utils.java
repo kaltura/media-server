@@ -10,6 +10,8 @@ import org.apache.log4j.Logger;
 import com.wowza.wms.stream.*;
 import com.wowza.wms.application.WMSProperties;
 
+
+
 /**
  * Created by ron.yadgar on 26/05/2016.
  */
@@ -17,6 +19,7 @@ public class Utils {
 
 
     private static Logger logger = Logger.getLogger(Utils.class);
+    private static LiveWeakHashMap<String, KalturaLiveEntry> entryIdToKalturaLiveEntryMap = new LiveWeakHashMap<>();
 
     public static HashMap<String, String> getRtmpUrlParameters(String rtmpUrl, String queryString){
 
@@ -191,6 +194,31 @@ public class Utils {
         }
 
         return map;
+    }
+
+    public static KalturaLiveEntry getEntry(String streamName) throws Exception {
+        String entryId = getEntryIdFromStreamName(streamName);
+        KalturaLiveEntry entry = null;
+
+        synchronized (entryIdToKalturaLiveEntryMap) {
+            entry = entryIdToKalturaLiveEntryMap.get(entryId);
+        }
+
+        if (entry == null) {
+            throw new Exception("(\" + streamName + \") failed to get entry. The key (" + entryId + ") doesn't exist in map.");
+        }
+
+        logger.debug("("+ streamName +") successfully got entry");
+
+        return entry;
+    }
+
+    // add entry on connect (after successful authentication)
+    public static void addEntry(String entryId, KalturaLiveEntry entry) {
+        synchronized (entryIdToKalturaLiveEntryMap) {
+            entryIdToKalturaLiveEntryMap.put(entryId, entry);
+        }
+        logger.debug("(" + entryId +") successfully added entry");
     }
 
 }
