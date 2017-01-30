@@ -19,6 +19,7 @@ import java.util.regex.Matcher;
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.*;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import com.kaltura.client.enums.KalturaEntryServerNodeType;
 
@@ -226,18 +227,18 @@ public class RecordingModule  extends ModuleBase {
     {
         logger.debug("onConnectAccept"+ client.getClientId());
 
+        KalturaLiveEntry liveEntry = null;
+
         try {
-            WMSProperties properties = client.getProperties();
-            KalturaLiveEntry liveEntry = Utils.getLiveEntry(properties);
+            Pair<Object, KalturaEntryIdKey> result = KalturaStreamsDataPersistence.getEntry(client, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
+            liveEntry = (KalturaLiveEntry) result.getLeft();
             if(liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
                 return;
             }
 
             KalturaFlavorAssetListResponse liveAssetList = KalturaAPI.getKalturaAPI().getKalturaFlavorAssetListResponse(liveEntry);
             if (liveAssetList != null) {
-                synchronized(properties) {
-                    properties.setProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST, liveAssetList);
-                }
+                KalturaStreamsDataPersistence.update(result.getRight(), Constants.CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST, liveAssetList, client.getPlayStreams().toString());
                 logger.debug("Adding live asset list for entry [" + liveEntry.id + "]" );
             }
         }
@@ -282,15 +283,16 @@ public class RecordingModule  extends ModuleBase {
         public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
             KalturaLiveEntry liveEntry;
-            WMSProperties properties;
+            ConcurrentHashMap<String, Object> entryMap = null;
             if (!stream.isTranscodeResult()) {
                 return;
             }
 
 
             try {
-                properties = Utils.getEntryProperties(stream);
-                liveEntry = Utils.getLiveEntry(properties);
+                String entryId = Utils.getEntryIdFromStreamName(streamName);
+                entryMap = KalturaStreamsDataPersistence.getAll(entryId);
+                liveEntry = (KalturaLiveEntry) entryMap.get(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
             }
             catch(Exception e){
                 logger.error("Failed to retrieve liveEntry for "+ streamName+" :"+e);
@@ -305,10 +307,9 @@ public class RecordingModule  extends ModuleBase {
             KalturaEntryServerNodeType serverIndex;
 
             // This code section should run for source steam that has recording
-            synchronized(properties) {
-                 serverIndex = KalturaEntryServerNodeType.get(properties.getPropertyStr(Constants.CLIENT_PROPERTY_SERVER_INDEX, Constants.INVALID_SERVER_INDEX));
-            }
-
+            String serverId = (String) entryMap.get(Constants.CLIENT_PROPERTY_SERVER_INDEX);
+            serverId = serverId != null ? serverId : Constants.INVALID_SERVER_INDEX;
+            serverIndex = KalturaEntryServerNodeType.get(serverId);
 
             int assetParamsId ;
             Matcher matcher = Utils.getStreamNameMatches(streamName);
@@ -323,9 +324,8 @@ public class RecordingModule  extends ModuleBase {
 
             KalturaLiveAsset liveAsset;
             KalturaFlavorAssetListResponse liveAssetList;
-            synchronized(properties) {
-                 liveAssetList = (KalturaFlavorAssetListResponse) properties.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST);
-            }
+            liveAssetList = (KalturaFlavorAssetListResponse)entryMap.get(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST);
+
             liveAsset = KalturaAPI.getliveAsset(liveAssetList, assetParamsId);
             if (liveAsset == null) {
                 logger.warn("Cannot find liveAsset "+assetParamsId+"for stream [" + streamName + "]");

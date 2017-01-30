@@ -17,8 +17,9 @@ import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import org.apache.log4j.Logger;
 import com.kaltura.media_server.services.*;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.regex.Matcher;
-
+import org.apache.commons.lang3.tuple.*;
 
 
 
@@ -72,13 +73,15 @@ public class AuthenticationModule extends ModuleBase  {
         int partnerId = Integer.parseInt(requestParams.get(Constants.REQUEST_PROPERTY_PARTNER_ID));
         String entryId = requestParams.get(Constants.REQUEST_PROPERTY_ENTRY_ID);
         String token = requestParams.get(Constants.REQUEST_PROPERTY_TOKEN);
-
-        KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
+        String partnerStr = "P-" + partnerId;
+                KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
         KalturaLiveEntry liveEntry = KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
-        Utils.addEntry(entryId, liveEntry);
+        Pair<Object, KalturaEntryIdKey> result = KalturaStreamsDataPersistence.addEntry(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry, partnerStr);
+        KalturaStreamsDataPersistence.update(result.getRight(), Constants.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX), partnerStr);
+        //KalturaStreamsDataPersistence.update(result.getRight(), Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry, partnerStr);
+
         synchronized(properties) {
-            properties.setProperty(Constants.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
-            properties.setProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
+            properties.setProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY, result.getRight());
         }
         logger.info("Entry added [" + entryId + "]");
 
@@ -88,7 +91,12 @@ public class AuthenticationModule extends ModuleBase  {
 
     public void onDisconnect(IClient client) {
         try{
-            KalturaLiveEntry liveEntry = Utils.getKalturaLiveEntry(client);
+            KalturaEntryIdKey entryIdKey = null;
+            WMSProperties properties = client.getProperties();
+            synchronized (properties) {
+                entryIdKey = (KalturaEntryIdKey) properties.getProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY);
+            }
+            KalturaLiveEntry liveEntry = (KalturaLiveEntry) KalturaStreamsDataPersistence.getEntry(entryIdKey, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, String.valueOf(client.getClientId()));
             logger.info("Entry removed [" + liveEntry.id + "]");
         }
         catch (Exception  e){
@@ -131,7 +139,8 @@ public class AuthenticationModule extends ModuleBase  {
             }
             try {
                 IClient client = stream.getClient();
-                KalturaLiveEntry liveEntry = Utils.getKalturaLiveEntry(client);
+                Pair<Object, KalturaEntryIdKey> result = KalturaStreamsDataPersistence.getEntry(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, streamName);
+                KalturaLiveEntry liveEntry = (KalturaLiveEntry) result.getLeft();
                 Matcher matcher = Utils.getStreamNameMatches(streamName);
 
                 if (matcher == null) {

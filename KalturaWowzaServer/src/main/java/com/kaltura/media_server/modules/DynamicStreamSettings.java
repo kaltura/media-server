@@ -24,10 +24,11 @@ public class DynamicStreamSettings {
 
 	private static final Logger logger = Logger.getLogger(DynamicStreamSettings.class);
 
-	private boolean isValidSegmentDuration(int segmentDuration) throws Exception {
+	private boolean isValidSegmentDuration(int segmentDuration, String streamName) {
 
 		if (segmentDuration < Constants.MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS || segmentDuration > Constants.MAX_ALLOwED_CHUNK_DURATION_MILLISECONDS) {
-			throw new IllegalArgumentException("[segmentDuration=" + segmentDuration + "], value is out of range [" + Constants.MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS + ", " + Constants.MAX_ALLOwED_CHUNK_DURATION_MILLISECONDS + "]");
+			logger.error("(" +streamName + ")[segmentDuration=" + segmentDuration + "], value is out of range [" + Constants.MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS + ", " + Constants.MAX_ALLOwED_CHUNK_DURATION_MILLISECONDS + "]");
+			return false;
 		}
 
 		return true;
@@ -38,10 +39,11 @@ public class DynamicStreamSettings {
 		int segmentDuration = Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS;
 
 		try {
-			isValidSegmentDuration(entry.segmentDuration);
+		if (isValidSegmentDuration(entry.segmentDuration, streamName)) {
 			segmentDuration = entry.segmentDuration;
+		}
 		} catch (Exception e) {
-			logger.error("(" + streamName + ") failed to get valid \"segmentDuration\", using default " + segmentDuration + " milliseconds. " + e);
+			logger.error("(" + streamName + ") failed to get entry's \"segmentDuration\", default value of " + segmentDuration + " milliseconds will be used. " + e);
 		}
 
 		// update packetizer properties

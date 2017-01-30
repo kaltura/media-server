@@ -19,7 +19,6 @@ public class Utils {
 
 
     private static Logger logger = Logger.getLogger(Utils.class);
-    private static LiveWeakHashMap<String, KalturaLiveEntry> entryIdToKalturaLiveEntryMap = new LiveWeakHashMap<>();
 
     public static HashMap<String, String> getRtmpUrlParameters(String rtmpUrl, String queryString){
 
@@ -101,66 +100,20 @@ public class Utils {
     }
 
 
-    public static WMSProperties getEntryProperties(IMediaStream stream) {
-
-        WMSProperties properties = null;
-        String streamName = stream.getName();
-        String entryId = Utils.getEntryIdFromStreamName (streamName);
-        properties = getConnectionProperties(stream);
-
-        if (properties != null) {
-            logger.debug("Find properties for entry [" + entryId + "]  for stream [" + streamName + "]");
-            return properties;
-        }
-        // For loop over all published mediaStream (source and transcoded) in order to find the corresponding source stream
-        for (IMediaStream mediaStream : stream.getStreams().getStreams()) {
-            properties = getConnectionProperties(mediaStream);
-
-            if (properties != null && mediaStream.getName().startsWith(entryId)) {
-                logger.debug("Find properties for entry [" + entryId + "]  for stream [" + streamName + "]");
-                return properties;
-            }
-        }
-        logger.error("Cannot find properties for entry [" + entryId + "]  for stream [" + streamName + "]");
-        return null;
-
-    }
-
-
-    public static KalturaLiveEntry getLiveEntry(WMSProperties properties) throws Exception{
-        KalturaLiveEntry liveEntry;
+    public static KalturaEntryIdKey getLiveEntryIdKey(WMSProperties properties) throws Exception{
+        KalturaEntryIdKey entryIdKey;
         synchronized (properties) {
             if (properties == null) {
                 throw new Exception("Failed to retrieve property");
             }
 
-            liveEntry = (KalturaLiveEntry) properties.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
+            entryIdKey = (KalturaEntryIdKey) properties.getProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY);
 
-            if (liveEntry == null) {
-                throw new Exception("Failed to retrieve LiveEntry property ");
-
+            if (entryIdKey == null) {
+                throw new Exception("Failed to retrieve " + Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY + " property ");
             }
         }
-        return liveEntry;
-    }
-
-    public static KalturaLiveEntry getLiveEntryFromStream(IMediaStream stream)  throws Exception{
-        KalturaLiveEntry liveEntry;
-        IClient client = null;
-        synchronized (stream) {
-            client = stream.getClient();
-            if (client == null) {
-                throw new NullPointerException("Null IClient");
-            }
-        }
-        liveEntry = getLiveEntry(client.getProperties());
-        return liveEntry;
-    }
-
-    public static KalturaLiveEntry getKalturaLiveEntry(IClient client) throws Exception{
-
-        WMSProperties clientProperties = client.getProperties();
-        return getLiveEntry(clientProperties);
+        return entryIdKey;
     }
 
     public static boolean isNumeric(String str)
@@ -194,31 +147,6 @@ public class Utils {
         }
 
         return map;
-    }
-
-    public static KalturaLiveEntry getEntry(String streamName) throws Exception {
-        String entryId = getEntryIdFromStreamName(streamName);
-        KalturaLiveEntry entry = null;
-
-        synchronized (entryIdToKalturaLiveEntryMap) {
-            entry = entryIdToKalturaLiveEntryMap.get(entryId);
-        }
-
-        if (entry == null) {
-            throw new Exception("(\" + streamName + \") failed to get entry. The key (" + entryId + ") doesn't exist in map.");
-        }
-
-        logger.debug("("+ streamName +") successfully got entry");
-
-        return entry;
-    }
-
-    // add entry on connect (after successful authentication)
-    public static void addEntry(String entryId, KalturaLiveEntry entry) {
-        synchronized (entryIdToKalturaLiveEntryMap) {
-            entryIdToKalturaLiveEntryMap.put(entryId, entry);
-        }
-        logger.debug("(" + entryId +") successfully added entry");
     }
 
 }
