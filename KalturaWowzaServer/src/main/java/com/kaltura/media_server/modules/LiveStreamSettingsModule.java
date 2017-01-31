@@ -2,10 +2,7 @@ package com.kaltura.media_server.modules;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media_server.services.Constants;
-import com.kaltura.media_server.services.KalturaEntryIdKey;
-import com.kaltura.media_server.services.KalturaStreamsDataPersistence;
 import com.kaltura.media_server.services.Utils;
 import com.wowza.wms.amf.*;
 import com.wowza.wms.application.*;
@@ -15,15 +12,11 @@ import com.wowza.wms.stream.livepacketizer.*;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.module.*;
 import com.wowza.wms.stream.*;
-import com.wowza.wms.client.IClient;
 import com.wowza.wms.application.WMSProperties;
-import com.wowza.wms.stream.MediaStreamActionNotifyBase;
-import com.wowza.wms.vhost.*;
 import org.apache.log4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.commons.lang3.tuple.*;
 
 // todo: test and add relevant code ofr ptsTimeCode moving back in time and PTS wrap arround are supported.
 
@@ -134,19 +127,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 			LiveStreamPacketizerCupertino cupertinoPacketizer = (LiveStreamPacketizerCupertino) liveStreamPacketizer;
 			IMediaStream stream = appInstance.getStreams().getStream(streamName);
-			KalturaLiveEntry entry = null;
-			try {
-				Pair<Object, KalturaEntryIdKey> entryPair = KalturaStreamsDataPersistence.getEntry(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, streamName);
-				entry = (KalturaLiveEntry) entryPair.getLeft();
-				WMSProperties properties = stream.getProperties();
-				synchronized (properties) {
-					// save key reference to make sure as long as entry is live persistent data won't be released (by GC)
-					properties.setProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY, entryPair.getRight());
-				}
-			} catch(Exception e) {
-				logger.error("(" + streamName + ") failed to get entry.");
-			}
-			streamSettings.onStreamCreate(cupertinoPacketizer, stream, streamName, entry);
+			streamSettings.onStreamCreate(cupertinoPacketizer, stream, streamName);
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
 			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(cupertinoPacketizer, streamName));
 		}

@@ -2,18 +2,12 @@ package com.kaltura.media_server.modules;
 
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media_server.services.Constants;
-import com.kaltura.media_server.services.Utils;
-
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.List;
+import com.kaltura.media_server.services.KalturaEntryDataPersistence;
 
 import org.apache.log4j.Logger;
+
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.*;
 import com.wowza.wms.stream.*;
-import com.wowza.wms.client.IClient;
 import com.wowza.wms.application.WMSProperties;
 
 
@@ -34,14 +28,17 @@ public class DynamicStreamSettings {
 		return true;
 	}
 
-	private KalturaLiveEntry updateStreamProperties(LiveStreamPacketizerCupertino cupertinoPacketizer, String streamName, KalturaLiveEntry entry) {
+	private void updateStreamProperties(LiveStreamPacketizerCupertino cupertinoPacketizer, String streamName) {
 
 		int segmentDuration = Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS;
 
+		KalturaLiveEntry entry = null;
 		try {
-		if (isValidSegmentDuration(entry.segmentDuration, streamName)) {
-			segmentDuration = entry.segmentDuration;
-		}
+			entry = (KalturaLiveEntry) KalturaEntryDataPersistence.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, streamName);
+
+			if (isValidSegmentDuration(entry.segmentDuration, streamName)) {
+				segmentDuration = entry.segmentDuration;
+			}
 		} catch (Exception e) {
 			logger.error("(" + streamName + ") failed to get entry's \"segmentDuration\", default value of " + segmentDuration + " milliseconds will be used. " + e);
 		}
@@ -55,16 +52,15 @@ public class DynamicStreamSettings {
 
 		logger.debug("(" + streamName + ") successfully set \"cupertinoChunkDurationTarget\" to " + segmentDuration + " milliseconds");
 
-		return entry;
 	}
 
-	public void onStreamCreate(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream, String streamName, KalturaLiveEntry entry) {
+	public void onStreamCreate(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream, String streamName) {
 
 		if (stream.getClientId() >= 0) { // ingest stream (input)
 			return;
 		}
 		// transcoded stream (output)
-		updateStreamProperties(cupertinoPacketizer, streamName, entry);
+		updateStreamProperties(cupertinoPacketizer, streamName);
 	}
 
 }

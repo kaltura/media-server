@@ -17,9 +17,8 @@ import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import org.apache.log4j.Logger;
 import com.kaltura.media_server.services.*;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.regex.Matcher;
-import org.apache.commons.lang3.tuple.*;
+
 
 
 
@@ -73,15 +72,13 @@ public class AuthenticationModule extends ModuleBase  {
         int partnerId = Integer.parseInt(requestParams.get(Constants.REQUEST_PROPERTY_PARTNER_ID));
         String entryId = requestParams.get(Constants.REQUEST_PROPERTY_ENTRY_ID);
         String token = requestParams.get(Constants.REQUEST_PROPERTY_TOKEN);
-        String partnerStr = "P-" + partnerId;
-                KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
-        KalturaLiveEntry liveEntry = KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
-        Pair<Object, KalturaEntryIdKey> result = KalturaStreamsDataPersistence.addEntry(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry, partnerStr);
-        KalturaStreamsDataPersistence.update(result.getRight(), Constants.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX), partnerStr);
-        //KalturaStreamsDataPersistence.update(result.getRight(), Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry, partnerStr);
 
-        synchronized(properties) {
-            properties.setProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY, result.getRight());
+        KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
+        KalturaLiveEntry liveEntry = KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
+
+        Object result = KalturaEntryDataPersistence.setProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry, entryId);
+        synchronized (properties) {
+            properties.setProperty(Constants.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
         }
         logger.info("Entry added [" + entryId + "]");
 
@@ -91,13 +88,16 @@ public class AuthenticationModule extends ModuleBase  {
 
     public void onDisconnect(IClient client) {
         try{
-            KalturaEntryIdKey entryIdKey = null;
+            String entryId = null;
             WMSProperties properties = client.getProperties();
             synchronized (properties) {
-                entryIdKey = (KalturaEntryIdKey) properties.getProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY);
+                KalturaEntryIdKey entryIdKey = (KalturaEntryIdKey) properties.getProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY);
+                entryId = entryIdKey.getEntryId();
+                 // clear reference to persistence data
+                properties.setProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY, null);
             }
-            KalturaLiveEntry liveEntry = (KalturaLiveEntry) KalturaStreamsDataPersistence.getEntry(entryIdKey, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, String.valueOf(client.getClientId()));
-            logger.info("Entry removed [" + liveEntry.id + "]");
+
+            logger.info("Entry removed [" + entryId + "]");
         }
         catch (Exception  e){
             logger.info("Error" + e.getMessage());
@@ -139,8 +139,7 @@ public class AuthenticationModule extends ModuleBase  {
             }
             try {
                 IClient client = stream.getClient();
-                Pair<Object, KalturaEntryIdKey> result = KalturaStreamsDataPersistence.getEntry(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, streamName);
-                KalturaLiveEntry liveEntry = (KalturaLiveEntry) result.getLeft();
+                KalturaLiveEntry liveEntry = (KalturaLiveEntry) KalturaEntryDataPersistence.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, streamName);
                 Matcher matcher = Utils.getStreamNameMatches(streamName);
 
                 if (matcher == null) {

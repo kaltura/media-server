@@ -99,21 +99,29 @@ public class Utils {
         return properties;
     }
 
+    public static WMSProperties getEntryProperties(IMediaStream stream) {
 
-    public static KalturaEntryIdKey getLiveEntryIdKey(WMSProperties properties) throws Exception{
-        KalturaEntryIdKey entryIdKey;
-        synchronized (properties) {
-            if (properties == null) {
-                throw new Exception("Failed to retrieve property");
-            }
+        WMSProperties properties = null;
+        String streamName = stream.getName();
+        String entryId = Utils.getEntryIdFromStreamName (streamName);
+        properties = getConnectionProperties(stream);
 
-            entryIdKey = (KalturaEntryIdKey) properties.getProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY);
+        if (properties != null) {
+            logger.debug("Find properties for entry [" + entryId + "]  for stream [" + streamName + "]");
+            return properties;
+        }
+        // For loop over all published mediaStream (source and transcoded) in order to find the corresponding source stream
+        for (IMediaStream mediaStream : stream.getStreams().getStreams()) {
+            properties = getConnectionProperties(mediaStream);
 
-            if (entryIdKey == null) {
-                throw new Exception("Failed to retrieve " + Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY + " property ");
+            if (properties != null && mediaStream.getName().startsWith(entryId)) {
+                logger.debug("Find properties for entry [" + entryId + "]  for stream [" + streamName + "]");
+                return properties;
             }
         }
-        return entryIdKey;
+        logger.error("Cannot find properties for entry [" + entryId + "]  for stream [" + streamName + "]");
+        return null;
+
     }
 
     public static boolean isNumeric(String str)
@@ -147,6 +155,36 @@ public class Utils {
         }
 
         return map;
+    }
+
+    public static String getStreamName(IClient client) throws Exception {
+
+        if (client == null || client.getPlayStreams().size() == 0) {
+            throw new Exception("failed to get client Id. No streams found");
+        }
+        IMediaStream stream = (IMediaStream) client.getPlayStreams().get(0);
+
+        return stream.getName();
+    }
+
+    public static KalturaEntryIdKey getEntryIdKeyFromClient(IClient client) throws Exception
+    {
+        KalturaEntryIdKey entryIdKey = null;
+        try {
+            String streamName = getStreamName(client);
+            return getEntryIdKeyFromStreamName(streamName);
+        } catch (Exception e) {
+            String error = "failed to get stream name from client. " + e;
+            logger.error(error);
+            throw e;
+        }
+    }
+
+    public static KalturaEntryIdKey getEntryIdKeyFromStreamName(String streamName) throws Exception
+    {
+        String entryId = Utils.getEntryIdFromStreamName(streamName);
+
+        return new KalturaEntryIdKey(entryId);
     }
 
 }
