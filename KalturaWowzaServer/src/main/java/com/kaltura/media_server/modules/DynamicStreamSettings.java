@@ -34,7 +34,7 @@ public class DynamicStreamSettings {
 
 		KalturaLiveEntry entry = null;
 		try {
-			entry = (KalturaLiveEntry) KalturaEntryDataPersistence.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, streamName);
+			entry = (KalturaLiveEntry) KalturaEntryDataPersistence.getProperty(streamName, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
 
 			if (isValidSegmentDuration(entry.segmentDuration, streamName)) {
 				segmentDuration = entry.segmentDuration;

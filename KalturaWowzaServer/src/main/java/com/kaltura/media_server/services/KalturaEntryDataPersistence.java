@@ -14,12 +14,12 @@ public class KalturaEntryDataPersistence {
 	private static Logger logger = Logger.getLogger(KalturaEntryDataPersistence.class);
 	private static WeakHashMap<KalturaEntryIdKey, ConcurrentHashMap<String, Object>> entryIdToKalturaLiveEntryMap = new WeakHashMap<>();
 
-	public static Object getProperty(String subKey, String streamName, Object defaultValue) {
+	public static Object getProperty(String streamName, String subKey, Object defaultValue) {
 
 		KalturaEntryIdKey entryIdKey = null;
 		try {
 			entryIdKey = Utils.getEntryIdKeyFromStreamName(streamName);
-			return getProperty(entryIdKey, subKey, streamName);
+			return getProperty(streamName, entryIdKey, subKey);
 		} catch (Exception e) {
 			logger.error(e + " returning the default value for sub key " + subKey);
 		}
@@ -27,63 +27,61 @@ public class KalturaEntryDataPersistence {
 		return defaultValue;
 	}
 
-	public static Object getProperty(String subKey, String streamName) throws Exception {
+	public static Object getProperty(String streamName, String subKey) throws Exception {
 
 		KalturaEntryIdKey entryIdKey = Utils.getEntryIdKeyFromStreamName(streamName);
 
-		Object value = getProperty(entryIdKey, subKey, streamName);
+		Object value = getProperty(streamName, entryIdKey, subKey);
 
 		return value;
 	}
 
-	private static Object getProperty(KalturaEntryIdKey entryIdKey, String subKey, String streamName) throws Exception {
+	private static Object getProperty(String streamName, KalturaEntryIdKey entryIdKey, String subKey) throws Exception {
 
 		Object value = null;
-		try {
-			synchronized (entryIdToKalturaLiveEntryMap) {
+
+		synchronized (entryIdToKalturaLiveEntryMap) {
+			try {
 				ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryIdKey);
 				value = entryMap.get(subKey);
+			} catch (Exception e) {
+				logger.error("(" + streamName + ") failed to get value for key " + subKey + ". " + e);
+				throw e;
 			}
-		} catch (Exception e) {
-			logger.error("(" + streamName + ") failed to get value for key " + subKey + ". " + e);
-			throw e;
 		}
 
-		logger.debug("(" + streamName + ") ("+ entryIdKey.getEntryId() +") successfully got entry");
+		logger.debug("(" + streamName + ") (" + entryIdKey.getEntryId() + ") successfully got entry");
 
 		return value;
 	}
 
 	// note: call add entry on connect (after successful authentication)
-	public static Object setProperty(String subKey, Object value, String streamName) throws Exception {
+	public static KalturaEntryIdKey setProperty(String entryId, String subKey, Object value) throws Exception {
 
-		KalturaEntryIdKey entryIdKey = Utils.getEntryIdKeyFromStreamName(streamName);
+		KalturaEntryIdKey entryIdKey = new KalturaEntryIdKey(entryId);
 
 		synchronized (entryIdToKalturaLiveEntryMap) {
 			if (!entryIdToKalturaLiveEntryMap.containsKey(entryIdKey)) {
 				entryIdToKalturaLiveEntryMap.put(entryIdKey, new ConcurrentHashMap<String, Object>());
 			}
+			setProperty(entryId, entryIdKey, subKey, value);
 		}
 
-		setProperty(entryIdKey, subKey, value, streamName);
+		logger.debug("(" + entryId + ") successfully added entry");
 
-		logger.debug("(" + streamName + ") successfully added entry");
-
-		return value;
+		return entryIdKey;
 	}
 
-	private static void setProperty(KalturaEntryIdKey entryIdKey, String subKey, Object value, String streamName) throws Exception {
+	private static void setProperty(String entryId, KalturaEntryIdKey entryIdKey, String subKey, Object value) throws Exception {
 
-		synchronized (entryIdToKalturaLiveEntryMap) {
-			if (!entryIdToKalturaLiveEntryMap.containsKey(entryIdKey)) {
-				entryIdToKalturaLiveEntryMap.put(entryIdKey, new ConcurrentHashMap<String, Object>());
-			}
+		if (!entryIdToKalturaLiveEntryMap.containsKey(entryIdKey)) {
+			entryIdToKalturaLiveEntryMap.put(entryIdKey, new ConcurrentHashMap<String, Object>());
 
 			ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryIdKey);
 			entryMap.put(subKey, value);
 		}
 
-		logger.debug("(" + streamName + ") successfully updated entry " + entryIdKey.getEntryId() + " sub key " + subKey + ".");
+		logger.debug("(" + entryId + ") successfully updated entry " + entryIdKey.getEntryId() + " sub key " + subKey + ".");
 	}
 
 }

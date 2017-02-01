@@ -171,13 +171,17 @@ public class Utils {
     {
         KalturaEntryIdKey entryIdKey = null;
         try {
-            String streamName = getStreamName(client);
-            return getEntryIdKeyFromStreamName(streamName);
+            WMSProperties properties = client.getProperties();
+            synchronized (properties) {
+                entryIdKey = (KalturaEntryIdKey)properties.getProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY);
+            }
         } catch (Exception e) {
             String error = "failed to get stream name from client. " + e;
             logger.error(error);
             throw e;
         }
+
+        return entryIdKey;
     }
 
     public static KalturaEntryIdKey getEntryIdKeyFromStreamName(String streamName) throws Exception
@@ -185,6 +189,33 @@ public class Utils {
         String entryId = Utils.getEntryIdFromStreamName(streamName);
 
         return new KalturaEntryIdKey(entryId);
+    }
+
+    public static String getEntryIdFromClient(IClient client) throws Exception
+    {
+        String entryId = null;
+
+        try {
+            String streamName = getStreamName(client);
+            entryId = getEntryIdFromStreamName(streamName);
+        } catch (Exception e) {
+            String error = "(" + client.getClientId() + ") failed to get stream name from client. " + e;
+            logger.error(error);
+        }
+
+        if (entryId == null) {
+            try {
+                KalturaEntryIdKey entryIdKey = getEntryIdKeyFromClient(client);
+                return entryIdKey.getEntryId();
+            } catch (Exception e) {
+                String error = "(" + client.getClientId() + ") failed to get property \"" + Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY + " \" from client. " + e;
+                logger.error(error);
+                throw e;
+            }
+        }
+
+        return entryId;
+
     }
 
 }
