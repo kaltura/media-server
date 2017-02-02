@@ -39,7 +39,6 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	private static final Logger logger = Logger.getLogger(LiveStreamSettingsModule.class);
 	private static final String MAX_ALLOWED_PTS_DRIFT_MILLISEC = "KalturaMaxAllowedPTSDriftiMillisec";
 	private static final int DEFAULT_MAX_ALLOWED_PTS_DRIFT_MILLISEC = 10000;
-	private static final String STREAM_ACTION_LISTENER_PROPERTY = "KalturaSyncPTS";
 	private static final int GLOBAL_SYSTEM_TIME_INDEX = 0;
 	private static final int GLOBAL_BASE_PTS_INDEX = 1;
 
@@ -167,7 +166,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		PacketListener listener = new PacketListener();
 		WMSProperties props = stream.getProperties();
 		synchronized (props) {
-			props.setProperty(STREAM_ACTION_LISTENER_PROPERTY, listener);
+			props.setProperty(Constants.STREAM_ACTION_LISTENER_PROPERTY, listener);
 		}
 		stream.addLivePacketListener(listener);
 
@@ -183,7 +182,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		String streamName = stream.getName();
 		WMSProperties props = stream.getProperties();
 		synchronized (props) {
-			listener = (PacketListener) props.get(STREAM_ACTION_LISTENER_PROPERTY);
+			listener = (PacketListener) props.get(Constants.STREAM_ACTION_LISTENER_PROPERTY);
 		}
 		if (listener != null) {
 			stream.removeLivePacketListener(listener);
@@ -193,7 +192,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		}
 	}
 
-	class PacketListener implements IMediaStreamLivePacketNotify {
+	public class PacketListener implements IMediaStreamLivePacketNotify {
 
 		private static final int BASE_TIME_INDEX = 0;
 		private static final int BASE_PTS_INDEX = 1;
@@ -213,6 +212,10 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			this.syncPTSData = new long[NUM_TYPES][SYNC_PARAMS_COUNT];
 
 		}
+
+		public long[][] getSyncPTSData(){
+            return this.syncPTSData;
+        }
 
 		private int getIndex(AMFPacket thisPacket) {
 			if (thisPacket.isVideo()) {
