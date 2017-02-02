@@ -44,7 +44,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import com.kaltura.media_server.services.*;
 import com.kaltura.media_server.listeners.ServerListener;
-
+import com.kaltura.media_server.modules.AMFInjection;
 
 public class RecordingModule  extends ModuleBase {
 
@@ -275,18 +275,16 @@ public class RecordingModule  extends ModuleBase {
             stream.removeClientListener(listener);
         }
 
+
     }
 
     class RecordingManagerLiveStreamListener extends MediaStreamActionNotifyBase {
 
+        AMFInjection amfInjection;
         public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
             KalturaLiveEntry liveEntry;
             WMSProperties properties;
-            if (!stream.isTranscodeResult()) {
-                return;
-            }
-
 
             try {
                 properties = Utils.getEntryProperties(stream);
@@ -302,8 +300,13 @@ public class RecordingModule  extends ModuleBase {
                 logger.info("Entry [" + liveEntry.id + "] recording disabled");
                 return;
             }
-            KalturaEntryServerNodeType serverIndex;
 
+            if (!stream.isTranscodeResult()) {
+                amfInjection = new AMFInjection();
+                amfInjection.onPublish(stream, streamName, isRecord, isAppend);
+                return;
+            }
+            KalturaEntryServerNodeType serverIndex;
             // This code section should run for source steam that has recording
             synchronized(properties) {
                  serverIndex = KalturaEntryServerNodeType.get(properties.getPropertyStr(Constants.CLIENT_PROPERTY_SERVER_INDEX, Constants.INVALID_SERVER_INDEX));
@@ -338,6 +341,12 @@ public class RecordingModule  extends ModuleBase {
 
 
             startRecording(liveEntry, liveAsset, stream, serverIndex, true, true, true);
+        }
+        public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
+            if (!stream.isTranscodeResult() && amfInjection !=null) {
+                logger.debug("stream[" + streamName + ']');
+                amfInjection.onUnPublish(stream, streamName, isRecord, isAppend);
+            }
         }
     }
 
