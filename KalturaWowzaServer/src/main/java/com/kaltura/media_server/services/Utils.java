@@ -82,7 +82,7 @@ public class Utils {
     public static Matcher getStreamNameMatches(String streamName) {
         return getMatches(streamName, "^([01]_[\\d\\w]{8})_(.+)$");
     }
-    public static WMSProperties getConnectionProperties(IMediaStream stream) {
+    private static WMSProperties getConnectionProperties(IMediaStream stream) {
 
         WMSProperties properties = null;
 
@@ -111,9 +111,10 @@ public class Utils {
         }
         // For loop over all published mediaStream (source and transcoded) in order to find the corresponding source stream
         for (IMediaStream mediaStream : stream.getStreams().getStreams()) {
-            properties = getConnectionProperties(mediaStream);
-
-            if (properties != null && mediaStream.getName().startsWith(entryId)) {
+            if (mediaStream.getName().startsWith(entryId)) {
+                properties = getConnectionProperties(mediaStream);
+            }
+            if (properties != null) {
                 logger.debug("Find properties for entry [" + entryId + "]  for stream [" + streamName + "]");
                 return properties;
             }
@@ -146,11 +147,15 @@ public class Utils {
         IClient client = null;
         synchronized (stream) {
             client = stream.getClient();
-            if (client == null) {
-                throw new NullPointerException("Null IClient");
-            }
         }
-        liveEntry = getLiveEntry(client.getProperties());
+
+        if (client == null) {
+            WMSProperties properties = Utils.getEntryProperties(stream);
+            liveEntry = Utils.getLiveEntry(properties);
+        } else {
+            liveEntry = getLiveEntry(client.getProperties());
+        }
+
         return liveEntry;
     }
 

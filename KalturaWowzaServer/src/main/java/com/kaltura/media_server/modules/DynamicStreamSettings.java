@@ -20,53 +20,54 @@ import com.wowza.wms.application.WMSProperties;
 public class DynamicStreamSettings {
 
 	private static final Logger logger = Logger.getLogger(DynamicStreamSettings.class);
+	public static final int MAX_ALLOwED_CHUNK_DURATION_MILLISECONDS = 20000;
+	public static final int MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS = 1000;
 
 	public DynamicStreamSettings() {
 	}
 
 	private boolean isValidSegmentDuration(int segmentDuration) {
 
-		if (segmentDuration < Constants.MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS || segmentDuration > Constants.MAX_ALLOwED_CHUNK_DURATION_MILLISECONDS) {
-			throw new IllegalArgumentException("[segmentDuration=" + segmentDuration + "], value is out of range [" + Constants.MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS + ", " + Constants.MAX_ALLOwED_CHUNK_DURATION_MILLISECONDS+ "]");
+		if (segmentDuration < MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS || segmentDuration > MAX_ALLOwED_CHUNK_DURATION_MILLISECONDS) {
+			logger.error("[segmentDuration=" + segmentDuration + "], value is out of range [" + MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS + ", " + MAX_ALLOwED_CHUNK_DURATION_MILLISECONDS + "]");
+			return false;
 		}
 
 		return true;
 	}
 
-	private void setSegmentDuration(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream, String streamName) {
+	private void setSegmentDuration(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream) {
+		String streamName = stream.getName();
 		int segmentDuration = Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS;
 		boolean durationUpdated = false;
 		String entryId = Utils.getEntryIdFromStreamName(streamName);
 
 		try {
-			WMSProperties properties = Utils.getConnectionProperties(stream);
-			KalturaLiveEntry liveEntry = Utils.getLiveEntry(properties);
-			segmentDuration = liveEntry.segmentDuration;
-			durationUpdated = true;
+            KalturaLiveEntry liveEntry = Utils.getLiveEntryFromStream(stream);
+			durationUpdated = isValidSegmentDuration(liveEntry.segmentDuration);
+			if (durationUpdated)
+			{
+				segmentDuration = liveEntry.segmentDuration;
+				logger.debug("(" + streamName + ") successfully set \"cupertinoChunkDurationTarget\" to " + segmentDuration + " milliseconds");
+			} else
+			{
+				logger.error("(" + streamName + ") failed to get \"segmentDuration\". Using default value, " + Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS + " milliseconds. Call developer.");
+			}
 		} catch (Exception e) {
 			if (!(e instanceof NullPointerException)) {
-				logger.error("stream [" + streamName + "] failed to get segmentDuration value from KalturaLiveEntry. " + e);
+				logger.error("stream [" + streamName + "] failed to get segmentDuration. Using default value, \" + Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS + \" milliseconds. Call developer." + e);
 			}
 		}
 
 		cupertinoPacketizer.getProperties().setProperty("cupertinoChunkDurationTarget", segmentDuration);
-
-		if (durationUpdated)
-		{
-			logger.debug("(" + streamName + ") successfully set \"cupertinoChunkDurationTarget\" to " + segmentDuration + " milliseconds");
-		} else
-		{
-			logger.error("(" + streamName + ") failed to get \"segmentDuration\". Using default value, " + Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS + " milliseconds. Call developer.");
-		}
-
 	}
 
-	public void checkAndUpdateSettings(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream, String streamName) {
+	public void checkAndUpdateSettings(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream) {
 
 		if (stream.getClientId() >= 0) {
 			return;
 		}
-		setSegmentDuration(cupertinoPacketizer, stream, streamName);
+		setSegmentDuration(cupertinoPacketizer, stream);
 	}
 
 }

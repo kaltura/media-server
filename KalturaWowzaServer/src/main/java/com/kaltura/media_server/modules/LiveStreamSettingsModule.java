@@ -22,8 +22,6 @@ import org.apache.log4j.Logger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.kaltura.client.types.KalturaLiveEntry;
-
 
 // todo: test and add relevant code ofr ptsTimeCode moving back in time and PTS wrap arround are supported.
 
@@ -134,7 +132,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 			LiveStreamPacketizerCupertino cupertinoPacketizer = (LiveStreamPacketizerCupertino) liveStreamPacketizer;
 			IMediaStream stream = this.appInstance.getStreams().getStream(streamName);
-			liveStreamEntrySettingsHandler.checkAndUpdateSettings(cupertinoPacketizer, stream, streamName);
+			liveStreamEntrySettingsHandler.checkAndUpdateSettings(cupertinoPacketizer, stream);
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
 			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(cupertinoPacketizer, streamName));
 
