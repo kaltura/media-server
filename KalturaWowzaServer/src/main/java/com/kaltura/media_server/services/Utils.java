@@ -82,7 +82,7 @@ public class Utils {
     public static Matcher getStreamNameMatches(String streamName) {
         return getMatches(streamName, "^([01]_[\\d\\w]{8})_(.+)$");
     }
-    private static WMSProperties getConnectionProperties(IMediaStream stream) {
+    public static WMSProperties getConnectionProperties(IMediaStream stream) {
 
         WMSProperties properties = null;
 
