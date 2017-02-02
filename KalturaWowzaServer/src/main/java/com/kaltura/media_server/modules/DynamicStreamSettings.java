@@ -22,10 +22,7 @@ public class DynamicStreamSettings {
 	private static final Logger logger = Logger.getLogger(DynamicStreamSettings.class);
 	public static final int MAX_ALLOWED_CHUNK_DURATION_MILLISECONDS = 20000;
 	public static final int MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS = 1000;
-
-	public DynamicStreamSettings() {
-	}
-
+	
 	private boolean isValidSegmentDuration(int segmentDuration) {
 
 		if (segmentDuration < MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS || segmentDuration > MAX_ALLOWED_CHUNK_DURATION_MILLISECONDS) {
