@@ -111,9 +111,10 @@ public class Utils {
         }
         // For loop over all published mediaStream (source and transcoded) in order to find the corresponding source stream
         for (IMediaStream mediaStream : stream.getStreams().getStreams()) {
-            properties = getConnectionProperties(mediaStream);
-
-            if (properties != null && mediaStream.getName().startsWith(entryId)) {
+            if (mediaStream.getName().startsWith(entryId)) {
+                properties = getConnectionProperties(mediaStream);
+            }
+            if (properties != null) {
                 logger.debug("Find properties for entry [" + entryId + "]  for stream [" + streamName + "]");
                 return properties;
             }
@@ -138,6 +139,20 @@ public class Utils {
 
             }
         }
+        return liveEntry;
+    }
+
+    public static KalturaLiveEntry getLiveEntryFromStream(IMediaStream stream)  throws Exception{
+        KalturaLiveEntry liveEntry;
+        IClient client = null;
+        client = stream.getClient();
+        if (client == null) {
+            WMSProperties properties = getEntryProperties(stream);
+            liveEntry = getLiveEntry(properties);
+        } else {
+            liveEntry = getLiveEntry(client.getProperties());
+        }
+
         return liveEntry;
     }
 
