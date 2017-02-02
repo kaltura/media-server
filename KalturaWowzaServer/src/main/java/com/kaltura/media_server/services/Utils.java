@@ -199,8 +199,7 @@ public class Utils {
             String streamName = getStreamName(client);
             entryId = getEntryIdFromStreamName(streamName);
         } catch (Exception e) {
-            String error = "(" + client.getClientId() + ") failed to get stream name from client. " + e;
-            logger.error(error);
+            logger.warn("(" + client.getClientId() + ") no streams attached to client." + e);
         }
 
         if (entryId == null) {
