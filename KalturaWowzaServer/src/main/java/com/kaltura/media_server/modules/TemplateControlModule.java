@@ -245,7 +245,7 @@ public class TemplateControlModule extends ModuleBase {
                                     audiocodec = FLVUtils.audioCodecToString(obj.getInt(ONMETADATA_AUDIOCODECID));
                                 }
                                 catch (NumberFormatException e){
-                                    audiocodec = obj.getString(ONMETADATA_VIDEOCODECID);
+                                    audiocodec = obj.getString(ONMETADATA_AUDIOCODECID);
                                 }
                                 obj.put(ONMETADATA_AUDIOCODECIDSTR, audiocodec);
                             }
