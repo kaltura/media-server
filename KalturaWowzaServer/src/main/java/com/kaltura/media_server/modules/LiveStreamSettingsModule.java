@@ -12,12 +12,8 @@ import com.wowza.wms.stream.livepacketizer.*;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.module.*;
 import com.wowza.wms.stream.*;
-import com.wowza.wms.client.IClient;
 import com.wowza.wms.application.WMSProperties;
-import com.wowza.wms.stream.MediaStreamActionNotifyBase;
-import com.wowza.wms.vhost.*;
 import org.apache.log4j.Logger;
-
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -116,10 +112,12 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	class LiveStreamPacketizerListener implements ILiveStreamPacketizerActionNotify {
 
 		private IApplicationInstance appInstance = null;
+		private DynamicStreamSettings streamSettings = null;
 
 		public LiveStreamPacketizerListener(IApplicationInstance appInstance) {
 			logger.debug("creating new LiveStreamPacketizerListener");
 			this.appInstance = appInstance;
+			this.streamSettings = new DynamicStreamSettings();
 		}
 
 		public void onLiveStreamPacketizerCreate(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {
@@ -128,8 +126,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 				return;
 
 			LiveStreamPacketizerCupertino cupertinoPacketizer = (LiveStreamPacketizerCupertino) liveStreamPacketizer;
-			IMediaStream stream = this.appInstance.getStreams().getStream(streamName);
-
+			IMediaStream stream = appInstance.getStreams().getStream(streamName);
+			streamSettings.onStreamCreate(cupertinoPacketizer, stream, streamName);
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
 			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(cupertinoPacketizer, streamName));
 		}

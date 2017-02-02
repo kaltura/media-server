@@ -19,5 +19,3 @@ Utils/CongestionTest/logs/testResult.log
 Utils/CongestionTest/config/local.json
 
 KalturaWowzaServer/gradle.properties
-
-KalturaWowzaServer/gradle.properties

@@ -17,13 +17,13 @@
         mavenCentral()
         maven {
             //TODO replace to master
-            url "https://raw.github.com/kaltura/KalturaGeneratedAPIClientsJava/PLAT-2504/maven"
+            url "https://raw.github.com/kaltura/KalturaGeneratedAPIClientsJava/wowza-releases/maven"
         }
     }
 
     dependencies {
         //TODO use the + sign for latest version when we start to use repository manager
-        compile 'com.kaltura:KalturaClientLib:3.3.2'
+        compile 'com.kaltura:KalturaClientLib:3.3.3'
         provided 'log4j:log4j:1.2.17'
     }
 
@@ -62,7 +62,7 @@ dependencies {
             "$WMSINSTALL_HOME/lib/bcprov-jdk15on-152.jar",
             "$WMSINSTALL_HOME/lib/joda-time-2.3.jar",
             "$WMSINSTALL_HOME/lib/commons-lang-2.6.jar",
-            "$WMSINSTALL_HOME/lib/jid3lib-0.5.4.jar",
+            "$WMSINSTALL_HOME/lib/jid3lib-0.5.4.jar"
     )
     provided fileTree(dir: "$WMSINSTALL_HOME/lib", includes: ['wms*.jar', 'jackson*.jar', 'slf4j*.jar'])
     forInstaller "mysql:mysql-connector-java:5.1.34"

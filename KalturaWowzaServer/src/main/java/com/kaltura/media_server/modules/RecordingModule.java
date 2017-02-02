@@ -228,8 +228,16 @@ public class RecordingModule  extends ModuleBase {
 
         try {
             WMSProperties properties = client.getProperties();
-            KalturaLiveEntry liveEntry = Utils.getLiveEntry(properties);
-            if(liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
+            KalturaEntryIdKey entryIdKey = null;
+            KalturaLiveEntry liveEntry = null;
+            // At this stage there isn't stream objects available yet
+            // but the key to get liveEntry from entry's persistent data is available
+            synchronized (properties) {
+                entryIdKey = (KalturaEntryIdKey)properties.getProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY);
+            }
+            String dummyStreamName = entryIdKey.getEntryId()+"_1";
+            KalturaEntryDataPersistence.getProperty(dummyStreamName, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
+            if (liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
                 return;
             }
 
@@ -290,7 +298,7 @@ public class RecordingModule  extends ModuleBase {
 
             try {
                 properties = Utils.getEntryProperties(stream);
-                liveEntry = Utils.getLiveEntry(properties);
+                liveEntry = (KalturaLiveEntry) KalturaEntryDataPersistence.getProperty(streamName, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
             }
             catch(Exception e){
                 logger.error("Failed to retrieve liveEntry for "+ streamName+" :"+e);
