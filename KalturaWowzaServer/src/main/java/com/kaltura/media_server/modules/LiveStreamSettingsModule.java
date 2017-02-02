@@ -116,12 +116,12 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	class LiveStreamPacketizerListener implements ILiveStreamPacketizerActionNotify {
 
 		private IApplicationInstance appInstance = null;
-		private DynamicStreamSettings liveStreamEntrySettingsHandler = null;
+		private DynamicStreamSettings dynamicStreamSettings = null;
 
 		public LiveStreamPacketizerListener(IApplicationInstance appInstance) {
 			logger.debug("creating new LiveStreamPacketizerListener");
 			this.appInstance = appInstance;
-			this.liveStreamEntrySettingsHandler = new DynamicStreamSettings();
+			this.dynamicStreamSettings = new DynamicStreamSettings();
 		}
 
 		public void onLiveStreamPacketizerCreate(ILiveStreamPacketizer liveStreamPacketizer, String streamName) {
@@ -131,7 +131,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 			LiveStreamPacketizerCupertino cupertinoPacketizer = (LiveStreamPacketizerCupertino) liveStreamPacketizer;
 			IMediaStream stream = this.appInstance.getStreams().getStream(streamName);
-			liveStreamEntrySettingsHandler.checkAndUpdateSettings(cupertinoPacketizer, stream);
+			dynamicStreamSettings.checkAndUpdateSettings(cupertinoPacketizer, stream);
 			logger.info("Create [" + streamName + "]: " + liveStreamPacketizer.getClass().getSimpleName());
 			cupertinoPacketizer.setDataHandler(new LiveStreamPacketizerDataHandler(cupertinoPacketizer, streamName));
 		}

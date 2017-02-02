@@ -39,13 +39,10 @@ public class DynamicStreamSettings {
 	private void setSegmentDuration(LiveStreamPacketizerCupertino cupertinoPacketizer, IMediaStream stream) {
 		String streamName = stream.getName();
 		int segmentDuration = Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS;
-		boolean durationUpdated = false;
-		String entryId = Utils.getEntryIdFromStreamName(streamName);
 
 		try {
             KalturaLiveEntry liveEntry = Utils.getLiveEntryFromStream(stream);
-			durationUpdated = isValidSegmentDuration(liveEntry.segmentDuration);
-			if (durationUpdated)
+			if (!isValidSegmentDuration(liveEntry.segmentDuration))
 			{
 				segmentDuration = liveEntry.segmentDuration;
 				logger.debug("(" + streamName + ") successfully set \"cupertinoChunkDurationTarget\" to " + segmentDuration + " milliseconds");
@@ -54,9 +51,7 @@ public class DynamicStreamSettings {
 				logger.error("(" + streamName + ") failed to get \"segmentDuration\". Using default value, " + Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS + " milliseconds. Call developer.");
 			}
 		} catch (Exception e) {
-			if (!(e instanceof NullPointerException)) {
 				logger.error("stream [" + streamName + "] failed to get segmentDuration. Using default value, \" + Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS + \" milliseconds. Call developer." + e);
-			}
 		}
 
 		cupertinoPacketizer.getProperties().setProperty("cupertinoChunkDurationTarget", segmentDuration);
