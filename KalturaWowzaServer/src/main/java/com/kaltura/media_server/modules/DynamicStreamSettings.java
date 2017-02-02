@@ -39,12 +39,10 @@ public class DynamicStreamSettings {
 
 		try {
             KalturaLiveEntry liveEntry = Utils.getLiveEntryFromStream(stream);
-			if (!isValidSegmentDuration(liveEntry.segmentDuration))
-			{
+			if (isValidSegmentDuration(liveEntry.segmentDuration)) {
 				segmentDuration = liveEntry.segmentDuration;
 				logger.debug("(" + streamName + ") successfully set \"cupertinoChunkDurationTarget\" to " + segmentDuration + " milliseconds");
-			} else
-			{
+			} else {
 				logger.error("(" + streamName + ") failed to get \"segmentDuration\". Using default value, " + Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS + " milliseconds. Call developer.");
 			}
 		} catch (Exception e) {
