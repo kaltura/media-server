@@ -20,7 +20,7 @@ import com.wowza.wms.application.WMSProperties;
 public class DynamicStreamSettings {
 
 	private static final Logger logger = Logger.getLogger(DynamicStreamSettings.class);
-	public static final int MAX_ALLOwED_CHUNK_DURATION_MILLISECONDS = 20000;
+	public static final int MAX_ALLOWED_CHUNK_DURATION_MILLISECONDS = 20000;
 	public static final int MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS = 1000;
 
 	public DynamicStreamSettings() {
@@ -28,8 +28,8 @@ public class DynamicStreamSettings {
 
 	private boolean isValidSegmentDuration(int segmentDuration) {
 
-		if (segmentDuration < MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS || segmentDuration > MAX_ALLOwED_CHUNK_DURATION_MILLISECONDS) {
-			logger.error("[segmentDuration=" + segmentDuration + "], value is out of range [" + MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS + ", " + MAX_ALLOwED_CHUNK_DURATION_MILLISECONDS + "]");
+		if (segmentDuration < MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS || segmentDuration > MAX_ALLOWED_CHUNK_DURATION_MILLISECONDS) {
+			logger.error("[segmentDuration=" + segmentDuration + "], value is out of range [" + MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS + ", " + MAX_ALLOWED_CHUNK_DURATION_MILLISECONDS + "]");
 			return false;
 		}
 

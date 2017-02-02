@@ -145,13 +145,10 @@ public class Utils {
     public static KalturaLiveEntry getLiveEntryFromStream(IMediaStream stream)  throws Exception{
         KalturaLiveEntry liveEntry;
         IClient client = null;
-        synchronized (stream) {
-            client = stream.getClient();
-        }
-
+        client = stream.getClient();
         if (client == null) {
-            WMSProperties properties = Utils.getEntryProperties(stream);
-            liveEntry = Utils.getLiveEntry(properties);
+            WMSProperties properties = getEntryProperties(stream);
+            liveEntry = getLiveEntry(properties);
         } else {
             liveEntry = getLiveEntry(client.getProperties());
         }
