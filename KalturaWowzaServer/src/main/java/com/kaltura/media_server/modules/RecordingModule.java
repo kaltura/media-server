@@ -56,7 +56,6 @@ public class RecordingModule  extends ModuleBase {
     static private GroupPrincipal group;
     static private String OS = System.getProperty("os.name");
     private final ConcurrentHashMap<IMediaStream, RecordingManagerLiveStreamListener> streams;
-    private final ConcurrentHashMap<IMediaStream, AMFInjection> streamsAMFInjection;
     Map<String, Object> serverConfiguration;
 
     class FlavorRecorder extends LiveStreamRecorderMP4 implements ILiveStreamRecordNotify {
