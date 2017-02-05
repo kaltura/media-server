@@ -44,7 +44,6 @@ import javax.xml.transform.stream.StreamResult;
 
 import com.kaltura.media_server.services.*;
 import com.kaltura.media_server.listeners.ServerListener;
-import com.kaltura.media_server.modules.AMFInjection;
 
 public class RecordingModule  extends ModuleBase {
 
@@ -57,6 +56,7 @@ public class RecordingModule  extends ModuleBase {
     static private GroupPrincipal group;
     static private String OS = System.getProperty("os.name");
     private final ConcurrentHashMap<IMediaStream, RecordingManagerLiveStreamListener> streams;
+    private final ConcurrentHashMap<IMediaStream, AMFInjection> streamsAMFInjection;
     Map<String, Object> serverConfiguration;
 
     class FlavorRecorder extends LiveStreamRecorderMP4 implements ILiveStreamRecordNotify {
@@ -187,6 +187,7 @@ public class RecordingModule  extends ModuleBase {
     public RecordingModule() throws  NullPointerException{
         logger.debug("Creating a new instance of Modules.RecordingManager");
         this.streams = new ConcurrentHashMap<IMediaStream, RecordingManagerLiveStreamListener>();
+        this.streamsAMFInjection = new ConcurrentHashMap<IMediaStream, AMFInjection> ();
         serverConfiguration = ServerListener.getServerConfig();
         if (serverConfiguration == null) {
             throw new NullPointerException("serverConfiguration is not available");
@@ -261,6 +262,7 @@ public class RecordingModule  extends ModuleBase {
             RecordingManagerLiveStreamListener listener = new RecordingManagerLiveStreamListener();
             streams.put(stream, listener);
             stream.addClientListener(listener);//register to onPublish
+
         }
          catch (Exception  e) {
             logger.error("Exception in onStreamCreate: ", e);
@@ -275,16 +277,15 @@ public class RecordingModule  extends ModuleBase {
             stream.removeClientListener(listener);
         }
 
-
     }
 
     class RecordingManagerLiveStreamListener extends MediaStreamActionNotifyBase {
 
-        AMFInjection amfInjection;
         public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
             KalturaLiveEntry liveEntry;
             WMSProperties properties;
+
 
             try {
                 properties = Utils.getEntryProperties(stream);
@@ -300,12 +301,15 @@ public class RecordingModule  extends ModuleBase {
                 logger.info("Entry [" + liveEntry.id + "] recording disabled");
                 return;
             }
-
             if (!stream.isTranscodeResult()) {
-                amfInjection = new AMFInjection();
-                amfInjection.onPublish(stream, streamName, isRecord, isAppend);
+                AMFInjection amfInjectionListener = new AMFInjection();
+                streamsAMFInjection.put(stream, amfInjectionListener);
+                amfInjectionListener.onPublish(stream, streamName, isRecord, isAppend);
                 return;
             }
+
+
+
             KalturaEntryServerNodeType serverIndex;
             // This code section should run for source steam that has recording
             synchronized(properties) {
@@ -343,11 +347,13 @@ public class RecordingModule  extends ModuleBase {
             startRecording(liveEntry, liveAsset, stream, serverIndex, true, true, true);
         }
         public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
-            if (!stream.isTranscodeResult() && amfInjection !=null) {
-                logger.debug("stream[" + streamName + ']');
-                amfInjection.onUnPublish(stream, streamName, isRecord, isAppend);
+            AMFInjection amfInjectionListener = streamsAMFInjection.remove(stream);
+            if (amfInjectionListener != null) {
+                logger.debug("Remove amfInjectionListener: stream " + stream.getName() + " and clientId " + stream.getClientId());
+                amfInjectionListener.onUnPublish(stream, streamName, isRecord, isAppend);
             }
         }
+
     }
 
 

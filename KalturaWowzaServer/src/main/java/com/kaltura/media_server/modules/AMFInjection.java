@@ -11,10 +11,10 @@ import org.apache.log4j.Logger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import com.kaltura.media_server.services.Constants;
+import com.wowza.wms.stream.MediaStreamActionNotifyBase;
+import com.wowza.wms.stream.*;
 
-
-
-    class AMFInjection {
+    class AMFInjection{
 
         private long runningId=0;
         private final Map<String,Timer> listenerStreams;
@@ -23,7 +23,7 @@ import com.kaltura.media_server.services.Constants;
         private static final String TIMESTAMP_KEY = "timestamp";
         private static final String ID_KEY = "id";
         private static final Logger logger = Logger.getLogger(AMFInjection.class);
-        private static final String PUBLIC_METADATA = "onMetaData";
+        private static final String PUBLIC_METADATA = "onMetaDataRecording";
         private static final long START_SYNC_POINTS_DELAY = 0;
         private int syncPointsInterval = Constants.KALTURA_SYNC_POINTS_INTERVAL_PROPERTY;
 
@@ -34,7 +34,6 @@ import com.kaltura.media_server.services.Constants;
 
 
         public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
-            // todo check lock
             Timer t;
             synchronized (listenerStreams) {
                 t = listenerStreams.remove(streamName);
@@ -131,8 +130,10 @@ import com.kaltura.media_server.services.Constants;
             //This condition is due to huge duration time (invalid) in the first chunk after stop-start on FMLE.
             //According to Wowza calling sendDirect() before stream contains any packets causes problems.
             if (stream.getPlayPackets().size() > 0) {
-                logger.info("[" + stream.getName() + "] send sync point  [" +id + "] data:" + data.toString());
                 stream.sendDirect(PUBLIC_METADATA, data);
+                ((MediaStream)stream).processSendDirectMessages();
+                logger.info("[" + stream.getName() + "] send sync point  [" +id + "] data:" + data.toString());
+
             }
             else{
                 logger.info("[" + stream.getName() + "] sync point cancelled  [" +id + "],  getPlayPackets = " + stream.getPlayPackets().size());
