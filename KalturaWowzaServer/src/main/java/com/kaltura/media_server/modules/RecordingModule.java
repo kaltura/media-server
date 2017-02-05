@@ -281,6 +281,7 @@ public class RecordingModule  extends ModuleBase {
 
     class RecordingManagerLiveStreamListener extends MediaStreamActionNotifyBase {
 
+        AMFInjection amfInjectionListener;
         public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
             KalturaLiveEntry liveEntry;
@@ -302,8 +303,7 @@ public class RecordingModule  extends ModuleBase {
                 return;
             }
             if (!stream.isTranscodeResult()) {
-                AMFInjection amfInjectionListener = new AMFInjection();
-                streamsAMFInjection.put(stream, amfInjectionListener);
+                amfInjectionListener = new AMFInjection();
                 amfInjectionListener.onPublish(stream, streamName, isRecord, isAppend);
                 return;
             }
@@ -346,12 +346,12 @@ public class RecordingModule  extends ModuleBase {
 
             startRecording(liveEntry, liveAsset, stream, serverIndex, true, true, true);
         }
+
         public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
-            AMFInjection amfInjectionListener = streamsAMFInjection.remove(stream);
-            if (amfInjectionListener != null) {
                 logger.debug("Remove amfInjectionListener: stream " + stream.getName() + " and clientId " + stream.getClientId());
-                amfInjectionListener.onUnPublish(stream, streamName, isRecord, isAppend);
-            }
+                if (amfInjectionListener !=null){
+                    amfInjectionListener.onUnPublish(stream, streamName, isRecord, isAppend);
+                }
         }
 
     }
