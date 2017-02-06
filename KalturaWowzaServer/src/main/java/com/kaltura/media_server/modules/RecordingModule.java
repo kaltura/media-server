@@ -186,7 +186,6 @@ public class RecordingModule  extends ModuleBase {
     public RecordingModule() throws  NullPointerException{
         logger.debug("Creating a new instance of Modules.RecordingManager");
         this.streams = new ConcurrentHashMap<IMediaStream, RecordingManagerLiveStreamListener>();
-        this.streamsAMFInjection = new ConcurrentHashMap<IMediaStream, AMFInjection> ();
         serverConfiguration = ServerListener.getServerConfig();
         if (serverConfiguration == null) {
             throw new NullPointerException("serverConfiguration is not available");
@@ -253,9 +252,9 @@ public class RecordingModule  extends ModuleBase {
     }
 
 
-        //should called for all streams (input and output)
-        //This method should be called after onConnectAccept
-        public void onStreamCreate(IMediaStream stream) {
+    //should called for all streams (input and output)
+    //This method should be called after onConnectAccept
+    public void onStreamCreate(IMediaStream stream) {
 
         try {
             RecordingManagerLiveStreamListener listener = new RecordingManagerLiveStreamListener();
@@ -273,6 +272,9 @@ public class RecordingModule  extends ModuleBase {
         RecordingManagerLiveStreamListener listener = streams.remove(stream);
         if (listener != null) {
             logger.debug("Remove clientListener: stream " + stream.getName() + " and clientId " + stream.getClientId());
+            if (listener.amfInjectionListener != null){
+                listener.amfInjectionListener.dispose(stream);
+            }
             stream.removeClientListener(listener);
         }
 
@@ -302,6 +304,10 @@ public class RecordingModule  extends ModuleBase {
                 return;
             }
             if (!stream.isTranscodeResult()) {
+                if (amfInjectionListener != null){
+                    logger.error("amfInjectionListener in already initialized");
+                    return;
+                }
                 amfInjectionListener = new AMFInjection();
                 amfInjectionListener.onPublish(stream, streamName, isRecord, isAppend);
                 return;

@@ -30,32 +30,25 @@ class AMFInjection{
 
 
     public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
-        cancelScheduledTask(t,streamName);
+        cancelScheduledTask(streamName);
     }
 
-    public void cancelScheduledTask(Timer t,String streamName){
+    public void cancelScheduledTask(String streamName){
         if (t!=null) {
             logger.debug("Stopping CuePoints timer for stream " + streamName);
             t.cancel();
             t.purge();
-        } else {
-
-            logger.error("Stream " + streamName + " does not exist in streams map");
+            t = null ;
         }
     }
 
+    public void dispose(IMediaStream stream) {
+        logger.debug("Stream [" + stream.getName());
+        cancelScheduledTask(stream.getName());
+    }
 
     public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
-        logger.debug("Stream [" + streamName + "]");
-
-
-        if(stream.getClientId() < 0){
-            logger.debug("Stream [" + streamName + "] entry [" + streamName + "] is a transcoded rendition");
-            return;
-        }
-
-        logger.debug("Stream [" + streamName + "] entry [" + streamName + "]");
 
         t = new Timer();
         logger.debug("Running timer to create sync points for stream " + streamName);
