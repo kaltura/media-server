@@ -272,9 +272,7 @@ public class RecordingModule  extends ModuleBase {
         RecordingManagerLiveStreamListener listener = streams.remove(stream);
         if (listener != null) {
             logger.debug("Remove clientListener: stream " + stream.getName() + " and clientId " + stream.getClientId());
-            if (listener.amfInjectionListener != null){
-                listener.amfInjectionListener.dispose(stream);
-            }
+            listener.dispose(stream);
             stream.removeClientListener(listener);
         }
 
@@ -283,6 +281,13 @@ public class RecordingModule  extends ModuleBase {
     class RecordingManagerLiveStreamListener extends MediaStreamActionNotifyBase {
 
         AMFInjection amfInjectionListener;
+
+        public void dispose(IMediaStream stream){
+            if (amfInjectionListener != null){
+                amfInjectionListener.dispose(stream);
+            }
+        }
+        
         public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
             KalturaLiveEntry liveEntry;
