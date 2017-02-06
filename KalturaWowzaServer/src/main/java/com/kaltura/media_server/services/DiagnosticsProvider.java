@@ -141,6 +141,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
                         }
 
                         HashMap<String, Object> streamHash = new HashMap<String, Object>();
+                        streamHash.put("currentTime",System.currentTimeMillis());
                         addStreamProperties(stream, streamHash);
                         IOPerformanceCounter perf = stream.getMediaIOPerformance();
                         outputIOPerformanceInfo(streamHash, perf);
