@@ -285,9 +285,10 @@ public class RecordingModule  extends ModuleBase {
         public void dispose(IMediaStream stream){
             if (amfInjectionListener != null){
                 amfInjectionListener.dispose(stream);
+                amfInjectionListener = null;
             }
         }
-        
+
         public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
 
             KalturaLiveEntry liveEntry;
