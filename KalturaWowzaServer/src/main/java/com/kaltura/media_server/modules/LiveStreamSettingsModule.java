@@ -65,7 +65,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			String startTimeStr = Double.toString(packetStartTime);
 			String id = this.streamName + "_" + chunk.getChunkIndexForPlaylist();
 
-			logger.info("adding ID3 frame (timestamp=" + startTimeStr + ") to chunk [" + chunk.getRendition().toString() + ":" + this.liveStreamPacketizer.getContextStr() + "]: chunkId:" + chunk.getChunkIndexForPlaylist());
+			//logger.info("adding ID3 frame (timestamp=" + startTimeStr + ") to chunk [" + chunk.getRendition().toString() + ":" + this.liveStreamPacketizer.getContextStr() + "]: chunkId:" + chunk.getChunkIndexForPlaylist());
 
 			// Add custom M3U tag to chunklist header
 /*
@@ -86,7 +86,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 				// Add ID3 tag to start of chunk
 				ID3Frames id3Frames = this.liveStreamPacketizer.getID3FramesHeader();
 				ID3V2FrameTextInformation id3Tag = new ID3V2FrameTextInformation(ID3V2FrameBase.TAG_TEXT);
-				logger.info("adding new id3Frame [" + this.streamName + "] " + json);
+				// logger.info("adding new id3Frame [" + this.streamName + "] " + json);
 				id3Tag.setValue(json);
 				// it is essential to call clear. This method is used to indicate ID3 is set in specified chunk
 				// if clear() is not called multiple ID3 tag frame will be inserted to each chunk.
