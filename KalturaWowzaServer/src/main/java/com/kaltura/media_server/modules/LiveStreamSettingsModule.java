@@ -246,7 +246,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			boolean firstPacket = (baseSystemTime == 0) ? true : false;
 			long inPTSDiff = (!firstPacket) ? (lastInPTS - inPTS) : 0;
 			long absPTSTimeCodeDiff = Math.abs(inPTSDiff);
-			boolean ptsJumped = (absPTSTimeCodeDiff > maxAllowedPTSDriftMillisec) ? true : false;
+			// ignore data events. They will probably always cause false PTS jump alarm!!! (e.g. AMF PLAT-6959)
+			boolean ptsJumped = (absPTSTimeCodeDiff > maxAllowedPTSDriftMillisec && typeIndex != DATA_INDEX) ? true : false;
 			boolean shouldSync = checkIfShouldSync(typeIndex, streamName);
 
 			//=================================================================
