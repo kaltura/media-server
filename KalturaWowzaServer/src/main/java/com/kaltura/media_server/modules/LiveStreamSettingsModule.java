@@ -65,7 +65,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			String startTimeStr = Double.toString(packetStartTime);
 			String id = this.streamName + "_" + chunk.getChunkIndexForPlaylist();
 
-			logger.info("adding ID3 frame (timestamp=" + startTimeStr + ") to chunk [" + chunk.getRendition().toString() + ":" + this.liveStreamPacketizer.getContextStr() + "]: chunkId:" + chunk.getChunkIndexForPlaylist());
+			//logger.info("adding ID3 frame (timestamp=" + startTimeStr + ") to chunk [" + chunk.getRendition().toString() + ":" + this.liveStreamPacketizer.getContextStr() + "]: chunkId:" + chunk.getChunkIndexForPlaylist());
 
 			// Add custom M3U tag to chunklist header
 /*
