@@ -92,7 +92,7 @@ class AMFInjection{
         //According to Wowza calling sendDirect() before stream contains any packets causes problems.
         if (stream.getPlayPackets().size() > 0) {
             stream.sendDirect(PUBLIC_METADATA, data);
-            logger.info("[" + stream.getName() + "] send sync point  [" +id + "] data:" + data.toString());
+            //logger.info("[" + stream.getName() + "] send sync point  [" +id + "] data:" + data.toString());
 
         }
         else{
