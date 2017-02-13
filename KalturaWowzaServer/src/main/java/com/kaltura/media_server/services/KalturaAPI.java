@@ -116,18 +116,22 @@ public class KalturaAPI {
         logger.debug("Kaltura client session id: " + sessionId);    //session id - KS
     }
     public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token, KalturaEntryServerNodeType serverIndex) throws Exception {
-        if (partnerId == -5){
-            KalturaClient Client= getClient();
+        if (partnerId == -5) {
+            KalturaClient Client = getClient();
             KalturaLiveEntry liveEntry = Client.getLiveStreamService().get(entryId);
             partnerId = liveEntry.partnerId;
         }
+        KalturaLiveStreamEntry updatedEntry = null;
+        try {
+            KalturaClient impersonateClient = impersonate(partnerId);
 
-        KalturaClient impersonateClient = impersonate(partnerId);
-
-        KalturaLiveStreamEntry updatedEntry = impersonateClient.getLiveStreamService().authenticate(entryId, token, hostname, serverIndex);
-
+            updatedEntry = impersonateClient.getLiveStreamService().authenticate(entryId, token, hostname, serverIndex);
+        } catch (KalturaApiException e) {
+            logger.error("Failed to load asset params for live entry [" + entryId + "]:" + e);
+        }
         return updatedEntry;
     }
+
     private KalturaClient getClient() {
         logger.warn("getClient");
         return client;
@@ -191,13 +195,12 @@ public class KalturaAPI {
         if(liveEntry.conversionProfileId <= 0) {
             return null;
         }
-
-        KalturaLiveAssetFilter asstesFilter = new KalturaLiveAssetFilter();
-        asstesFilter.entryIdEqual = liveEntry.id;
-
-        KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
-
         try {
+            KalturaLiveAssetFilter asstesFilter = new KalturaLiveAssetFilter();
+            asstesFilter.entryIdEqual = liveEntry.id;
+
+            KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
+
             KalturaFlavorAssetListResponse list = impersonateClient.getFlavorAssetService().list(asstesFilter);
             return list;
         } catch (KalturaApiException e) {
@@ -208,10 +211,14 @@ public class KalturaAPI {
 
 
     public KalturaLiveEntry appendRecording(int partnerId, String entryId, String assetId, KalturaEntryServerNodeType nodeType, String filePath, double duration, boolean isLastChunk) throws Exception{
-        KalturaDataCenterContentResource resource = getContentResource(filePath, partnerId);
-        KalturaClient impersonateClient = impersonate(partnerId);
-        KalturaLiveEntry updatedEntry = impersonateClient.getLiveStreamService().appendRecording(entryId, assetId, nodeType, resource, duration, isLastChunk);
-
+        KalturaLiveEntry updatedEntry = null;
+        try {
+            KalturaDataCenterContentResource resource = getContentResource(filePath, partnerId);
+            KalturaClient impersonateClient = impersonate(partnerId);
+            updatedEntry = impersonateClient.getLiveStreamService().appendRecording(entryId, assetId, nodeType, resource, duration, isLastChunk);
+        } catch (KalturaApiException e) {
+            logger.error("Failed to append recording for live entry [" + entryId + "]:" + e);
+        }
         return updatedEntry;
     }
 
