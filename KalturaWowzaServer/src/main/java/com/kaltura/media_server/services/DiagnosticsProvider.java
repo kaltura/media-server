@@ -114,7 +114,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
                     if (!( stream instanceof MediaStreamLive)){
                         continue;
                     }
-                    HashMap<String, HashMap<String, Object>> entryHashInstance;
+                    HashMap<String, Object> entryHashInstance;
                     HashMap<String, Object > inputEntryHashInstance, outputEntryHashInstance;
                     String streamName = stream.getName();
                     try {
@@ -127,14 +127,15 @@ public class DiagnosticsProvider extends HTTProvider2Base
                         String flavor = matcher.group(2);
 
                         if (!data.containsKey(entryId)) {
-                            entryHashInstance = new HashMap<String, HashMap<String, Object>>();
+                            entryHashInstance = new HashMap<String, Object>();
                             inputEntryHashInstance = new HashMap<String, Object>();
                             outputEntryHashInstance = new HashMap<String, Object>();
                             entryHashInstance.put("inputs", inputEntryHashInstance);
                             entryHashInstance.put("outputs", outputEntryHashInstance);
+                            entryHashInstance.put("currentTime",System.currentTimeMillis());
                             data.put(entryId, entryHashInstance);
                         } else {
-                            entryHashInstance = (HashMap<String, HashMap<String, Object>>) data.get(entryId);
+                            entryHashInstance = (HashMap<String, Object> ) data.get(entryId);
                             inputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("inputs");
                             outputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("outputs");
 
