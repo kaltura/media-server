@@ -1,0 +1,9 @@
+# Push Publishing Map file, format:
+#
+# format:
+# [src-stream-name]={Profile:[profile], [additional-configuration-items]}
+#
+
+#myStream={profile:"rtmp", streamName:"myStreamRTMP", host:"localhost", application:"live", userName:"myuser", password:"mypassword"}
+#myStream={profile:"mpegts", streamName:"myStreamMPEGTS", host:"239.1.1.1", port:10000, rtpWrap:false}
+#myStream={profile:"rtp", streamName:"myStreamRTP", host:"239.1.1.1", videoPort:10002, audioPort:10004}
