@@ -323,7 +323,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 					long[] globalSyncData = this.mapLiveEntryToBaseSystemTime.get(entryId);
 		            long clockDiff = baseSystemTime - globalSyncData[GLOBAL_SYSTEM_TIME_INDEX];
 					long ptsDiff = basePTS - globalSyncData[GLOBAL_BASE_PTS_INDEX];
-					long ptsMisalignment = Math.abs(ptsDiff+clockDiff);
+					long ptsMisalignment = Math.abs(clockDiff - ptsDiff);
 					if (ptsMisalignment > maxAllowedPTSDriftMillisec)  {
 						logger.warn("(" + entryId + ") found PTS jump, PTS misalignment [" + ptsMisalignment + "] replacing global PTS sync data from ["+ globalSyncData[GLOBAL_BASE_PTS_INDEX] + ", " + globalSyncData[GLOBAL_SYSTEM_TIME_INDEX] +"] to [" + basePTS + ", " + baseSystemTime +"]");
 						this.mapLiveEntryToBaseSystemTime.put(entryId, newSyncData);
