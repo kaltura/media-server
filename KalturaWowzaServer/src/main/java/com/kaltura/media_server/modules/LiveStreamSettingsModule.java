@@ -182,8 +182,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		if (listener != null) {
 			stream.removeLivePacketListener(listener);
 			String entryId = Utils.getEntryIdFromStreamName(streamName);
-			this.removeGlobalPTSSyncData(entryId);
-			logger.info("remove PacketListener: " + stream.getSrc());
+			this.removeGlobalPTSSyncData(streamName);
+			logger.info("(" + streamName + ") remove PacketListener: [" + stream.getSrc() + "] and removed global PTS sync data for entry [" + entryId + "]");
 		}
 	}
 
@@ -341,10 +341,13 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		return newSyncData;
 	}
 
-	public void removeGlobalPTSSyncData(String entryId) {
+	public void removeGlobalPTSSyncData(String streamName) {
+		String entryId = Utils.getEntryIdFromStreamName(streamName);
 		synchronized (this.mapLiveEntryToBaseSystemTime) {
 			if (this.mapLiveEntryToBaseSystemTime.containsKey(entryId)) {
 				this.mapLiveEntryToBaseSystemTime.remove(entryId);
+			} else {
+				logger.warn("(" + streamName + ") couldn't remove entry. Global PTS sync map doesn't contain the key " + entryId);
 			}
 		}
 	}
