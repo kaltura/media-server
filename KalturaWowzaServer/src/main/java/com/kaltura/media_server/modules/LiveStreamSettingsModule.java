@@ -351,7 +351,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		synchronized (this.mapLiveEntryToBaseSystemTime) {
 			if (this.mapLiveEntryToBaseSystemTime.containsKey(entryId)) {
 				this.mapLiveEntryToBaseSystemTime.remove(entryId);
-				logger.warn("PTS_SYNC: (" + streamName + ") removed entry [key=" + entryId + "] from global PTS sync");
+				logger.warn("PTS_SYNC: (" + streamName + ") removed entry [key=" + entryId + "] from global PTS sync data");
 			}
 		}
 	}
