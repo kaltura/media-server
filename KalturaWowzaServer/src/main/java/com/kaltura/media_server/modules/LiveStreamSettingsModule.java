@@ -182,8 +182,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		if (listener != null) {
 			stream.removeLivePacketListener(listener);
 			String entryId = Utils.getEntryIdFromStreamName(streamName);
-			this.removeGlobalPTSSyncData(entryId);
-			logger.info("remove PacketListener: " + stream.getSrc());
+			this.removeGlobalPTSSyncData(streamName);
+			logger.info("PTS_SYNC: (" + streamName + ") remove PacketListener: [" + stream.getSrc() + "] and removed global PTS sync data for entry [" + entryId + "]");
 		}
 	}
 
@@ -249,6 +249,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			// ignore data events. They will probably always cause false PTS jump alarm!!! (e.g. AMF PLAT-6959)
 			boolean ptsJumped = (absPTSTimeCodeDiff > maxAllowedPTSDriftMillisec && typeIndex != DATA_INDEX) ? true : false;
 			boolean shouldSync = checkIfShouldSync(typeIndex, streamName);
+			long currentTime = 0;
 
 			//=================================================================
 			// handle first packet & PTS jump
@@ -257,15 +258,14 @@ public class LiveStreamSettingsModule extends ModuleBase {
 				if (ptsJumped){
 					turnOnShouldSyncFlag(typeIndex);
 				}
-				long currentTime = System.currentTimeMillis();
-				long[] globalPTSData = updateGlobalPTSSyncData(streamName, currentTime, inPTS);
+				currentTime = System.currentTimeMillis();
+				long[] globalPTSData = updateGlobalPTSSyncData(streamName, currentTime, inPTS, streamType);
 
 				baseSystemTime = globalPTSData[GLOBAL_SYSTEM_TIME_INDEX];
 				baseInPTS = globalPTSData[GLOBAL_BASE_PTS_INDEX];
 				syncPTSData[typeIndex][BASE_TIME_INDEX] = baseSystemTime;
 				syncPTSData[typeIndex][BASE_PTS_INDEX] = baseInPTS;
 				syncPTSData[typeIndex][LAST_IN_PTS_INDEX] = baseInPTS;
-
 
 			} else {
 				syncPTSData[typeIndex][LAST_IN_PTS_INDEX] = inPTS;
@@ -279,10 +279,13 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 			thisPacket.setAbsTimecode(outPTS);
 
+			// Do not uncomment or remove. To be used for development debugging only!!!
+			//logger.debug("(" + streamName + ") [" + streamType + "] [time: "+ currentTime +"] PTS tuple [inPTS: " + inPTS + ", outPTS: " + outPTS +", correction: " + correction + "basePTS: " + baseInPTS + ", baseTime:" + baseSystemTime+ "]" );
+
 			if (firstPacket) {
-				logger.debug("(" + streamName + ") [" + streamType + "] first PTS updated to [" + outPTS + "] PTS was [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "]");
+				logger.debug("PTS_SYNC: (" + streamName + ") [" + streamType + "] first PTS updated to [" + outPTS + "] PTS was [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "] PTS diff [" + inPTSDiff + "] ");
 			} else if (ptsJumped) {
-				logger.warn("(" + streamName + ") [" + streamType + "] PTS diff [" + inPTSDiff + "] > threshold [" + maxAllowedPTSDriftMillisec + "] last PTS [" + lastInPTS + "] current PTS [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "]");
+				logger.warn("PTS_SYNC: (" + streamName + ") [" + streamType + "] PTS diff [" + inPTSDiff + "] > threshold [" + maxAllowedPTSDriftMillisec + "] last PTS [" + lastInPTS + "] current PTS [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "]");
 			}
 			//else {
 		//		logger.debug("(" + streamName + ") [" + streamType + "] updated PTS [" + outPTS + "] in PTS [" + inPTS + "] correction " + correction);
@@ -301,7 +304,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			if (syncPTSData[typeIndex][SHOULD_SYNC] == 1 ){
 				syncPTSData[typeIndex][SHOULD_SYNC] = 0 ;	//turn off flag
 				String streamType = TYPE_STR[typeIndex];
-				logger.debug("(" + streamName + ") [" + streamType + "] Found that streamType shouldSync");
+				logger.debug("PTS_SYNC: (" + streamName + ") [" + streamType + "] Found that streamType shouldSync");
 				return true;
 			}
 			return false;
@@ -310,7 +313,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	}
 
 
-	public long[] updateGlobalPTSSyncData(String streamName, long baseSystemTime, long basePTS) { //its not upldate its gett and updatrte
+	public long[] updateGlobalPTSSyncData(String streamName, long baseSystemTime, long basePTS, String type) { //its not upldate its gett and updatrte
 
 
 		long[] newSyncData = {baseSystemTime, basePTS};
@@ -320,31 +323,35 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			synchronized (this.mapLiveEntryToBaseSystemTime) {
 				if (!this.mapLiveEntryToBaseSystemTime.containsKey(entryId)) {
 					this.mapLiveEntryToBaseSystemTime.put(entryId, newSyncData);
+					logger.warn("PTS_SYNC: (" + streamName + ") [" + type + "] first PTS sync data for entry [" + entryId + "] initializing global PTS sync data to [basePTS:"+ basePTS + ", baseSystemTime" + baseSystemTime +"]");
 				} else {
 
 					long[] globalSyncData = this.mapLiveEntryToBaseSystemTime.get(entryId);
 		            long clockDiff = baseSystemTime - globalSyncData[GLOBAL_SYSTEM_TIME_INDEX];
 					long ptsDiff = basePTS - globalSyncData[GLOBAL_BASE_PTS_INDEX];
-					long ptsMisalignment = Math.abs(clockDiff - ptsDiff);
-					if (ptsMisalignment > maxAllowedPTSDriftMillisec)  {
-						logger.warn("(" + streamName + ") found PTS jump, PTS misalignment [" + ptsMisalignment + "] replacing global PTS sync data from ["+ globalSyncData[GLOBAL_BASE_PTS_INDEX] + ", " + globalSyncData[GLOBAL_SYSTEM_TIME_INDEX] +"] to [" + basePTS + ", " + baseSystemTime +"]");
+					long ptsMisalignment = clockDiff - ptsDiff;
+					if (Math.abs(ptsMisalignment) > maxAllowedPTSDriftMillisec)  {
+						logger.warn("PTS_SYNC: (" + streamName + ") [" + type + "] found PTS jump, PTS misalignment [" + ptsMisalignment + "] milliseconds, replacing global PTS sync data from [basePTS:"+ globalSyncData[GLOBAL_BASE_PTS_INDEX] + ", baseSystemTime" + globalSyncData[GLOBAL_SYSTEM_TIME_INDEX] +"] to [basePTS:" + basePTS + ", baseSystemTime:" + baseSystemTime +"]");
 						this.mapLiveEntryToBaseSystemTime.put(entryId, newSyncData);
 					} else {
+						logger.warn("PTS_SYNC: (" + streamName + ") [" + type + "] PTS sync data for entry [" + entryId + "] not updated, [basePTS:"+ globalSyncData[GLOBAL_BASE_PTS_INDEX] + ", baseSystemTime" + globalSyncData[GLOBAL_SYSTEM_TIME_INDEX] +"]");
 						newSyncData = globalSyncData;
 					}
 				}
 			}
 		} catch (Exception e) {
-			logger.error("(" + streamName + ") fail to sync PTS base timestamp for live entry." + e.toString());
+			logger.error("PTS_SYNC: (" + streamName + ") fail to sync PTS base timestamp for live entry." + e.toString());
 		}
 
 		return newSyncData;
 	}
 
-	public void removeGlobalPTSSyncData(String entryId) {
+	public void removeGlobalPTSSyncData(String streamName) {
+		String entryId = Utils.getEntryIdFromStreamName(streamName);
 		synchronized (this.mapLiveEntryToBaseSystemTime) {
 			if (this.mapLiveEntryToBaseSystemTime.containsKey(entryId)) {
 				this.mapLiveEntryToBaseSystemTime.remove(entryId);
+				logger.warn("PTS_SYNC: (" + streamName + ") removed entry [key=" + entryId + "] from global PTS sync data");
 			}
 		}
 	}
