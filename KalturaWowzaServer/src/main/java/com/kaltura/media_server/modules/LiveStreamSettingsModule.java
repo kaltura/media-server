@@ -12,15 +12,12 @@ import com.wowza.wms.stream.livepacketizer.*;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.module.*;
 import com.wowza.wms.stream.*;
-import com.wowza.wms.client.IClient;
 import com.wowza.wms.application.WMSProperties;
-import com.wowza.wms.stream.MediaStreamActionNotifyBase;
-import com.wowza.wms.vhost.*;
 import org.apache.log4j.Logger;
-
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
 
 // todo: test and add relevant code ofr ptsTimeCode moving back in time and PTS wrap arround are supported.
 
@@ -172,7 +169,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 		removeListener(stream);
 	}
-	private void removeListener(IMediaStream stream){
+
+	private void removeListener(IMediaStream stream) {
 		PacketListener listener = null;
 		String streamName = stream.getName();
 		WMSProperties props = stream.getProperties();

@@ -18,7 +18,7 @@ import org.apache.log4j.Logger;
 import com.kaltura.media_server.services.*;
 import java.util.HashMap;
 import java.util.regex.Matcher;
-
+import java.util.List;
 
 
 
@@ -75,9 +75,9 @@ public class AuthenticationModule extends ModuleBase  {
 
         KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
         KalturaLiveEntry liveEntry = KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
-        synchronized(properties) {
-            properties.setProperty(Constants.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
-            properties.setProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
+        KalturaEntryIdKey key = KalturaEntryDataPersistence.setProperty(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
+        synchronized (properties) {
+            properties.setProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY, key);
         }
         logger.info("Entry added [" + entryId + "]");
 
@@ -87,8 +87,14 @@ public class AuthenticationModule extends ModuleBase  {
 
     public void onDisconnect(IClient client) {
         try{
-            KalturaLiveEntry liveEntry = Utils.getKalturaLiveEntry(client);
-            logger.info("Entry removed [" + liveEntry.id + "]");
+            WMSProperties properties = client.getProperties();
+            String entryId = Utils.getEntryIdFromClient(client);
+            synchronized (properties) {
+                 // clear reference to persistence data
+                properties.setProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY, null);
+            }
+
+            logger.info("Entry removed [" + entryId + "]");
         }
         catch (Exception  e){
             logger.info("Error" + e.getMessage());
@@ -130,7 +136,7 @@ public class AuthenticationModule extends ModuleBase  {
             }
             try {
                 IClient client = stream.getClient();
-                KalturaLiveEntry liveEntry = Utils.getKalturaLiveEntry(client);
+                KalturaLiveEntry liveEntry = (KalturaLiveEntry) KalturaEntryDataPersistence.getProperty(streamName, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
                 Matcher matcher = Utils.getStreamNameMatches(streamName);
 
                 if (matcher == null) {

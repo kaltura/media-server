@@ -46,4 +46,5 @@ public class Constants {
     public static final int DEFAULT_CHUNK_DURATION_MILLISECONDS = 10000;
     public static final String STREAM_ACTION_LISTENER_PROPERTY = "KalturaStreamActionListenerProperty";
     public static final int KALTURA_SYNC_POINTS_INTERVAL_PROPERTY = 60 * 1000;
+    public static final String KALTURA_ENTRY_DATA_PERSISTENCY_KEY = "KalturaEntryPersistencyKey";
 }
