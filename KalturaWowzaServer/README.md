@@ -98,5 +98,30 @@ commercial upgrade options.
 ## License and Copyright Information
 All code in this project is released under the [AGPLv3 license](http://www.gnu.org/licenses/agpl-3.0.html) unless a different license for a particular library is specified in the applicable library path. 
 
+ **Client API Update**
+ - change KalturaGeneratedAPIClientsJava project and follow the README.md to build.
+ - copy the new jar to KalturaWowzaServer/build/tmp/artifacts/
+ - delete gradle cache under [user home]/.gradle/caches/modules-2/files-2.1/com.kaltura/KalturaClientLib/x.x.x/
+ - build media-server
+ - test new api jar locally, update gradle.build:
+ - under maven repository set the local path:
+ example:
+  repositories {
+         mavenCentral()
+         maven {
+             url uri('/Users/john.jordan/repositories/KalturaGeneratedAPIClientsJava/maven')
+         }
+     }
+ - in addition update the jar version in build.gradle's dependencies section
+
+
+ **Remote Debug Troubleshooting**
+ - in MediaServer-RemoteDebug -> Edit configuration and verify following settings "search sources using module's class path: media-server"
+
+ **WowzaStreamingEngine API sources**
+ - in File -> Project Structure -> select "Global libraries" and add lib using '+' put the WowzaStreamingEngine lib path.
+ example: /Applications/Wowza Streaming Engine 4.6.0/lib
+
+
 Copyright © Kaltura Inc. All rights reserved.
 
