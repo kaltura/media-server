@@ -103,6 +103,17 @@ All code in this project is released under the [AGPLv3 license](http://www.gnu.o
  - copy the new jar to KalturaWowzaServer/build/tmp/artifacts/
  - delete gradle cache under [user home]/.gradle/caches/modules-2/files-2.1/com.kaltura/KalturaClientLib/x.x.x/
  - build media-server
+ - test new api jar locally, update gradle.build:
+ - under maven repository set the local path:
+ example:
+  repositories {
+         mavenCentral()
+         maven {
+             url uri('/Users/john.jordan/repositories/KalturaGeneratedAPIClientsJava/maven')
+         }
+     }
+ - in addition update the jar version in build.gradle's dependencies section
+
 
  **Remote Debug Troubleshooting**
  - in MediaServer-RemoteDebug -> Edit configuration and verify following settings "search sources using module's class path: media-server"

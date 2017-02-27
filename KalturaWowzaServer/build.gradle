@@ -17,7 +17,7 @@
         mavenCentral()
         maven {
             //TODO replace to master
-            url "https://raw.github.com/kaltura/KalturaGeneratedAPIClientsJava/wowza-release-3.3.4/maven"
+            url "https://raw.github.com/kaltura/KalturaGeneratedAPIClientsJava/wowza-releases/maven"
         }
     }
 
