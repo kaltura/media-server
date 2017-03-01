@@ -3,9 +3,12 @@ package com.kaltura.media_server.services;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 import com.kaltura.client.types.KalturaLiveEntry;
+import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.client.IClient;
+import com.wowza.wms.stream.live.MediaStreamLive;
 import org.apache.log4j.Logger;
 import com.wowza.wms.stream.*;
 import com.wowza.wms.application.WMSProperties;
@@ -82,8 +85,8 @@ public class Utils {
     public static Matcher getStreamNameMatches(String streamName) {
         return getMatches(streamName, "^([01]_[\\d\\w]{8})_(.+)$");
     }
-    private static WMSProperties getConnectionProperties(IMediaStream stream) {
 
+    private static WMSProperties getConnectionProperties(IMediaStream stream) {
         WMSProperties properties = null;
 
         if (stream.getClient() != null) {
@@ -97,9 +100,7 @@ public class Utils {
         return properties;
     }
 
-
     public static WMSProperties getEntryProperties(IMediaStream stream) {
-
         WMSProperties properties = null;
         String streamName = stream.getName();
         String entryId = Utils.getEntryIdFromStreamName (streamName);
@@ -124,8 +125,7 @@ public class Utils {
 
     }
 
-    public static boolean isNumeric(String str)
-    {
+    public static boolean isNumeric(String str) {
         try
         {
             double d = Integer.parseInt(str);
@@ -137,8 +137,7 @@ public class Utils {
         return true;
     }
 
-    public static HashMap<String, String> getQueryMap(String query)
-    {
+    public static HashMap<String, String> getQueryMap(String query) {
         HashMap<String, String> map = new HashMap<String, String>();
         if (!query.equals("")){
             String[] params = query.split("&");
@@ -167,34 +166,9 @@ public class Utils {
         return stream.getName();
     }
 
-    public static KalturaEntryIdKey getEntryIdKeyFromClient(IClient client) throws Exception
-    {
-        KalturaEntryIdKey entryIdKey = null;
-        try {
-            WMSProperties properties = client.getProperties();
-            synchronized (properties) {
-                entryIdKey = (KalturaEntryIdKey)properties.getProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY);
-            }
-        } catch (Exception e) {
-            String error = "failed to get stream name from client. " + e;
-            logger.error(error);
-            throw e;
-        }
-
-        return entryIdKey;
-    }
-
-    public static KalturaEntryIdKey getEntryIdKeyFromStreamName(String streamName) throws Exception
-    {
-        String entryId = Utils.getEntryIdFromStreamName(streamName);
-
-        return new KalturaEntryIdKey(entryId);
-    }
-
     public static String getEntryIdFromClient(IClient client) throws Exception
     {
         String entryId = null;
-
         try {
             String streamName = getStreamName(client);
             entryId = getEntryIdFromStreamName(streamName);
@@ -203,18 +177,34 @@ public class Utils {
         }
 
         if (entryId == null) {
-            try {
-                KalturaEntryIdKey entryIdKey = getEntryIdKeyFromClient(client);
-                return entryIdKey.getEntryId();
-            } catch (Exception e) {
-                String error = "(" + client.getClientId() + ") failed to get property \"" + Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY + " \" from client. " + e;
-                logger.error(error);
-                throw e;
-            }
+            logger.error("(" + client.getClientId() + ") failed to get property \"" + Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY + " \" from client");
         }
 
         return entryId;
-
     }
 
+    public static ConcurrentHashMap<String, Boolean> getEntriesFromApplication(IApplicationInstance appInstance) {
+        ConcurrentHashMap<String, Boolean>entries = new ConcurrentHashMap<>();
+        List<IMediaStream> streamList = appInstance.getStreams().getStreams();
+        for (IMediaStream stream : streamList) {
+            if (!( stream instanceof MediaStreamLive)){
+                continue;
+            }
+            String streamName = stream.getName();
+            try {
+                Matcher matcher = Utils.getStreamNameMatches(streamName);
+                if (matcher == null) {
+                    logger.warn("Unknown published stream [" + streamName + "]");
+                    continue;
+                }
+                String entryId = matcher.group(1);
+                entries.putIfAbsent(entryId, true);
+            }
+            catch (Exception error) {
+                logger.error("Something bad happened... what is it? We do not know. Error: " + error);
+            }
+        }
+
+        return entries;
+    }
 }

@@ -1,10 +1,7 @@
 package com.kaltura.media_server.services;
 
 import org.apache.log4j.Logger;
-
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
-
 
 /**
  * Created by lilach.maliniak on 29/01/2017.
@@ -12,33 +9,19 @@ import java.util.concurrent.ConcurrentHashMap;
 public class KalturaEntryDataPersistence {
 
 	private static Logger logger = Logger.getLogger(KalturaEntryDataPersistence.class);
-	private static WeakHashMap<KalturaEntryIdKey, ConcurrentHashMap<String, Object>> entryIdToKalturaLiveEntryMap = new WeakHashMap<>();
-
-	public static Object getProperty(String streamName, String subKey, Object defaultValue) {
-
-		KalturaEntryIdKey entryIdKey = null;
-		try {
-			entryIdKey = Utils.getEntryIdKeyFromStreamName(streamName);
-			return getProperty(streamName, entryIdKey, subKey);
-		} catch (Exception e) {
-			logger.error(e + " returning the default value for sub key \"" + subKey + "\" (map size:" + entryIdToKalturaLiveEntryMap.size() + ")");
-		}
-
-		return defaultValue;
-	}
+	public static ConcurrentHashMap<String, ConcurrentHashMap<String, Object>> entryIdToKalturaLiveEntryMap = new ConcurrentHashMap<>();
 
 	public static Object getProperty(String streamName, String subKey) throws Exception {
 
-		KalturaEntryIdKey entryIdKey = Utils.getEntryIdKeyFromStreamName(streamName);
-
+		String entryIdKey = Utils.getEntryIdFromStreamName(streamName);
 		Object value = getProperty(streamName, entryIdKey, subKey);
 
 		return value;
 	}
 
-	public static Object getProperty(String streamName, KalturaEntryIdKey entryIdKey, String subKey) throws Exception {
+	public static Object getProperty(String streamName, String entryIdKey, String subKey) throws Exception {
 
-		Object value = null;
+		Object value;
 
 		synchronized (entryIdToKalturaLiveEntryMap) {
 			try {
@@ -50,33 +33,24 @@ public class KalturaEntryDataPersistence {
 			}
 		}
 
-		logger.debug("(" + streamName + ") (" + entryIdKey.getEntryId() + ") successfully got entry (map size:" + entryIdToKalturaLiveEntryMap.size() + ")");
+		logger.debug("(" + streamName + ") (" + entryIdKey + ") successfully got entry (map size:" + entryIdToKalturaLiveEntryMap.size() + ")");
 
 		return value;
 	}
 
 	// note: call add entry on connect (after successful authentication)
-	public static KalturaEntryIdKey setProperty(String entryId, String subKey, Object value) throws Exception {
-
-		KalturaEntryIdKey entryIdKey = new KalturaEntryIdKey(entryId);
-
+	public static void setProperty(String entryId, String subKey, Object value) throws Exception {
 		synchronized (entryIdToKalturaLiveEntryMap) {
-			if (!entryIdToKalturaLiveEntryMap.containsKey(entryIdKey)) {
-				entryIdToKalturaLiveEntryMap.put(entryIdKey, new ConcurrentHashMap<String, Object>());
-			}
-			setProperty(entryId, entryIdKey, subKey, value);
+			entryIdToKalturaLiveEntryMap.putIfAbsent(entryId, new ConcurrentHashMap<String, Object>());
+			setValueProperty(entryId, subKey, value);
 		}
-
-		logger.debug("(" + entryId + ") successfully added entry (map size:" + entryIdToKalturaLiveEntryMap.size() + ")");
-
-		return entryIdKey;
 	}
 
-	private static void setProperty(String entryId, KalturaEntryIdKey entryIdKey, String subKey, Object value) throws Exception {
+	private static void setValueProperty(String entryId, String subKey, Object value) throws Exception {
 
-		ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryIdKey);
+		ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryId);
 		entryMap.put(subKey, value);
 
-		logger.debug("(" + entryId + ") successfully updated entry " + entryIdKey.getEntryId() + " sub key \"" + subKey + "\" (map size:" + entryIdToKalturaLiveEntryMap.size() + ")");
+		logger.debug("(" + entryId + ") successfully updated entry. Sub key \"" + subKey + "\" (map size:" + entryIdToKalturaLiveEntryMap.size() + ")");
 	}
 }

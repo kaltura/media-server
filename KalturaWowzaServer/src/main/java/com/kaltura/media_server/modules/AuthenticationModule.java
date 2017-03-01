@@ -14,13 +14,16 @@ import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
+import com.wowza.wms.stream.live.MediaStreamLive;
 import org.apache.log4j.Logger;
 import com.kaltura.media_server.services.*;
+
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.List;
-
-
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.TimerTask;
+import java.util.Timer;
 
 public class AuthenticationModule extends ModuleBase  {
 
@@ -33,8 +36,13 @@ public class AuthenticationModule extends ModuleBase  {
             super(message);
         }
     }
-    public void onAppStart(IApplicationInstance appInstance) {
-        logger.info("Initiallizing " +appInstance.getName());
+    public void onAppStart(final IApplicationInstance appInstance) {
+        logger.info("Initiallizing " + appInstance.getName());
+        Timer persistanceDataTimer = new Timer();
+        persistanceDataTimer.schedule(new TimerTask() {
+            @Override
+            public void run() { persistanceDataUpdate(appInstance); }
+        }, 1000, 30000);
     }
 
     public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
@@ -51,6 +59,19 @@ public class AuthenticationModule extends ModuleBase  {
             client.rejectConnection();
             sendClientOnStatusError((IClient)client, "NetStream.Play.Failed","Unable to authenticate url; [" + rtmpUrl + "]: " + e.getMessage());
             DiagnosticsProvider.addRejectedStream(e.getMessage(), client);
+        }
+    }
+
+    private void persistanceDataUpdate(IApplicationInstance appInstance) {
+        ConcurrentHashMap<String, Boolean> playingEntriesList = Utils.getEntriesFromApplication(appInstance);
+        int hashMapSize = KalturaEntryDataPersistence.entryIdToKalturaLiveEntryMap.size();
+        String[] hashedEntries = KalturaEntryDataPersistence.entryIdToKalturaLiveEntryMap.keySet().toArray(new String[hashMapSize]);
+
+        for(String entry : hashedEntries) {
+            if (!playingEntriesList.containsKey(entry)) {
+                logger.info("TESTING!!!!! Entry " + entry + " no longer exists. Removing it from Persistance Hash Map");
+                KalturaEntryDataPersistence.entryIdToKalturaLiveEntryMap.remove(entry);
+            }
         }
     }
 
@@ -75,25 +96,15 @@ public class AuthenticationModule extends ModuleBase  {
 
         KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
         KalturaLiveEntry liveEntry = KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
-        KalturaEntryIdKey key = KalturaEntryDataPersistence.setProperty(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
-        synchronized (properties) {
-            properties.setProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY, key);
-        }
+        KalturaEntryDataPersistence.setProperty(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
         logger.info("Entry added [" + entryId + "]");
 
         return liveEntry;
     }
 
-
     public void onDisconnect(IClient client) {
         try{
-            WMSProperties properties = client.getProperties();
             String entryId = Utils.getEntryIdFromClient(client);
-            synchronized (properties) {
-                 // clear reference to persistence data
-                properties.setProperty(Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY, null);
-            }
-
             logger.info("Entry removed [" + entryId + "]");
         }
         catch (Exception  e){
@@ -128,7 +139,6 @@ public class AuthenticationModule extends ModuleBase  {
         }
     }
 
-
     class LiveStreamListener extends  MediaStreamActionNotifyBase{
         public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
             if (stream.isTranscodeResult()){
@@ -136,7 +146,6 @@ public class AuthenticationModule extends ModuleBase  {
             }
             try {
                 IClient client = stream.getClient();
-                KalturaLiveEntry liveEntry = (KalturaLiveEntry) KalturaEntryDataPersistence.getProperty(streamName, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
                 Matcher matcher = Utils.getStreamNameMatches(streamName);
 
                 if (matcher == null) {
@@ -151,8 +160,8 @@ public class AuthenticationModule extends ModuleBase  {
                 String flavor = matcher.group(2);
 
 
-                if (! entryId.equals(liveEntry.id  )){
-                    String msg = "Published  stream name [" + streamName + "] does not match entry id [" + liveEntry.id  + "]";
+                if (! entryId.equals(entryId)){
+                    String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryId  + "]";
                     logger.error(msg);
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
                     stream.getClient().setShutdownClient(true);
@@ -174,5 +183,4 @@ public class AuthenticationModule extends ModuleBase  {
             }
         }
     }
-
 }

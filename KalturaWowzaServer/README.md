@@ -109,6 +109,7 @@ All code in this project is released under the [AGPLv3 license](http://www.gnu.o
 
  **WowzaStreamingEngine API sources**
  - in File -> Project Structure -> select "Global libraries" and add lib using '+' put the WowzaStreamingEngine lib path.
+ - in File -> Project Structure -> select "Libraries" and add lib using '+' put the WowzaStreamingEngine lib path.
  example: /Applications/Wowza Streaming Engine 4.6.0/lib
 
 
