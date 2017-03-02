@@ -14,34 +14,36 @@ import java.util.Set;
 public class KalturaEntryDataPersistence {
 
 	private static Logger logger = Logger.getLogger(KalturaEntryDataPersistence.class);
-	private static Timer _timer = new Timer();
 	private static IApplicationInstance _appInstance = null;
 	public static ConcurrentHashMap<String, ConcurrentHashMap<String, Object>> entryIdToKalturaLiveEntryMap = new ConcurrentHashMap<>();
 
-	public static void startPersistenceDataCheckup(IApplicationInstance appInstance) {
+	public static void setAppInstance(IApplicationInstance appInstance) {
 		_appInstance = appInstance;
-		_timer.schedule(new TimerTask() {
-			@Override
-			public void run() { entriesMapCleanUp(); }
-		}, Constants.KALTURA_ENTRY_DATA_PERSISTENCE_TIMER_START, Constants.KALTURA_ENTRY_DATA_PERSISTENCE_TIMER_INTERVAL);
 	}
 
-	private static void entriesMapCleanUp() {
-		synchronized (entryIdToKalturaLiveEntryMap) {
-			try {
-				Set<String> playingEntriesList = Utils.getEntriesFromApplication(_appInstance);
-				Set<String> hashedEntriesList = entryIdToKalturaLiveEntryMap.keySet();
-				for (String entry : hashedEntriesList) {
-					if (!playingEntriesList.contains(entry)) {
-						logger.info("Entry " + entry + " no longer exists. Removing it from Persistance Hash Map");
-						entryIdToKalturaLiveEntryMap.remove(entry);
-					}
-				}
-			}
-			catch (Exception e) {
-				logger.error("Error occured while cleaning Persistence Data map: " + e);
-			}
-		}
+	public static void entriesMapCleanUp() {
+	    Timer cleanUpTimer = new Timer();
+	    cleanUpTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                synchronized (entryIdToKalturaLiveEntryMap) {
+                    try {
+                        Set<String> playingEntriesList = Utils.getEntriesFromApplication(_appInstance);
+                        Set<String> hashedEntriesList = entryIdToKalturaLiveEntryMap.keySet();
+                        for (String entry : hashedEntriesList) {
+                            if (!playingEntriesList.contains(entry)) {
+                                logger.info("Entry " + entry + " no longer exists. Removing it from Persistence Hash Map");
+                                entryIdToKalturaLiveEntryMap.remove(entry);
+                            }
+                        }
+                    }
+                    catch (Exception e) {
+                        logger.error("Error occurred while cleaning Persistence Data map: " + e);
+                    }
+                }
+            }
+        }, Constants.KALTURA_ENTRY_PERSISTENCE_CLEANUP_START);
+        logger.info("Persistence hash map cleanup will start in " + Constants.KALTURA_ENTRY_PERSISTENCE_CLEANUP_START / 1000 + " seconds");
 	}
 
 	public static Object getProperty(String streamName, String subKey) throws Exception {

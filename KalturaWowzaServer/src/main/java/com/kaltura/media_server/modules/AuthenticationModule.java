@@ -32,9 +32,10 @@ public class AuthenticationModule extends ModuleBase  {
             super(message);
         }
     }
+
     public void onAppStart(final IApplicationInstance appInstance) {
         logger.info("Initiallizing " + appInstance.getName());
-        KalturaEntryDataPersistence.startPersistenceDataCheckup(appInstance);
+        KalturaEntryDataPersistence.setAppInstance(appInstance);
     }
 
     public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
@@ -83,8 +84,10 @@ public class AuthenticationModule extends ModuleBase  {
 
     public void onDisconnect(IClient client) {
         try{
+            // TODO: entryID returns null -> Check with Lilach!
             String entryId = Utils.getEntryIdFromClient(client);
             logger.info("Entry removed [" + entryId + "]");
+            KalturaEntryDataPersistence.entriesMapCleanUp();
         }
         catch (Exception  e){
             logger.info("Error" + e.getMessage());
