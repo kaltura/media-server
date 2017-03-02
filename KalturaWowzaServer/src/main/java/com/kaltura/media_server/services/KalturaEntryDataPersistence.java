@@ -14,26 +14,32 @@ import java.util.Set;
 public class KalturaEntryDataPersistence {
 
 	private static Logger logger = Logger.getLogger(KalturaEntryDataPersistence.class);
-	private static Timer __timer = new Timer();
-	private static IApplicationInstance __appInstance = null;
+	private static Timer _timer = new Timer();
+	private static IApplicationInstance _appInstance = null;
 	public static ConcurrentHashMap<String, ConcurrentHashMap<String, Object>> entryIdToKalturaLiveEntryMap = new ConcurrentHashMap<>();
 
 	public static void startPersistenceDataCheckup(IApplicationInstance appInstance) {
-		__appInstance = appInstance;
-		__timer.schedule(new TimerTask() {
+		_appInstance = appInstance;
+		_timer.schedule(new TimerTask() {
 			@Override
 			public void run() { entriesMapCleanUp(); }
 		}, Constants.KALTURA_ENTRY_DATA_PERSISTENCE_TIMER_START, Constants.KALTURA_ENTRY_DATA_PERSISTENCE_TIMER_INTERVAL);
 	}
 
 	private static void entriesMapCleanUp() {
-		Set<String> playingEntriesList = Utils.getEntriesFromApplication(__appInstance);
-		Set<String> hashedEntriesList = KalturaEntryDataPersistence.entryIdToKalturaLiveEntryMap.keySet();
-
-		for(String entry : hashedEntriesList) {
-			if (!playingEntriesList.contains(entry)) {
-				logger.info("TESTING!!!!! Entry " + entry + " no longer exists. Removing it from Persistance Hash Map");
-				KalturaEntryDataPersistence.entryIdToKalturaLiveEntryMap.remove(entry);
+		synchronized (entryIdToKalturaLiveEntryMap) {
+			try {
+				Set<String> playingEntriesList = Utils.getEntriesFromApplication(_appInstance);
+				Set<String> hashedEntriesList = entryIdToKalturaLiveEntryMap.keySet();
+				for (String entry : hashedEntriesList) {
+					if (!playingEntriesList.contains(entry)) {
+						logger.info("Entry " + entry + " no longer exists. Removing it from Persistance Hash Map");
+						entryIdToKalturaLiveEntryMap.remove(entry);
+					}
+				}
+			}
+			catch (Exception e) {
+				logger.error("Error occured while cleaning Persistence Data map: " + e);
 			}
 		}
 	}
@@ -50,31 +56,31 @@ public class KalturaEntryDataPersistence {
 
 		Object value;
 
-		synchronized (entryIdToKalturaLiveEntryMap) {
-			try {
-				ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryIdKey);
-				value = entryMap.get(subKey);
-			} catch (Exception e) {
-				logger.error("(" + streamName + ") failed to get value for key \"" + subKey + "\". " + e);
-				throw e;
-			}
+		try {
+			ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryIdKey);
+			value = entryMap.get(subKey);
+		} catch (Exception e) {
+			logger.error("(" + streamName + ") Failed to get value for key \"" + subKey + "\". " + e);
+			throw e;
 		}
 
-		logger.debug("(" + streamName + ") (" + entryIdKey + ") successfully got entry (map size:" + entryIdToKalturaLiveEntryMap.size() + ")");
+		logger.debug("(" + streamName + ") (" + entryIdKey + ") Successfully got entry (map size:" + entryIdToKalturaLiveEntryMap.size() + ")");
 
 		return value;
 	}
 
 	// note: call add entry on connect (after successful authentication)
 	public static void setProperty(String entryId, String subKey, Object value) throws Exception {
-		entryIdToKalturaLiveEntryMap.putIfAbsent(entryId, new ConcurrentHashMap<String, Object>());
-		setValueProperty(entryId, subKey, value);
+		synchronized (entryIdToKalturaLiveEntryMap) {
+			entryIdToKalturaLiveEntryMap.putIfAbsent(entryId, new ConcurrentHashMap<String, Object>());
+			setValueProperty(entryId, subKey, value);
+		}
 	}
 
 	private static void setValueProperty(String entryId, String subKey, Object value) throws Exception {
 		ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryId);
 		entryMap.put(subKey, value);
 
-		logger.debug("(" + entryId + ") successfully updated entry. Sub key \"" + subKey + "\" (map size:" + entryIdToKalturaLiveEntryMap.size() + ")");
+		logger.debug("(" + entryId + ") Successfully updated entry. Sub key \"" + subKey + "\" (map size:" + entryIdToKalturaLiveEntryMap.size() + ")");
 	}
 }
