@@ -20,10 +20,6 @@ import com.kaltura.media_server.services.*;
 
 import java.util.HashMap;
 import java.util.regex.Matcher;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.TimerTask;
-import java.util.Timer;
 
 public class AuthenticationModule extends ModuleBase  {
 
@@ -38,11 +34,7 @@ public class AuthenticationModule extends ModuleBase  {
     }
     public void onAppStart(final IApplicationInstance appInstance) {
         logger.info("Initiallizing " + appInstance.getName());
-        Timer persistanceDataTimer = new Timer();
-        persistanceDataTimer.schedule(new TimerTask() {
-            @Override
-            public void run() { persistanceDataUpdate(appInstance); }
-        }, 1000, 30000);
+        KalturaEntryDataPersistence.startPersistenceDataCheckup(appInstance);
     }
 
     public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
@@ -59,19 +51,6 @@ public class AuthenticationModule extends ModuleBase  {
             client.rejectConnection();
             sendClientOnStatusError((IClient)client, "NetStream.Play.Failed","Unable to authenticate url; [" + rtmpUrl + "]: " + e.getMessage());
             DiagnosticsProvider.addRejectedStream(e.getMessage(), client);
-        }
-    }
-
-    private void persistanceDataUpdate(IApplicationInstance appInstance) {
-        ConcurrentHashMap<String, Boolean> playingEntriesList = Utils.getEntriesFromApplication(appInstance);
-        int hashMapSize = KalturaEntryDataPersistence.entryIdToKalturaLiveEntryMap.size();
-        String[] hashedEntries = KalturaEntryDataPersistence.entryIdToKalturaLiveEntryMap.keySet().toArray(new String[hashMapSize]);
-
-        for(String entry : hashedEntries) {
-            if (!playingEntriesList.containsKey(entry)) {
-                logger.info("TESTING!!!!! Entry " + entry + " no longer exists. Removing it from Persistance Hash Map");
-                KalturaEntryDataPersistence.entryIdToKalturaLiveEntryMap.remove(entry);
-            }
         }
     }
 
@@ -146,6 +125,7 @@ public class AuthenticationModule extends ModuleBase  {
             }
             try {
                 IClient client = stream.getClient();
+                KalturaLiveEntry liveEntry = (KalturaLiveEntry)KalturaEntryDataPersistence.getProperty(streamName, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
                 Matcher matcher = Utils.getStreamNameMatches(streamName);
 
                 if (matcher == null) {
@@ -160,7 +140,7 @@ public class AuthenticationModule extends ModuleBase  {
                 String flavor = matcher.group(2);
 
 
-                if (! entryId.equals(entryId)){
+                if (!entryId.equals(liveEntry.id)) {
                     String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryId  + "]";
                     logger.error(msg);
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
@@ -168,7 +148,7 @@ public class AuthenticationModule extends ModuleBase  {
                     DiagnosticsProvider.addRejectedStream(msg, client);
                     return;
                 }
-                if (! Utils.isNumeric(flavor)) {
+                if (!Utils.isNumeric(flavor)) {
                     String msg = "Published  stream name [" + streamName + "], Wrong suffix stream name:  "+flavor;
                     logger.error(msg);
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);

@@ -18,7 +18,6 @@ import org.apache.log4j.Logger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 // todo: test and add relevant code ofr ptsTimeCode moving back in time and PTS wrap arround are supported.
 
 // todo: this code for PTS smoothing contains following assumption: ref_t + ref_pts_timecode - last_pts_timecode < new_ref_t

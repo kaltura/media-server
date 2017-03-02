@@ -3,7 +3,8 @@ package com.kaltura.media_server.services;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.List;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.wowza.wms.application.IApplicationInstance;
@@ -156,7 +157,7 @@ public class Utils {
         return map;
     }
 
-    public static String getStreamName(IClient client) throws Exception {
+    public static String getStreamNameFromClient(IClient client) throws Exception {
 
         if (client == null || client.getPlayStreams().size() == 0) {
             throw new Exception("failed to get client Id. No streams found");
@@ -170,7 +171,7 @@ public class Utils {
     {
         String entryId = null;
         try {
-            String streamName = getStreamName(client);
+            String streamName = getStreamNameFromClient(client);
             entryId = getEntryIdFromStreamName(streamName);
         } catch (Exception e) {
             logger.warn("(" + client.getClientId() + ") no streams attached to client." + e);
@@ -183,28 +184,19 @@ public class Utils {
         return entryId;
     }
 
-    public static ConcurrentHashMap<String, Boolean> getEntriesFromApplication(IApplicationInstance appInstance) {
-        ConcurrentHashMap<String, Boolean>entries = new ConcurrentHashMap<>();
+    public static Set<String> getEntriesFromApplication(IApplicationInstance appInstance) {
+        Set<String>entriesSet = new HashSet<>();
         List<IMediaStream> streamList = appInstance.getStreams().getStreams();
         for (IMediaStream stream : streamList) {
             if (!( stream instanceof MediaStreamLive)){
                 continue;
             }
-            String streamName = stream.getName();
-            try {
-                Matcher matcher = Utils.getStreamNameMatches(streamName);
-                if (matcher == null) {
-                    logger.warn("Unknown published stream [" + streamName + "]");
-                    continue;
-                }
-                String entryId = matcher.group(1);
-                entries.putIfAbsent(entryId, true);
-            }
-            catch (Exception error) {
-                logger.error("Something bad happened... what is it? We do not know. Error: " + error);
+            String entryId = getEntryIdFromStreamName(stream.getName());
+            if (entryId != null) {
+                entriesSet.add(entryId);
             }
         }
 
-        return entries;
+        return entriesSet;
     }
 }

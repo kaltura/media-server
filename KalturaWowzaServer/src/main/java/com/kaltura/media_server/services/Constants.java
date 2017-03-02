@@ -47,4 +47,6 @@ public class Constants {
     public static final String STREAM_ACTION_LISTENER_PROPERTY = "KalturaStreamActionListenerProperty";
     public static final int KALTURA_SYNC_POINTS_INTERVAL_PROPERTY = 60 * 1000;
     public static final String KALTURA_ENTRY_DATA_PERSISTENCY_KEY = "KalturaEntryPersistencyKey";
+    public static final int KALTURA_ENTRY_DATA_PERSISTENCE_TIMER_INTERVAL = 30000;
+    public static final int KALTURA_ENTRY_DATA_PERSISTENCE_TIMER_START = 1000;
 }

@@ -301,7 +301,6 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
     }
 
-
     private void writeAnswer(IHTTPResponse resp, HashMap<String, Object>  entryData){
         try {
             resp.setHeader("Content-Type", "application/json");
