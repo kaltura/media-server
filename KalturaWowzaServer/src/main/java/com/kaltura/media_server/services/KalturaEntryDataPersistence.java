@@ -22,11 +22,11 @@ public class KalturaEntryDataPersistence {
 		__appInstance = appInstance;
 		__timer.schedule(new TimerTask() {
 			@Override
-			public void run() { updateMap(); }
+			public void run() { entriesMapCleanUp(); }
 		}, Constants.KALTURA_ENTRY_DATA_PERSISTENCE_TIMER_START, Constants.KALTURA_ENTRY_DATA_PERSISTENCE_TIMER_INTERVAL);
 	}
 
-	private static void updateMap() {
+	private static void entriesMapCleanUp() {
 		Set<String> playingEntriesList = Utils.getEntriesFromApplication(__appInstance);
 		Set<String> hashedEntriesList = KalturaEntryDataPersistence.entryIdToKalturaLiveEntryMap.keySet();
 
