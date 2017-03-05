@@ -15,7 +15,7 @@ public class KalturaEntryDataPersistence {
 
 	private static Logger logger = Logger.getLogger(KalturaEntryDataPersistence.class);
 	private static ConcurrentHashMap<String, ConcurrentHashMap<String, Object>> entryIdToKalturaLiveEntryMap = new ConcurrentHashMap<>();
-	private static long lastMapCleanUp = 0;
+	private static Number lastMapCleanUp = 0;
 	private static IApplicationInstance _appInstance = null;
 
 	public static void setAppInstance(IApplicationInstance appInstance) {
@@ -23,19 +23,22 @@ public class KalturaEntryDataPersistence {
 	}
 
 	public static void entriesMapCleanUp() {
-        // Do not perform entries cleanup more than once a minute, to prevent a load of timer tasks running at the same time.
-	    if (System.currentTimeMillis() - lastMapCleanUp > Constants.KALTURA_TIME_BETWEEN_PERSISTENCE_CLEANUP) {
-            Timer cleanUpTimer = new Timer();
-            cleanUpTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    CleanUp();
-                }
-            }, Constants.KALTURA_ENTRY_PERSISTENCE_CLEANUP_START);
-            logger.debug("Persistence hash map cleanup will start in " + Constants.KALTURA_ENTRY_PERSISTENCE_CLEANUP_START / 1000 + " seconds");
-        }
-        else {
-            logger.debug("Persistence cleanup was called less than " + Constants.KALTURA_TIME_BETWEEN_PERSISTENCE_CLEANUP / 1000 + " seconds ago. Ignoring call!");
+	    synchronized (lastMapCleanUp) {
+            // Do not perform entries cleanup more than once a minute, to prevent a load of timer tasks running at the same time.
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastMapCleanUp.longValue() > Constants.KALTURA_TIME_BETWEEN_PERSISTENCE_CLEANUP) {
+                lastMapCleanUp = currentTime;
+                Timer cleanUpTimer = new Timer();
+                cleanUpTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        CleanUp();
+                    }
+                }, Constants.KALTURA_ENTRY_PERSISTENCE_CLEANUP_START);
+                logger.debug("Persistence hash map cleanup will start in " + Constants.KALTURA_ENTRY_PERSISTENCE_CLEANUP_START / 1000 + " seconds");
+            } else {
+                logger.debug("Persistence cleanup was called less than " + Constants.KALTURA_TIME_BETWEEN_PERSISTENCE_CLEANUP / 1000 + " seconds ago. Ignoring call!");
+            }
         }
 	}
 
@@ -58,7 +61,6 @@ public class KalturaEntryDataPersistence {
                         }
                     }
                 }
-                lastMapCleanUp = currentTime;
             }
         }
         catch (Exception e) {
