@@ -103,7 +103,6 @@ public class AuthenticationModule extends ModuleBase  {
             props.setProperty(STREAM_ACTION_PROPERTY, actionListener);
         }
         stream.addClientListener(actionListener);
-
     }
 
     public void onStreamDestroy(IMediaStream stream) {
@@ -128,7 +127,7 @@ public class AuthenticationModule extends ModuleBase  {
             }
             try {
                 IClient client = stream.getClient();
-                KalturaLiveEntry liveEntry = (KalturaLiveEntry)KalturaEntryDataPersistence.getProperty(streamName, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
+                KalturaLiveEntry liveEntry = (KalturaLiveEntry)KalturaEntryDataPersistence.getPropertyByStream(streamName, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
                 Matcher matcher = Utils.getStreamNameMatches(streamName);
 
                 if (matcher == null) {
