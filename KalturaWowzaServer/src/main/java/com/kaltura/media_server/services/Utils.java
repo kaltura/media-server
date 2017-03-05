@@ -171,14 +171,16 @@ public class Utils {
     {
         String entryId = null;
         try {
-            String streamName = getStreamNameFromClient(client);
-            entryId = getEntryIdFromStreamName(streamName);
+            WMSProperties properties = client.getProperties();
+            synchronized (properties) {
+                entryId = (String)properties.getProperty(Constants.KALTURA_LIVE_ENTRY_ID);
+            }
         } catch (Exception e) {
             logger.warn("(" + client.getClientId() + ") no streams attached to client." + e);
         }
 
         if (entryId == null) {
-            logger.error("(" + client.getClientId() + ") failed to get property \"" + Constants.KALTURA_ENTRY_DATA_PERSISTENCY_KEY + " \" from client");
+            logger.error("(" + client.getClientId() + ") failed to get property \"" + Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY + " \" from client");
         }
 
         return entryId;

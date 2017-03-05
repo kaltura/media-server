@@ -30,7 +30,7 @@ public class DynamicStreamSettings {
 		return true;
 	}
 
-	private void updateStreamProperties(LiveStreamPacketizerCupertino cupertinoPacketizer, String streamName) {
+	private void setSegmentDuration(LiveStreamPacketizerCupertino cupertinoPacketizer, String streamName) {
 
 		int segmentDuration = Constants.DEFAULT_CHUNK_DURATION_MILLISECONDS;
 
@@ -65,7 +65,7 @@ public class DynamicStreamSettings {
 			return;
 		}
 		// transcoded stream (output)
-		updateStreamProperties(cupertinoPacketizer, stream.getName());
+		setSegmentDuration(cupertinoPacketizer, stream.getName());
 	}
 
 }

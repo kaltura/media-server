@@ -23,49 +23,58 @@ public class KalturaEntryDataPersistence {
 	}
 
 	public static void entriesMapCleanUp() {
-	    Timer cleanUpTimer = new Timer();
-	    cleanUpTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-				CleanUp();
-            }
-        }, Constants.KALTURA_ENTRY_PERSISTENCE_CLEANUP_START);
-        logger.info("Persistence hash map cleanup will start in " + Constants.KALTURA_ENTRY_PERSISTENCE_CLEANUP_START / 1000 + " seconds");
+        // Do not perform entries cleanup more than once a minute, to prevent a load of timer tasks running at the same time.
+	    if (System.currentTimeMillis() - lastMapCleanUp > Constants.KALTURA_TIME_BETWEEN_PERSISTENCE_CLEANUP) {
+            Timer cleanUpTimer = new Timer();
+            cleanUpTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    CleanUp();
+                }
+            }, Constants.KALTURA_ENTRY_PERSISTENCE_CLEANUP_START);
+            logger.debug("Persistence hash map cleanup will start in " + Constants.KALTURA_ENTRY_PERSISTENCE_CLEANUP_START / 1000 + " seconds");
+        }
+        else {
+            logger.debug("Persistence cleanup was called less than " + Constants.KALTURA_TIME_BETWEEN_PERSISTENCE_CLEANUP / 1000 + " seconds ago. Ignoring call!");
+        }
 	}
 
 	private static void CleanUp() {
-        synchronized (entryIdToKalturaLiveEntryMap) {
-            // Do not perform entries cleanup more than once a minute, to prevent a load of timer tasks running at the same time.
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - lastMapCleanUp > Constants.KALTURA_TIME_BETWEEN_PERSISTENCE_CLEANUP) {
-                try {
-                    Set<String> playingEntriesList = Utils.getEntriesFromApplication(_appInstance);
-                    Set<String> hashedEntriesList = entryIdToKalturaLiveEntryMap.keySet();
-                    long currTime = System.currentTimeMillis();
-                    for (String entry : hashedEntriesList) {
-                        // Check start time to avoid a race between the thread adding the entry to the map and this
-                        // current thread that wants to remove it. Worst case scenario entry will ve erased in the next run.
-                        long startTime = (long) getPropertyByEntry(entry, Constants.KALTURA_ENTRY_START_TIME);
-                        if ((!playingEntriesList.contains(entry)) && (currTime - startTime > Constants.KALTURA_PERSISTENCE_DATA_MIN_ENTRY_TIME)) {
-                            logger.info("Entry " + entry + " no longer exists. Removing it from Persistence Hash Map");
+	    try {
+            synchronized (entryIdToKalturaLiveEntryMap) {
+                Set<String> playingEntriesList = Utils.getEntriesFromApplication(_appInstance);
+                Set<String> hashedEntriesList = entryIdToKalturaLiveEntryMap.keySet();
+                long currentTime = System.currentTimeMillis();
+                for (String entry : hashedEntriesList) {
+                    // Check start time to avoid a race between the thread adding the entry to the map and this
+                    // current thread that wants to remove it. Worst case scenario entry will ve erased in the next run.
+                    long startTime = (long)getPropertyByEntry(entry, Constants.KALTURA_ENTRY_START_TIME);
+                    if (!playingEntriesList.contains(entry)) {
+                        logger.info("(" + entry + ") Entry no longer exists");
+                        int minTimeInMap = Constants.KALTURA_PERSISTENCE_DATA_MIN_ENTRY_TIME;
+                        if (currentTime - startTime > minTimeInMap) {
+                            logger.info("(" + entry + ") Entry start time is greater than " + minTimeInMap / 1000 + " seconds; Removing it from Map!");
                             entryIdToKalturaLiveEntryMap.remove(entry);
                         }
                     }
-                    lastMapCleanUp = currentTime;
-                } catch (Exception e) {
-                    logger.error("Error occurred while cleaning Persistence Data map: " + e);
                 }
+                lastMapCleanUp = currentTime;
             }
-            else {
-                logger.debug("Persistence hash map was cleaned less than 1 min ago. Ignoring call!");
-            }
-		}
+        }
+        catch (Exception e) {
+            logger.error("Error occurred while cleaning Persistence Data map: " + e);
+        }
 	}
 
 	public static Object getPropertyByStream(String streamName, String subKey) throws Exception {
-
-		String entryIdKey = Utils.getEntryIdFromStreamName(streamName);
-		return getPropertyByEntry(entryIdKey, subKey);
+        try {
+            String entryIdKey = Utils.getEntryIdFromStreamName(streamName);
+            return getPropertyByEntry(entryIdKey, subKey);
+        }
+        catch (Exception e) {
+            logger.error("(" + streamName + ") Stream failed to retrieve value form entry. Error: " + e);
+            throw e;
+        }
 	}
 
 	public static Object getPropertyByEntry(String entryId, String subKey) throws Exception {
@@ -80,7 +89,7 @@ public class KalturaEntryDataPersistence {
 			throw e;
 		}
 
-		logger.debug("(" + entryId + ") Successfully got entry (map size:" + entryIdToKalturaLiveEntryMap.size() + ")");
+		logger.debug("(" + entryId + ") Successfully got entry subKey: (" + subKey + ")");
 
 		return value;
 	}
@@ -96,7 +105,8 @@ public class KalturaEntryDataPersistence {
 	private static void setValueProperty(String entryId, String subKey, Object value) throws Exception {
 		ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryId);
 		entryMap.put(subKey, value);
-		entryMap.put(Constants.KALTURA_ENTRY_START_TIME, System.currentTimeMillis());
-		logger.debug("(" + entryId + ") Successfully updated entry. Sub key \"" + subKey + "\" (map size:" + entryIdToKalturaLiveEntryMap.size() + ")");
+		long time = System.currentTimeMillis();
+		entryMap.put(Constants.KALTURA_ENTRY_START_TIME, time);
+		logger.debug("(" + entryId + ") Successfully updated entry ; Sub key \"" + subKey + "\" ; Time: (" + time + ")");
 	}
 }
