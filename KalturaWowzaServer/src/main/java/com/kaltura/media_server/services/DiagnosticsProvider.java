@@ -107,60 +107,58 @@ public class DiagnosticsProvider extends HTTProvider2Base
     class EntriesProvider implements CommandProvider {
 
         public void execute(HashMap<String,Object> data, HashMap<String,String > quaryString, IApplicationInstance appInstance) {
-
-
             List<IMediaStream> streamList = appInstance.getStreams().getStreams();
-                for (IMediaStream stream : streamList) {
-                    if (!( stream instanceof MediaStreamLive)){
+            for (IMediaStream stream : streamList) {
+                if (!( stream instanceof MediaStreamLive)){
+                    continue;
+                }
+                HashMap<String, Object> entryHashInstance;
+                HashMap<String, Object > inputEntryHashInstance, outputEntryHashInstance;
+                String streamName = stream.getName();
+                try {
+                    Matcher matcher = Utils.getStreamNameMatches(streamName);
+                    if (matcher == null) {
+                        logger.warn(httpSessionId + "Unknown published stream [" + streamName + "]");
                         continue;
                     }
-                    HashMap<String, Object> entryHashInstance;
-                    HashMap<String, Object > inputEntryHashInstance, outputEntryHashInstance;
-                    String streamName = stream.getName();
-                    try {
-                        Matcher matcher = Utils.getStreamNameMatches(streamName);
-                        if (matcher == null) {
-                            logger.warn(httpSessionId + "Unknown published stream [" + streamName + "]");
-                            continue;
-                        }
-                        String entryId = matcher.group(1);
-                        String flavor = matcher.group(2);
+                    String entryId = matcher.group(1);
+                    String flavor = matcher.group(2);
 
-                        if (!data.containsKey(entryId)) {
-                            entryHashInstance = new HashMap<String, Object>();
-                            inputEntryHashInstance = new HashMap<String, Object>();
-                            outputEntryHashInstance = new HashMap<String, Object>();
-                            entryHashInstance.put("inputs", inputEntryHashInstance);
-                            entryHashInstance.put("outputs", outputEntryHashInstance);
-                            entryHashInstance.put("currentTime",System.currentTimeMillis());
-                            data.put(entryId, entryHashInstance);
-                        } else {
-                            entryHashInstance = (HashMap<String, Object> ) data.get(entryId);
-                            inputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("inputs");
-                            outputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("outputs");
+                    if (!data.containsKey(entryId)) {
+                        entryHashInstance = new HashMap<String, Object>();
+                        inputEntryHashInstance = new HashMap<String, Object>();
+                        outputEntryHashInstance = new HashMap<String, Object>();
+                        entryHashInstance.put("inputs", inputEntryHashInstance);
+                        entryHashInstance.put("outputs", outputEntryHashInstance);
+                        entryHashInstance.put("currentTime",System.currentTimeMillis());
+                        data.put(entryId, entryHashInstance);
+                    } else {
+                        entryHashInstance = (HashMap<String, Object> ) data.get(entryId);
+                        inputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("inputs");
+                        outputEntryHashInstance = (HashMap<String, Object>) entryHashInstance.get("outputs");
 
-                        }
-
-                        HashMap<String, Object> streamHash = new HashMap<String, Object>();
-                        addStreamProperties(stream, streamHash);
-                        IOPerformanceCounter perf = stream.getMediaIOPerformance();
-                        outputIOPerformanceInfo(streamHash, perf);
-
-                        if (stream.isTranscodeResult()) {
-                            outputEntryHashInstance.put(flavor, streamHash);
-                        } else {
-                            Client client = (Client) stream.getClient();
-                            addClientProperties(client, streamHash, entryId);
-                            inputEntryHashInstance.put(flavor, streamHash);
-
-                        }
                     }
-                    catch (Exception e){
-                        logger.error(httpSessionId+"[" + stream.getName() + "] Error while try to add stream to JSON: " + e.toString());
+
+                    HashMap<String, Object> streamHash = new HashMap<String, Object>();
+                    addStreamProperties(stream, streamHash);
+                    IOPerformanceCounter perf = stream.getMediaIOPerformance();
+                    outputIOPerformanceInfo(streamHash, perf);
+
+                    if (stream.isTranscodeResult()) {
+                        outputEntryHashInstance.put(flavor, streamHash);
+                    } else {
+                        Client client = (Client) stream.getClient();
+                        addClientProperties(client, streamHash, entryId);
+                        inputEntryHashInstance.put(flavor, streamHash);
+
                     }
+                }
+                catch (Exception e){
+                    logger.error(httpSessionId+"[" + stream.getName() + "] Error while try to add stream to JSON: " + e.toString());
                 }
             }
         }
+    }
 
 
     private String requestRegex = Constants.HTTP_PROVIDER_KEY + "/(.+)";
@@ -302,7 +300,6 @@ public class DiagnosticsProvider extends HTTProvider2Base
      //   logger.debug(httpSessionId + "[" + entryId + "] Add the following params: rtmpUrl "+ rtmpUrl +  ", encoder " + encoder + ", IP " + IP );
 
     }
-
 
     private void writeAnswer(IHTTPResponse resp, HashMap<String, Object>  entryData){
         try {

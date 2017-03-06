@@ -14,13 +14,12 @@ import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
+import com.wowza.wms.stream.live.MediaStreamLive;
 import org.apache.log4j.Logger;
 import com.kaltura.media_server.services.*;
+
 import java.util.HashMap;
 import java.util.regex.Matcher;
-
-
-
 
 public class AuthenticationModule extends ModuleBase  {
 
@@ -33,8 +32,10 @@ public class AuthenticationModule extends ModuleBase  {
             super(message);
         }
     }
-    public void onAppStart(IApplicationInstance appInstance) {
-        logger.info("Initiallizing " +appInstance.getName());
+
+    public void onAppStart(final IApplicationInstance appInstance) {
+        logger.info("Initiallizing " + appInstance.getName());
+        KalturaEntryDataPersistence.setAppInstance(appInstance);
     }
 
     public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
@@ -75,20 +76,22 @@ public class AuthenticationModule extends ModuleBase  {
 
         KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
         KalturaLiveEntry liveEntry = KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
+        KalturaEntryDataPersistence.setProperty(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
         synchronized(properties) {
             properties.setProperty(Constants.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
-            properties.setProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
+            properties.setProperty(Constants.KALTURA_LIVE_ENTRY_ID, liveEntry.id);
+
         }
         logger.info("Entry added [" + entryId + "]");
 
         return liveEntry;
     }
 
-
     public void onDisconnect(IClient client) {
         try{
-            KalturaLiveEntry liveEntry = Utils.getKalturaLiveEntry(client);
-            logger.info("Entry removed [" + liveEntry.id + "]");
+            String entryId = Utils.getEntryIdFromClient(client);
+            logger.info("Entry removed [" + entryId + "]");
+            KalturaEntryDataPersistence.entriesMapCleanUp();
         }
         catch (Exception  e){
             logger.info("Error" + e.getMessage());
@@ -104,7 +107,6 @@ public class AuthenticationModule extends ModuleBase  {
             props.setProperty(STREAM_ACTION_PROPERTY, actionListener);
         }
         stream.addClientListener(actionListener);
-
     }
 
     public void onStreamDestroy(IMediaStream stream) {
@@ -122,7 +124,6 @@ public class AuthenticationModule extends ModuleBase  {
         }
     }
 
-
     class LiveStreamListener extends  MediaStreamActionNotifyBase{
         public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
             if (stream.isTranscodeResult()){
@@ -130,7 +131,7 @@ public class AuthenticationModule extends ModuleBase  {
             }
             try {
                 IClient client = stream.getClient();
-                KalturaLiveEntry liveEntry = Utils.getKalturaLiveEntry(client);
+                KalturaLiveEntry liveEntry = (KalturaLiveEntry)KalturaEntryDataPersistence.getPropertyByStream(streamName, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
                 Matcher matcher = Utils.getStreamNameMatches(streamName);
 
                 if (matcher == null) {
@@ -145,15 +146,15 @@ public class AuthenticationModule extends ModuleBase  {
                 String flavor = matcher.group(2);
 
 
-                if (! entryId.equals(liveEntry.id  )){
-                    String msg = "Published  stream name [" + streamName + "] does not match entry id [" + liveEntry.id  + "]";
+                if (!entryId.equals(liveEntry.id)) {
+                    String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryId  + "]";
                     logger.error(msg);
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
                     stream.getClient().setShutdownClient(true);
                     DiagnosticsProvider.addRejectedStream(msg, client);
                     return;
                 }
-                if (! Utils.isNumeric(flavor)) {
+                if (!Utils.isNumeric(flavor)) {
                     String msg = "Published  stream name [" + streamName + "], Wrong suffix stream name:  "+flavor;
                     logger.error(msg);
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
@@ -168,5 +169,4 @@ public class AuthenticationModule extends ModuleBase  {
             }
         }
     }
-
 }

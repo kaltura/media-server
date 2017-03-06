@@ -3,9 +3,13 @@ package com.kaltura.media_server.services;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import java.util.Set;
+import java.util.HashSet;
+import java.util.List;
 import com.kaltura.client.types.KalturaLiveEntry;
+import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.client.IClient;
+import com.wowza.wms.stream.live.MediaStreamLive;
 import org.apache.log4j.Logger;
 import com.wowza.wms.stream.*;
 import com.wowza.wms.application.WMSProperties;
@@ -82,8 +86,8 @@ public class Utils {
     public static Matcher getStreamNameMatches(String streamName) {
         return getMatches(streamName, "^([01]_[\\d\\w]{8})_(.+)$");
     }
-    private static WMSProperties getConnectionProperties(IMediaStream stream) {
 
+    private static WMSProperties getConnectionProperties(IMediaStream stream) {
         WMSProperties properties = null;
 
         if (stream.getClient() != null) {
@@ -97,9 +101,7 @@ public class Utils {
         return properties;
     }
 
-
     public static WMSProperties getEntryProperties(IMediaStream stream) {
-
         WMSProperties properties = null;
         String streamName = stream.getName();
         String entryId = Utils.getEntryIdFromStreamName (streamName);
@@ -124,46 +126,7 @@ public class Utils {
 
     }
 
-
-    public static KalturaLiveEntry getLiveEntry(WMSProperties properties) throws Exception{
-        KalturaLiveEntry liveEntry;
-        synchronized (properties) {
-            if (properties == null) {
-                throw new Exception("Failed to retrieve property");
-            }
-
-            liveEntry = (KalturaLiveEntry) properties.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
-
-            if (liveEntry == null) {
-                throw new Exception("Failed to retrieve LiveEntry property ");
-
-            }
-        }
-        return liveEntry;
-    }
-
-    public static KalturaLiveEntry getLiveEntryFromStream(IMediaStream stream)  throws Exception{
-        KalturaLiveEntry liveEntry;
-        IClient client = null;
-        client = stream.getClient();
-        if (client == null) {
-            WMSProperties properties = getEntryProperties(stream);
-            liveEntry = getLiveEntry(properties);
-        } else {
-            liveEntry = getLiveEntry(client.getProperties());
-        }
-
-        return liveEntry;
-    }
-
-    public static KalturaLiveEntry getKalturaLiveEntry(IClient client) throws Exception{
-
-        WMSProperties clientProperties = client.getProperties();
-        return getLiveEntry(clientProperties);
-    }
-
-    public static boolean isNumeric(String str)
-    {
+    public static boolean isNumeric(String str) {
         try
         {
             double d = Integer.parseInt(str);
@@ -175,8 +138,7 @@ public class Utils {
         return true;
     }
 
-    public static HashMap<String, String> getQueryMap(String query)
-    {
+    public static HashMap<String, String> getQueryMap(String query) {
         HashMap<String, String> map = new HashMap<String, String>();
         if (!query.equals("")){
             String[] params = query.split("&");
@@ -195,4 +157,48 @@ public class Utils {
         return map;
     }
 
+    public static String getStreamNameFromClient(IClient client) throws Exception {
+
+        if (client == null || client.getPlayStreams().size() == 0) {
+            throw new Exception("failed to get client Id. No streams found");
+        }
+        IMediaStream stream = (IMediaStream) client.getPlayStreams().get(0);
+
+        return stream.getName();
+    }
+
+    public static String getEntryIdFromClient(IClient client) throws Exception
+    {
+        String entryId = null;
+        try {
+            WMSProperties properties = client.getProperties();
+            synchronized (properties) {
+                entryId = (String)properties.getProperty(Constants.KALTURA_LIVE_ENTRY_ID);
+            }
+        } catch (Exception e) {
+            logger.warn("(" + client.getClientId() + ") no streams attached to client." + e);
+        }
+
+        if (entryId == null) {
+            logger.error("(" + client.getClientId() + ") failed to get property \"" + Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY + " \" from client");
+        }
+
+        return entryId;
+    }
+
+    public static Set<String> getEntriesFromApplication(IApplicationInstance appInstance) {
+        Set<String>entriesSet = new HashSet<>();
+        List<IMediaStream> streamList = appInstance.getStreams().getStreams();
+        for (IMediaStream stream : streamList) {
+            if (!( stream instanceof MediaStreamLive)){
+                continue;
+            }
+            String entryId = getEntryIdFromStreamName(stream.getName());
+            if (entryId != null) {
+                entriesSet.add(entryId);
+            }
+        }
+
+        return entriesSet;
+    }
 }
