@@ -15,7 +15,8 @@ public class KalturaEntryDataPersistence {
 
 	private static Logger logger = Logger.getLogger(KalturaEntryDataPersistence.class);
 	private static ConcurrentHashMap<String, ConcurrentHashMap<String, Object>> entryIdToKalturaLiveEntryMap = new ConcurrentHashMap<>();
-	private static Number lastMapCleanUp = 0;
+	private static Object _cleanUpLock = new Object();
+	private static long _lastMapCleanUp = 0;
 	private static IApplicationInstance _appInstance = null;
 
 	public static void setAppInstance(IApplicationInstance appInstance) {
@@ -23,11 +24,11 @@ public class KalturaEntryDataPersistence {
 	}
 
 	public static void entriesMapCleanUp() {
-	    synchronized (lastMapCleanUp) {
+	    synchronized (_cleanUpLock) {
             // Do not perform entries cleanup more than once a minute, to prevent a load of timer tasks running at the same time.
             long currentTime = System.currentTimeMillis();
-            if (currentTime - lastMapCleanUp.longValue() > Constants.KALTURA_TIME_BETWEEN_PERSISTENCE_CLEANUP) {
-                lastMapCleanUp = currentTime;
+            if (currentTime - _lastMapCleanUp > Constants.KALTURA_TIME_BETWEEN_PERSISTENCE_CLEANUP) {
+                _lastMapCleanUp = currentTime;
                 Timer cleanUpTimer = new Timer();
                 cleanUpTimer.schedule(new TimerTask() {
                     @Override
@@ -45,18 +46,19 @@ public class KalturaEntryDataPersistence {
 	private static void CleanUp() {
 	    try {
             synchronized (entryIdToKalturaLiveEntryMap) {
+                logger.debug("KalturaEntryDataPersistence CleanUp started");
                 Set<String> playingEntriesList = Utils.getEntriesFromApplication(_appInstance);
                 Set<String> hashedEntriesList = entryIdToKalturaLiveEntryMap.keySet();
                 long currentTime = System.currentTimeMillis();
                 for (String entry : hashedEntriesList) {
                     // Check start time to avoid a race between the thread adding the entry to the map and this
                     // current thread that wants to remove it. Worst case scenario entry will ve erased in the next run.
-                    long startTime = (long)getPropertyByEntry(entry, Constants.KALTURA_ENTRY_START_TIME);
+                    long validationTime = (long)getPropertyByEntry(entry, Constants.KALTURA_ENTRY_VALIDATED_TIME);
                     if (!playingEntriesList.contains(entry)) {
-                        logger.info("(" + entry + ") Entry no longer exists");
+                        logger.info("(" + entry + ") Entry is no longer playing!");
                         int minTimeInMap = Constants.KALTURA_PERSISTENCE_DATA_MIN_ENTRY_TIME;
-                        if (currentTime - startTime > minTimeInMap) {
-                            logger.info("(" + entry + ") Entry start time is greater than " + minTimeInMap / 1000 + " seconds; Removing it from Map!");
+                        if (currentTime - validationTime > minTimeInMap) {
+                            logger.info("(" + entry + ") Entry validation time is greater than " + minTimeInMap / 1000 + " seconds; Removing it from Map!");
                             entryIdToKalturaLiveEntryMap.remove(entry);
                         }
                     }
@@ -108,7 +110,7 @@ public class KalturaEntryDataPersistence {
 		ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryId);
 		entryMap.put(subKey, value);
 		long time = System.currentTimeMillis();
-		entryMap.put(Constants.KALTURA_ENTRY_START_TIME, time);
+		entryMap.put(Constants.KALTURA_ENTRY_VALIDATED_TIME, time);
 		logger.debug("(" + entryId + ") Successfully updated entry ; Sub key \"" + subKey + "\" ; Time: (" + time + ")");
 	}
 }
