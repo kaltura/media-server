@@ -73,24 +73,30 @@ public class AuthenticationModule extends ModuleBase  {
         int partnerId = Integer.parseInt(requestParams.get(Constants.REQUEST_PROPERTY_PARTNER_ID));
         String entryId = requestParams.get(Constants.REQUEST_PROPERTY_ENTRY_ID);
         String token = requestParams.get(Constants.REQUEST_PROPERTY_TOKEN);
+        long currentTime = System.currentTimeMillis();
+        Object entryLastValidationTime = KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_VALIDATED_TIME, currentTime);
 
+        KalturaLiveEntry liveEntry = null;
         KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
-        KalturaLiveEntry liveEntry = KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
-        KalturaEntryDataPersistence.setProperty(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
+        if ((entryLastValidationTime == null) || (currentTime - (long)entryLastValidationTime > Constants.KALTURA_MIN_TIME_BETWEEN_AUTHENTICATIONS)) {
+            liveEntry = (KalturaLiveEntry)KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
+            KalturaEntryDataPersistence.setProperty(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
+            logger.info("(" + entryId + ") Entry authenticated successfully!");
+        }
+        else {
+            logger.debug("(" + entryId + ") Entry did not authenticate! Last authentication: [" + (currentTime - (long)entryLastValidationTime) + "] MS ago");
+        }
         synchronized(properties) {
             properties.setProperty(Constants.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
-            properties.setProperty(Constants.KALTURA_LIVE_ENTRY_ID, liveEntry.id);
-
+            properties.setProperty(Constants.KALTURA_LIVE_ENTRY_ID, entryId);
         }
-        logger.info("Entry added [" + entryId + "]");
-
         return liveEntry;
     }
 
     public void onDisconnect(IClient client) {
         try{
             String entryId = Utils.getEntryIdFromClient(client);
-            logger.info("Entry removed [" + entryId + "]");
+            logger.info("(" + entryId + ") Entry stopped");
             KalturaEntryDataPersistence.entriesMapCleanUp();
         }
         catch (Exception  e){

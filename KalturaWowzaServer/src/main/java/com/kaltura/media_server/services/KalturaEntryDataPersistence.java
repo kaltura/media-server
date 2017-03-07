@@ -99,18 +99,19 @@ public class KalturaEntryDataPersistence {
 	}
 
 	// note: call add entry on connect (after successful authentication)
-	public static void setProperty(String entryId, String subKey, Object value) throws Exception {
+	public static Object setProperty(String entryId, String subKey, Object value) throws Exception {
 		synchronized (entryIdToKalturaLiveEntryMap) {
 			entryIdToKalturaLiveEntryMap.putIfAbsent(entryId, new ConcurrentHashMap<String, Object>());
-			setValueProperty(entryId, subKey, value);
+			return setValueProperty(entryId, subKey, value);
 		}
 	}
 
-	private static void setValueProperty(String entryId, String subKey, Object value) throws Exception {
+	private static Object setValueProperty(String entryId, String subKey, Object value) throws Exception {
 		ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryId);
-		entryMap.put(subKey, value);
-		long time = System.currentTimeMillis();
-		entryMap.put(Constants.KALTURA_ENTRY_VALIDATED_TIME, time);
-		logger.debug("(" + entryId + ") Successfully updated entry ; Sub key \"" + subKey + "\" ; Time: (" + time + ")");
+		Object lastValue = entryMap.put(subKey, value);
+		/*long time = System.currentTimeMillis();
+		entryMap.put(Constants.KALTURA_ENTRY_VALIDATED_TIME, time);*/
+		logger.debug("(" + entryId + ") Successfully updated entry ; Sub key \"" + subKey + "\"");
+		return lastValue;
 	}
 }
