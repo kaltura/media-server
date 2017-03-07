@@ -3,6 +3,7 @@ package com.kaltura.media_server.services;
 import com.wowza.wms.application.IApplicationInstance;
 import com.kaltura.media_server.services.*;
 import org.apache.log4j.Logger;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.TimerTask;
 import java.util.Timer;
@@ -97,6 +98,17 @@ public class KalturaEntryDataPersistence {
 
 		return value;
 	}
+
+	public static Object setLock(String entryId) throws Exception {
+	    synchronized (entryIdToKalturaLiveEntryMap) {
+	        Object lock = new Object();
+            entryIdToKalturaLiveEntryMap.putIfAbsent(entryId, new ConcurrentHashMap<String, Object>());
+            ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryId);
+            entryMap.putIfAbsent(Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG, false);
+            Object retVal = entryMap.putIfAbsent(Constants.KALTURA_ENTRY_AUTHENTICATION_LOCK, lock);
+            return (retVal == null) ? lock : retVal;
+        }
+    }
 
 	// note: call add entry on connect (after successful authentication)
 	public static Object setProperty(String entryId, String subKey, Object value) throws Exception {
