@@ -109,8 +109,6 @@ public class KalturaEntryDataPersistence {
 	private static Object setValueProperty(String entryId, String subKey, Object value) throws Exception {
 		ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryId);
 		Object lastValue = entryMap.put(subKey, value);
-		/*long time = System.currentTimeMillis();
-		entryMap.put(Constants.KALTURA_ENTRY_VALIDATED_TIME, time);*/
 		logger.debug("(" + entryId + ") Successfully updated entry ; Sub key \"" + subKey + "\"");
 		return lastValue;
 	}
