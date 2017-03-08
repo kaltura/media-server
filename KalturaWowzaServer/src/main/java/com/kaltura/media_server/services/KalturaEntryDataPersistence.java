@@ -15,7 +15,7 @@ import java.util.Set;
 public class KalturaEntryDataPersistence {
 
 	private static Logger logger = Logger.getLogger(KalturaEntryDataPersistence.class);
-	private static ConcurrentHashMap<String, ConcurrentHashMap<String, Object>> entryIdToKalturaLiveEntryMap = new ConcurrentHashMap<>();
+	private static ConcurrentHashMap<String, ConcurrentHashMap<String, Object>> entriesPersistenceDataMap = new ConcurrentHashMap<>();
 	private static Object _cleanUpLock = new Object();
 	private static long _lastMapCleanUp = 0;
 	private static IApplicationInstance _appInstance = null;
@@ -46,10 +46,10 @@ public class KalturaEntryDataPersistence {
 
 	private static void CleanUp() {
 	    try {
-            synchronized (entryIdToKalturaLiveEntryMap) {
+            synchronized (entriesPersistenceDataMap) {
                 logger.debug("KalturaEntryDataPersistence CleanUp started");
                 Set<String> playingEntriesList = Utils.getEntriesFromApplication(_appInstance);
-                Set<String> hashedEntriesList = entryIdToKalturaLiveEntryMap.keySet();
+                Set<String> hashedEntriesList = entriesPersistenceDataMap.keySet();
                 long currentTime = System.currentTimeMillis();
                 for (String entry : hashedEntriesList) {
                     // Check start time to avoid a race between the thread adding the entry to the map and this
@@ -60,7 +60,7 @@ public class KalturaEntryDataPersistence {
                         int minTimeInMap = Constants.KALTURA_PERSISTENCE_DATA_MIN_ENTRY_TIME;
                         if (currentTime - validationTime > minTimeInMap) {
                             logger.info("(" + entry + ") Entry validation time is greater than " + minTimeInMap / 1000 + " seconds; Removing it from Map!");
-                            entryIdToKalturaLiveEntryMap.remove(entry);
+                            entriesPersistenceDataMap.remove(entry);
                         }
                     }
                 }
@@ -87,7 +87,7 @@ public class KalturaEntryDataPersistence {
 		Object value;
 
 		try {
-			ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryId);
+			ConcurrentHashMap<String, Object> entryMap = entriesPersistenceDataMap.get(entryId);
 			value = entryMap.get(subKey);
 		} catch (Exception e) {
 			throw new Exception("(" + entryId + ") Failed to get value for key \"" + subKey + "\". " + e.getMessage());
@@ -99,7 +99,7 @@ public class KalturaEntryDataPersistence {
 	}
 
 	public static Object getLock(String entryId) throws Exception {
-	    synchronized (entryIdToKalturaLiveEntryMap) {
+	    synchronized (entriesPersistenceDataMap) {
 	        Object lock = new Object();
             ConcurrentHashMap<String, Object> entryMap = getEntryMap(entryId);
             Object retVal = entryMap.putIfAbsent(Constants.KALTURA_ENTRY_AUTHENTICATION_LOCK, lock);
@@ -109,14 +109,14 @@ public class KalturaEntryDataPersistence {
 
     private static ConcurrentHashMap<String, Object> getEntryMap(String entryId) {
         ConcurrentHashMap<String, Object> entryMap = new ConcurrentHashMap<>();
-        ConcurrentHashMap<String, Object> retVal = entryIdToKalturaLiveEntryMap.putIfAbsent(entryId, entryMap);
+        ConcurrentHashMap<String, Object> retVal = entriesPersistenceDataMap.putIfAbsent(entryId, entryMap);
         return (retVal == null) ? entryMap : retVal;
     }
 
 	public static Object setProperty(String entryId, String subKey, Object value) throws Exception {
-        synchronized (entryIdToKalturaLiveEntryMap) {
+        synchronized (entriesPersistenceDataMap) {
             // Expecting authenticate to occur before any setSProperty is called. Otherwise entryMap is null and will get an Exception
-            ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryId);
+            ConcurrentHashMap<String, Object> entryMap = entriesPersistenceDataMap.get(entryId);
             Object lastValue = entryMap.put(subKey, value);
             logger.debug("(" + entryId + ") Successfully updated entry ; Sub key \"" + subKey + "\"");
             return lastValue;
