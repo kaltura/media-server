@@ -16,6 +16,7 @@ import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import com.wowza.wms.stream.live.MediaStreamLive;
 import org.apache.log4j.Logger;
+import com.wowza.wms.rtp.model.RTPSession;
 import com.kaltura.media_server.services.*;
 
 import java.util.HashMap;
@@ -123,31 +124,74 @@ public class AuthenticationModule extends ModuleBase  {
             logger.info("removeClientListener: " + stream.getSrc());
         }
     }
+    public void onRTPSessionCreate(RTPSession rtpSession)
+    {
+        String ipAddress = rtpSession.getIp();
+        String queryStr = rtpSession.getQueryStr();
+        String referrer = rtpSession.getReferrer();
+        String userAgent = rtpSession.getUserAgent();
+
+        //list l = rtpSession.getAppInstance().getClients();
+        String uriStr = rtpSession.getUri();
+        try {
+            HashMap<String, String>  queryParameters = Utils.getRtmpUrlParameters(uriStr, queryStr);
+            onClientConnect(rtpSession.getProperties(), queryParameters);
+        } catch (Exception  e) {
+            logger.error("Entry authentication failed with url [" + uriStr + "]: " + e.getMessage());
+            rtpSession.rejectSession();
+        }
+    }
+    public void onRTPSessionDestroy(RTPSession rtpSession)
+    {
+        try{
+            String entryId = Utils.getEntryIdFromRTPSession(rtpSession);
+            logger.info("Entry removed [" + entryId + "]");
+            KalturaEntryDataPersistence.entriesMapCleanUp();
+        }
+        catch (Exception  e){
+            logger.info("Error" + e.getMessage());
+        }
+    }
+
+
 
     class LiveStreamListener extends  MediaStreamActionNotifyBase{
+
+        public void shutdown(IMediaStream stream, String msg){
+
+            logger.error(msg);
+            IClient client = stream.getClient();
+            if (client != null){
+                sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
+                client.setShutdownClient(true);
+                DiagnosticsProvider.addRejectedStream(msg, client);
+            }
+            if (stream.getRTPStream() != null){
+                stream.getRTPStream().getSession().rejectSession();
+            }
+        }
+
         public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
             if (stream.isTranscodeResult()){
                 return;
             }
             try {
-                IClient client = stream.getClient();
                 String entryByClient;
-                if (client != null) {
-                    WMSProperties properties = client.getProperties();
-                    entryByClient = properties.getPropertyStr(Constants.KALTURA_LIVE_ENTRY_ID);
+                if (stream.getClient() != null) {
+                    IClient client = stream.getClient();
+                    entryByClient = Utils.getEntryIdFromClient(client);
                 }
-                else {
+                else if (stream.getRTPStream() != null) {
+                    RTPSession rtpSession = stream.getRTPStream().getSession();
+                    entryByClient = Utils.getEntryIdFromRTPSession(rtpSession);
+                } else {
                     logger.error("Fatal Error! Client does not exist");
                     return;
                 }
-
                 Matcher matcher = Utils.getStreamNameMatches(streamName);
                 if (matcher == null) {
                     String msg = "Published stream invalid [" + streamName + "]";
-                    logger.error(msg);
-                    sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
-                    stream.getClient().setShutdownClient(true);
-                    DiagnosticsProvider.addRejectedStream(msg, client);
+                    shutdown(stream, msg);
                     return;
                 }
                 String entryByStream = matcher.group(1);
@@ -156,18 +200,12 @@ public class AuthenticationModule extends ModuleBase  {
 
                 if (!entryByStream.equals(entryByClient)) {
                     String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryByClient  + "]";
-                    logger.error(msg);
-                    sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
-                    stream.getClient().setShutdownClient(true);
-                    DiagnosticsProvider.addRejectedStream(msg, client);
+                    shutdown(stream, msg);
                     return;
                 }
                 if (!Utils.isNumeric(flavor)) {
                     String msg = "Published  stream name [" + streamName + "], Wrong suffix stream name: " + flavor;
-                    logger.error(msg);
-                    sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
-                    stream.getClient().setShutdownClient(true);
-                    DiagnosticsProvider.addRejectedStream(msg, client);
+                    shutdown(stream, msg);
                     return;
                 }
 
