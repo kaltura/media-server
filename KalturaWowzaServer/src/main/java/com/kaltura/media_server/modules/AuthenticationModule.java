@@ -55,7 +55,7 @@ public class AuthenticationModule extends ModuleBase  {
         }
     }
 
-    private KalturaLiveEntry onClientConnect(WMSProperties properties, HashMap<String, String> requestParams) throws KalturaApiException, ClientConnectException, Exception {
+    private void onClientConnect(WMSProperties properties, HashMap<String, String> requestParams) throws KalturaApiException, ClientConnectException, Exception {
 
         if (!requestParams.containsKey(Constants.REQUEST_PROPERTY_ENTRY_ID)){
             throw new ClientConnectException("Missing argument: entryId");
@@ -72,42 +72,41 @@ public class AuthenticationModule extends ModuleBase  {
 
         int partnerId = Integer.parseInt(requestParams.get(Constants.REQUEST_PROPERTY_PARTNER_ID));
         String entryId = requestParams.get(Constants.REQUEST_PROPERTY_ENTRY_ID);
-        KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
-        Object authenticationLock = KalturaEntryDataPersistence.setLock(entryId);
+        String propertyServerIndex = requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX);
+        String token = requestParams.get(Constants.REQUEST_PROPERTY_TOKEN);
+        KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(propertyServerIndex);
+
+        authenticate(entryId, partnerId, token, serverIndex);
+        synchronized (properties) {
+            properties.setProperty(Constants.CLIENT_PROPERTY_SERVER_INDEX, propertyServerIndex);
+            properties.setProperty(Constants.KALTURA_LIVE_ENTRY_ID, entryId);
+        }
+    }
+
+    private void authenticate(String entryId, int partnerId, String token, KalturaEntryServerNodeType serverIndex) throws KalturaApiException, ClientConnectException, Exception {
+        Object authenticationLock = KalturaEntryDataPersistence.getLock(entryId);
         synchronized (authenticationLock) {
             try {
-                if ((boolean)KalturaEntryDataPersistence.getPropertyByEntry(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG)) {
-                    throw new Exception("(" + entryId + ") Authentication failed for entry!");
+                if (Boolean.TRUE.equals(KalturaEntryDataPersistence.getPropertyByEntry(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG))) {
+                    throw new Exception("(" + entryId + ") Authentication Error Flag is up!");
                 }
-                String token = requestParams.get(Constants.REQUEST_PROPERTY_TOKEN);
-                KalturaLiveEntry liveEntry = authenticate(entryId, partnerId, token, serverIndex);
-                synchronized (properties) {
-                    properties.setProperty(Constants.CLIENT_PROPERTY_SERVER_INDEX, requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX));
-                    properties.setProperty(Constants.KALTURA_LIVE_ENTRY_ID, entryId);
+                long currentTime = System.currentTimeMillis();
+                Object entryLastValidationTime = KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_VALIDATED_TIME, currentTime);
+
+                if ((entryLastValidationTime == null) || (currentTime - (long)entryLastValidationTime > Constants.KALTURA_MIN_TIME_BETWEEN_AUTHENTICATIONS)) {
+                    KalturaLiveEntry liveEntry = (KalturaLiveEntry) KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
+                    KalturaEntryDataPersistence.setProperty(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
+                    KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG, false);
+                    logger.info("(" + entryId + ") Entry authenticated successfully!");
+                } else {
+                    logger.debug("(" + entryId + ") Entry did not authenticate! Last authentication: [" + (currentTime - (long)entryLastValidationTime) + "] MS ago");
                 }
-                return liveEntry;
             }
             catch (Exception e) {
                 KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG, true);
                 throw e;
             }
         }
-    }
-
-    private KalturaLiveEntry authenticate(String entryId, int partnerId, String token, KalturaEntryServerNodeType serverIndex) throws KalturaApiException, ClientConnectException, Exception {
-        long currentTime = System.currentTimeMillis();
-        Object entryLastValidationTime = KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_VALIDATED_TIME, currentTime);
-
-        KalturaLiveEntry liveEntry = null;
-        if ((entryLastValidationTime == null) || (currentTime - (long) entryLastValidationTime > Constants.KALTURA_MIN_TIME_BETWEEN_AUTHENTICATIONS)) {
-            liveEntry = (KalturaLiveEntry) KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
-            KalturaEntryDataPersistence.setProperty(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
-            logger.info("(" + entryId + ") Entry authenticated successfully!");
-        } else {
-            logger.debug("(" + entryId + ") Entry did not authenticate! Last authentication: [" + (currentTime - (long) entryLastValidationTime) + "] MS ago");
-        }
-
-        return liveEntry;
     }
 
     public void onDisconnect(IClient client) {

@@ -90,8 +90,7 @@ public class KalturaEntryDataPersistence {
 			ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryId);
 			value = entryMap.get(subKey);
 		} catch (Exception e) {
-			logger.error("(" + entryId + ") Failed to get value for key \"" + subKey + "\". " + e);
-			throw e;
+			throw new Exception("(" + entryId + ") Failed to get value for key \"" + subKey + "\". " + e.getMessage());
 		}
 
 		logger.debug("(" + entryId + ") Successfully got entry subKey: (" + subKey + ")");
@@ -99,29 +98,28 @@ public class KalturaEntryDataPersistence {
 		return value;
 	}
 
-	public static Object setLock(String entryId) throws Exception {
+	public static Object getLock(String entryId) throws Exception {
 	    synchronized (entryIdToKalturaLiveEntryMap) {
 	        Object lock = new Object();
-            entryIdToKalturaLiveEntryMap.putIfAbsent(entryId, new ConcurrentHashMap<String, Object>());
-            ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryId);
-            entryMap.putIfAbsent(Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG, false);
+            ConcurrentHashMap<String, Object> entryMap = getEntryMap(entryId);
             Object retVal = entryMap.putIfAbsent(Constants.KALTURA_ENTRY_AUTHENTICATION_LOCK, lock);
             return (retVal == null) ? lock : retVal;
         }
     }
 
-	// note: call add entry on connect (after successful authentication)
-	public static Object setProperty(String entryId, String subKey, Object value) throws Exception {
-		synchronized (entryIdToKalturaLiveEntryMap) {
-			entryIdToKalturaLiveEntryMap.putIfAbsent(entryId, new ConcurrentHashMap<String, Object>());
-			return setValueProperty(entryId, subKey, value);
-		}
-	}
+    private static ConcurrentHashMap<String, Object> getEntryMap(String entryId) {
+        ConcurrentHashMap<String, Object> entryMap = new ConcurrentHashMap<>();
+        ConcurrentHashMap<String, Object> retVal = entryIdToKalturaLiveEntryMap.putIfAbsent(entryId, entryMap);
+        return (retVal == null) ? entryMap : retVal;
+    }
 
-	private static Object setValueProperty(String entryId, String subKey, Object value) throws Exception {
-		ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryId);
-		Object lastValue = entryMap.put(subKey, value);
-		logger.debug("(" + entryId + ") Successfully updated entry ; Sub key \"" + subKey + "\"");
-		return lastValue;
+	public static Object setProperty(String entryId, String subKey, Object value) throws Exception {
+        synchronized (entryIdToKalturaLiveEntryMap) {
+            // Expecting authenticate to occur before any setSProperty is called. Otherwise entryMap is null and will get an Exception
+            ConcurrentHashMap<String, Object> entryMap = entryIdToKalturaLiveEntryMap.get(entryId);
+            Object lastValue = entryMap.put(subKey, value);
+            logger.debug("(" + entryId + ") Successfully updated entry ; Sub key \"" + subKey + "\"");
+            return lastValue;
+        }
 	}
 }
