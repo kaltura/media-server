@@ -138,7 +138,7 @@ public class AuthenticationModule extends ModuleBase  {
                 }
                 else {
                     logger.error("Fatal Error! Client does not exist");
-                    throw new Exception("OMG!!!!!!! Client!!!!!");
+                    return;
                 }
 
                 Matcher matcher = Utils.getStreamNameMatches(streamName);
