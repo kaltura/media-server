@@ -101,7 +101,7 @@ public class KalturaEntryDataPersistence {
 	// note: call add entry on connect (after successful authentication)
 	public static void setProperty(String entryId, String subKey, Object value) throws Exception {
 		synchronized (entryIdToKalturaLiveEntryMap) {
-			entryIdToKalturaLiveEntryMap.putIfAbsent(entryId, new ConcurrentHashMap<String, Object>());
+            entryIdToKalturaLiveEntryMap.putIfAbsent(entryId, new ConcurrentHashMap<String, Object>());
 			setValueProperty(entryId, subKey, value);
 		}
 	}

@@ -131,9 +131,17 @@ public class AuthenticationModule extends ModuleBase  {
             }
             try {
                 IClient client = stream.getClient();
-                KalturaLiveEntry liveEntry = (KalturaLiveEntry)KalturaEntryDataPersistence.getPropertyByStream(streamName, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
-                Matcher matcher = Utils.getStreamNameMatches(streamName);
+                String entryByClient;
+                if (client != null) {
+                    WMSProperties properties = client.getProperties();
+                    entryByClient = properties.getPropertyStr(Constants.KALTURA_LIVE_ENTRY_ID);
+                }
+                else {
+                    logger.error("Fatal Error! Client does not exist");
+                    return;
+                }
 
+                Matcher matcher = Utils.getStreamNameMatches(streamName);
                 if (matcher == null) {
                     String msg = "Published stream invalid [" + streamName + "]";
                     logger.error(msg);
@@ -142,12 +150,12 @@ public class AuthenticationModule extends ModuleBase  {
                     DiagnosticsProvider.addRejectedStream(msg, client);
                     return;
                 }
-                String entryId = matcher.group(1);
+                String entryByStream = matcher.group(1);
                 String flavor = matcher.group(2);
 
 
-                if (!entryId.equals(liveEntry.id)) {
-                    String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryId  + "]";
+                if (!entryByStream.equals(entryByClient)) {
+                    String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryByClient  + "]";
                     logger.error(msg);
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
                     stream.getClient().setShutdownClient(true);
@@ -155,7 +163,7 @@ public class AuthenticationModule extends ModuleBase  {
                     return;
                 }
                 if (!Utils.isNumeric(flavor)) {
-                    String msg = "Published  stream name [" + streamName + "], Wrong suffix stream name:  "+flavor;
+                    String msg = "Published  stream name [" + streamName + "], Wrong suffix stream name: " + flavor;
                     logger.error(msg);
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
                     stream.getClient().setShutdownClient(true);
