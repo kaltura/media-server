@@ -163,7 +163,7 @@ public class AuthenticationModule extends ModuleBase  {
                     return;
                 }
                 if (!Utils.isNumeric(flavor)) {
-                    String msg = "Published  stream name [" + streamName + "], Wrong suffix stream name:  " + flavor;
+                    String msg = "Published  stream name [" + streamName + "], Wrong suffix stream name: " + flavor;
                     logger.error(msg);
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
                     stream.getClient().setShutdownClient(true);
