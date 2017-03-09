@@ -229,8 +229,8 @@ public class RecordingModule  extends ModuleBase {
             WMSProperties properties = client.getProperties();
             // At this stage there isn't stream objects available yet
             // but the key to get liveEntry from entry's persistent data is available
-            String streamName = Utils.getStreamNameFromClient(client);
-            KalturaLiveEntry liveEntry = (KalturaLiveEntry)KalturaEntryDataPersistence.getPropertyByStream(streamName, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
+            String entryId = Utils.getEntryIdFromClient(client);
+            KalturaLiveEntry liveEntry = (KalturaLiveEntry)KalturaEntryDataPersistence.getPropertyByEntry(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
             if (liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
                 return;
             }
