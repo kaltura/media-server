@@ -52,7 +52,7 @@ public class AuthenticationModule extends ModuleBase  {
             logger.error("Entry authentication failed with url [" + rtmpUrl + "]: " + e.getMessage());
             client.rejectConnection();
             sendClientOnStatusError((IClient)client, "NetStream.Play.Failed","Unable to authenticate url; [" + rtmpUrl + "]: " + e.getMessage());
-            DiagnosticsProvider.addRejectedStream(e.getMessage(), client);
+            DiagnosticsProvider.addRejectedStreamFromClient(e.getMessage(), client);
         }
     }
 
@@ -139,6 +139,7 @@ public class AuthenticationModule extends ModuleBase  {
         } catch (Exception  e) {
             logger.error("Entry authentication failed with url [" + uriStr + "]: " + e.getMessage());
             rtpSession.rejectSession();
+            DiagnosticsProvider.addRejectedStreamFromRTSP(e.getMessage(), rtpSession);
         }
     }
     public void onRTPSessionDestroy(RTPSession rtpSession)
@@ -164,10 +165,12 @@ public class AuthenticationModule extends ModuleBase  {
             if (client != null){
                 sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
                 client.setShutdownClient(true);
-                DiagnosticsProvider.addRejectedStream(msg, client);
+                DiagnosticsProvider.addRejectedStreamFromClient(msg, client);
             }
-            if (stream.getRTPStream() != null){
-                stream.getRTPStream().getSession().rejectSession();
+            if (stream.getRTPStream() != null && stream.getRTPStream().getSession() !=null){
+                //stream.getRTPStream().getSession().rejectSession(); //todo not work
+                RTPSession rtpSession = stream.getRTPStream().getSession();
+                DiagnosticsProvider.addRejectedStreamFromRTSP(msg, rtpSession);
             }
         }
 
@@ -181,7 +184,7 @@ public class AuthenticationModule extends ModuleBase  {
                     IClient client = stream.getClient();
                     entryByClient = Utils.getEntryIdFromClient(client);
                 }
-                else if (stream.getRTPStream() != null) {
+                else if (stream.getRTPStream() != null && stream.getRTPStream().getSession() !=null) {
                     RTPSession rtpSession = stream.getRTPStream().getSession();
                     entryByClient = Utils.getEntryIdFromRTPSession(rtpSession);
                 } else {
