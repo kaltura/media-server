@@ -76,17 +76,18 @@ public class AuthenticationModule extends ModuleBase  {
         String token = requestParams.get(Constants.REQUEST_PROPERTY_TOKEN);
         KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(propertyServerIndex);
 
-        authenticate(entryId, partnerId, token, serverIndex);
         synchronized (properties) {
             properties.setProperty(Constants.CLIENT_PROPERTY_SERVER_INDEX, propertyServerIndex);
             properties.setProperty(Constants.KALTURA_LIVE_ENTRY_ID, entryId);
         }
+        authenticate(entryId, partnerId, token, serverIndex);
     }
 
     private void authenticate(String entryId, int partnerId, String token, KalturaEntryServerNodeType serverIndex) throws KalturaApiException, ClientConnectException, Exception {
         Object authenticationLock = KalturaEntryDataPersistence.getLock(entryId);
         synchronized (authenticationLock) {
             try {
+                logger.debug("(" + entryId + ") Starting authentication process");
                 if (Boolean.TRUE.equals(KalturaEntryDataPersistence.getPropertyByEntry(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG))) {
                     throw new Exception("(" + entryId + ") Authentication Error Flag is up!");
                 }
@@ -103,7 +104,9 @@ public class AuthenticationModule extends ModuleBase  {
                 }
             }
             catch (Exception e) {
+                logger.error("(" + entryId + ") Exception was thrown during authentication process");
                 KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG, true);
+                KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_VALIDATED_TIME, (long)0);
                 throw e;
             }
         }
