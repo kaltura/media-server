@@ -218,12 +218,12 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
     public static void  addRejectedStreamFromClient(String message, IClient client){
         WMSProperties properties = client.getProperties();
-        String rtmpUrl;
+        String ConnectionUrl;
         synchronized(properties) {
-            rtmpUrl = properties.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
+            ConnectionUrl = properties.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
         }
         String IP = client.getIp();
-        addRejectedStream(message, rtmpUrl, IP);
+        addRejectedStream(message, ConnectionUrl, IP);
     }
 
     public static void  addRejectedStreamFromRTSP(String message, RTPSession rtpSession){
@@ -233,10 +233,10 @@ public class DiagnosticsProvider extends HTTProvider2Base
         addRejectedStream(message, RTSPUrl, IP);
     }
 
-    private static void  addRejectedStream(String message, String rtmpUrl,  String IP){
+    private static void  addRejectedStream(String message, String ConnectionUrl,  String IP){
 
         HashMap<String,String> rejcetedStream =  new HashMap<String,String>();
-        rejcetedStream.put("rtmp/rtsp Url", rtmpUrl);
+        rejcetedStream.put("ConnectionUrl", ConnectionUrl);
         rejcetedStream.put("message", message);
         rejcetedStream.put("IP", IP);
         String timeStamp = Long.toString(System.currentTimeMillis());
@@ -297,8 +297,8 @@ public class DiagnosticsProvider extends HTTProvider2Base
             return;
         }
 
-        String rtmpUrl, encoder,IP;
-        rtmpUrl =  clientProps.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
+        String ConnectionUrl, encoder,IP;
+        ConnectionUrl =  clientProps.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
         encoder = clientProps.getPropertyStr(Constants.CLIENT_PROPERTY_ENCODER);
         IP = client.getIp();
         long pingRoundTripTime = client.getPingRoundTripTime();
@@ -306,7 +306,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
         HashMap<String,Object> ClientPropertiesHash =  new HashMap<String,Object>();
         ClientPropertiesHash.put("pingRoundTripTime" , pingRoundTripTime);
         ClientPropertiesHash.put("timeRunningSeconds" , timeRunningSeconds);
-        ClientPropertiesHash.put("rtmpUrl" , rtmpUrl);
+        ClientPropertiesHash.put("ConnectionUrl" , ConnectionUrl);
         ClientPropertiesHash.put("encoder" , encoder);
         ClientPropertiesHash.put("IP" , IP);
         ClientPropertiesHash.put("clientId" , client.getClientId());
