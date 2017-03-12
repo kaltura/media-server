@@ -15,6 +15,8 @@ import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
 import com.wowza.wms.stream.live.MediaStreamLive;
+import com.wowza.wms.vhost.IVHost;
+import com.wowza.wms.vhost.VHost;
 import org.apache.log4j.Logger;
 import com.wowza.wms.rtp.model.RTPSession;
 import com.kaltura.media_server.services.*;
@@ -26,6 +28,7 @@ public class AuthenticationModule extends ModuleBase  {
 
     private static final Logger logger = Logger.getLogger(AuthenticationModule.class);
     public static final String STREAM_ACTION_PROPERTY = "AuthenticatioStreamActionNotifier";
+    private IVHost Ivhost;
     @SuppressWarnings("serial")
     public class ClientConnectException extends Exception{
 
@@ -36,6 +39,7 @@ public class AuthenticationModule extends ModuleBase  {
 
     public void onAppStart(final IApplicationInstance appInstance) {
         logger.info("Initiallizing " + appInstance.getName());
+        Ivhost = appInstance.getVHost();
         KalturaEntryDataPersistence.setAppInstance(appInstance);
     }
 
@@ -126,12 +130,8 @@ public class AuthenticationModule extends ModuleBase  {
     }
     public void onRTPSessionCreate(RTPSession rtpSession)
     {
-        String ipAddress = rtpSession.getIp();
-        String queryStr = rtpSession.getQueryStr();
-        String referrer = rtpSession.getReferrer();
-        String userAgent = rtpSession.getUserAgent();
 
-        //list l = rtpSession.getAppInstance().getClients();
+        String queryStr = rtpSession.getQueryStr();
         String uriStr = rtpSession.getUri();
         try {
             HashMap<String, String>  queryParameters = Utils.getRtmpUrlParameters(uriStr, queryStr);
@@ -168,7 +168,9 @@ public class AuthenticationModule extends ModuleBase  {
                 DiagnosticsProvider.addRejectedStreamFromClient(msg, client);
             }
             if (stream.getRTPStream() != null && stream.getRTPStream().getSession() !=null){
-                //stream.getRTPStream().getSession().rejectSession(); //todo not work
+
+                String sessionId = stream.getRTPStream().getSession().getSessionId();
+                Ivhost.killRTSPSession(sessionId);
                 RTPSession rtpSession = stream.getRTPStream().getSession();
                 DiagnosticsProvider.addRejectedStreamFromRTSP(msg, rtpSession);
             }
