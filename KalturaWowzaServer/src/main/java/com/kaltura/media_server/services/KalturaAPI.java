@@ -215,6 +215,23 @@ public class KalturaAPI {
         return updatedEntry;
     }
 
+    public static boolean isNewRecordingEnabled(String entry) {
+        try {
+            Object result = client.getPermissionService().get("FEATURE_LIVE_STREAM_KALTURA_RECORDING");
+
+            if (result != null) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        catch (KalturaApiException e) {
+            logger.error("(" + entry + ") Error checking New Recording Permission: " + e);
+            return false;
+        }
+    }
+
     private KalturaDataCenterContentResource getContentResource (String filePath,  int partnerId) {
         if (!this.serverConfiguration.containsKey(Constants.KALTURA_SERVER_WOWZA_WORK_MODE) || (this.serverConfiguration.get(Constants.KALTURA_SERVER_WOWZA_WORK_MODE).equals(Constants.WOWZA_WORK_MODE_KALTURA))) {
             KalturaServerFileResource resource = new KalturaServerFileResource();

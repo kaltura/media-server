@@ -143,11 +143,12 @@ public class RecordingModule  extends ModuleBase {
                         setGroupPermision(filePath);
                     }
 
-                     updatedEntry = appendRecording(liveEntry, liveAsset.id, index, filePath, appendTime, lastChunkFlag);
-                    if (updatedEntry != null){
-                        liveEntry = updatedEntry;
+                    if (!KalturaAPI.isNewRecordingEnabled(liveEntry.id)) {
+                        updatedEntry = appendRecording(liveEntry, liveAsset.id, index, filePath, appendTime, lastChunkFlag);
+                        if (updatedEntry != null){
+                            liveEntry = updatedEntry;
+                        }
                     }
-
                 }
             };
 
@@ -164,7 +165,10 @@ public class RecordingModule  extends ModuleBase {
             if (liveAsset.tags.contains(Constants.RECORDING_ANCHOR_TAG_VALUE) && KalturaEntryServerNodeType.LIVE_PRIMARY.equals(index)) {
                 logger.info("Cancel replacement is required");
                 if (liveEntry.recordedEntryId != null && liveEntry.recordedEntryId.length() > 0) {
-                    KalturaAPI.getKalturaAPI().cancelReplace(liveEntry);
+                    boolean isNewRecordingConfigured = KalturaAPI.isNewRecordingEnabled(liveEntry.id);
+                    if (!isNewRecordingConfigured) {
+                        KalturaAPI.getKalturaAPI().cancelReplace(liveEntry);
+                    }
                 }
             }
 
@@ -307,11 +311,11 @@ public class RecordingModule  extends ModuleBase {
                 return;
             }
 
-
             if(liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
                 logger.info("Entry [" + liveEntry.id + "] recording disabled");
                 return;
             }
+
             if (!stream.isTranscodeResult()) {
                 if (amfInjectionListener != null){
                     logger.error("amfInjectionListener in already initialized");
