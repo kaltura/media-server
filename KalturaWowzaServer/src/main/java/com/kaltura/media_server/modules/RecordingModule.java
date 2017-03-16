@@ -63,6 +63,7 @@ public class RecordingModule  extends ModuleBase {
         private KalturaLiveAsset liveAsset;
         private KalturaEntryServerNodeType index;
         private boolean isLastChunk = false;
+        private boolean isNewLiveRecordingEnabled = false;
         abstract class AppendRecordingTimerTask extends TimerTask {
 
             protected String filePath;
@@ -84,6 +85,7 @@ public class RecordingModule  extends ModuleBase {
             this.index = index;
             this.isLastChunk = false;
 
+            this.isNewLiveRecordingEnabled = KalturaAPI.getKalturaAPI().isNewRecordingEnabled(liveEntry);
             this.addListener(this);
         }
 
@@ -143,7 +145,7 @@ public class RecordingModule  extends ModuleBase {
                         setGroupPermision(filePath);
                     }
 
-                    if (!KalturaAPI.getKalturaAPI().isNewRecordingEnabled(liveEntry)) {
+                    if (!isNewLiveRecordingEnabled) {
                         updatedEntry = appendRecording(liveEntry, liveAsset.id, index, filePath, appendTime, lastChunkFlag);
                         if (updatedEntry != null){
                             liveEntry = updatedEntry;
@@ -165,8 +167,7 @@ public class RecordingModule  extends ModuleBase {
             if (liveAsset.tags.contains(Constants.RECORDING_ANCHOR_TAG_VALUE) && KalturaEntryServerNodeType.LIVE_PRIMARY.equals(index)) {
                 logger.info("Cancel replacement is required");
                 if (liveEntry.recordedEntryId != null && liveEntry.recordedEntryId.length() > 0) {
-                    boolean isNewRecordingConfigured = KalturaAPI.getKalturaAPI().isNewRecordingEnabled(liveEntry);
-                    if (!isNewRecordingConfigured) {
+                    if (!isNewLiveRecordingEnabled) {
                         KalturaAPI.getKalturaAPI().cancelReplace(liveEntry);
                     }
                 }
