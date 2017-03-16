@@ -5,6 +5,7 @@ import com.kaltura.client.*;
 import com.kaltura.client.enums.KalturaSessionType;
 import com.kaltura.client.types.*;
 import com.kaltura.client.enums.KalturaEntryServerNodeType;
+import com.kaltura.client.services.KalturaPermissionService;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -29,6 +30,7 @@ public class KalturaAPI {
     private static String hostname;
     private   KalturaConfiguration clientConfig;
     private  static KalturaAPI KalturaAPIInstance = null;
+    private final int ENABLE = 1;
 
     public static synchronized void  initKalturaAPI(Map<String, Object> serverConfiguration)  throws KalturaServerException {
         if  (KalturaAPIInstance!=null){
@@ -96,6 +98,7 @@ public class KalturaAPI {
         Timer timer = new Timer("clientSessionGeneration", true);
         timer.schedule(generateSession, sessionGenerationInterval, sessionGenerationInterval);
     }
+
     private void generateClientSession() {
         int partnerId = serverConfiguration.containsKey(Constants.KALTURA_SERVER_PARTNER_ID) ? (int) serverConfiguration.get(Constants.KALTURA_SERVER_PARTNER_ID) : Constants.MEDIA_SERVER_PARTNER_ID;
         String adminSecretForSigning = (String) serverConfiguration.get(Constants.KALTURA_SERVER_ADMIN_SECRET);
@@ -115,6 +118,7 @@ public class KalturaAPI {
         client.setSessionId(sessionId);
         logger.debug("Kaltura client session id: " + sessionId);    //session id - KS
     }
+
     public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token, KalturaEntryServerNodeType serverIndex) throws Exception {
         if (partnerId == -5){
             KalturaClient Client= getClient();
@@ -128,6 +132,7 @@ public class KalturaAPI {
 
         return updatedEntry;
     }
+
     private KalturaClient getClient() {
         logger.warn("getClient");
         return client;
@@ -136,6 +141,7 @@ public class KalturaAPI {
         //cloneClient.setSessionId(client.getSessionId());
         //return cloneClient;
     }
+
     private KalturaClient  impersonate(int partnerId) {
 
         KalturaConfiguration impersonateConfig = new KalturaConfiguration();
@@ -149,6 +155,7 @@ public class KalturaAPI {
 
         return cloneClient;
     }
+
     public KalturaLiveAsset getAssetParams(KalturaLiveEntry liveEntry, int assetParamsId) {
         //check this function
         if(liveEntry.conversionProfileId <= 0) {
@@ -185,7 +192,6 @@ public class KalturaAPI {
         return null;
     }
 
-
     public KalturaFlavorAssetListResponse getKalturaFlavorAssetListResponse(KalturaLiveEntry liveEntry) {
         //check this function
         if(liveEntry.conversionProfileId <= 0) {
@@ -206,7 +212,6 @@ public class KalturaAPI {
         return null;
     }
 
-
     public KalturaLiveEntry appendRecording(int partnerId, String entryId, String assetId, KalturaEntryServerNodeType nodeType, String filePath, double duration, boolean isLastChunk) throws Exception{
         KalturaDataCenterContentResource resource = getContentResource(filePath, partnerId);
         KalturaClient impersonateClient = impersonate(partnerId);
@@ -215,19 +220,15 @@ public class KalturaAPI {
         return updatedEntry;
     }
 
-    public static boolean isNewRecordingEnabled(String entry) {
+    public boolean isNewRecordingEnabled(KalturaLiveEntry liveEntry) {
         try {
-            Object result = client.getPermissionService().get("FEATURE_LIVE_STREAM_KALTURA_RECORDING");
+            KalturaClient impersonateClient = impersonate(liveEntry.partnerId);
+            KalturaPermission kalturaPermission = impersonateClient.getPermissionService().get("FEATURE_LIVE_STREAM_KALTURA_RECORDING");
 
-            if (result != null) {
-                return true;
-            }
-            else {
-                return false;
-            }
+            return kalturaPermission.status.getHashCode() == ENABLE;
         }
         catch (KalturaApiException e) {
-            logger.error("(" + entry + ") Error checking New Recording Permission: " + e);
+            logger.error("(" + liveEntry.id + ") Error checking New Recording Permission. Code: " + e.code + " Message: " + e.getMessage());
             return false;
         }
     }

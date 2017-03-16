@@ -143,7 +143,7 @@ public class RecordingModule  extends ModuleBase {
                         setGroupPermision(filePath);
                     }
 
-                    if (!KalturaAPI.isNewRecordingEnabled(liveEntry.id)) {
+                    if (!KalturaAPI.getKalturaAPI().isNewRecordingEnabled(liveEntry)) {
                         updatedEntry = appendRecording(liveEntry, liveAsset.id, index, filePath, appendTime, lastChunkFlag);
                         if (updatedEntry != null){
                             liveEntry = updatedEntry;
@@ -165,7 +165,7 @@ public class RecordingModule  extends ModuleBase {
             if (liveAsset.tags.contains(Constants.RECORDING_ANCHOR_TAG_VALUE) && KalturaEntryServerNodeType.LIVE_PRIMARY.equals(index)) {
                 logger.info("Cancel replacement is required");
                 if (liveEntry.recordedEntryId != null && liveEntry.recordedEntryId.length() > 0) {
-                    boolean isNewRecordingConfigured = KalturaAPI.isNewRecordingEnabled(liveEntry.id);
+                    boolean isNewRecordingConfigured = KalturaAPI.getKalturaAPI().isNewRecordingEnabled(liveEntry);
                     if (!isNewRecordingConfigured) {
                         KalturaAPI.getKalturaAPI().cancelReplace(liveEntry);
                     }
