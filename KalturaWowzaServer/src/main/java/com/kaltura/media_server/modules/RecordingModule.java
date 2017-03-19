@@ -149,6 +149,8 @@ public class RecordingModule  extends ModuleBase {
                         if (updatedEntry != null){
                             liveEntry = updatedEntry;
                         }
+                    } else {
+                        logger.debug("skipping append recording API call, new recording enabled");
                     }
                 }
             };
@@ -164,9 +166,11 @@ public class RecordingModule  extends ModuleBase {
 
 
             if (liveAsset.tags.contains(Constants.RECORDING_ANCHOR_TAG_VALUE) && KalturaEntryServerNodeType.LIVE_PRIMARY.equals(index)) {
-                logger.info("Cancel replacement is required");
                 if (liveEntry.recordedEntryId != null && liveEntry.recordedEntryId.length() > 0 && !isNewLiveRecordingEnabled) {
+                    logger.info("Cancel replacement is required");
                     KalturaAPI.getKalturaAPI().cancelReplace(liveEntry);
+                } else {
+                    logger.info("skipping cancel replacement, new recording enabled");
                 }
             }
 
