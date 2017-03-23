@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Root version="1">
+	<VHosts>
+		<VHost>
+			<Name>_defaultVHost_</Name>
+			<ConfigDir>${com.wowza.wms.ConfigHome}</ConfigDir>
+			<ConnectionLimit>0</ConnectionLimit>
+		</VHost>
+	</VHosts>
+</Root>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Root version="2">
+	<Server>
+		<Name>Wowza Streaming Engine</Name>
+		<Description>Wowza Streaming Engine is robust, customizable, and scalable server software that powers reliable streaming of high-quality video and audio to any device, anywhere.</Description>
+		<RESTInterface>
+			<Enable>true</Enable>
+			<IPAddress>*</IPAddress>
+			<Port>8087</Port>
+			<!-- none, basic, digest-->
+			<AuthenticationMethod>basic</AuthenticationMethod>
+			<DiagnosticURLEnable>true</DiagnosticURLEnable>
+			<SSLConfig>
+				<Enable>false</Enable>
+				<KeyStorePath></KeyStorePath>
+				<KeyStorePassword></KeyStorePassword>
+				<KeyStoreType>JKS</KeyStoreType>
+				<SSLProtocol>TLS</SSLProtocol>
+				<Algorithm>SunX509</Algorithm>
+				<CipherSuites></CipherSuites>
+				<Protocols></Protocols>
+			</SSLConfig>
+			<IPWhiteList>*</IPWhiteList>
+			<IPBlackList></IPBlackList>
+			<EnableXMLFile>false</EnableXMLFile>
+			<Properties>
+			</Properties>
+		</RESTInterface>
+		<CommandInterface>
+			<HostPort>
+				<ProcessorCount>${com.wowza.wms.TuningAuto}</ProcessorCount>
+				<IpAddress>*</IpAddress>
+				<Port>8083</Port>
+			</HostPort>
+		</CommandInterface>
+		<AdminInterface>
+			<!-- Objects exposed through JMX interface: Server, VHost, VHostItem, Application, ApplicationInstance, MediaCaster, Module, Client, MediaStream, SharedObject, Acceptor, IdleWorker -->
+			<ObjectList>Server,VHost,VHostItem,Application,ApplicationInstance,MediaCaster,Module,IdleWorker</ObjectList>
+		</AdminInterface>
+		<Stats>
+			<Enable>true</Enable>
+		</Stats>
+		<!-- JMXUrl: service:jmx:rmi://localhost:8084/jndi/rmi://localhost:8085/jmxrmi -->
+		<JMXRemoteConfiguration>
+			<Enable>true</Enable>
+			<IpAddress>${com.kaltura.com.kaltura.ipaddress}</IpAddress> <!-- set to localhost or internal ip address if behind NAT -->
+			<RMIServerHostName>${com.kaltura.com.kaltura.ipaddress}</RMIServerHostName> <!-- set to external ip address or domain name if behind NAT -->
+			<RMIConnectionPort>8084</RMIConnectionPort>
+			<RMIRegistryPort>8085</RMIRegistryPort>
+			<Authenticate>false</Authenticate>
+			<PasswordFile>${com.wowza.wms.ConfigHome}/conf/jmxremote.password</PasswordFile>
+			<AccessFile>${com.wowza.wms.ConfigHome}/conf/jmxremote.access</AccessFile>
+			<SSLSecure>false</SSLSecure>
+		</JMXRemoteConfiguration>
+		<UserAgents>Shockwave Flash|CFNetwork|MacNetwork/1.0 (Macintosh)</UserAgents>
+		<Streams>
+			<DefaultStreamPrefix>mp4</DefaultStreamPrefix>
+		</Streams>
+		<ServerListeners>
+			<ServerListener>
+				<BaseClass>com.wowza.wms.mediacache.impl.MediaCacheServerListener</BaseClass>
+			</ServerListener>
+			<!--
+			<ServerListener>
+				<BaseClass>com.wowza.wms.plugin.loadbalancer.ServerListenerLoadBalancerListener</BaseClass>
+			</ServerListener>
+			-->
+			<!--
+			<ServerListener>
+				<BaseClass>com.wowza.wms.plugin.loadbalancer.ServerListenerLoadBalancerSender</BaseClass>
+			</ServerListener>
+			-->
+			<ServerListener>
+				<BaseClass>com.kaltura.media_server.listeners.ServerListener</BaseClass>
+			</ServerListener>
+		</ServerListeners>
+		<VHostListeners>
+			<!--
+			<VHostListener>
+				<BaseClass></BaseClass>
+			</VHostListener>
+			-->
+		</VHostListeners> 
+		<HandlerThreadPool>
+			<PoolSize>${com.wowza.wms.TuningAuto}</PoolSize>
+		</HandlerThreadPool>
+		<TransportThreadPool>
+			<PoolSize>${com.wowza.wms.TuningAuto}</PoolSize>
+		</TransportThreadPool>
+		<RTP>
+			<DatagramStartingPort>6970</DatagramStartingPort>
+			<DatagramPortSharing>false</DatagramPortSharing>
+		</RTP>
+		
+		<Manager>
+			<!-- Properties defined are used by the Manager -->
+			<Properties>
+			</Properties>
+		</Manager>
+		
+		<!-- Properties defined here will be added to the IServer.getProperties() collection -->
+		<Properties>
+			<Property>
+				<Name>KalturaServerURL</Name>
+				<Value>@KALTURA_SERVICE_URL@</Value>
+			</Property>
+			<Property>
+				<Name>KalturaPartnerId</Name>
+				<Value>@KALTURA_PARTNER_ID@</Value>
+			</Property>
+			<Property>
+				<Name>KalturaServerAdminSecret</Name>
+				<Value>@KALTURA_PARTNER_ADMIN_SECRET@</Value>
+			</Property>
+			<Property>
+				<Name>KalturaServerTimeout</Name>
+				<Value>180</Value>
+			</Property>
+		</Properties>
+	</Server>
+</Root>
