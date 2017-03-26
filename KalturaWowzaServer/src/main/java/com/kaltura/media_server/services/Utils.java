@@ -9,6 +9,7 @@ import java.util.List;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.client.IClient;
+import com.wowza.wms.rtp.model.RTPSession;
 import com.wowza.wms.stream.live.MediaStreamLive;
 import org.apache.log4j.Logger;
 import com.wowza.wms.stream.*;
@@ -172,6 +173,25 @@ public class Utils {
 
         if (entryId == null) {
             logger.error("(" + client.getClientId() + ") failed to get property \"" + Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY + " \" from client");
+        }
+
+        return entryId;
+    }
+
+    public static String getEntryIdFromRTPSession(RTPSession rtpSession) throws Exception
+    {
+        String entryId = null;
+        try {
+            WMSProperties properties = rtpSession.getProperties();
+            synchronized (properties) {
+                entryId = (String)properties.getProperty(Constants.KALTURA_LIVE_ENTRY_ID);
+            }
+        } catch (Exception e) {
+            logger.warn("(" + rtpSession.getSessionId() + ") no streams attached to rtpSession." + e);
+        }
+
+        if (entryId == null) {
+            logger.error("(" + rtpSession.getSessionId() + ") failed to get property \"" + Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY + " \" from client");
         }
 
         return entryId;
