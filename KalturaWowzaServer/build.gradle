@@ -110,7 +110,7 @@ task prepareRelease(type: Zip, dependsOn: build ) {
         into ("lib")
     }
     from(configurations.forInstaller) {
-        into ("lib")
+        into ("installation")
     }
 
     doLast {
