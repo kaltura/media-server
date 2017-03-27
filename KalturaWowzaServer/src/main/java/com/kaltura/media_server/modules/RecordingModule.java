@@ -353,6 +353,10 @@ public class RecordingModule  extends ModuleBase {
             synchronized(properties) {
                  liveAssetList = (KalturaFlavorAssetListResponse) properties.getProperty(Constants.CLIENT_PROPERTY_KALTURA_LIVE_ASSET_LIST);
             }
+            if (liveAssetList == null){
+                logger.error("Cannot find liveAssetList for stream [" + streamName + "]");
+                return;
+            }
             liveAsset = KalturaAPI.getliveAsset(liveAssetList, assetParamsId);
             if (liveAsset == null) {
                 logger.warn("Cannot find liveAsset "+assetParamsId+"for stream [" + streamName + "]");
