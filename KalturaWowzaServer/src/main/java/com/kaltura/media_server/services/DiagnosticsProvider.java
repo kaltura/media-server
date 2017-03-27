@@ -153,7 +153,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
                             addClientProperties(client, streamHash, entryId);
                         }
                         else if (stream.getRTPStream() != null && stream.getRTPStream().getSession() !=null){
-                            addRTPSProperties(stream.getRTPStream().getSession(), streamHash, entryId);
+                            addRTSPProperties(stream.getRTPStream().getSession(), streamHash, entryId);
                         }
                         else logger.warn("Cant find client or RTPSession obj");
 
@@ -316,7 +316,10 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
     }
 
-    private void addRTPSProperties(RTPSession rtpSession,  HashMap<String, Object> hashMapInstance, String entryId){
+    private void addRTSPProperties(RTPSession rtpSession,  HashMap<String, Object> hashMapInstance, String entryId){
+
+        // Lilach Todo : remove this function and update call to addClientProperties
+        // need verify why did Ron add this....
 
         HashMap<String,Object> RTSPropertiesHash =  new HashMap<String,Object>();
         String RTSPUrl, encoder,IP, sessionId;

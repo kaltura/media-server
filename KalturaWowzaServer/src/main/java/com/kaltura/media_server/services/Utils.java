@@ -161,40 +161,12 @@ public class Utils {
 
     public static String getEntryIdFromClient(IClient client) throws Exception
     {
-        String entryId = null;
-        try {
-            WMSProperties properties = client.getProperties();
-            synchronized (properties) {
-                entryId = (String)properties.getProperty(Constants.KALTURA_LIVE_ENTRY_ID);
-            }
-        } catch (Exception e) {
-            logger.warn("(" + client.getClientId() + ") no streams attached to client." + e);
-        }
-
-        if (entryId == null) {
-            logger.error("(" + client.getClientId() + ") failed to get property \"" + Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY + " \" from client");
-        }
-
-        return entryId;
+       return getEntryIdFromIngestProperties(client.getProperties(), String.valueOf(client.getClientId()));
     }
 
     public static String getEntryIdFromRTPSession(RTPSession rtpSession) throws Exception
     {
-        String entryId = null;
-        try {
-            WMSProperties properties = rtpSession.getProperties();
-            synchronized (properties) {
-                entryId = (String)properties.getProperty(Constants.KALTURA_LIVE_ENTRY_ID);
-            }
-        } catch (Exception e) {
-            logger.warn("(" + rtpSession.getSessionId() + ") no streams attached to rtpSession." + e);
-        }
-
-        if (entryId == null) {
-            logger.error("(" + rtpSession.getSessionId() + ") failed to get property \"" + Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY + " \" from client");
-        }
-
-        return entryId;
+        return getEntryIdFromIngestProperties(rtpSession.getProperties(), rtpSession.getSessionId());
     }
 
     public static Set<String> getEntriesFromApplication(IApplicationInstance appInstance) {
@@ -211,5 +183,21 @@ public class Utils {
         }
 
         return entriesSet;
+    }
+
+    private static String getEntryIdFromIngestProperties(WMSProperties properties, String sessionId) throws Exception {
+        String entryId = null;
+        try {
+            synchronized (properties) {
+                entryId = (String) properties.getProperty(Constants.KALTURA_LIVE_ENTRY_ID);
+            }
+        } catch (Exception e) {
+            logger.warn("(" + sessionId + ") no streams attached to rtpSession." + e);
+        }
+
+        if (entryId == null) {
+            logger.error("(" + sessionId + ") failed to get property \"" + Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY + " \" from client");
+        }
+        return entryId;
     }
 }

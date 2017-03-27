@@ -24,8 +24,11 @@ import com.kaltura.media_server.services.*;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 
-public class AuthenticationModule extends ModuleBase  {
 
+public class AuthenticationModule extends ModuleBase  {
+    private enum StreamType {
+        UNKNOWN_STREAM_TYPE, RTMP, RTSP
+    }
     private static final Logger logger = Logger.getLogger(AuthenticationModule.class);
     public static final String STREAM_ACTION_PROPERTY = "AuthenticatioStreamActionNotifier";
     private IVHost Ivhost;
@@ -153,12 +156,13 @@ public class AuthenticationModule extends ModuleBase  {
             logger.info("removeClientListener: " + stream.getSrc());
         }
     }
+
     public void onRTPSessionCreate(RTPSession rtpSession)
     {
-
         String queryStr = rtpSession.getQueryStr();
         String uriStr = rtpSession.getUri();
         try {
+            logger.debug("onRTPSessionCreate - [" + rtpSession.getSessionId() + "]");
             HashMap<String, String>  queryParameters = Utils.getRtmpUrlParameters(uriStr, queryStr);
             onClientConnect(rtpSession.getProperties(), queryParameters);
         } catch (Exception  e) {
@@ -167,9 +171,11 @@ public class AuthenticationModule extends ModuleBase  {
             DiagnosticsProvider.addRejectedStreamFromRTSP(e.getMessage(), rtpSession);
         }
     }
+
     public void onRTPSessionDestroy(RTPSession rtpSession)
     {
         try{
+            logger.debug("onRTPSessionCreate - [" + rtpSession.getSessionId() + "]");
             String entryId = Utils.getEntryIdFromRTPSession(rtpSession);
             logger.info("Entry removed [" + entryId + "]");
             KalturaEntryDataPersistence.entriesMapCleanUp();
@@ -183,45 +189,53 @@ public class AuthenticationModule extends ModuleBase  {
 
     class LiveStreamListener extends  MediaStreamActionNotifyBase{
 
-        public void shutdown(IMediaStream stream, String msg){
+        private void shutdown(IMediaStream stream, String msg, StreamType streamType){
 
             logger.error(msg);
             IClient client = stream.getClient();
-            if (client != null){
-                sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
-                client.setShutdownClient(true);
-                DiagnosticsProvider.addRejectedStreamFromClient(msg, client);
-            }
-            if (stream.getRTPStream() != null && stream.getRTPStream().getSession() !=null){
 
-                String sessionId = stream.getRTPStream().getSession().getSessionId();
-                Ivhost.killRTSPSession(sessionId);
-                RTPSession rtpSession = stream.getRTPStream().getSession();
-                DiagnosticsProvider.addRejectedStreamFromRTSP(msg, rtpSession);
+            switch(streamType) {
+                case RTMP:
+                    sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
+                    client.setShutdownClient(true);
+                    DiagnosticsProvider.addRejectedStreamFromClient(msg, client);
+                    break;
+                case RTSP: // rtp
+                    RTPSession rtpSession = stream.getRTPStream().getSession();
+                    Ivhost.getRTPContext().shutdownRTPSession(rtpSession);
+                    DiagnosticsProvider.addRejectedStreamFromRTSP(msg, rtpSession);
+                    break;
+                default:
+
             }
+
         }
 
         public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
             if (stream.isTranscodeResult()){
                 return;
             }
+            StreamType streamType = StreamType.UNKNOWN_STREAM_TYPE;
             try {
                 String entryByClient;
                 if (stream.getClient() != null) {
                     IClient client = stream.getClient();
                     entryByClient = Utils.getEntryIdFromClient(client);
+                    streamType = StreamType.RTMP;
                 }
                 else if (stream.getRTPStream() != null && stream.getRTPStream().getSession() !=null) {
                     RTPSession rtpSession = stream.getRTPStream().getSession();
                     entryByClient = Utils.getEntryIdFromRTPSession(rtpSession);
+                    streamType = StreamType.RTSP;
                 } else {
+                    // Lilach todo: check if there's a way to shutdown unknown stream!!!
                     logger.error("Fatal Error! Client does not exist");
                     return;
                 }
                 Matcher matcher = Utils.getStreamNameMatches(streamName);
                 if (matcher == null) {
-                    String msg = "Published stream invalid [" + streamName + "]";
-                    shutdown(stream, msg);
+                    String msg = "Published stream is invalid [" + streamName + "]";
+                    shutdown(stream, msg, streamType);
                     return;
                 }
                 String entryByStream = matcher.group(1);
@@ -230,12 +244,12 @@ public class AuthenticationModule extends ModuleBase  {
 
                 if (!entryByStream.equals(entryByClient)) {
                     String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryByClient  + "]";
-                    shutdown(stream, msg);
+                    shutdown(stream, msg, streamType);
                     return;
                 }
                 if (!Utils.isNumeric(flavor)) {
-                    String msg = "Published  stream name [" + streamName + "], Wrong suffix stream name: " + flavor;
-                    shutdown(stream, msg);
+                    String msg = "Published  stream name [" + streamName + "], has wrong suffix stream name: " + flavor;
+                    shutdown(stream, msg, streamType);
                     return;
                 }
 
