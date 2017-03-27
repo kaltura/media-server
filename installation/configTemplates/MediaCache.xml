@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Root version="1">
+	
+	<MediaCache>
+		<WriterThreadPool>
+			<PoolSize>${com.wowza.wms.TuningAuto}</PoolSize>
+		</WriterThreadPool>
+		<ReadAheadThreadPool>
+			<PoolSize>${com.wowza.wms.TuningAuto}</PoolSize>
+		</ReadAheadThreadPool>
+		<MaxPendingWriteRequestSize>${com.wowza.wms.TuningAuto}</MaxPendingWriteRequestSize>
+		<MaxPendingReadAheadRequestSize>${com.wowza.wms.TuningAuto}</MaxPendingReadAheadRequestSize>
+		<GCFrequency>10000</GCFrequency>
+		<ContextMapperClass></ContextMapperClass>
+		<AddFileExtensionIfNeeded>true</AddFileExtensionIfNeeded>
+		<URLEscapeStreamNameSpaces>true</URLEscapeStreamNameSpaces>
+		<URLEscapeStreamNameAll>false</URLEscapeStreamNameAll>
+		<OnStartReloadCache>false</OnStartReloadCache>
+		<OnStartReloadCacheVerifySource>true</OnStartReloadCacheVerifySource>
+		<DebugLog>false</DebugLog>
+	</MediaCache>
+	
+	<MediaCacheStores>
+		<MediaCacheStore>
+			<Name>default</Name>
+			<Description>Default Store</Description>
+			<!-- variables: ${com.wowza.wms.context.ServerConfigHome} -->
+			<Path>${com.wowza.wms.context.ServerConfigHome}/mediacache</Path>
+			<MaxSize>10G</MaxSize>
+			<Level1FolderCount>24</Level1FolderCount>
+			<Level2FolderCount>24</Level2FolderCount>
+			<FileCount>1000</FileCount>
+			<WriteRate>16M</WriteRate>
+			<WriteRateMaxBucketSize>64M</WriteRateMaxBucketSize>
+			<WriteRateFillFrequency>100</WriteRateFillFrequency>
+			<Properties>
+			</Properties>
+		</MediaCacheStore>
+	</MediaCacheStores>
+	
+	<MediaCacheSources>
+	
+		<!-- dvr repeater -->
+		<MediaCacheSource>
+			<Name>dvrorigin</Name>
+			<Type>HTTP</Type>
+			<Description>Default DVR source</Description>
+			<BasePath>http://</BasePath>
+			<Prefix>dvrorigin/</Prefix>
+			<BaseClass>com.wowza.wms.mediacache.impl.MediaCacheItemHTTPImpl</BaseClass>
+			<ReaderClass></ReaderClass>
+			<DefaultBlockSize>262144</DefaultBlockSize>
+			<MaxTimeToLive>1200000</MaxTimeToLive>
+			<MinTimeToLive>600000</MinTimeToLive>
+			<ReadAhead>true</ReadAhead>
+			<ReadAheadThreshold>50</ReadAheadThreshold>
+			<Properties>
+				<Property>
+					<Name>httpReadTimeout</Name>
+					<Value>3000</Value>
+					<Type>Integer</Type>
+				</Property>
+			</Properties>
+		</MediaCacheSource>
+
+	</MediaCacheSources>
+</Root>

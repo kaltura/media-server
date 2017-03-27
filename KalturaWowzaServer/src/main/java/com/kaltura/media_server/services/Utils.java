@@ -158,15 +158,6 @@ public class Utils {
         return map;
     }
 
-    public static String getStreamNameFromClient(IClient client) throws Exception {
-
-        if (client == null || client.getPlayStreams().size() == 0) {
-            throw new Exception("failed to get client Id. No streams found");
-        }
-        IMediaStream stream = (IMediaStream) client.getPlayStreams().get(0);
-
-        return stream.getName();
-    }
 
     public static String getEntryIdFromClient(IClient client) throws Exception
     {
