@@ -54,4 +54,5 @@ public class Constants {
     public static final int KALTURA_ENTRY_PERSISTENCE_CLEANUP_START = 10000;
     public static final int KALTURA_TIME_BETWEEN_PERSISTENCE_CLEANUP = 60000;
     public static final int KALTURA_MIN_TIME_BETWEEN_AUTHENTICATIONS = 10000;
+    public static final String KALTURA_STREAM_TYPE = "KalturaStreamType";
 }

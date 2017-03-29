@@ -23,7 +23,7 @@ import com.kaltura.media_server.services.*;
 
 import java.util.HashMap;
 import java.util.regex.Matcher;
-
+import com.kaltura.media_server.services.KalturaStreamType;
 
 public class AuthenticationModule extends ModuleBase  {
     private enum StreamType {
@@ -164,7 +164,8 @@ public class AuthenticationModule extends ModuleBase  {
         try {
             logger.debug("onRTPSessionCreate - [" + rtpSession.getSessionId() + "]");
             HashMap<String, String>  queryParameters = Utils.getRtmpUrlParameters(uriStr, queryStr);
-            onClientConnect(rtpSession.getProperties(), queryParameters);
+            WMSProperties properties = rtpSession.getProperties();
+            onClientConnect(properties, queryParameters);
         } catch (Exception  e) {
             logger.error("Entry authentication failed with url [" + uriStr + "]: " + e.getMessage());
             rtpSession.rejectSession();
@@ -175,7 +176,7 @@ public class AuthenticationModule extends ModuleBase  {
     public void onRTPSessionDestroy(RTPSession rtpSession)
     {
         try{
-            logger.debug("onRTPSessionCreate - [" + rtpSession.getSessionId() + "]");
+            logger.debug("onRTPSessionDestroy - [" + rtpSession.getSessionId() + "]");
             String entryId = Utils.getEntryIdFromRTPSession(rtpSession);
             logger.info("Entry removed [" + entryId + "]");
             KalturaEntryDataPersistence.entriesMapCleanUp();

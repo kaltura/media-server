@@ -192,11 +192,11 @@ public class Utils {
                 entryId = (String) properties.getProperty(Constants.KALTURA_LIVE_ENTRY_ID);
             }
         } catch (Exception e) {
-            logger.warn("(" + sessionId + ") no streams attached to rtpSession." + e);
+            logger.warn("(" + sessionId + ") no streams attached to client." + e);
         }
 
         if (entryId == null) {
-            logger.error("(" + sessionId + ") failed to get property \"" + Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY + " \" from client");
+            logger.error("(" + sessionId + ") failed to get property \"" + Constants.KALTURA_LIVE_ENTRY_ID + " \" from client");
         }
         return entryId;
     }

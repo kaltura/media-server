@@ -3,6 +3,7 @@ package com.kaltura.media_server.modules;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kaltura.media_server.services.Constants;
+import com.kaltura.media_server.services.KalturaStreamType;
 import com.kaltura.media_server.services.Utils;
 import com.wowza.wms.amf.*;
 import com.wowza.wms.application.*;
@@ -13,6 +14,7 @@ import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.module.*;
 import com.wowza.wms.stream.*;
 import com.wowza.wms.application.WMSProperties;
+import com.wowza.wms.rtp.model.*;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -151,9 +153,13 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	public void onStreamCreate(IMediaStream stream) {
 
-		if(stream.getClientId() < 0){ //transcoded rendition
+		//WMSProperties properties = stream.getProperties();
+		//KalturaStreamType type = (KalturaStreamType) properties.getProperty(Constants.KALTURA_STREAM_TYPE);
+		//boolean isRTSP = (type != null && type == KalturaStreamType.UNKNOWN_STREAM_TYPE.RTSP);
+
+		/*if(stream.getClientId() < 0 && !isRTSP){ //transcoded rendition
 			return;
-		}
+		}*/
 
 		PacketListener listener = new PacketListener();
 		WMSProperties props = stream.getProperties();
