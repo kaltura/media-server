@@ -150,7 +150,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
                     } else {
                         Client client = (Client) stream.getClient();
                         if (client != null){
-                            addClientProperties(client, streamHash, entryId);
+                            addRTMPProperties(client, streamHash, entryId);
                         }
                         else if (stream.getRTPStream() != null && stream.getRTPStream().getSession() !=null){
                             addRTSPProperties(stream.getRTPStream().getSession(), streamHash, entryId);
@@ -216,21 +216,37 @@ public class DiagnosticsProvider extends HTTProvider2Base
         //logger.debug(httpSessionId+"[" + stream.getName() + "] Add the following params: videoBitrate "+ videoBitrate +  ", audioBitrate " + audioBitrate + ", framerate "+ framerate);
     }
 
-    public static void  addRejectedStreamFromClient(String message, IClient client){
+    public static void addRejectedStream(IMediaStream stream, String error){
+
+        if (stream.getClient() != null){
+            DiagnosticsProvider.addRejectedRTMPStream(stream.getClient(), error);
+        }
+        else
+        if (stream.getRTPStream() != null && stream.getRTPStream().getSession() !=null){
+            DiagnosticsProvider.addRejectedRTSPStream(stream.getRTPStream().getSession(), error);
+        }
+    }
+
+    public static void  addRejectedRTMPStream(IClient client, String error){
+        String msg = "Stream " + client.getClientId() + " has no ingest in conversion profile. " + error;
+        logger.error(msg);
+
         WMSProperties properties = client.getProperties();
         String ConnectionUrl;
         synchronized(properties) {
             ConnectionUrl = properties.getPropertyStr(Constants.CLIENT_PROPERTY_CONNECT_URL);
         }
         String IP = client.getIp();
-        addRejectedStream(message, ConnectionUrl, IP);
+        addRejectedStream(msg, ConnectionUrl, IP);
     }
 
-    public static void  addRejectedStreamFromRTSP(String message, RTPSession rtpSession){
+    public static void  addRejectedRTSPStream(RTPSession rtpSession, String error){
+        String msg = "Stream " + rtpSession.getSessionId() + " has no ingest in conversion profile. " + error;
+        logger.error(msg);
 
         String IP = rtpSession.getIp();
         String  RTSPUrl= rtpSession.getUri() + rtpSession.getQueryStr();
-        addRejectedStream(message, RTSPUrl, IP);
+        addRejectedStream(msg, RTSPUrl, IP);
     }
 
     private static void  addRejectedStream(String message, String ConnectionUrl,  String IP){
@@ -289,7 +305,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
         }
     }
 
-    private void addClientProperties(Client client, HashMap<String, Object> hashMapInstance, String entryId){
+    private void addRTMPProperties(Client client, HashMap<String, Object> hashMapInstance, String entryId){
 
         WMSProperties clientProps = client.getProperties();
         if (clientProps == null){
@@ -303,14 +319,14 @@ public class DiagnosticsProvider extends HTTProvider2Base
         IP = client.getIp();
         long pingRoundTripTime = client.getPingRoundTripTime();
         double timeRunningSeconds = client.getTimeRunningSeconds();
-        HashMap<String,Object> ClientPropertiesHash =  new HashMap<String,Object>();
-        ClientPropertiesHash.put("pingRoundTripTime" , pingRoundTripTime);
-        ClientPropertiesHash.put("timeRunningSeconds" , timeRunningSeconds);
-        ClientPropertiesHash.put("ConnectionUrl" , ConnectionUrl);
-        ClientPropertiesHash.put("encoder" , encoder);
-        ClientPropertiesHash.put("IP" , IP);
-        ClientPropertiesHash.put("clientId" , client.getClientId());
-        hashMapInstance.put("clientProperties", ClientPropertiesHash);
+        HashMap<String,Object> propertiesHash =  new HashMap<String,Object>();
+        propertiesHash.put("pingRoundTripTime" , pingRoundTripTime);
+        propertiesHash.put("timeRunningSeconds" , timeRunningSeconds);
+        propertiesHash.put("ConectionUrl" , ConnectionUrl);
+        propertiesHash.put("encoder" , encoder);
+        propertiesHash.put("IP" , IP);
+        propertiesHash.put("Id" , client.getClientId());
+        hashMapInstance.put("Properties", propertiesHash);
 
      //   logger.debug(httpSessionId + "[" + entryId + "] Add the following params: rtmpUrl "+ rtmpUrl +  ", encoder " + encoder + ", IP " + IP );
 
@@ -318,20 +334,23 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
     private void addRTSPProperties(RTPSession rtpSession,  HashMap<String, Object> hashMapInstance, String entryId){
 
-        // Lilach Todo : remove this function and update call to addClientProperties
+        // Lilach Todo : remove this function and update call to addRTMPProperties
         // need verify why did Ron add this....
 
-        HashMap<String,Object> RTSPropertiesHash =  new HashMap<String,Object>();
+        HashMap<String,Object> propertiesHash =  new HashMap<String,Object>();
         String RTSPUrl, encoder,IP, sessionId;
         IP = rtpSession.getIp();
         sessionId = rtpSession.getSessionId();
         RTSPUrl = rtpSession.getUri() + rtpSession.getQueryStr();
+        WMSProperties clientProps = rtpSession.getProperties();
+        encoder = clientProps.getPropertyStr(Constants.CLIENT_PROPERTY_ENCODER);
         double timeRunningSeconds = rtpSession.getTimeRunningSeconds();
-        RTSPropertiesHash.put("IP", IP);
-        RTSPropertiesHash.put("sessionId", sessionId);
-        RTSPropertiesHash.put("RTSPUrl", RTSPUrl);
-        RTSPropertiesHash.put("timeRunningSeconds" , timeRunningSeconds);
-        hashMapInstance.put("RTPSProperties", RTSPropertiesHash);
+        propertiesHash.put("timeRunningSeconds" , timeRunningSeconds);
+        propertiesHash.put("ConnectionUrl", RTSPUrl);
+        propertiesHash.put("encoder" , encoder);
+        propertiesHash.put("IP", IP);
+        propertiesHash.put("Id", sessionId);
+        hashMapInstance.put("Properties", propertiesHash);
     }
 
 

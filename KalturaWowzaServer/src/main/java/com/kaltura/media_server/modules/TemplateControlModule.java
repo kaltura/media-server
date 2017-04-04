@@ -138,15 +138,7 @@ public class TemplateControlModule extends ModuleBase {
             IMediaStream stream = liveStreamTranscoder.getStream();
 
             if (transcoderStreamsMap.size() == 0){
-                String msg = "Stream " + stream.getName() + " has no ingest in conversion profile";
-                logger.error(msg);
-                if (stream.getClient() != null){
-                    DiagnosticsProvider.addRejectedStreamFromClient(msg, stream.getClient());
-                }
-                else
-                if (stream.getRTPStream() != null && stream.getRTPStream().getSession() !=null){
-                    DiagnosticsProvider.addRejectedStreamFromRTSP(msg, stream.getRTPStream().getSession());
-                }
+                DiagnosticsProvider.addRejectedStream(stream, " Error: transcoderStreamsMap.size() = 0");
                 stream.shutdown();
                 stream.stopPublishing();
             }

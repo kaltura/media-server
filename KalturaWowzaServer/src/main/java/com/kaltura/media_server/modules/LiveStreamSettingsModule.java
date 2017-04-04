@@ -3,10 +3,10 @@ package com.kaltura.media_server.modules;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kaltura.media_server.services.Constants;
-import com.kaltura.media_server.services.KalturaStreamType;
 import com.kaltura.media_server.services.Utils;
 import com.wowza.wms.amf.*;
 import com.wowza.wms.application.*;
+import com.wowza.wms.client.IClient;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.*;
 import com.wowza.wms.media.mp3.model.idtags.*;
 import com.wowza.wms.stream.livepacketizer.*;
@@ -153,14 +153,14 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	public void onStreamCreate(IMediaStream stream) {
 
-		//WMSProperties properties = stream.getProperties();
-		//KalturaStreamType type = (KalturaStreamType) properties.getProperty(Constants.KALTURA_STREAM_TYPE);
-		//boolean isRTSP = (type != null && type == KalturaStreamType.UNKNOWN_STREAM_TYPE.RTSP);
+		WMSProperties properties = stream.getProperties();
+		RTPStream rtpSession = stream.getRTPStream();
+		String streamName = (stream.getName() != null &&  stream.getName().length() > 0) ? stream.getName() : stream.getContextStr();
+		IClient client = stream.getClient();
 
-		/*if(stream.getClientId() < 0 && !isRTSP){ //transcoded rendition
+/*		if (stream.getClientId() < 0) { //transcoded rendition
 			return;
 		}*/
-
 		PacketListener listener = new PacketListener();
 		WMSProperties props = stream.getProperties();
 		synchronized (props) {
@@ -169,6 +169,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		stream.addLivePacketListener(listener);
 
 	}
+
 
 	public void onStreamDestroy(IMediaStream stream) {
 
@@ -226,6 +227,11 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		}
 
 		public void onLivePacket(IMediaStream stream, AMFPacket thisPacket) {
+
+			if (stream.isTranscodeResult()) {
+				stream.removeLivePacketListener(this);
+				return;
+			}
 
 
 			long baseSystemTime = 0;

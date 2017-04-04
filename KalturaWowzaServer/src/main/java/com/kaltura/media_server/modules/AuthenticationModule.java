@@ -54,16 +54,16 @@ public class AuthenticationModule extends ModuleBase  {
 
         try {
             HashMap<String, String>  queryParameters = Utils.getRtmpUrlParameters(rtmpUrl, client.getQueryStr());
-            onClientConnect(properties, queryParameters);
+            onClientConnect(properties, queryParameters, KalturaStreamType.RTMP);
         } catch (Exception  e) {
             logger.error("Entry authentication failed with url [" + rtmpUrl + "]: " + e.getMessage());
             client.rejectConnection();
             sendClientOnStatusError((IClient)client, "NetStream.Play.Failed","Unable to authenticate url; [" + rtmpUrl + "]: " + e.getMessage());
-            DiagnosticsProvider.addRejectedStreamFromClient(e.getMessage(), client);
+            DiagnosticsProvider.addRejectedRTMPStream(client, e.getMessage());
         }
     }
 
-    private void onClientConnect(WMSProperties properties, HashMap<String, String> requestParams) throws KalturaApiException, ClientConnectException, Exception {
+    private void onClientConnect(WMSProperties properties, HashMap<String, String> requestParams, KalturaStreamType streamType) throws KalturaApiException, ClientConnectException, Exception {
 
         if (!requestParams.containsKey(Constants.REQUEST_PROPERTY_ENTRY_ID)){
             throw new ClientConnectException("Missing argument: entryId");
@@ -88,10 +88,10 @@ public class AuthenticationModule extends ModuleBase  {
             properties.setProperty(Constants.CLIENT_PROPERTY_SERVER_INDEX, propertyServerIndex);
             properties.setProperty(Constants.KALTURA_LIVE_ENTRY_ID, entryId);
         }
-        authenticate(entryId, partnerId, token, serverIndex);
+        authenticate(entryId, partnerId, token, serverIndex, streamType);
     }
 
-    private void authenticate(String entryId, int partnerId, String token, KalturaEntryServerNodeType serverIndex) throws KalturaApiException, ClientConnectException, Exception {
+    private void authenticate(String entryId, int partnerId, String token, KalturaEntryServerNodeType serverIndex, KalturaStreamType streamType) throws KalturaApiException, ClientConnectException, Exception {
         Object authenticationLock = KalturaEntryDataPersistence.getLock(entryId);
         synchronized (authenticationLock) {
             try {
@@ -106,6 +106,8 @@ public class AuthenticationModule extends ModuleBase  {
                     KalturaLiveEntry liveEntry = (KalturaLiveEntry) KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
                     KalturaEntryDataPersistence.setProperty(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
                     KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG, false);
+                    // todo: remove before merge
+                    // KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_STREAM_TYPE, streamType);
                     logger.info("(" + entryId + ") Entry authenticated successfully!");
                 } else {
                     logger.debug("(" + entryId + ") Entry did not authenticate! Last authentication: [" + (currentTime - (long)entryLastValidationTime) + "] MS ago");
@@ -133,7 +135,13 @@ public class AuthenticationModule extends ModuleBase  {
 
     public void onStreamCreate(IMediaStream stream) {
         LiveStreamListener  actionListener = new LiveStreamListener();
-        logger.debug("onStreamCreate - [" + stream.getName() + "]");
+        String streamName = null;
+        if (stream.getName() != null && stream.getName().length() > 0) {
+            streamName = stream.getName();
+        } else {
+            streamName = stream.getContextStr();
+        }
+        logger.debug("onStreamCreate - [" + streamName + "]");
         WMSProperties props = stream.getProperties();
         synchronized (props)
         {
@@ -162,14 +170,17 @@ public class AuthenticationModule extends ModuleBase  {
         String queryStr = rtpSession.getQueryStr();
         String uriStr = rtpSession.getUri();
         try {
-            logger.debug("onRTPSessionCreate - [" + rtpSession.getSessionId() + "]");
-            HashMap<String, String>  queryParameters = Utils.getRtmpUrlParameters(uriStr, queryStr);
             WMSProperties properties = rtpSession.getProperties();
-            onClientConnect(properties, queryParameters);
+            HashMap<String, String>  queryParameters = Utils.getRtmpUrlParameters(uriStr, queryStr);
+            if (queryParameters.containsKey(Constants.REQUEST_PROPERTY_ENTRY_ID)) {
+                logger.debug("onRTPSessionCreate - [" + queryParameters.get(Constants.REQUEST_PROPERTY_ENTRY_ID) + "]");
+            }
+
+            onClientConnect(properties, queryParameters, KalturaStreamType.RTSP);
         } catch (Exception  e) {
             logger.error("Entry authentication failed with url [" + uriStr + "]: " + e.getMessage());
             rtpSession.rejectSession();
-            DiagnosticsProvider.addRejectedStreamFromRTSP(e.getMessage(), rtpSession);
+            DiagnosticsProvider.addRejectedRTSPStream(rtpSession, e.getMessage());
         }
     }
 
@@ -199,14 +210,16 @@ public class AuthenticationModule extends ModuleBase  {
                 case RTMP:
                     sendClientOnStatusError((IClient)client, "NetStream.Play.Failed", msg);
                     client.setShutdownClient(true);
-                    DiagnosticsProvider.addRejectedStreamFromClient(msg, client);
+                    DiagnosticsProvider.addRejectedRTMPStream(client, msg);
                     break;
                 case RTSP: // rtp
                     RTPSession rtpSession = stream.getRTPStream().getSession();
                     Ivhost.getRTPContext().shutdownRTPSession(rtpSession);
-                    DiagnosticsProvider.addRejectedStreamFromRTSP(msg, rtpSession);
+                    DiagnosticsProvider.addRejectedRTSPStream(rtpSession, msg);
                     break;
                 default:
+                    logger.error("Critical, " + streamType + " stream type! failed to play stream. " + msg);
+                    break;
 
             }
 
@@ -217,6 +230,7 @@ public class AuthenticationModule extends ModuleBase  {
                 return;
             }
             StreamType streamType = StreamType.UNKNOWN_STREAM_TYPE;
+            WMSProperties properties = stream.getProperties();
             try {
                 String entryByClient;
                 if (stream.getClient() != null) {
@@ -241,7 +255,9 @@ public class AuthenticationModule extends ModuleBase  {
                 }
                 String entryByStream = matcher.group(1);
                 String flavor = matcher.group(2);
-
+                synchronized (properties) {
+                    properties.setProperty(Constants.KALTURA_STREAM_TYPE, streamType);
+                }
 
                 if (!entryByStream.equals(entryByClient)) {
                     String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryByClient  + "]";
