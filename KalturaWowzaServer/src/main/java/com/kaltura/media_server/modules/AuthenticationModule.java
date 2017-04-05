@@ -51,7 +51,7 @@ public class AuthenticationModule extends ModuleBase  {
 
         try {
             HashMap<String, String>  queryParameters = Utils.getRtmpUrlParameters(rtmpUrl, client.getQueryStr());
-            onClientConnect(properties, queryParameters, KalturaStreamType.RTMP);
+            onClientConnect(properties, queryParameters);
         } catch (Exception  e) {
             logger.error("Entry authentication failed with url [" + rtmpUrl + "]: " + e.getMessage());
             client.rejectConnection();
@@ -60,7 +60,7 @@ public class AuthenticationModule extends ModuleBase  {
         }
     }
 
-    private void onClientConnect(WMSProperties properties, HashMap<String, String> requestParams, KalturaStreamType streamType) throws KalturaApiException, ClientConnectException, Exception {
+    private void onClientConnect(WMSProperties properties, HashMap<String, String> requestParams) throws KalturaApiException, ClientConnectException, Exception {
 
         if (!requestParams.containsKey(Constants.REQUEST_PROPERTY_ENTRY_ID)){
             throw new ClientConnectException("Missing argument: entryId");
@@ -85,10 +85,10 @@ public class AuthenticationModule extends ModuleBase  {
             properties.setProperty(Constants.CLIENT_PROPERTY_SERVER_INDEX, propertyServerIndex);
             properties.setProperty(Constants.KALTURA_LIVE_ENTRY_ID, entryId);
         }
-        authenticate(entryId, partnerId, token, serverIndex, streamType);
+        authenticate(entryId, partnerId, token, serverIndex);
     }
 
-    private void authenticate(String entryId, int partnerId, String token, KalturaEntryServerNodeType serverIndex, KalturaStreamType streamType) throws KalturaApiException, ClientConnectException, Exception {
+    private void authenticate(String entryId, int partnerId, String token, KalturaEntryServerNodeType serverIndex) throws KalturaApiException, ClientConnectException, Exception {
         Object authenticationLock = KalturaEntryDataPersistence.getLock(entryId);
         synchronized (authenticationLock) {
             try {
@@ -166,7 +166,7 @@ public class AuthenticationModule extends ModuleBase  {
                 logger.debug("onRTPSessionCreate - [" + queryParameters.get(Constants.REQUEST_PROPERTY_ENTRY_ID) + "]");
             }
 
-            onClientConnect(properties, queryParameters, KalturaStreamType.RTSP);
+            onClientConnect(properties, queryParameters);
         } catch (Exception  e) {
             logger.error("Entry authentication failed with url [" + uriStr + "]: " + e.getMessage());
             rtpSession.rejectSession();
@@ -220,7 +220,6 @@ public class AuthenticationModule extends ModuleBase  {
             if (stream.isTranscodeResult()){
                 return;
             }
-            KalturaStreamType streamType = Utils.getStreamType(stream, streamName);
             WMSProperties properties = stream.getProperties();
             try {
                 String entryByClient;

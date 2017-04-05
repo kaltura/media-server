@@ -152,9 +152,8 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	}
 
 	public void onStreamCreate(IMediaStream stream) {
-		String streamName = Utils.getStreamName(stream);
 
-		if (stream.getClientId() < 0 && streamName.length() > 0) { //transcoded rendition
+		if (stream.getClientId() < 0) { //transcoded rendition
 			return;
 		}
 		PacketListener listener = new PacketListener();
