@@ -153,9 +153,12 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	public void onStreamCreate(IMediaStream stream) {
 
-		if (stream.getClientId() < 0) { //transcoded rendition
+		// 05-04-2017 todo: uncomment when wowza support provides way to differ ingest from transcode in RTSP stream as exist in RTMP
+/*		int clientId = stream.getClientId();
+
+		if (clientId < 0) { //transcoded rendition
 			return;
-		}
+		}*/
 		PacketListener listener = new PacketListener();
 		WMSProperties props = stream.getProperties();
 		synchronized (props) {
