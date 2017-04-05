@@ -26,9 +26,6 @@ import java.util.regex.Matcher;
 import com.kaltura.media_server.services.KalturaStreamType;
 
 public class AuthenticationModule extends ModuleBase  {
-    private enum StreamType {
-        UNKNOWN_STREAM_TYPE, RTMP, RTSP
-    }
     private static final Logger logger = Logger.getLogger(AuthenticationModule.class);
     public static final String STREAM_ACTION_PROPERTY = "AuthenticatioStreamActionNotifier";
     private IVHost Ivhost;
@@ -106,8 +103,6 @@ public class AuthenticationModule extends ModuleBase  {
                     KalturaLiveEntry liveEntry = (KalturaLiveEntry) KalturaAPI.getKalturaAPI().authenticate(entryId, partnerId, token, serverIndex);
                     KalturaEntryDataPersistence.setProperty(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY, liveEntry);
                     KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG, false);
-                    // todo: remove before merge
-                    // KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_STREAM_TYPE, streamType);
                     logger.info("(" + entryId + ") Entry authenticated successfully!");
                 } else {
                     logger.debug("(" + entryId + ") Entry did not authenticate! Last authentication: [" + (currentTime - (long)entryLastValidationTime) + "] MS ago");
@@ -135,12 +130,7 @@ public class AuthenticationModule extends ModuleBase  {
 
     public void onStreamCreate(IMediaStream stream) {
         LiveStreamListener  actionListener = new LiveStreamListener();
-        String streamName = null;
-        if (stream.getName() != null && stream.getName().length() > 0) {
-            streamName = stream.getName();
-        } else {
-            streamName = stream.getContextStr();
-        }
+        String streamName = Utils.getStreamName(stream);
         logger.debug("onStreamCreate - [" + streamName + "]");
         WMSProperties props = stream.getProperties();
         synchronized (props)
@@ -201,10 +191,11 @@ public class AuthenticationModule extends ModuleBase  {
 
     class LiveStreamListener extends  MediaStreamActionNotifyBase{
 
-        private void shutdown(IMediaStream stream, String msg, StreamType streamType){
+        private void shutdown(IMediaStream stream, String msg){
 
             logger.error(msg);
             IClient client = stream.getClient();
+            KalturaStreamType streamType = Utils.getStreamType(stream, stream.getName());
 
             switch(streamType) {
                 case RTMP:
@@ -229,19 +220,17 @@ public class AuthenticationModule extends ModuleBase  {
             if (stream.isTranscodeResult()){
                 return;
             }
-            StreamType streamType = StreamType.UNKNOWN_STREAM_TYPE;
+            KalturaStreamType streamType = Utils.getStreamType(stream, streamName);
             WMSProperties properties = stream.getProperties();
             try {
                 String entryByClient;
                 if (stream.getClient() != null) {
                     IClient client = stream.getClient();
                     entryByClient = Utils.getEntryIdFromClient(client);
-                    streamType = StreamType.RTMP;
                 }
                 else if (stream.getRTPStream() != null && stream.getRTPStream().getSession() !=null) {
                     RTPSession rtpSession = stream.getRTPStream().getSession();
                     entryByClient = Utils.getEntryIdFromRTPSession(rtpSession);
-                    streamType = StreamType.RTSP;
                 } else {
                     // Lilach todo: check if there's a way to shutdown unknown stream!!!
                     logger.error("Fatal Error! Client does not exist");
@@ -250,23 +239,20 @@ public class AuthenticationModule extends ModuleBase  {
                 Matcher matcher = Utils.getStreamNameMatches(streamName);
                 if (matcher == null) {
                     String msg = "Published stream is invalid [" + streamName + "]";
-                    shutdown(stream, msg, streamType);
+                    shutdown(stream, msg);
                     return;
                 }
                 String entryByStream = matcher.group(1);
                 String flavor = matcher.group(2);
-                synchronized (properties) {
-                    properties.setProperty(Constants.KALTURA_STREAM_TYPE, streamType);
-                }
 
                 if (!entryByStream.equals(entryByClient)) {
                     String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryByClient  + "]";
-                    shutdown(stream, msg, streamType);
+                    shutdown(stream, msg);
                     return;
                 }
                 if (!Utils.isNumeric(flavor)) {
                     String msg = "Published  stream name [" + streamName + "], has wrong suffix stream name: " + flavor;
-                    shutdown(stream, msg, streamType);
+                    shutdown(stream, msg);
                     return;
                 }
 

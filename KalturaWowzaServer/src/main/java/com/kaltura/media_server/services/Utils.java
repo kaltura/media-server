@@ -200,4 +200,30 @@ public class Utils {
         }
         return entryId;
     }
+
+    // 05-04-2017: this method is tricky. If stream is RTMP the client instace will be available for ingest stream
+    // if stream is RTSP, client is not available for ingest stream but is some cases neither is RTPSteam object.
+    // In that case reply will be "UNKNOWN_STREAM_TYPE" even though it is RTSP stream.
+    // Waiting reply from wowza how to get correct type.
+    public static KalturaStreamType getStreamType(IMediaStream stream, String streamName) {
+
+        if (stream.isTranscodeResult()) {
+            logger.warn("[ "+ streamName +" ] cannot verify stream type from transcode stream");
+            return KalturaStreamType.UNKNOWN_STREAM_TYPE;
+        }
+        if (stream.getClient() != null) {
+            return KalturaStreamType.RTMP;
+        } else if (stream.getRTPStream() != null && stream.getRTPStream().getSession() !=null){
+            return KalturaStreamType.RTSP;
+        }
+
+        return KalturaStreamType.UNKNOWN_STREAM_TYPE;
+
+    }
+
+    // 05-04-2017: this method is meant to get valid stream name whether live stream is RTMP or RTSP.
+    // currently until wowza replies to our support ticket no valid stream name is available for RTSP.
+    public static String getStreamName(IMediaStream stream) {
+        return (stream.getName() != null &&  stream.getName().length() > 0) ? stream.getName() : "";
+    }
 }

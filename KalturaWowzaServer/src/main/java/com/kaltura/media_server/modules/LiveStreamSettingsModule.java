@@ -152,15 +152,11 @@ public class LiveStreamSettingsModule extends ModuleBase {
 	}
 
 	public void onStreamCreate(IMediaStream stream) {
+		String streamName = Utils.getStreamName(stream);
 
-		WMSProperties properties = stream.getProperties();
-		RTPStream rtpSession = stream.getRTPStream();
-		String streamName = (stream.getName() != null &&  stream.getName().length() > 0) ? stream.getName() : stream.getContextStr();
-		IClient client = stream.getClient();
-
-/*		if (stream.getClientId() < 0) { //transcoded rendition
+		if (stream.getClientId() < 0 && streamName.length() > 0) { //transcoded rendition
 			return;
-		}*/
+		}
 		PacketListener listener = new PacketListener();
 		WMSProperties props = stream.getProperties();
 		synchronized (props) {
@@ -228,16 +224,18 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 		public void onLivePacket(IMediaStream stream, AMFPacket thisPacket) {
 
+			String streamName = stream.getName();
+
 			if (stream.isTranscodeResult()) {
+				logger.debug("PTS_SYNC: (" + streamName + ") is trascode stream PTS sync is done in ingest. Removing live packet listener");
 				stream.removeLivePacketListener(this);
 				return;
 			}
 
-
 			long baseSystemTime = 0;
 			long baseInPTS = 0;
 			long lastInPTS = 0;
-			String streamName = stream.getName();
+
 			if (this.entryId == null) {
 				this.entryId = Utils.getEntryIdFromStreamName(streamName);
 			}
