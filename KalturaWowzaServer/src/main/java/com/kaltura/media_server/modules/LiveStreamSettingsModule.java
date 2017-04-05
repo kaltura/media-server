@@ -227,7 +227,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			String streamName = stream.getName();
 
 			if (stream.isTranscodeResult()) {
-				logger.debug("PTS_SYNC: (" + streamName + ") is trascode stream PTS sync is done in ingest. Removing live packet listener");
+				logger.debug("PTS_SYNC: (" + streamName + ") removing live packet listener because it is transcode stream and PTS sync is done on ingest");
 				stream.removeLivePacketListener(this);
 				return;
 			}
