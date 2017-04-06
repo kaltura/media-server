@@ -228,7 +228,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
     }
 
     public static void  addRejectedRTMPStream(IClient client, String error){
-        String msg = "Stream " + client.getClientId() + " has no ingest in conversion profile. " + error;
+        String msg = "Stream " + client.getClientId() + " " + error;
         logger.error(msg);
 
         WMSProperties properties = client.getProperties();
@@ -241,7 +241,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
     }
 
     public static void  addRejectedRTSPStream(RTPSession rtpSession, String error){
-        String msg = "Stream " + rtpSession.getSessionId() + " has no ingest in conversion profile. " + error;
+        String msg = "Stream " + rtpSession.getSessionId() + " " + error;
         logger.error(msg);
 
         String IP = rtpSession.getIp();
