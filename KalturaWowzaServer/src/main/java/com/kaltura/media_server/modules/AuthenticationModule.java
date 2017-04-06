@@ -14,9 +14,6 @@ import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
-import com.wowza.wms.stream.live.MediaStreamLive;
-import com.wowza.wms.vhost.IVHost;
-import com.wowza.wms.vhost.VHost;
 import org.apache.log4j.Logger;
 import com.wowza.wms.rtp.model.RTPSession;
 import com.kaltura.media_server.services.*;
@@ -28,7 +25,7 @@ import com.kaltura.media_server.services.KalturaStreamType;
 public class AuthenticationModule extends ModuleBase  {
     private static final Logger logger = Logger.getLogger(AuthenticationModule.class);
     public static final String STREAM_ACTION_PROPERTY = "AuthenticatioStreamActionNotifier";
-    private IVHost Ivhost;
+    private IApplicationInstance appInstance;
     @SuppressWarnings("serial")
     public class ClientConnectException extends Exception{
 
@@ -39,7 +36,7 @@ public class AuthenticationModule extends ModuleBase  {
 
     public void onAppStart(final IApplicationInstance appInstance) {
         logger.info("Initiallizing " + appInstance.getName());
-        Ivhost = appInstance.getVHost();
+        this.appInstance = appInstance;
         KalturaEntryDataPersistence.setAppInstance(appInstance);
     }
 
@@ -112,7 +109,7 @@ public class AuthenticationModule extends ModuleBase  {
                 logger.error("(" + entryId + ") Exception was thrown during authentication process");
                 KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG, true);
                 KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_VALIDATED_TIME, (long)0);
-                throw e;
+                throw new ClientConnectException("(" + entryId + ") authentication failed. " + e.getMessage());
             }
         }
     }
@@ -169,7 +166,10 @@ public class AuthenticationModule extends ModuleBase  {
             onClientConnect(properties, queryParameters);
         } catch (Exception  e) {
             logger.error("Entry authentication failed with url [" + uriStr + "]: " + e.getMessage());
-            rtpSession.rejectSession();
+            // 06-05-2017 todo: find which function call can be used to send error back to client
+            // sendStreamOnStatusError doesn't work because there is no stream object available
+            //sendStreamOnStatusError(rtpSession.getRTSPStream().getStream(), "NetStream.Play.Failed", error);
+            appInstance.getVHost().getRTPContext().shutdownRTPSession(rtpSession);
             DiagnosticsProvider.addRejectedRTSPStream(rtpSession, e.getMessage());
         }
     }
@@ -204,11 +204,15 @@ public class AuthenticationModule extends ModuleBase  {
                     DiagnosticsProvider.addRejectedRTMPStream(client, msg);
                     break;
                 case RTSP: // rtp
+                    sendStreamOnStatusError(stream, "NetStream.Play.Failed", msg);
                     RTPSession rtpSession = stream.getRTPStream().getSession();
-                    Ivhost.getRTPContext().shutdownRTPSession(rtpSession);
+                    // 06-04-2017 todo check with wowza why doesn't this code have the desired affect of stopping the stream.
+                    // change the code to stop the live stream at once!!!
+                    appInstance.getVHost().getRTPContext().shutdownRTPSession(rtpSession);
                     DiagnosticsProvider.addRejectedRTSPStream(rtpSession, msg);
                     break;
                 default:
+                    sendStreamOnStatusError(stream, "NetStream.Play.Failed", msg);
                     logger.error("Critical, " + streamType + " stream type! failed to play stream. " + msg);
                     break;
 

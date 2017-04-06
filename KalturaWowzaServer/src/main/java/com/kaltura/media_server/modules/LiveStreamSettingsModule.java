@@ -226,17 +226,10 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 		public void onLivePacket(IMediaStream stream, AMFPacket thisPacket) {
 
-			String streamName = stream.getName();
-
-			if (stream.isTranscodeResult()) {
-				logger.debug("PTS_SYNC: (" + streamName + ") removing live packet listener because it is transcode stream and PTS sync is done on ingest");
-				stream.removeLivePacketListener(this);
-				return;
-			}
-
 			long baseSystemTime = 0;
 			long baseInPTS = 0;
 			long lastInPTS = 0;
+			String streamName = stream.getName();
 
 			if (this.entryId == null) {
 				this.entryId = Utils.getEntryIdFromStreamName(streamName);
@@ -259,6 +252,12 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			boolean ptsJumped = (absPTSTimeCodeDiff > maxAllowedPTSDriftMillisec && typeIndex != DATA_INDEX) ? true : false;
 			boolean shouldSync = checkIfShouldSync(typeIndex, streamName);
 			long currentTime = 0;
+
+			if (firstPacket && stream.isTranscodeResult()) {
+				logger.debug("PTS_SYNC: (" + streamName + ") removing live packet listener because it is transcode stream and PTS sync is done on ingest");
+				stream.removeLivePacketListener(this);
+				return;
+			}
 
 			//=================================================================
 			// handle first packet & PTS jump
