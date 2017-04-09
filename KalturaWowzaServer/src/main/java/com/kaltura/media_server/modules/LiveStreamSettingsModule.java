@@ -6,6 +6,7 @@ import com.kaltura.media_server.services.Constants;
 import com.kaltura.media_server.services.Utils;
 import com.wowza.wms.amf.*;
 import com.wowza.wms.application.*;
+import com.wowza.wms.client.IClient;
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.*;
 import com.wowza.wms.media.mp3.model.idtags.*;
 import com.wowza.wms.stream.livepacketizer.*;
@@ -13,6 +14,7 @@ import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.module.*;
 import com.wowza.wms.stream.*;
 import com.wowza.wms.application.WMSProperties;
+import com.wowza.wms.rtp.model.*;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -151,10 +153,12 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 	public void onStreamCreate(IMediaStream stream) {
 
-		if(stream.getClientId() < 0){ //transcoded rendition
-			return;
-		}
+		// 05-04-2017 todo: uncomment when wowza support provides way to differ ingest from transcode in RTSP stream as exist in RTMP
+/*		int clientId = stream.getClientId();
 
+		if (clientId < 0) { //transcoded rendition
+			return;
+		}*/
 		PacketListener listener = new PacketListener();
 		WMSProperties props = stream.getProperties();
 		synchronized (props) {
@@ -163,6 +167,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		stream.addLivePacketListener(listener);
 
 	}
+
 
 	public void onStreamDestroy(IMediaStream stream) {
 
@@ -198,6 +203,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		private final String[] TYPE_STR = {"video", "audio", "data"};
 		private String entryId = null;
 		private long[][] syncPTSData = null;
+		private String streamName = null;
 
 
 		public PacketListener() {
@@ -221,13 +227,18 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 		public void onLivePacket(IMediaStream stream, AMFPacket thisPacket) {
 
-
 			long baseSystemTime = 0;
 			long baseInPTS = 0;
 			long lastInPTS = 0;
-			String streamName = stream.getName();
+
 			if (this.entryId == null) {
+				streamName = stream.getName();
 				this.entryId = Utils.getEntryIdFromStreamName(streamName);
+				if (stream.isTranscodeResult()) {
+					logger.debug("PTS_SYNC: (" + streamName + ") removing live packet listener because it is transcode stream and PTS sync is done on ingest");
+					stream.removeLivePacketListener(this);
+					return;
+				}
 			}
 			int typeIndex = this.getIndex(thisPacket);
 			String streamType = TYPE_STR[typeIndex];

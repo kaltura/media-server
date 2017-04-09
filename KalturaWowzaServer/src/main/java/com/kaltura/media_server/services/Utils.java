@@ -9,6 +9,7 @@ import java.util.List;
 import com.kaltura.client.types.KalturaLiveEntry;
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.client.IClient;
+import com.wowza.wms.rtp.model.RTPSession;
 import com.wowza.wms.stream.live.MediaStreamLive;
 import org.apache.log4j.Logger;
 import com.wowza.wms.stream.*;
@@ -160,21 +161,12 @@ public class Utils {
 
     public static String getEntryIdFromClient(IClient client) throws Exception
     {
-        String entryId = null;
-        try {
-            WMSProperties properties = client.getProperties();
-            synchronized (properties) {
-                entryId = (String)properties.getProperty(Constants.KALTURA_LIVE_ENTRY_ID);
-            }
-        } catch (Exception e) {
-            logger.warn("(" + client.getClientId() + ") no streams attached to client." + e);
-        }
+       return getEntryIdFromIngestProperties(client.getProperties(), String.valueOf(client.getClientId()));
+    }
 
-        if (entryId == null) {
-            logger.error("(" + client.getClientId() + ") failed to get property \"" + Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY + " \" from client");
-        }
-
-        return entryId;
+    public static String getEntryIdFromRTPSession(RTPSession rtpSession) throws Exception
+    {
+        return getEntryIdFromIngestProperties(rtpSession.getProperties(), rtpSession.getSessionId());
     }
 
     public static Set<String> getEntriesFromApplication(IApplicationInstance appInstance) {
@@ -191,5 +183,47 @@ public class Utils {
         }
 
         return entriesSet;
+    }
+
+    private static String getEntryIdFromIngestProperties(WMSProperties properties, String sessionId) throws Exception {
+        String entryId = null;
+        try {
+            synchronized (properties) {
+                entryId = (String) properties.getProperty(Constants.KALTURA_LIVE_ENTRY_ID);
+            }
+        } catch (Exception e) {
+            logger.warn("(" + sessionId + ") no streams attached to client." + e);
+        }
+
+        if (entryId == null) {
+            logger.error("(" + sessionId + ") failed to get property \"" + Constants.KALTURA_LIVE_ENTRY_ID + " \" from client");
+        }
+        return entryId;
+    }
+
+    // 05-04-2017: this method is tricky. If stream is RTMP the client instace will be available for ingest stream
+    // if stream is RTSP, client is not available for ingest stream but is some cases neither is RTPSteam object.
+    // In that case reply will be "UNKNOWN_STREAM_TYPE" even though it is RTSP stream.
+    // Waiting reply from wowza how to get correct type.
+    public static KalturaStreamType getStreamType(IMediaStream stream, String streamName) {
+
+        if (stream.isTranscodeResult()) {
+            logger.warn("[ "+ streamName +" ] cannot verify stream type from transcode stream");
+            return KalturaStreamType.UNKNOWN_STREAM_TYPE;
+        }
+        if (stream.getClient() != null) {
+            return KalturaStreamType.RTMP;
+        } else if (stream.getRTPStream() != null && stream.getRTPStream().getSession() !=null){
+            return KalturaStreamType.RTSP;
+        }
+
+        return KalturaStreamType.UNKNOWN_STREAM_TYPE;
+
+    }
+
+    // 05-04-2017: this method is meant to get valid stream name whether live stream is RTMP or RTSP.
+    // currently until wowza replies to our support ticket no valid stream name is available for RTSP.
+    public static String getStreamName(IMediaStream stream) {
+        return (stream.getName() != null &&  stream.getName().length() > 0) ? stream.getName() : "";
     }
 }

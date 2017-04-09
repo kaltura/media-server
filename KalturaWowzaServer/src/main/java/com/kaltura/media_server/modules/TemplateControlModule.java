@@ -137,9 +137,7 @@ public class TemplateControlModule extends ModuleBase {
             java.util.List<com.wowza.wms.transcoder.model.TranscoderStreamDestination> transcoderStreamsMap =  transcoderStream.getDestinations();
             IMediaStream stream = liveStreamTranscoder.getStream();
             if (transcoderStreamsMap.size() == 0){
-                String msg = "Stream " + stream.getName() + " has no ingest in conversion profile";
-                logger.error(msg);
-                DiagnosticsProvider.addRejectedStream(msg, stream.getClient());
+                DiagnosticsProvider.addRejectedStream(stream, " has no ingest in conversion profile. Error: transcoderStreamsMap.size() = 0");
                 stream.shutdown();
                 stream.stopPublishing();
             }
