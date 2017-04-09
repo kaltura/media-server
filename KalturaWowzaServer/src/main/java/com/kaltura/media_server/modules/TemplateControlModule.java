@@ -10,6 +10,7 @@ import com.wowza.wms.stream.IMediaStreamActionNotify2;
 import com.wowza.wms.stream.IMediaStreamActionNotify3;
 import com.wowza.wms.stream.livetranscoder.LiveStreamTranscoderItem;
 import com.wowza.wms.transcoder.model.*;
+import com.wowza.wms.vhost.IVHost;
 import org.apache.log4j.Logger;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoder;
@@ -18,6 +19,7 @@ import com.wowza.util.FLVUtils;
 import com.wowza.wms.transcoder.model.LiveStreamTranscoder;
 import com.wowza.wms.transcoder.model.TranscoderStreamNameGroup;
 import com.kaltura.media_server.services.*;
+import com.wowza.wms.rtp.model.RTPStream;
 import java.io.*;
 import java.net.URLEncoder;
 import java.util.*;
@@ -81,12 +83,42 @@ public class TemplateControlModule extends ModuleBase {
             IMediaStream stream = liveStreamTranscoder.getStream();
 
             logger.info("[" + stream.getName() + " ] Template name is " + template);
+            KalturaStreamType streamType = KalturaStreamType.UNKNOWN_STREAM_TYPE;
+
+            try {
+                if (stream.getRTPStream() != null && stream.getRTPStream().isRTSP()) {
+                    streamType = KalturaStreamType.RTSP;
+                    onRTSPInitBeforeActionNotifier(stream, template);
+                } else {
+                    streamType = KalturaStreamType.RTMP;
+                    onRTMPInitBeforeActionNotifier(stream, template);
+                }
+
+                liveStreamTranscoder.setTemplateName(template);
+                logger.info("[" + stream.getName() + " ] New Template name is " + liveStreamTranscoder.getTemplateName());
+            } catch (Exception e) {
+                logger.error("["+streamType+"][" + stream.getName() +"] " + e.toString());
+            }
+
+        }
+
+        private void onRTSPInitBeforeActionNotifier(IMediaStream stream, String template) {
+            RTPStream rtpStream = stream.getRTPStream();
+            IVHost vhost = rtpStream.getVHost();
+            WMSProperties prop = vhost.getProperties();
 
 
+        }
+
+        private void onRTMPInitBeforeActionNotifier(IMediaStream stream, String template) throws Exception {
             WMSProperties props = stream.getProperties();
             AMFDataObj obj;
+            String info = null;
 
-
+            java.util.Map<String,String> attributes = null;
+            if (stream.getRTPStream() != null && stream.getRTPStream().isRTSP()) {
+                RTPStream rtpStream = stream.getRTPStream();
+            }
             synchronized (props) {
                 obj = (AMFDataObj) props.getProperty(AMFSETDATAFRAME);
             }
@@ -95,17 +127,15 @@ public class TemplateControlModule extends ModuleBase {
                 logger.info("[" + stream.getName() + " ] Cant find property AMFDataObj for stream " + stream.getName());
                 return;
             }
-            try{
+
+            try {
                 String queryString = getQueryString(obj);
                 template = template + queryString;
-                liveStreamTranscoder.setTemplateName(template);
-                logger.info("[" + stream.getName() + " ] New Template name is " + liveStreamTranscoder.getTemplateName());
             }
             catch (Exception e){
-                logger.error("Failed to retrieve query params of entry: "+e.toString());
+                logger.error("[RTMP][" + stream.getName() +"]" + " failed to retrieve query params of entry: "+e.toString());
+                throw e;
             }
-
-
         }
 
         public  String getQueryString(AMFDataObj obj) throws Exception{
@@ -138,7 +168,7 @@ public class TemplateControlModule extends ModuleBase {
             IMediaStream stream = liveStreamTranscoder.getStream();
 
             if (transcoderStreamsMap.size() == 0){
-                DiagnosticsProvider.addRejectedStream(stream, " Error: transcoderStreamsMap.size() = 0");
+                DiagnosticsProvider.addRejectedStream(stream, " has no ingest in conversion profile. Error: transcoderStreamsMap.size() = 0");
                 stream.shutdown();
                 stream.stopPublishing();
             }

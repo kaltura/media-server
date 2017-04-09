@@ -203,6 +203,7 @@ public class LiveStreamSettingsModule extends ModuleBase {
 		private final String[] TYPE_STR = {"video", "audio", "data"};
 		private String entryId = null;
 		private long[][] syncPTSData = null;
+		private String streamName = null;
 
 
 		public PacketListener() {
@@ -229,10 +230,15 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			long baseSystemTime = 0;
 			long baseInPTS = 0;
 			long lastInPTS = 0;
-			String streamName = stream.getName();
 
 			if (this.entryId == null) {
+				streamName = stream.getName();
 				this.entryId = Utils.getEntryIdFromStreamName(streamName);
+				if (stream.isTranscodeResult()) {
+					logger.debug("PTS_SYNC: (" + streamName + ") removing live packet listener because it is transcode stream and PTS sync is done on ingest");
+					stream.removeLivePacketListener(this);
+					return;
+				}
 			}
 			int typeIndex = this.getIndex(thisPacket);
 			String streamType = TYPE_STR[typeIndex];
@@ -252,12 +258,6 @@ public class LiveStreamSettingsModule extends ModuleBase {
 			boolean ptsJumped = (absPTSTimeCodeDiff > maxAllowedPTSDriftMillisec && typeIndex != DATA_INDEX) ? true : false;
 			boolean shouldSync = checkIfShouldSync(typeIndex, streamName);
 			long currentTime = 0;
-
-			if (firstPacket && stream.isTranscodeResult()) {
-				logger.debug("PTS_SYNC: (" + streamName + ") removing live packet listener because it is transcode stream and PTS sync is done on ingest");
-				stream.removeLivePacketListener(this);
-				return;
-			}
 
 			//=================================================================
 			// handle first packet & PTS jump
