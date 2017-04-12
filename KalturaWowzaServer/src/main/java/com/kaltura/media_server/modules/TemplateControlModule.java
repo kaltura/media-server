@@ -27,7 +27,6 @@ public class TemplateControlModule extends ModuleBase {
 
     private static final Logger logger = Logger.getLogger(TranscoderNotifier.class);
     private TranscoderNotifier TransNotify = null;
-    public static final String AMFSETDATAFRAME = "amfsetdataframe";
     public static final String ONMETADATA_VIDEOCODECIDSTR = "videocodecidstring";
     public static final String ONMETADATA_AUDIOCODECIDSTR = "audiocodecidstring";
     public static final String STREAM_ACTION_PROPERTY = "TemplateControStreamActionNotifier";
@@ -82,13 +81,11 @@ public class TemplateControlModule extends ModuleBase {
 
             logger.info("[" + stream.getName() + " ] Template name is " + template);
 
-
             WMSProperties props = stream.getProperties();
             AMFDataObj obj;
 
-
             synchronized (props) {
-                obj = (AMFDataObj) props.getProperty(AMFSETDATAFRAME);
+                obj = (AMFDataObj) props.getProperty(Constants.AMFSETDATAFRAME);
             }
 
             if (obj == null) {
@@ -104,7 +101,6 @@ public class TemplateControlModule extends ModuleBase {
             catch (Exception e){
                 logger.error("Failed to retrieve query params of entry: "+e.toString());
             }
-
 
         }
 
@@ -219,7 +215,9 @@ public class TemplateControlModule extends ModuleBase {
 
         public void getMetaDataParams(AMFPacket metaDataPacket, IMediaStream stream)
         {
-
+            if (stream.isTranscodeResult()) {
+                return;
+            }
                 AMFDataList dataList = new AMFDataList(metaDataPacket.getData());
                 for (int i = 0 ; i < dataList.size(); i++ ){
                         logger.debug("[" + stream.getName() +" ] Found DATA_TYPE_OBJECT");
@@ -249,7 +247,7 @@ public class TemplateControlModule extends ModuleBase {
                             }
                             WMSProperties props = stream.getProperties();
                             synchronized (props) {
-                                props.setProperty(AMFSETDATAFRAME, obj);
+                                props.setProperty(Constants.AMFSETDATAFRAME, obj);
                             }
                             removeListener(stream);
                             return;
