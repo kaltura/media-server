@@ -153,7 +153,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
                             addRTMPProperties(client, streamHash, entryId);
                         }
                         else if (stream.getRTPStream() != null && stream.getRTPStream().getSession() !=null){
-                            addRTSPProperties(stream.getRTPStream().getSession(), streamHash, entryId);
+                            addRTSPProperties(stream, streamHash, entryId);
                         }
                         else logger.warn("Cant find client or RTPSession obj");
 
@@ -332,22 +332,17 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
     }
 
-    private void addRTSPProperties(RTPSession rtpSession,  HashMap<String, Object> hashMapInstance, String entryId){
+    private void addRTSPProperties(IMediaStream stream,  HashMap<String, Object> hashMapInstance, String entryId){
 
-        // Lilach Todo : remove this function and update call to addRTMPProperties
-        // need verify why did Ron add this....
-
+        RTPSession rtpSession = stream.getRTPStream().getSession();
         HashMap<String,Object> propertiesHash =  new HashMap<String,Object>();
-        String RTSPUrl, encoder,IP, sessionId;
+        String RTSPUrl, IP, sessionId;
         IP = rtpSession.getIp();
         sessionId = rtpSession.getSessionId();
         RTSPUrl = rtpSession.getUri() + rtpSession.getQueryStr();
-        WMSProperties clientProps = rtpSession.getProperties();
-        encoder = clientProps.getPropertyStr(Constants.CLIENT_PROPERTY_ENCODER);
         double timeRunningSeconds = rtpSession.getTimeRunningSeconds();
         propertiesHash.put("timeRunningSeconds" , timeRunningSeconds);
         propertiesHash.put("ConnectionUrl", RTSPUrl);
-        propertiesHash.put("encoder" , encoder);
         propertiesHash.put("IP", IP);
         propertiesHash.put("Id", sessionId);
         hashMapInstance.put("Properties", propertiesHash);
