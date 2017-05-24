@@ -91,12 +91,12 @@ public class AuthenticationModule extends ModuleBase  {
             try {
                 logger.debug("(" + entryId + ") Starting authentication process");
                 if (Boolean.TRUE.equals(KalturaEntryDataPersistence.getPropertyByEntry(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG))) {
-                    //throw new Exception("(" + entryId + ") Authentication Error Flag is up!");
                     long currentTime = System.currentTimeMillis();
                     long errorTime = (long)KalturaEntryDataPersistence.getPropertyByEntry(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_TIME);
                     String errMsg = (String)KalturaEntryDataPersistence.getPropertyByEntry(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_MSG);
-                    throw new Exception("Error occurred [" + (currentTime - errorTime)/1000 + "] seconds ago: " + errMsg +
-                            ". Connection is blocked for up to " + (Constants.KALTURA_PERSISTENCE_DATA_MIN_ENTRY_TIME / 1000) + " seconds");
+                    long timeDiff = (currentTime - errorTime)/1000;
+                    throw new Exception("Connection blocked due to previous error [" + timeDiff + "] seconds ago: " + errMsg +
+                            ". Try to connect in " + ((Constants.KALTURA_PERSISTENCE_DATA_MIN_ENTRY_TIME / 1000) - timeDiff) + " seconds");
                 }
                 long currentTime = System.currentTimeMillis();
                 Object entryLastValidationTime = KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_VALIDATED_TIME, currentTime);
