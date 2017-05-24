@@ -50,6 +50,8 @@ public class Constants {
     public static final String KALTURA_ENTRY_VALIDATED_TIME = "KalturaEntryValidatedTime";
     public static final String KALTURA_ENTRY_AUTHENTICATION_LOCK = "KalturaEntryAuthenticationLock";
     public static final String KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG = "KalturaEntryAuthenticationFlag";
+    public static final String KALTURA_ENTRY_AUTHENTICATION_ERROR_MSG = "KalturaEntryAuthenticationMsg";
+    public static final String KALTURA_ENTRY_AUTHENTICATION_ERROR_TIME = "KalturaEntryAuthenticationTime";
     public static final int KALTURA_PERSISTENCE_DATA_MIN_ENTRY_TIME = 30000;
     public static final int KALTURA_ENTRY_PERSISTENCE_CLEANUP_START = 10000;
     public static final int KALTURA_TIME_BETWEEN_PERSISTENCE_CLEANUP = 60000;

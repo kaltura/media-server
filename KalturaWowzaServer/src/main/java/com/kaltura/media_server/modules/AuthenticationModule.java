@@ -52,7 +52,7 @@ public class AuthenticationModule extends ModuleBase  {
         } catch (Exception  e) {
             logger.error("Entry authentication failed with url [" + rtmpUrl + "]: " + e.getMessage());
             client.rejectConnection();
-            sendClientOnStatusError((IClient)client, "NetStream.Play.Failed","Unable to authenticate url; [" + rtmpUrl + "]: " + e.getMessage());
+            sendClientOnStatusError((IClient)client, "NetStream.Play.Failed","Failure! " + e.getMessage());
             DiagnosticsProvider.addRejectedRTMPStream(client, e.getMessage());
         }
     }
@@ -91,7 +91,12 @@ public class AuthenticationModule extends ModuleBase  {
             try {
                 logger.debug("(" + entryId + ") Starting authentication process");
                 if (Boolean.TRUE.equals(KalturaEntryDataPersistence.getPropertyByEntry(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG))) {
-                    throw new Exception("(" + entryId + ") Authentication Error Flag is up!");
+                    long currentTime = System.currentTimeMillis();
+                    long errorTime = (long)KalturaEntryDataPersistence.getPropertyByEntry(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_TIME);
+                    String errMsg = (String)KalturaEntryDataPersistence.getPropertyByEntry(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_MSG);
+                    long timeDiff = (currentTime - errorTime)/1000;
+                    throw new Exception("Connection blocked due to previous error [" + timeDiff + "] seconds ago: " + errMsg +
+                            ". Try to connect in " + ((Constants.KALTURA_PERSISTENCE_DATA_MIN_ENTRY_TIME / 1000) - timeDiff) + " seconds");
                 }
                 long currentTime = System.currentTimeMillis();
                 Object entryLastValidationTime = KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_VALIDATED_TIME, currentTime);
@@ -108,6 +113,8 @@ public class AuthenticationModule extends ModuleBase  {
             catch (Exception e) {
                 logger.error("(" + entryId + ") Exception was thrown during authentication process");
                 KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG, true);
+                KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_TIME, System.currentTimeMillis());
+                KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_MSG, e.getMessage());
                 KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_VALIDATED_TIME, (long)0);
                 throw new ClientConnectException("(" + entryId + ") authentication failed. " + e.getMessage());
             }
