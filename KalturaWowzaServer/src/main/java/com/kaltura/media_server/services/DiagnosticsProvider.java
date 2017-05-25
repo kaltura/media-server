@@ -280,7 +280,6 @@ public class DiagnosticsProvider extends HTTProvider2Base
             listener = (PacketListener) props.getProperty(Constants.STREAM_ACTION_LISTENER_PROPERTY);
         }
         if (obj == null) {
-            logger.warn(httpSessionId+"[" + stream.getName() + "] Can't find meta data");
             return;
         }
 
