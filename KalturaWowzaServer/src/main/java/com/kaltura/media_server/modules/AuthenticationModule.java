@@ -196,9 +196,9 @@ public class AuthenticationModule extends ModuleBase  {
 
 
 
-    class LiveStreamListener extends  MediaStreamActionNotifyBase{
+    class LiveStreamListener extends MediaStreamActionNotifyBase{
 
-        private void shutdown(IMediaStream stream, String msg){
+        private void shutdown(IMediaStream stream, String msg) {
 
             logger.error(msg);
             IClient client = stream.getClient();
@@ -213,9 +213,7 @@ public class AuthenticationModule extends ModuleBase  {
                 case RTSP: // rtp
                     sendStreamOnStatusError(stream, "NetStream.Play.Failed", msg);
                     RTPSession rtpSession = stream.getRTPStream().getSession();
-                    // 06-04-2017 todo check with wowza why doesn't this code have the desired affect of stopping the stream.
-                    // change the code to stop the live stream at once!!!
-                    appInstance.getVHost().getRTPContext().shutdownRTPSession(rtpSession);
+                    rtpSession.setShutdownClient(true);
                     DiagnosticsProvider.addRejectedRTSPStream(rtpSession, msg);
                     break;
                 default:
