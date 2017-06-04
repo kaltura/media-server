@@ -8,8 +8,10 @@ import com.kaltura.client.enums.KalturaEntryServerNodeType;
 import com.kaltura.client.services.KalturaPermissionService;
 import org.apache.log4j.Logger;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.net.InetAddress;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Timer;
@@ -47,11 +49,19 @@ public class KalturaAPI {
         return KalturaAPIInstance;
     }
 
+    private String getMediaServerHostname() throws IOException, InterruptedException {
+        Process p = Runtime.getRuntime().exec("hostname -f");
+        BufferedReader input = new BufferedReader(new InputStreamReader(
+                p.getInputStream()));
+        p.waitFor();
+        return input.readLine();
+    }
+
     private KalturaAPI(Map<String, Object> serverConfiguration)  throws KalturaServerException {
         logger.info("Initializing KalturaUncaughtException handler");
         this.serverConfiguration = serverConfiguration;
         try {
-            hostname = InetAddress.getLocalHost().getHostName();
+            hostname = getMediaServerHostname();
             logger.debug("Kaltura server host name: " + hostname);
             initClient();
         } catch (Exception e) {
