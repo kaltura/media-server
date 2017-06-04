@@ -9,7 +9,6 @@ import com.kaltura.client.services.KalturaPermissionService;
 import org.apache.log4j.Logger;
 
 import java.io.File;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Timer;
@@ -51,7 +50,7 @@ public class KalturaAPI {
         logger.info("Initializing KalturaUncaughtException handler");
         this.serverConfiguration = serverConfiguration;
         try {
-            hostname = InetAddress.getLocalHost().getHostName();
+            hostname = Utils.getMediaServerHostname();
             logger.debug("Kaltura server host name: " + hostname);
             initClient();
         } catch (Exception e) {
