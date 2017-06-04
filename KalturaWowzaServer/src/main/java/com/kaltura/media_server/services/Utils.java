@@ -1,5 +1,8 @@
 package com.kaltura.media_server.services;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -225,5 +228,13 @@ public class Utils {
     // currently until wowza replies to our support ticket no valid stream name is available for RTSP.
     public static String getStreamName(IMediaStream stream) {
         return (stream.getName() != null &&  stream.getName().length() > 0) ? stream.getName() : "";
+    }
+
+    public static String getMediaServerHostname() throws IOException, InterruptedException {
+        Process p = Runtime.getRuntime().exec("hostname -f");
+        BufferedReader input = new BufferedReader(new InputStreamReader(
+                p.getInputStream()));
+        p.waitFor();
+        return input.readLine();
     }
 }
