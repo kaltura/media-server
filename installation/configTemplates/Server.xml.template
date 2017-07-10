@@ -107,6 +107,7 @@
 			<Property>
 				<Name>KalturaPartnerId</Name>
 				<Value>@KALTURA_PARTNER_ID@</Value>
+				<Type>Integer</Type>
 			</Property>
 			<Property>
 				<Name>KalturaServerAdminSecret</Name>
