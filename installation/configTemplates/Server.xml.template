@@ -103,18 +103,22 @@
 			<Property>
 				<Name>KalturaServerURL</Name>
 				<Value>@KALTURA_SERVICE_URL@</Value>
+				<Type>String</Type>
 			</Property>
 			<Property>
 				<Name>KalturaPartnerId</Name>
 				<Value>@KALTURA_PARTNER_ID@</Value>
+				<Type>Integer</Type>
 			</Property>
 			<Property>
 				<Name>KalturaServerAdminSecret</Name>
 				<Value>@KALTURA_PARTNER_ADMIN_SECRET@</Value>
+				<Type>String</Type>
 			</Property>
 			<Property>
 				<Name>KalturaServerTimeout</Name>
 				<Value>180</Value>
+				<Type>Integer</Type>
 			</Property>
 		</Properties>
 	</Server>
