@@ -1,6 +1,6 @@
 ## Machine prerequisites:
- - Centos 6.8+
- - WowzaStreamingEngine 4.6.0
+ - RHEL/CentOS 6.4 or above or Ubuntu 16.0.4 or above
+ - WowzaStreamingEngine 4.5.0+
  - Java jre 1.7.
  - kaltura group (gid = 613) or any other group that apache user is associated with.
  - Write access to @WEB_DIR@/content/recorded directory.
@@ -9,22 +9,9 @@
 
 
 ## Additional libraries:
-- commons-codec-1.4.jar
 - commons-httpclient-3.1.jar
 - commons-logging-1.1.1.jar
 - commons-lang-2.6.jar
-
-
-## Plugins:
-- Add Wowza to plugins.ini.
-
-
-## Configuration:
-- Add the IP range containing the Wowza machine IP to the @APP_DIR@/configurations/local.ini:  
-	internal_ip_range = {required range}  
-  Note that this is not necessary for a Hybrid eCDN installation.
-- Edit the @APP_DIR@/configurations/broadcast.ini file according to the broadcast.template.ini file.
-- If there is a need for non-default configuration of the WSE (for instance, different port), you will need to create a custom configuration file on your API machine under @APP_DIR@/configurations/media_servers.ini, according to the template found here: https://github.com/kaltura/media-server/blob/3.0.8/media_servers.template.ini.
 
 
 ## Admin Console:
@@ -449,3 +436,13 @@ http://{Wowza machine IP}:8088
 
 **Configure UI-Conf**
 - Edit the ui-conf of the KCW/KRecorder you are using to record from webcam- replace the {HOST_NAME} token in the uiconf with the hostname:port of the Wowza machine.
+
+
+## BE Server Configuration (update to integrate wowza with API server):
+- connect to the BE server
+- go to configuration location. Usually located under /opt/kaltura/app/configurations/.
+- Edit the broadcast.ini:
+	set domain (wowza hostname) and port (1935)
+if only single DC is used remove the 2nd (index #1)
+- verify that Wowza is enabled in plugins.ini.
+
