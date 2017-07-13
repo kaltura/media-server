@@ -37,22 +37,12 @@ The action should return a KalturaLiveStreamEntry object, or an exception in cas
 The returned entry object could be used later to determine if DVR and recording are enabled for this entry.
 * Transcoding - **wowza_liveStreamConversionProfile.serve** is called for each published entry. This action returns an XML formatted according to the Wowza required structure, indicating the transcoding that the stream should undergo.
 
-----
-
-**Configuration**  
-* Transcoding – set KalturaLiveStreamEntry::conversionProfileId. The required flavors are fetched using conversionProfileAssetParams.list and flavorParams.getByConversionProfileId actions.
-
---
-
-Media Server Installation
---
-
-Instructions to install a Wowza SaaS server can be found here:
 **Deployment**
+Instructions to install a Wowza SaaS server can be found here:
 [deployment doc](deployment.md)
 
 Media Server Build Instructions
---
+---
 
 **Gradle Installation**
 
