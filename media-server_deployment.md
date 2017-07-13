@@ -1,27 +1,41 @@
-# Kaltura Server #
+## Machine prerequisites:
+ - Centos 6.8+
+ - WowzaStreamingEngine 4.6.0
+ - Java jre 1.7.
+ - kaltura group (gid = 613) or any other group that apache user is associated with.
+ - Write access to @WEB_DIR@/content/recorded directory.
+ - Read access to symbolic link of @WEB_DIR@/content under @WEB_DIR@/content/recorded:
+  ln –s @WEB_DIR@/content @WEB_DIR@/content/recorded/content
 
 
+## Additional libraries:
+- commons-codec-1.4.jar
+- commons-httpclient-3.1.jar
+- commons-logging-1.1.1.jar
+- commons-lang-2.6.jar
 
-## Plugins: ##
+
+## Plugins:
 - Add Wowza to plugins.ini.
 
-## Configuration ##
+
+## Configuration:
 - Add the IP range containing the Wowza machine IP to the @APP_DIR@/configurations/local.ini:  
 	internal_ip_range = {required range}  
   Note that this is not necessary for a Hybrid eCDN installation.
 - Edit the @APP_DIR@/configurations/broadcast.ini file according to the broadcast.template.ini file.
 - If there is a need for non-default configuration of the WSE (for instance, different port), you will need to create a custom configuration file on your API machine under @APP_DIR@/configurations/media_servers.ini, according to the template found here: https://github.com/kaltura/media-server/blob/3.0.8/media_servers.template.ini.
 
-## Admin Console: ##
+
+## Admin Console:
 - Add admin.ini new permissions, see admin.template.ini:
  - FEATURE_LIVE_STREAM_RECORD
  - FEATURE_KALTURA_LIVE_STREAM
  - FEATURE_KALTURA_LIVE_STREAM_TRANSCODE
 
 
-
-## Edge Servers: ##
-media_servers.ini is optional and needed only for custom configurations.
+## Edge Servers:
+- media_servers.ini is optional and needed only for custom configurations.
 
 - application - defaults to kLive
 - search_regex_pattern, replacement - the regular expression to be replaced in the machine name in order to get the external host name.
@@ -31,40 +45,16 @@ media_servers.ini is optional and needed only for custom configurations.
 
 
 
-
-
-# Wowza #
-
-
-
-## Prerequisites: ##
-- Wowza media server 4.0.1 or above.
-- Java jre 1.7.
-- kaltura group (gid = 613) or any other group that apache user is associated with.
-- Write access to @WEB_DIR@/content/recorded directory.
-- Read access to symbolic link of @WEB_DIR@/content under @WEB_DIR@/content/recorded:
-  ln –s @WEB_DIR@/content @WEB_DIR@/content/recorded/content
-
-
-## Additional libraries: ##
-- commons-codec-1.4.jar
-- commons-httpclient-3.1.jar
-- commons-logging-1.1.1.jar
-- commons-lang-2.6.jar
-
-
-
-
-## For all wowza machine: ##
-- Copy [KalturaWowzaServer.jar](https://github.com/kaltura/media-server/releases/download/rel-3.0.8.1/KalturaWowzaServer-3.0.8.1.jar "KalturaWowzaServer.jar") to @WOWZA_DIR@/lib/
+## media-server Installation:
+- Copy [KalturaWowzaServer.jar](https://github.com/kaltura/media-server/releases/tag/rel-4.5.15.x/KalturaWowzaServer-4.5.15.x.jar "KalturaWowzaServer.jar") to @WOWZA_DIR@/lib/
 - Copy additional jar files (available in Kaltura Java client library) to @WOWZA_DIR@/lib/
  - [commons-codec-1.4.jar](https://github.com/kaltura/server-bin-linux-64bit/raw/master/wowza/commons-codec-1.4.jar "commons-codec-1.4.jar")
  - [commons-httpclient-3.1.jar](https://github.com/kaltura/server-bin-linux-64bit/raw/master/wowza/commons-httpclient-3.1.jar "commons-httpclient-3.1.jar")
  - [commons-logging-1.1.1.jar](https://github.com/kaltura/server-bin-linux-64bit/raw/master/wowza/commons-logging-1.1.1.jar "commons-logging-1.1.1.jar") 
- - [commons-lang-2.6.jar](https://github.com/kaltura/server-bin-linux-64bit/raw/master/wowza/commons-lang-2.6.jar "commons-lang-2.6.jar")
+ - [commons-lang-2.6.jar](http://apache.spd.co.il//commons/lang/binaries/commons-lang-2.6-bin.zip "commons-lang-2.6.jar")
 - Delete all directories under @WOWZA_DIR@/applications, but not the applications directory itself.
 - Create @WOWZA_DIR@/applications/kLive directory.
-- Delete all directories under @WOWZA_DIR@/conf, but not the conf directory itself.
+- Delete all directories under @WOWZA_DIR@/conf, but not the conf directory itself or its other files..
 - Create @WOWZA_DIR@/conf/kLive directory.
 - Copy @WOWZA_DIR@/conf/Application.xml to @WOWZA_DIR@/conf/kLive/Application.xml
 
@@ -219,22 +209,22 @@ media_servers.ini is optional and needed only for custom configurations.
 <Module>
         <Name>AuthenticationModule</Name>
         <Description>AuthenticationModule</Description>
-        <Class>modules.AuthenticationModule</Class>
+        <Class>com.kaltura.media_server.modules.AuthenticationModule</Class>
 </Module>
- <Module>
+<Module>
         <Name>LiveStreamSettingsModule</Name>
         <Description>CuePointsModule</Description>
-        <Class>modules.CuePointsModule</Class>
+        <Class>com.kaltura.media_server.modules.LiveStreamSettingsModule</Class>
 </Module>
 <Module>
         <Name>RecordingModule</Name>
         <Description>RecordingModule</Description>
-        <Class>modules.RecordingModule</Class>
+        <Class>com.kaltura.media_server.modules.RecordingModule</Class>
 </Module>
 <Module>
         <Name>ModuleRTMPPublishDebug</Name>
         <Description>ModuleRTMPPublishDebug</Description>
-        <Class>modules.RTMPPublishDebugModule</Class>
+        <Class>com.kaltura.media_server.modules.RTMPPublishDebugModule</Class>
 </Module>
 ```
  
@@ -270,7 +260,7 @@ media_servers.ini is optional and needed only for custom configurations.
  - /Root/Server/ServerListeners:
 ```xml
 <ServerListener>
-	<BaseClass>listeners.ServerListener</BaseClass>
+	<BaseClass>com.kaltura.media_server.listeners.ServerListener</BaseClass>
 </ServerListener>
 ```
 
@@ -300,18 +290,23 @@ media_servers.ini is optional and needed only for custom configurations.
 
 
 **Edit @WOWZA_DIR@/conf/log4j.properties:**
- - Set `log4j.rootCategory` = `INFO`
+ - Set `log4j.rootCategory` = `INFO, stdout, serverAccess, kalturaAccess, serverError`
  - Add `log4j.logger.com.kaltura` = `DEBUG`
- - Comment out `log4j.appender.serverAccess.layout` and its sub values `log4j.appender.serverAccess.layout.*` 
+ - Comment out `log4j.appender.serverAccess.layout` and its sub values `log4j.appender.serverAccess.layout.*`
  - Add `log4j.appender.serverAccess.layout` = `org.apache.log4j.PatternLayout`
  - Add `log4j.appender.serverAccess.layout.ConversionPattern` = `[%d{yyyy-MM-dd HH:mm:ss}][%t][%C:%M] %p - %m - (%F:%L) %n`
  - Change `log4j.appender.serverAccess.File` = `@LOG_DIR@/kaltura_mediaserver_access.log`
- - Comment out `log4j.appender.serverError.layout` and its sub values `log4j.appender.serverError.layout.*` 
+ - Comment out `log4j.appender.serverError.layout` and its sub values `log4j.appender.serverError.layout.*`
  - Add `log4j.appender.serverError.layout` = `org.apache.log4j.PatternLayout`
- - Add `log4j.appender.serverError.layout.ConversionPattern` = `[%d{yyyy-MM-dd HH:mm:ss}][%t][%C:%M] %p - %m - (%F:%L) %n` 
+ - Add `log4j.appender.serverError.layout.ConversionPattern` = `[%d{yyyy-MM-dd HH:mm:ss}][%t][%C:%M] %p - %m - (%F:%L) %n`
  - Change `log4j.appender.serverError.File` = `@LOG_DIR@/kaltura_mediaserver_error.log`
  - Change `log4j.appender.serverStats.File` = `@LOG_DIR@/kaltura_mediaserver_stats.log`
-
+ - Add `log4j.appender.kalturaAccess=org.apache.log4j.DailyRollingFileAppender`
+ - Add `log4j.appender.kalturaAccess.encoding=UTF-8`
+ - Add `log4j.appender.kalturaAccess.DatePattern='.'yyyy-MM-dd`
+ - Add `log4j.appender.kalturaAccess.File=@LOG_DIR@kaltura_mediaserver.log`
+ - Add `log4j.appender.kalturaAccess.layout=org.apache.log4j.PatternLayout`
+ - Add `log4j.appender.kalturaAccess.layout.ConversionPattern=[%d{yyyy-MM-dd HH:mm:ss.SSS}][%t][%C:%M] %p - %m - (%F:%L) %n`
 
 
 **Setting keystore.jks:**
