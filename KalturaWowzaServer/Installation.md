@@ -61,10 +61,10 @@ media_servers.ini is optional and needed only for custom configurations.
  - [commons-codec-1.4.jar](https://github.com/kaltura/server-bin-linux-64bit/raw/master/wowza/commons-codec-1.4.jar "commons-codec-1.4.jar")
  - [commons-httpclient-3.1.jar](https://github.com/kaltura/server-bin-linux-64bit/raw/master/wowza/commons-httpclient-3.1.jar "commons-httpclient-3.1.jar")
  - [commons-logging-1.1.1.jar](https://github.com/kaltura/server-bin-linux-64bit/raw/master/wowza/commons-logging-1.1.1.jar "commons-logging-1.1.1.jar") 
- - [commons-lang-2.6.jar](https://github.com/kaltura/server-bin-linux-64bit/raw/master/wowza/commons-lang-2.6.jar "commons-lang-2.6.jar")
+ - [commons-lang-2.6.jar](http://apache.spd.co.il//commons/lang/binaries/commons-lang-2.6-bin.zip "commons-lang-2.6.jar")
 - Delete all directories under @WOWZA_DIR@/applications, but not the applications directory itself.
 - Create @WOWZA_DIR@/applications/kLive directory.
-- Delete all directories under @WOWZA_DIR@/conf, but not the conf directory itself.
+- Delete all directories under @WOWZA_DIR@/conf, but not the conf directory itself or its other files.
 - Create @WOWZA_DIR@/conf/kLive directory.
 - Copy @WOWZA_DIR@/conf/Application.xml to @WOWZA_DIR@/conf/kLive/Application.xml
 
@@ -219,22 +219,22 @@ media_servers.ini is optional and needed only for custom configurations.
 <Module>
         <Name>AuthenticationModule</Name>
         <Description>AuthenticationModule</Description>
-        <Class>modules.AuthenticationModule</Class>
+        <Class>com.kaltura.media_server.modules.AuthenticationModule</Class>
 </Module>
  <Module>
         <Name>LiveStreamSettingsModule</Name>
         <Description>CuePointsModule</Description>
-        <Class>modules.CuePointsModule</Class>
+        <Class>com.kaltura.media_server.modules.LiveStreamSettingsModule</Class>
 </Module>
 <Module>
         <Name>RecordingModule</Name>
         <Description>RecordingModule</Description>
-        <Class>modules.RecordingModule</Class>
+        <Class>com.kaltura.media_server.modules.RecordingModule</Class>
 </Module>
 <Module>
         <Name>ModuleRTMPPublishDebug</Name>
         <Description>ModuleRTMPPublishDebug</Description>
-        <Class>modules.RTMPPublishDebugModule</Class>
+        <Class>com.kaltura.media_server.modules.RTMPPublishDebugModule</Class>
 </Module>
 ```
  
@@ -270,7 +270,7 @@ media_servers.ini is optional and needed only for custom configurations.
  - /Root/Server/ServerListeners:
 ```xml
 <ServerListener>
-	<BaseClass>listeners.ServerListener</BaseClass>
+	<BaseClass>com.kaltura.media_server.listeners.ServerListener</BaseClass>
 </ServerListener>
 ```
 
@@ -300,7 +300,7 @@ media_servers.ini is optional and needed only for custom configurations.
 
 
 **Edit @WOWZA_DIR@/conf/log4j.properties:**
- - Set `log4j.rootCategory` = `INFO`
+ - Set `log4j.rootCategory` = `INFO, stdout, serverAccess, kalturaAccess, serverError`
  - Add `log4j.logger.com.kaltura` = `DEBUG`
  - Comment out `log4j.appender.serverAccess.layout` and its sub values `log4j.appender.serverAccess.layout.*` 
  - Add `log4j.appender.serverAccess.layout` = `org.apache.log4j.PatternLayout`
@@ -311,6 +311,12 @@ media_servers.ini is optional and needed only for custom configurations.
  - Add `log4j.appender.serverError.layout.ConversionPattern` = `[%d{yyyy-MM-dd HH:mm:ss}][%t][%C:%M] %p - %m - (%F:%L) %n` 
  - Change `log4j.appender.serverError.File` = `@LOG_DIR@/kaltura_mediaserver_error.log`
  - Change `log4j.appender.serverStats.File` = `@LOG_DIR@/kaltura_mediaserver_stats.log`
+ - Add `log4j.appender.kalturaAccess=org.apache.log4j.DailyRollingFileAppender`
+ - Add `log4j.appender.kalturaAccess.encoding=UTF-8`
+ - Add `log4j.appender.kalturaAccess.DatePattern='.'yyyy-MM-dd`
+ - Add `log4j.appender.kalturaAccess.File=@LOG_DIR@kaltura_mediaserver.log`
+ - Add `log4j.appender.kalturaAccess.layout=org.apache.log4j.PatternLayout`
+ - Add `log4j.appender.kalturaAccess.layout.ConversionPattern=[%d{yyyy-MM-dd HH:mm:ss.SSS}][%t][%C:%M] %p - %m - (%F:%L) %n`
 
 
 
