@@ -1,7 +1,7 @@
-package com.kaltura.media_server.modules;
 /**
  * Created by noam.arad on 7/19/2017.
  */
+package com.kaltura.media_server.modules;
 
 import com.kaltura.media_server.services.Utils;
 import com.wowza.wms.http.*;
@@ -13,14 +13,23 @@ public class HTTPHeaderModule extends HTTProvider2Base {
 
     private static final Logger logger = Logger.getLogger(HTTPHeaderModule.class);
 
+    private static String mediaServerhostname;
+
+    @Override
+    public void init() {
+        super.init();
+        try {
+            mediaServerhostname = Utils.getMediaServerHostname(false);
+        }
+        catch (Exception e) {
+            logger.warn("Could not get hostname ", e);
+            mediaServerhostname = "default_hostname";
+        }
+    }
+
     public void onHTTPRequest(IVHost vhost, IHTTPRequest req, IHTTPResponse resp)
     {
-        try {
-            String hostname = Utils.getMediaServerHostname(false);
-            resp.setHeader("X-Me", hostname);
-        } catch (Exception e) {
-            logger.warn("Could not get hostname ", e);
-        }
+        resp.setHeader("X-Me", mediaServerhostname);
         resp.removeHeader("Server");
     }
 }
