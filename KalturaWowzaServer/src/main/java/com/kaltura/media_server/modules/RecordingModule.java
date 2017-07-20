@@ -237,7 +237,9 @@ public class RecordingModule  extends ModuleBase {
             // but the key to get liveEntry from entry's persistent data is available
             String entryId = Utils.getEntryIdFromClient(client);
             KalturaLiveEntry liveEntry = (KalturaLiveEntry)KalturaEntryDataPersistence.getPropertyByEntry(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
-            if (liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
+
+            boolean isNewLiveRecordingEnabled = KalturaAPI.getKalturaAPI().isNewRecordingEnabled(liveEntry);
+            if (!isNewLiveRecordingEnabled || liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
                 return;
             }
 
