@@ -26,6 +26,8 @@ public class Utils {
 
     private static Logger logger = Logger.getLogger(Utils.class);
 
+    private static String mediaServerHostname = null;
+
     public static HashMap<String, String> getRtmpUrlParameters(String rtmpUrl, String queryString){
 
 
@@ -231,10 +233,21 @@ public class Utils {
     }
 
     public static String getMediaServerHostname() throws IOException, InterruptedException {
-        Process p = Runtime.getRuntime().exec("hostname -f");
+        return getMediaServerHostname(true);
+    }
+
+    public static String getMediaServerHostname(boolean full) throws IOException, InterruptedException {
+        if (mediaServerHostname != null)
+            return mediaServerHostname;
+
+        String command = "hostname";
+        if (full)
+            command = command + " -f";
+        Process p = Runtime.getRuntime().exec(command);
         BufferedReader input = new BufferedReader(new InputStreamReader(
                 p.getInputStream()));
         p.waitFor();
-        return input.readLine();
+        mediaServerHostname = input.readLine();
+        return mediaServerHostname;
     }
 }
