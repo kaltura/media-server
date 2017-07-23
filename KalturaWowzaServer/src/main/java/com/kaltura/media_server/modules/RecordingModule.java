@@ -234,7 +234,7 @@ public class RecordingModule  extends ModuleBase {
 
             boolean isNewLiveRecordingEnabled = KalturaAPI.getKalturaAPI().isNewRecordingEnabled(liveEntry);
             if (isNewLiveRecordingEnabled || liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
-                logger.info("New live recording is enabled for entry [" + liveEntry.id + "]");
+                logger.info("media-server recording is disabled for [" + liveEntry.id + "] new live recording enabled [" + isNewLiveRecordingEnabled + "]");
                 return;
             }
 
