@@ -239,7 +239,7 @@ public class RecordingModule  extends ModuleBase {
             KalturaLiveEntry liveEntry = (KalturaLiveEntry)KalturaEntryDataPersistence.getPropertyByEntry(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
 
             boolean isNewLiveRecordingEnabled = KalturaAPI.getKalturaAPI().isNewRecordingEnabled(liveEntry);
-            if (!isNewLiveRecordingEnabled || liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
+            if (isNewLiveRecordingEnabled || liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
                 return;
             }
 
@@ -369,8 +369,7 @@ public class RecordingModule  extends ModuleBase {
                 }
             }
 
-            boolean isNewLiveRecordingEnabled = KalturaAPI.getKalturaAPI().isNewRecordingEnabled(liveEntry);
-            startRecording(liveEntry, liveAsset, stream, serverIndex, true, true, true, isNewLiveRecordingEnabled);
+            startRecording(liveEntry, liveAsset, stream, serverIndex, true, true, true, false);
         }
 
         public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
