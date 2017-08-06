@@ -286,11 +286,6 @@
 		<Manager>
 			<!-- Properties defined are used by the Manager -->
 			<Properties>
-				<Property>
-					<Name>DVREnable</Name>
-					<Value>true</Value>
-					<Type>Boolean</Type>
-				</Property>
 			</Properties>
 		</Manager>
 		<Repeater>
@@ -354,11 +349,6 @@
 				<Name>securityPublishBlockDuplicateStreamNames</Name>
 				<Value>true</Value>
 				<Type>Boolean</Type>
-			</Property>
-			<Property>
-			    <Name>streamTimeout</Name>
-			    <Value>200</Value>
-			    <Type>Integer</Type>
 			</Property>
 		</Properties>
 	</Application>
