@@ -54,7 +54,7 @@
 					    <AuthenticationMethod>none</AuthenticationMethod>
 					</HTTPProvider>
 					<HTTPProvider>
-						<BaseClass>com.wowza.wms.http.HTTPServerVersion</BaseClass>
+						<BaseClass>com.kaltura.media_server.modules.HTTPHeaderModule</BaseClass>
 						<RequestFilters>*</RequestFilters>
 						<AuthenticationMethod>none</AuthenticationMethod>
 					</HTTPProvider>

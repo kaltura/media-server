@@ -63,7 +63,6 @@ public class RecordingModule  extends ModuleBase {
         private KalturaLiveAsset liveAsset;
         private KalturaEntryServerNodeType index;
         private boolean isLastChunk = false;
-        private boolean isNewLiveRecordingEnabled = false;
         abstract class AppendRecordingTimerTask extends TimerTask {
 
             protected String filePath;
@@ -77,14 +76,13 @@ public class RecordingModule  extends ModuleBase {
             }
         }
 
-        public FlavorRecorder(KalturaLiveEntry liveEntry, KalturaLiveAsset liveAsset, KalturaEntryServerNodeType index, boolean isNewLiveRecordingEnabled) {
+        public FlavorRecorder(KalturaLiveEntry liveEntry, KalturaLiveAsset liveAsset, KalturaEntryServerNodeType index) {
             super();
 
             this.liveEntry = liveEntry;
             this.liveAsset = liveAsset;
             this.index = index;
             this.isLastChunk = false;
-            this.isNewLiveRecordingEnabled = isNewLiveRecordingEnabled;
             this.addListener(this);
         }
 
@@ -144,13 +142,9 @@ public class RecordingModule  extends ModuleBase {
                         setGroupPermision(filePath);
                     }
 
-                    if (!isNewLiveRecordingEnabled) {
-                        updatedEntry = appendRecording(liveEntry, liveAsset.id, index, filePath, appendTime, lastChunkFlag);
-                        if (updatedEntry != null){
-                            liveEntry = updatedEntry;
-                        }
-                    } else {
-                        logger.debug("skipping append recording API call, new recording enabled");
+                    updatedEntry = appendRecording(liveEntry, liveAsset.id, index, filePath, appendTime, lastChunkFlag);
+                    if (updatedEntry != null){
+                        liveEntry = updatedEntry;
                     }
                 }
             };
@@ -166,7 +160,7 @@ public class RecordingModule  extends ModuleBase {
 
 
             if (liveAsset.tags.contains(Constants.RECORDING_ANCHOR_TAG_VALUE) && KalturaEntryServerNodeType.LIVE_PRIMARY.equals(index)) {
-                if (liveEntry.recordedEntryId != null && liveEntry.recordedEntryId.length() > 0 && !isNewLiveRecordingEnabled) {
+                if (liveEntry.recordedEntryId != null && liveEntry.recordedEntryId.length() > 0) {
                     logger.info("Cancel replacement is required");
                     KalturaAPI.getKalturaAPI().cancelReplace(liveEntry);
                 } else {
@@ -237,7 +231,10 @@ public class RecordingModule  extends ModuleBase {
             // but the key to get liveEntry from entry's persistent data is available
             String entryId = Utils.getEntryIdFromClient(client);
             KalturaLiveEntry liveEntry = (KalturaLiveEntry)KalturaEntryDataPersistence.getPropertyByEntry(entryId, Constants.CLIENT_PROPERTY_KALTURA_LIVE_ENTRY);
-            if (liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
+
+            boolean isNewLiveRecordingEnabled = KalturaAPI.getKalturaAPI().isNewRecordingEnabled(liveEntry);
+            if (isNewLiveRecordingEnabled || liveEntry.recordStatus == null || liveEntry.recordStatus == KalturaRecordStatus.DISABLED){
+                logger.info("media-server recording is disabled for [" + liveEntry.id + "] new live recording enabled [" + isNewLiveRecordingEnabled + "]");
                 return;
             }
 
@@ -367,8 +364,7 @@ public class RecordingModule  extends ModuleBase {
                 }
             }
 
-            boolean isNewLiveRecordingEnabled = KalturaAPI.getKalturaAPI().isNewRecordingEnabled(liveEntry);
-            startRecording(liveEntry, liveAsset, stream, serverIndex, true, true, true, isNewLiveRecordingEnabled);
+            startRecording(liveEntry, liveAsset, stream, serverIndex, true, true, true);
         }
 
         public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend) {
@@ -381,11 +377,11 @@ public class RecordingModule  extends ModuleBase {
     }
 
 
-    public String startRecording(KalturaLiveEntry liveEntry , KalturaLiveAsset liveAsset, IMediaStream stream, KalturaEntryServerNodeType index, boolean versionFile, boolean startOnKeyFrame, boolean recordData, boolean isNewLiveRecordingEnabled){
+    public String startRecording(KalturaLiveEntry liveEntry , KalturaLiveAsset liveAsset, IMediaStream stream, KalturaEntryServerNodeType index, boolean versionFile, boolean startOnKeyFrame, boolean recordData){
         logger.debug("Stream name [" + stream.getName() + "] entry [" + liveEntry.id + "]");
 
         // create a stream recorder and save it in a map of recorders
-        FlavorRecorder recorder = new FlavorRecorder(liveEntry, liveAsset, index, isNewLiveRecordingEnabled);
+        FlavorRecorder recorder = new FlavorRecorder(liveEntry, liveAsset, index);
 
 
         // remove existing recorder from the recorders list
