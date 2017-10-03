@@ -47,9 +47,9 @@ public class KalturaEntryDataPersistence {
 	private static void CleanUp() {
 	    try {
             synchronized (entriesPersistenceDataMap) {
-                logger.debug("KalturaEntryDataPersistence CleanUp started");
                 Set<String> playingEntriesList = Utils.getEntriesFromApplication(_appInstance);
                 Set<String> hashedEntriesList = entriesPersistenceDataMap.keySet();
+	            logger.debug("KalturaEntryDataPersistence CleanUp started. playingEntriesList size [" + playingEntriesList.size() + "] content " + playingEntriesList.toString());
                 long currentTime = System.currentTimeMillis();
                 for (String entry : hashedEntriesList) {
                     // Check start time to avoid a race between the thread adding the entry to the map and this
@@ -64,6 +64,7 @@ public class KalturaEntryDataPersistence {
                         }
                     }
                 }
+	            logger.debug("KalturaEntryDataPersistence CleanUp ended. entriesPersistenceDataMap size [" + hashedEntriesList.size() + "] content "+ hashedEntriesList.toString());
             }
         }
         catch (Exception e) {
