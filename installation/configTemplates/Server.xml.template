@@ -118,7 +118,7 @@
 			<Property>
 				<Name>KalturaServerTimeout</Name>
 				<Value>180</Value>
-				<Type>Integer</Type>
+				<Type>String</Type>
 			</Property>
 		</Properties>
 	</Server>
