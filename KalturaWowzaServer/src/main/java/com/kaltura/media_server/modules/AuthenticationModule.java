@@ -130,16 +130,30 @@ public class AuthenticationModule extends ModuleBase  {
             }
         }
     }
+
     private String createAlertJson(String entryId, String token, String alertType) {
         String msg = "{\"alerts\":[";
         // Add parameters
-        msg += "{\"Arguments\":{\"Token\":" + token + ",\"EntryId\":\"" + entryId + "\",\"AlertType\":\"" + alertType + "\"},";
+        msg += "{\"Arguments\":{\"Token\":" + token + ",\"EntryId\":\"" + entryId + "\"},";
         // Add alert time and code
-        msg += "\"Time\":" + new Date().getTime() + ",\"Code\":" + Constants.AUTHENTICATION_ALERT_ERROR_CODE + "}], ";
+        msg += "\"Time\":" + new Date().getTime() + ",\"Code\":" + getErrorCode(alertType) + "}], ";
         // Add beacon max severity
         msg += "\"maxSeverity\": " + Constants.AUTHENTICATION_ALERT_SEVERITY + "}";
 
         return msg;
+    }
+
+    private int getErrorCode(String errorType) {
+        switch (errorType) {
+            case "LIVE_STREAM_INVALID_TOKEN":
+                return Constants.AUTHENTICATION_ALERT_INVALID_TOKEN;
+            case "ENTRY_ID_NOT_FOUND":
+                return Constants.AUTHENTICATION_ALERT_ENTRY_NOT_FOUND;
+            case "LIVE_STREAM_EXCEEDED_MAX_PASSTHRU":
+                return Constants.AUTHENTICATION_ALERT_TOO_MANY_STREAMS;
+            default:
+                return -1;
+        }
     }
 
     public void onDisconnect(IClient client) {
