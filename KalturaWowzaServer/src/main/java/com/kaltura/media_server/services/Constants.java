@@ -5,6 +5,8 @@ package com.kaltura.media_server.services;
  */
 public class Constants {
 
+    public final static int AUTHENTICATION_ALERT_ERROR_CODE = 111;
+    public final static int AUTHENTICATION_ALERT_SEVERITY = 4;
     public final static String HTTP_PROVIDER_KEY = "diagnostics";
     public final static int KALTURA_REJECTED_STEAMS_SIZE = 100;
     public final static String KALTURA_PERMANENT_SESSION_KEY = "kalturaWowzaPermanentSessionKey";

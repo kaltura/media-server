@@ -1,11 +1,15 @@
 package com.kaltura.media_server.services;
 
-import com.kaltura.media_server.services.Constants;
+import com.kaltura.media_server.services .Constants;
+import com.kaltura.client.services.KalturaPermissionService;
 import com.kaltura.client.*;
 import com.kaltura.client.enums.KalturaSessionType;
 import com.kaltura.client.types.*;
 import com.kaltura.client.enums.KalturaEntryServerNodeType;
-import com.kaltura.client.services.KalturaPermissionService;
+import com.kaltura.client.enums.KalturaBeaconObjectTypes;
+import com.kaltura.client.enums.KalturaNullableBoolean;
+
+
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -292,6 +296,22 @@ public class KalturaAPI {
         return null;
     }
 
+    public void sendBeacon(String entryId, int partnerId, String data, String beaconTag) throws Exception {
+        if (partnerId == -5) {
+            KalturaClient Client = getClient();
+            KalturaLiveEntry liveEntry = Client.getLiveStreamService().get(entryId);
+            partnerId = liveEntry.partnerId;
+        }
 
+        KalturaBeacon beacon = new KalturaBeacon();
+        beacon.relatedObjectType = KalturaBeaconObjectTypes.ENTRY_BEACON;
+        beacon.eventType = beaconTag;
+        beacon.objectId = entryId;
+        beacon.privateData = data;
+
+        KalturaClient impersonateClient = impersonate(partnerId);
+
+        impersonateClient.getBeaconService().add(beacon, KalturaNullableBoolean.TRUE_VALUE);
+    }
 
 }

@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
 import com.wowza.wms.rtp.model.RTPSession;
 import com.kaltura.media_server.services.*;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import com.kaltura.media_server.services.KalturaStreamType;
@@ -76,17 +77,17 @@ public class AuthenticationModule extends ModuleBase  {
         String entryId = requestParams.get(Constants.REQUEST_PROPERTY_ENTRY_ID);
         String propertyServerIndex = requestParams.get(Constants.REQUEST_PROPERTY_SERVER_INDEX);
         String token = requestParams.get(Constants.REQUEST_PROPERTY_TOKEN);
-        KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(propertyServerIndex);
 
         synchronized (properties) {
             properties.setProperty(Constants.CLIENT_PROPERTY_SERVER_INDEX, propertyServerIndex);
             properties.setProperty(Constants.KALTURA_LIVE_ENTRY_ID, entryId);
         }
-        authenticate(entryId, partnerId, token, serverIndex);
+        authenticate(entryId, partnerId, token, propertyServerIndex);
     }
 
-    private void authenticate(String entryId, int partnerId, String token, KalturaEntryServerNodeType serverIndex) throws KalturaApiException, ClientConnectException, Exception {
+    private void authenticate(String entryId, int partnerId, String token, String propertyServerIndex) throws KalturaApiException, ClientConnectException, Exception {
         Object authenticationLock = KalturaEntryDataPersistence.getLock(entryId);
+        KalturaEntryServerNodeType serverIndex = KalturaEntryServerNodeType.get(propertyServerIndex);
         synchronized (authenticationLock) {
             try {
                 logger.debug("(" + entryId + ") Starting authentication process");
@@ -116,9 +117,29 @@ public class AuthenticationModule extends ModuleBase  {
                 KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_TIME, System.currentTimeMillis());
                 KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_MSG, e.getMessage());
                 KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_VALIDATED_TIME, (long)0);
+
+                String exceptionType  = new String(((KalturaApiException) e).code);
+                // 1) Wrong Token: token (LIVE_STREAM_INVALID_TOKEN)
+                // 2) Incorrect stream name: stream name
+                // 3) Entry doesn't exist: entry (ENTRY_ID_NOT_FOUND)
+                // 4) No live permission: ---
+                // 5) Passed quota: (LIVE_STREAM_EXCEEDED_MAX_PASSTHRU)
+                String beaconMessage = createAlertJson(entryId, token, exceptionType);
+                KalturaAPI.getKalturaAPI().sendBeacon(entryId, partnerId, beaconMessage, propertyServerIndex + "_healthData");
                 throw new ClientConnectException("(" + entryId + ") authentication failed. " + e.getMessage());
             }
         }
+    }
+    private String createAlertJson(String entryId, String token, String alertType) {
+        String msg = "{\"alerts\":[";
+        // Add parameters
+        msg += "{\"Arguments\":{\"Token\":" + token + ",\"EntryId\":\"" + entryId + "\",\"AlertType\":\"" + alertType + "\"},";
+        // Add alert time and code
+        msg += "\"Time\":" + new Date().getTime() + ",\"Code\":" + Constants.AUTHENTICATION_ALERT_ERROR_CODE + "}], ";
+        // Add beacon max severity
+        msg += "\"maxSeverity\": " + Constants.AUTHENTICATION_ALERT_SEVERITY + "}";
+
+        return msg;
     }
 
     public void onDisconnect(IClient client) {
