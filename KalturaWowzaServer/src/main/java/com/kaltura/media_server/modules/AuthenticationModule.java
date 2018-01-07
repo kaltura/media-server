@@ -119,22 +119,26 @@ public class AuthenticationModule extends ModuleBase  {
                 KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_VALIDATED_TIME, (long)0);
 
                 String exceptionType  = new String(((KalturaApiException) e).code);
+                // Alerts thrown by authentication failure:
                 // 1) Wrong Token: token (LIVE_STREAM_INVALID_TOKEN)
-                // 2) Incorrect stream name: stream name
-                // 3) Entry doesn't exist: entry (ENTRY_ID_NOT_FOUND)
+                // 2) Entry doesn't exist: entry (ENTRY_ID_NOT_FOUND)
                 // 4) No live permission: ---
                 // 5) Passed quota: (LIVE_STREAM_EXCEEDED_MAX_PASSTHRU)
-                String beaconMessage = createAlertJson(entryId, token, exceptionType);
+                String beaconMessage = createAlertJson(entryId, exceptionType, token);
                 KalturaAPI.getKalturaAPI().sendBeacon(entryId, partnerId, beaconMessage, propertyServerIndex + "_healthData");
                 throw new ClientConnectException("(" + entryId + ") authentication failed. " + e.getMessage());
             }
         }
     }
 
-    private String createAlertJson(String entryId, String token, String alertType) {
+    private String createAlertJson(String entryId, String alertType, String parameter) {
         String msg = "{\"alerts\":[";
         // Add parameters
-        msg += "{\"Arguments\":{\"Token\": \"" + token + "\",\"EntryId\":\"" + entryId + "\",\"AlertType\":\"" + alertType + "\"},";
+        msg += "{\"Arguments\":{\"EntryId\":\"" + entryId + "\",\"AlertType\":\"" + alertType + "\",";
+        if (!parameter.equals("")) {
+            msg += "\"Parameter\":\"" + parameter + "\"";
+        }
+        msg += "},";
         // Add alert time and code
         msg += "\"Time\":" + new Date().getTime() + ",\"Code\":" + getErrorCode(alertType) + "}], ";
         // Add beacon max severity
