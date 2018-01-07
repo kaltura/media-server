@@ -138,9 +138,8 @@ public class AuthenticationModule extends ModuleBase  {
         if (!parameter.equals("")) {
             msg += "\"Parameter\":\"" + parameter + "\"";
         }
-        msg += "},";
         // Add alert time and code
-        msg += "\"Time\":" + new Date().getTime() + ",\"Code\":" + getErrorCode(alertType) + "}], ";
+        msg += "},\"Time\":" + new Date().getTime() + ",\"Code\":" + getErrorCode(alertType) + "}], ";
         // Add beacon max severity
         msg += "\"maxSeverity\": " + Constants.AUTHENTICATION_ALERT_SEVERITY + "}";
 
