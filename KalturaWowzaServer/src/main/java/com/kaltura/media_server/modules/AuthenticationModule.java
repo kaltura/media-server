@@ -134,7 +134,7 @@ public class AuthenticationModule extends ModuleBase  {
     private String createAlertJson(String entryId, String token, String alertType) {
         String msg = "{\"alerts\":[";
         // Add parameters
-        msg += "{\"Arguments\":{\"Token\":" + token + ",\"EntryId\":\"" + entryId + "\"},";
+        msg += "{\"Arguments\":{\"Token\":" + token + ",\"EntryId\":\"" + entryId + "\",\"AlertType\":\"" + alertType + "\"},";
         // Add alert time and code
         msg += "\"Time\":" + new Date().getTime() + ",\"Code\":" + getErrorCode(alertType) + "}], ";
         // Add beacon max severity
