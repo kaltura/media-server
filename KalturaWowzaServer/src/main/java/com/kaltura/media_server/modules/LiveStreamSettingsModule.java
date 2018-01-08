@@ -292,9 +292,11 @@ public class LiveStreamSettingsModule extends ModuleBase {
 
 			if (firstPacket) {
 				logger.debug("PTS_SYNC: (" + streamName + ") [" + streamType + "] first PTS updated to [" + outPTS + "] PTS was [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "] PTS diff [" + inPTSDiff + "] ");
-			} else if (ptsJumped) {
-				logger.warn("PTS_SYNC: (" + streamName + ") [" + streamType + "] PTS diff [" + inPTSDiff + "] > threshold [" + maxAllowedPTSDriftMillisec + "] last PTS [" + lastInPTS + "] current PTS [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "]");
 			}
+			/* ***** TEMP CHANGE ****
+			else if (ptsJumped) {
+				logger.warn("PTS_SYNC: (" + streamName + ") [" + streamType + "] PTS diff [" + inPTSDiff + "] > threshold [" + maxAllowedPTSDriftMillisec + "] last PTS [" + lastInPTS + "] current PTS [" + inPTS + "] basePTS [" + baseInPTS + "] baseSystemTime [" + baseSystemTime + "]");
+			}*/
 			//else {
 		//		logger.debug("(" + streamName + ") [" + streamType + "] updated PTS [" + outPTS + "] in PTS [" + inPTS + "] correction " + correction);
 	//		}
@@ -341,8 +343,11 @@ public class LiveStreamSettingsModule extends ModuleBase {
 					if (Math.abs(ptsMisalignment) > maxAllowedPTSDriftMillisec)  {
 						logger.warn("PTS_SYNC: (" + streamName + ") [" + type + "] found PTS jump, PTS misalignment [" + ptsMisalignment + "] milliseconds, replacing global PTS sync data from [basePTS:"+ globalSyncData[GLOBAL_BASE_PTS_INDEX] + ", baseSystemTime" + globalSyncData[GLOBAL_SYSTEM_TIME_INDEX] +"] to [basePTS:" + basePTS + ", baseSystemTime:" + baseSystemTime +"]");
 						this.mapLiveEntryToBaseSystemTime.put(entryId, newSyncData);
-					} else {
+					}
+					else {
+						/* ***** TEMP CHANGE ****
 						logger.warn("PTS_SYNC: (" + streamName + ") [" + type + "] PTS sync data for entry [" + entryId + "] not updated, [basePTS:"+ globalSyncData[GLOBAL_BASE_PTS_INDEX] + ", baseSystemTime" + globalSyncData[GLOBAL_SYSTEM_TIME_INDEX] +"]");
+						*/
 						newSyncData = globalSyncData;
 					}
 				}
