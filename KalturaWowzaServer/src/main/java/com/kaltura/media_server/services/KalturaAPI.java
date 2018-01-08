@@ -1,15 +1,20 @@
 package com.kaltura.media_server.services;
 
 import com.kaltura.media_server.services.Constants;
+import com.kaltura.client.services.KalturaPermissionService;
 import com.kaltura.client.*;
 import com.kaltura.client.enums.KalturaSessionType;
 import com.kaltura.client.types.*;
 import com.kaltura.client.enums.KalturaEntryServerNodeType;
-import com.kaltura.client.services.KalturaPermissionService;
+import com.kaltura.client.enums.KalturaBeaconObjectTypes;
+import com.kaltura.client.enums.KalturaNullableBoolean;
+
+
 import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.net.UnknownHostException;
+import java.util.Date;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -292,6 +297,57 @@ public class KalturaAPI {
         return null;
     }
 
+    public void sendBeacon(String entryId, int partnerId, String alertType, String parameter, String beaconTag) throws Exception {
+        try {
+            if (partnerId == -5) {
+                KalturaClient Client = getClient();
+                KalturaLiveEntry liveEntry = Client.getLiveStreamService().get(entryId);
+                partnerId = liveEntry.partnerId;
+            }
 
+            KalturaBeacon beacon = new KalturaBeacon();
+            beacon.relatedObjectType = KalturaBeaconObjectTypes.ENTRY_BEACON;
+            beacon.eventType = beaconTag;
+            beacon.objectId = entryId;
+            beacon.privateData = createAlertJson(entryId, alertType, parameter);
+
+            KalturaClient impersonateClient = impersonate(partnerId);
+
+            impersonateClient.getBeaconService().add(beacon, KalturaNullableBoolean.TRUE_VALUE);
+        }
+        catch (Exception e) {
+            logger.error("Exception in sendBeacon: ", e);
+        }
+    }
+
+    private String createAlertJson(String entryId, String alertType, String parameter) {
+        String msg = "{\"alerts\":[";
+        // Add parameters
+        msg += "{\"Arguments\":{\"entryId\":\"" + entryId + "\",\"alertType\":\"" + alertType + "\",";
+        if (!parameter.equals("")) {
+            msg += "\"parameter\":\"" + parameter + "\"";
+        }
+        // Add alert time and code
+        msg += "},\"Time\":" + new Date().getTime() + ",\"Code\":" + getErrorCode(alertType) + "}], ";
+        // Add beacon max severity
+        msg += "\"maxSeverity\": " + Constants.AUTHENTICATION_ALERT_SEVERITY + "}";
+
+        return msg;
+    }
+
+    private int getErrorCode(String errorType) {
+        switch (errorType) {
+            case "LIVE_STREAM_INVALID_TOKEN":
+                return Constants.AUTHENTICATION_ALERT_INVALID_TOKEN;
+            case "INCORRECT_STREAM_NAME":
+                return Constants.AUTHENTICATION_ALERT_INCORRECT_STREAM;
+            case "ENTRY_ID_NOT_FOUND":
+                return Constants.AUTHENTICATION_ALERT_ENTRY_NOT_FOUND;
+            case "LIVE_STREAM_EXCEEDED_MAX_PASSTHRU":
+                return Constants.AUTHENTICATION_ALERT_TOO_MANY_STREAMS;
+            default:
+                return -1;
+        }
+    }
 
 }

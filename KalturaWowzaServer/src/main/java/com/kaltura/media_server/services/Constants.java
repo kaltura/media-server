@@ -5,6 +5,12 @@ package com.kaltura.media_server.services;
  */
 public class Constants {
 
+    public final static int AUTHENTICATION_ALERT_INVALID_TOKEN = 111;
+    public final static int AUTHENTICATION_ALERT_INCORRECT_STREAM = 112;
+    public final static int AUTHENTICATION_ALERT_ENTRY_NOT_FOUND = 113;
+    public final static int AUTHENTICATION_ALERT_NO_LIVE_PERMISSION = 114;
+    public final static int AUTHENTICATION_ALERT_TOO_MANY_STREAMS = 115;
+    public final static int AUTHENTICATION_ALERT_SEVERITY = 4;
     public final static String HTTP_PROVIDER_KEY = "diagnostics";
     public final static int KALTURA_REJECTED_STEAMS_SIZE = 100;
     public final static String KALTURA_PERMANENT_SESSION_KEY = "kalturaWowzaPermanentSessionKey";
