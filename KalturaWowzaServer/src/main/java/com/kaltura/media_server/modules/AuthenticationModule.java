@@ -134,9 +134,9 @@ public class AuthenticationModule extends ModuleBase  {
     private String createAlertJson(String entryId, String alertType, String parameter) {
         String msg = "{\"alerts\":[";
         // Add parameters
-        msg += "{\"Arguments\":{\"EntryId\":\"" + entryId + "\",\"AlertType\":\"" + alertType + "\",";
+        msg += "{\"Arguments\":{\"entryId\":\"" + entryId + "\",\"alertType\":\"" + alertType + "\",";
         if (!parameter.equals("")) {
-            msg += "\"Parameter\":\"" + parameter + "\"";
+            msg += "\"parameter\":\"" + parameter + "\"";
         }
         // Add alert time and code
         msg += "},\"Time\":" + new Date().getTime() + ",\"Code\":" + getErrorCode(alertType) + "}], ";
@@ -150,6 +150,8 @@ public class AuthenticationModule extends ModuleBase  {
         switch (errorType) {
             case "LIVE_STREAM_INVALID_TOKEN":
                 return Constants.AUTHENTICATION_ALERT_INVALID_TOKEN;
+            case "INCORRECT_STREAM_NAME":
+                return Constants.AUTHENTICATION_ALERT_INCORRECT_STREAM;
             case "ENTRY_ID_NOT_FOUND":
                 return Constants.AUTHENTICATION_ALERT_ENTRY_NOT_FOUND;
             case "LIVE_STREAM_EXCEEDED_MAX_PASSTHRU":
@@ -268,10 +270,11 @@ public class AuthenticationModule extends ModuleBase  {
                 return;
             }
             WMSProperties properties = stream.getProperties();
+            IClient client = null;
             try {
                 String entryByClient;
                 if (stream.getClient() != null) {
-                    IClient client = stream.getClient();
+                    client = stream.getClient();
                     entryByClient = Utils.getEntryIdFromClient(client);
                 }
                 else if (stream.getRTPStream() != null && stream.getRTPStream().getSession() !=null) {
@@ -293,6 +296,14 @@ public class AuthenticationModule extends ModuleBase  {
 
                 if (!entryByStream.equals(entryByClient)) {
                     String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryByClient  + "]";
+                    if (client != null) {
+                        HashMap<String, String> queryParameters = Utils.getQueryMap(client.getQueryStr());
+                        String beaconMessage = createAlertJson(entryByClient, "INCORRECT_STREAM_NAME", streamName);
+                        KalturaAPI.getKalturaAPI().sendBeacon(entryByClient,
+                                Integer.parseInt(queryParameters.get(Constants.REQUEST_PROPERTY_PARTNER_ID)),
+                                beaconMessage,
+                                queryParameters.get(Constants.REQUEST_PROPERTY_SERVER_INDEX) + "_healthData");
+                    }
                     shutdown(stream, msg);
                     return;
                 }
