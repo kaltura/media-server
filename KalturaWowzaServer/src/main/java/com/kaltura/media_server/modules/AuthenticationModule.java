@@ -124,40 +124,9 @@ public class AuthenticationModule extends ModuleBase  {
                 // 2) Entry doesn't exist: entry (ENTRY_ID_NOT_FOUND)
                 // 4) No live permission: ---
                 // 5) Passed quota: (LIVE_STREAM_EXCEEDED_MAX_PASSTHRU)
-                String beaconMessage = createAlertJson(entryId, exceptionType, token);
-                KalturaAPI.getKalturaAPI().sendBeacon(entryId, partnerId, beaconMessage, propertyServerIndex + "_healthData");
+                KalturaAPI.getKalturaAPI().sendBeacon(entryId, partnerId, exceptionType, token, propertyServerIndex + "_healthData");
                 throw new ClientConnectException("(" + entryId + ") authentication failed. " + e.getMessage());
             }
-        }
-    }
-
-    private String createAlertJson(String entryId, String alertType, String parameter) {
-        String msg = "{\"alerts\":[";
-        // Add parameters
-        msg += "{\"Arguments\":{\"entryId\":\"" + entryId + "\",\"alertType\":\"" + alertType + "\",";
-        if (!parameter.equals("")) {
-            msg += "\"parameter\":\"" + parameter + "\"";
-        }
-        // Add alert time and code
-        msg += "},\"Time\":" + new Date().getTime() + ",\"Code\":" + getErrorCode(alertType) + "}], ";
-        // Add beacon max severity
-        msg += "\"maxSeverity\": " + Constants.AUTHENTICATION_ALERT_SEVERITY + "}";
-
-        return msg;
-    }
-
-    private int getErrorCode(String errorType) {
-        switch (errorType) {
-            case "LIVE_STREAM_INVALID_TOKEN":
-                return Constants.AUTHENTICATION_ALERT_INVALID_TOKEN;
-            case "INCORRECT_STREAM_NAME":
-                return Constants.AUTHENTICATION_ALERT_INCORRECT_STREAM;
-            case "ENTRY_ID_NOT_FOUND":
-                return Constants.AUTHENTICATION_ALERT_ENTRY_NOT_FOUND;
-            case "LIVE_STREAM_EXCEEDED_MAX_PASSTHRU":
-                return Constants.AUTHENTICATION_ALERT_TOO_MANY_STREAMS;
-            default:
-                return -1;
         }
     }
 
@@ -298,10 +267,10 @@ public class AuthenticationModule extends ModuleBase  {
                     String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryByClient  + "]";
                     if (client != null) {
                         HashMap<String, String> queryParameters = Utils.getQueryMap(client.getQueryStr());
-                        String beaconMessage = createAlertJson(entryByClient, "INCORRECT_STREAM_NAME", streamName);
                         KalturaAPI.getKalturaAPI().sendBeacon(entryByClient,
                                 Integer.parseInt(queryParameters.get(Constants.REQUEST_PROPERTY_PARTNER_ID)),
-                                beaconMessage,
+                                "INCORRECT_STREAM_NAME",
+                                streamName,
                                 queryParameters.get(Constants.REQUEST_PROPERTY_SERVER_INDEX) + "_healthData");
                     }
                     shutdown(stream, msg);
