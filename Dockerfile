@@ -1,9 +1,9 @@
 #docker build -t kaltura/media-server .
-#docker rm $(docker ps -a -q)
+#docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q)
 #docker  run   -p 1935:1935 -p 8087:8087 --name  wowza_instance -t kaltura/media-server
 #docker exec -it `docker ps | grep "media-server" | awk '{print $1}' ` bash
 
-ARG WowzaVersion=4.7.3
+ARG WowzaVersion=4.7.4
 ARG JarVersion=1.2.3
 
 #create baseline
@@ -31,7 +31,9 @@ WORKDIR  /usr/local/source
 COPY --from=baseWowza   /usr/local/WowzaStreamingEngine/lib /opt/local/WowzaStreamingEngine/lib
 
 #copy all source code
-COPY ./ ./
+COPY ./KalturaWowzaServer ./KalturaWowzaServer
+COPY ./build.gradle ./build.gradle
+COPY ./settings.gradle ./settings.gradle
 
 # build
 RUN gradle -Pversion=$JarVersion prepareRelease
@@ -46,6 +48,8 @@ ENV SERVICE_URL https://www.kaltura.com
 ENV PARTNER_ID -5
 ENV PARTNER_ADMIN_SECRET XXX
 ENV WOWZA_LOG_DIR /var/log/wowza
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES compute,video,utility
 
 EXPOSE 1935/tcp 8086/tcp 8087/tcp 8088/tcp 554/tcp
 
@@ -76,6 +80,7 @@ RUN rm -f KalturaClientLib.jar && \
 WORKDIR  /usr/local/WowzaStreamingEngine/conf
 COPY ./installation/configTemplates/.   ./
 COPY ./installation/kalturaEntryPoint.sh   /sbin/
+COPY ./installation/configTemplates/templates/HD_plus.xml /usr/local/WowzaStreamingEngine/transcoder/templates
 
 
 ENTRYPOINT ["/sbin/kalturaEntryPoint.sh"]
