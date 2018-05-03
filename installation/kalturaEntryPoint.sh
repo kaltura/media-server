@@ -19,4 +19,4 @@ mv log4j.properties log4j.properties.template
 sed -e "s#/var/log/#$WOWZA_LOG_DIR/#g" log4j.properties.template > log4j.properties
 
 
-bash /sbin/entrypoint.sh
+exec /sbin/entrypoint.sh
