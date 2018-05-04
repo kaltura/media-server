@@ -7,6 +7,7 @@ cd /usr/local/WowzaStreamingEngine/conf
 sed -e "s#@KALTURA_SERVICE_URL@#$SERVICE_URL#g" \
     -e "s#@KALTURA_PARTNER_ID@#$PARTNER_ID#g" \
     -e "s#@KALTURA_PARTNER_ADMIN_SECRET@#$PARTNER_ADMIN_SECRET#g"\
+    -e "s#@HOST_NAME@#$SERVER_NODE_HOST_NAME#g"\
      Server.xml.template > Server.xml
 
 sed -e "s#@KALTURA_SERVICE_URL@#$SERVICE_URL#g" \
