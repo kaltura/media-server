@@ -4,7 +4,6 @@
 #docker exec -it `docker ps | grep "media-server" | awk '{print $1}' ` bash
 
 ARG WowzaVersion=4.7.5
-ARG JarVersion=1.2.3
 
 #create baseline
 FROM  wowzamedia/wowza-streaming-engine-linux:$WowzaVersion AS baseWowza
@@ -36,7 +35,7 @@ COPY ./build.gradle ./build.gradle
 COPY ./settings.gradle ./settings.gradle
 
 # build
-RUN gradle -Pversion=$JarVersion prepareRelease
+RUN gradle -Pversion=1.0.0 prepareRelease
 
 
 # create the actual docker
