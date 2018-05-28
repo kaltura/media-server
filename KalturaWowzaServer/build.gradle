@@ -136,6 +136,7 @@ task release(type:Exec, dependsOn: prepareRelease) {
 
         def clientLibs = new File("${buildDir}/tmp/github-php-client")
 
+        System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2");
         // If it doesn't exist, download it from Github
         if (!clientLibs.exists()) {
             println "Downloading PHP github client library..."
