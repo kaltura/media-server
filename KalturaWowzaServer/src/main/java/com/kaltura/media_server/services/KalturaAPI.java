@@ -139,11 +139,11 @@ public class KalturaAPI {
 
     private KalturaClient getClient() {
         logger.warn("getClient");
-        return client;
+        //return client;
 
-        //KalturaClient cloneClient = new KalturaClient(clientConfig);
-        //cloneClient.setSessionId(client.getSessionId());
-        //return cloneClient;
+        KalturaClient cloneClient = new KalturaClient(clientConfig);
+        cloneClient.setSessionId(client.getSessionId());
+        return cloneClient;
     }
 
     private KalturaClient  impersonate(int partnerId) {
