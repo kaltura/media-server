@@ -122,6 +122,10 @@ public class KalturaAPI {
         client.setSessionId(sessionId);
         logger.debug("Kaltura client session id: " + sessionId);    //session id - KS
     }
+    
+    public String getKS() {
+        return client.getSessionId();
+    }
 
     public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token, KalturaEntryServerNodeType serverIndex) throws Exception {
         if (partnerId == -5){
