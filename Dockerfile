@@ -80,7 +80,7 @@ RUN rm -f KalturaClientLib.jar && \
 WORKDIR  /usr/local/WowzaStreamingEngine/conf
 COPY ./installation/configTemplates/.   ./
 COPY ./installation/kalturaEntryPoint.sh   /sbin/
-COPY ./installation/configTemplates/templates/HD_plus.xml /usr/local/WowzaStreamingEngine/transcoder/templates
+#COPY ./installation/configTemplates/templates/HD_plus.xml /usr/local/WowzaStreamingEngine/transcoder/templates
 
 
 ENTRYPOINT ["/sbin/kalturaEntryPoint.sh"]
