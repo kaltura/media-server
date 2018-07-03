@@ -122,6 +122,10 @@ public class KalturaAPI {
         client.setSessionId(sessionId);
         logger.debug("Kaltura client session id: " + sessionId);    //session id - KS
     }
+    
+    public String getKS() {
+        return client.getSessionId();
+    }
 
     public KalturaLiveStreamEntry authenticate(String entryId, int partnerId, String token, KalturaEntryServerNodeType serverIndex) throws Exception {
         if (partnerId == -5){
@@ -139,11 +143,11 @@ public class KalturaAPI {
 
     private KalturaClient getClient() {
         logger.warn("getClient");
-        return client;
+        //return client;
 
-        //KalturaClient cloneClient = new KalturaClient(clientConfig);
-        //cloneClient.setSessionId(client.getSessionId());
-        //return cloneClient;
+        KalturaClient cloneClient = new KalturaClient(clientConfig);
+        cloneClient.setSessionId(client.getSessionId());
+        return cloneClient;
     }
 
     private KalturaClient  impersonate(int partnerId) {

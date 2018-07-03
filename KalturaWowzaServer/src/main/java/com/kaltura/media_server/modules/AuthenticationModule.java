@@ -267,8 +267,12 @@ public class AuthenticationModule extends ModuleBase  {
                     String msg = "Published  stream name [" + streamName + "] does not match entry id [" + entryByClient  + "]";
                     if (client != null) {
                         HashMap<String, String> queryParameters = Utils.getQueryMap(client.getQueryStr());
+                        int partnerId = -5;
+                        if (queryParameters.get(Constants.REQUEST_PROPERTY_PARTNER_ID) != null) {
+                            partnerId = Integer.parseInt(queryParameters.get(Constants.REQUEST_PROPERTY_PARTNER_ID));
+                        }
                         KalturaAPI.getKalturaAPI().sendBeacon(entryByClient,
-                                Integer.parseInt(queryParameters.get(Constants.REQUEST_PROPERTY_PARTNER_ID)),
+                                partnerId,
                                 "INCORRECT_STREAM_NAME",
                                 streamName,
                                 queryParameters.get(Constants.REQUEST_PROPERTY_SERVER_INDEX) + "_healthData");
