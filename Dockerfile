@@ -10,7 +10,7 @@ FROM  wowzamedia/wowza-streaming-engine-linux:$WowzaVersion AS baseWowza
 
 
 #build a build machine
-FROM java:7-jdk AS build
+FROM java:8-jdk AS build
 
 ENV PATH ${PATH}:/usr/local/gradle-2.12/bin
 
