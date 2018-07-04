@@ -1,6 +1,6 @@
 #docker build -t kaltura/media-server .
 #docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q)
-#docker  run   -p 1935:1935 -p 8087:8087 --name  wowza_instance -t kaltura/media-server
+#docker run -p 1935:1935 -p 8087:8087 --name wowza_instance -t kaltura/media-server
 #docker exec -it `docker ps | grep "media-server" | awk '{print $1}' ` bash
 
 ARG WowzaVersion=4.7.5
@@ -43,10 +43,13 @@ FROM  wowzamedia/wowza-streaming-engine-linux:$WowzaVersion
 
 MAINTAINER guy.jacubovski@kaltura.com
 
+# for debug
+RUN apt-get -y install less vim htop
+
 ENV SERVICE_URL https://www.kaltura.com
 ENV PARTNER_ID -5
 ENV PARTNER_ADMIN_SECRET XXX
-ENV SERVER_NODE_HOST_NAME @HOSTNAME@
+ENV SERVER_NODE_HOST_NAME @HOST_NAME@
 ENV WOWZA_LOG_DIR /var/log/wowza
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,video,utility
