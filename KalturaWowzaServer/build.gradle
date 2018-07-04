@@ -33,7 +33,7 @@
 
     task enforceJavaVersion() {
         def foundVersion = JavaVersion.current();
-        if (foundVersion != javaVersion)
+        if (foundVersion < javaVersion)
             throw new IllegalStateException("Wrong Java version; required is "
                     + javaVersion + ", but found " + foundVersion);
     }
