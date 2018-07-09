@@ -25,5 +25,5 @@ sed -e "s#@KALTURA_SERVICE_URL@#$SERVICE_URL#g" \
 mv log4j.properties log4j.properties.template
 sed -e "s#/var/log/#$WOWZA_LOG_DIR/#g" log4j.properties.template > log4j.properties
 
-
+source /sbin/updateServerNodeConfiguration.sh
 exec /sbin/entrypoint.sh
