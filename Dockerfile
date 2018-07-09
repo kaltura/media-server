@@ -44,7 +44,7 @@ FROM  wowzamedia/wowza-streaming-engine-linux:$WowzaVersion
 MAINTAINER guy.jacubovski@kaltura.com
 
 # for debug
-RUN apt-get -y install less vim htop
+RUN apt-get update && apt-get -y install less vim htop curl jq
 
 ENV SERVICE_URL https://www.kaltura.com
 ENV PARTNER_ID -5
@@ -83,6 +83,7 @@ RUN rm -f KalturaClientLib.jar && \
 WORKDIR  /usr/local/WowzaStreamingEngine/conf
 COPY ./installation/configTemplates/.   ./
 COPY ./installation/kalturaEntryPoint.sh   /sbin/
+COPY ./installation/updateServerNodeConfiguration.sh   /sbin/
 #COPY ./installation/configTemplates/templates/HD_plus.xml /usr/local/WowzaStreamingEngine/transcoder/templates
 
 
