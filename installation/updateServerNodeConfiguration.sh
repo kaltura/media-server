@@ -18,22 +18,21 @@ for row in $(echo $RES | jq -c .objects); do
                 break
         fi
 done
+
+if [ -z "$SELF_SERVER_NODE" ]; then
+	echo "Not found Server node. Exiting..."
+        exit 1	
+fi
 echo "Got the ServerNode:"
 echo $SELF_SERVER_NODE | jq .
 
 #Getting current config and set default if not set
 CONFIG=`echo $SELF_SERVER_NODE | jq -r .config`
 if [ "$CONFIG" = null ]; then
-        CONFIG='{"ips":"{}"}'
-else
-	CURRENT_IPS=`echo $CONFIG | jq .ips`
-	if  [ $CURRENT_IPS = null ] || [ -n $CURRENT_IPS ]; then
-        	CONFIG=`echo $CONFIG | jq '. + {ips: {}}'`
-	fi
+        CONFIG="{}"
 fi
 
-NEW_IPS=`echo $CONFIG | jq .ips -r | jq -c --arg ip $WOWZA_EXTERNAL_IP ' . |= . + {primary: $ip, secendary: $ip}' `
-NEW_CONF=`echo $CONFIG | jq -c --arg new_ips "$NEW_IPS" '. + {ips:$new_ips}' `
+NEW_CONF=`echo $CONFIG | jq -c --arg ip $WOWZA_EXTERNAL_IP '.ips.primary = $ip | .ips.secondary = $ip'`
 ID=`echo $SELF_SERVER_NODE | jq .id`
 
 echo "Setting new config to ServerNodeId [$ID]"
