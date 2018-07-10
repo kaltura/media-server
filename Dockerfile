@@ -43,7 +43,7 @@ FROM  wowzamedia/wowza-streaming-engine-linux:$WowzaVersion
 
 MAINTAINER guy.jacubovski@kaltura.com
 
-# for debug
+# for debug and scripts
 RUN apt-get update && apt-get -y install less vim htop curl jq
 
 ENV SERVICE_URL https://www.kaltura.com
