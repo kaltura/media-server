@@ -5,8 +5,12 @@ cd /usr/local/WowzaStreamingEngine/conf
 
 if [[ -n "$MY_POD_NAME" ]]; then
     EC2_REGION="`echo $MY_NODE_NAME | cut -d'.' -f2`"
-    SERVER_NODE_HOST_NAME="${MY_POD_NAME}.${EC2_REGION}"
-    echo "overriding SERVER_NODE_HOST_NAME with $SERVER_NODE_HOST_NAME"
+    SERVER_NODE_TAG="${MY_POD_NAME}.${EC2_REGION}"
+    echo "setting SERVER_NODE_TAG $SERVER_NODE_TAG"
+fi
+
+if [ -z "$DISABLE_SERVER_NODE_CONF_UPDATE" ]; then
+        source /sbin/updateServerNodeConfiguration.sh
 fi
 
 # replace config
@@ -25,7 +29,4 @@ sed -e "s#@KALTURA_SERVICE_URL@#$SERVICE_URL#g" \
 mv log4j.properties log4j.properties.template
 sed -e "s#/var/log/#$WOWZA_LOG_DIR/#g" log4j.properties.template > log4j.properties
 
-if [ -z "$DISABLE_SERVER_NODE_CONF_UPDATE" ]; then
-	source /sbin/updateServerNodeConfiguration.sh
-fi
 exec /sbin/entrypoint.sh
