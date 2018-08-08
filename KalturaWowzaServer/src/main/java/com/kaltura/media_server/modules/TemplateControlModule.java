@@ -119,6 +119,8 @@ public class TemplateControlModule extends ModuleBase {
                     entryProperties.put(key, value);
                 }
             }
+            if (isGpuAvailable())
+                entryProperties.put("gpu", "true");
 
             ObjectMapper mapper = new ObjectMapper();
             data = mapper.writeValueAsString(entryProperties);
@@ -126,6 +128,11 @@ public class TemplateControlModule extends ModuleBase {
             String ks = KalturaAPI.getKalturaAPI().getKS();
             String result = "/extraParams/" + dataEncode + "/ks/" + ks;
             return result;
+        }
+
+        public Boolean isGpuAvailable() {
+            String gpu = System.getenv("GPU_SUPPORT");
+            return (gpu.equals("true"));
         }
 
 
