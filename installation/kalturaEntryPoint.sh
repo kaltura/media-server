@@ -9,6 +9,11 @@ if [[ -n "$MY_POD_NAME" ]]; then
     echo "setting SERVER_NODE_TAG $SERVER_NODE_TAG"
 fi
 
+if [[ $(command -v nvidia-smi >> /dev/null && nvidia-smi -L | grep -i gpu) ]]; then
+    export GPU_SUPPORT="true"
+    echo "Setting GPU_SUPPORT as $GPU_SUPPORT"
+fi
+
 if [ -z "$DISABLE_SERVER_NODE_CONF_UPDATE" ]; then
         source /sbin/updateServerNodeConfiguration.sh
 fi
