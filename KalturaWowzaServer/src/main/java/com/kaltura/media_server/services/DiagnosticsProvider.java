@@ -27,6 +27,8 @@ import java.util.regex.Pattern;
 import com.wowza.wms.stream.live.MediaStreamLive;
 import java.net.InetAddress;
 import com.kaltura.media_server.modules.LiveStreamSettingsModule.PacketListener;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 
 public class DiagnosticsProvider extends HTTProvider2Base
 {
@@ -60,9 +62,17 @@ public class DiagnosticsProvider extends HTTProvider2Base
                     .getName();
         }
 
+        public String getCpuUsage() {
+            OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
+            int cpuNum = operatingSystemMXBean.getAvailableProcessors();
+            double  cpu = operatingSystemMXBean.getSystemLoadAverage();
+            return "CPU: " + cpu + "/" + cpuNum;
+        }
+
         public void execute(HashMap<String,Object> data, HashMap<String,String > quaryString, IApplicationInstance appInstance) {
 
             String jarName = getJarName();
+            String CpuUsage = getCpuUsage();
             String version = this.getClass().getPackage().getImplementationVersion();
             String dateStarted = appInstance.getDateStarted();
             String timeRunning = Double.toString(appInstance.getTimeRunningSeconds());
@@ -78,6 +88,29 @@ public class DiagnosticsProvider extends HTTProvider2Base
             data.put("dateStarted", dateStarted);
             data.put("timeRunning", timeRunning);
             data.put("hostName", hostName);
+            data.put("CpuUsage", CpuUsage);
+
+            HashMap<String,Object> entriesData = getStreamsData(appInstance);
+            data.putAll(entriesData);
+        }
+
+        public HashMap<String,Object> getStreamsData(IApplicationInstance appInstance) {
+            HashMap<String,Object> entriesData = new HashMap<String,Object>();
+            int in = 0, out = 0;
+            for (IMediaStream stream : appInstance.getStreams().getStreams()) {
+                if (!( stream instanceof MediaStreamLive))
+                    continue;
+                if (stream.isTranscodeResult())
+                    out++;
+                else
+                    in++;
+            }
+            entriesData.put("Input Streams", in);
+            entriesData.put("OutPut Streams", out);
+
+            Set<String> playingEntriesList = Utils.getEntriesFromApplication(appInstance);
+            entriesData.put("Entries Count", playingEntriesList.size());
+            return entriesData;
         }
     }
 
