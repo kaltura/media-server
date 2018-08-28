@@ -66,7 +66,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
             OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
             int cpuNum = operatingSystemMXBean.getAvailableProcessors();
             double  cpu = operatingSystemMXBean.getSystemLoadAverage();
-            return "CPU: " + cpu + "/" + cpuNum;
+            return cpu + "/" + cpuNum;
         }
 
         public void execute(HashMap<String,Object> data, HashMap<String,String > quaryString, IApplicationInstance appInstance) {
