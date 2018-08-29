@@ -52,7 +52,24 @@ public class DiagnosticsProvider extends HTTProvider2Base
     }
 
     class InfoProvider implements CommandProvider {
+        private HashMap<String,Object> gpuData = null;
 
+        public InfoProvider() {
+            new java.util.Timer().scheduleAtFixedRate(
+                    new java.util.TimerTask() {
+                        @Override
+                        public void run() {
+                            try {
+                                if (Utils.isGpuAvailable())
+                                    gpuData = Utils.getGpuUsage();
+                            }catch (Exception e) {
+                                logger.warn("Could not get GPU usage ", e);
+                                gpuData = null;
+                            }
+                        }
+                    },0, 10000
+            );
+        }
 
         public String getJarName(){
             return  new java.io.File(InfoProvider.class.getProtectionDomain()
@@ -88,13 +105,8 @@ public class DiagnosticsProvider extends HTTProvider2Base
             data.put("hostName", hostName);
             data.put("cpuUsage", CpuUsage);
 
-            try {
-                if (Utils.isGpuAvailable())
-                    data.putAll(Utils.getGpuUsage());
-            } catch (Exception e) {
-                logger.warn("Could not get GPU usage ", e);
-            }
-
+            if (Utils.isGpuAvailable())
+                data.putAll(gpuData);
             data.putAll(getStreamsData(appInstance));
         }
 
