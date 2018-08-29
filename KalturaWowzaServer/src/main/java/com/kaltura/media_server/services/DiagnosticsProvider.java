@@ -88,8 +88,14 @@ public class DiagnosticsProvider extends HTTProvider2Base
             data.put("hostName", hostName);
             data.put("cpuUsage", CpuUsage);
 
-            HashMap<String,Object> streamsData = getStreamsData(appInstance);
-            data.putAll(streamsData);
+            try {
+                if (Utils.isGpuAvailable())
+                    data.putAll(Utils.getGpuUsage());
+            } catch (Exception e) {
+                logger.warn("Could not get GPU usage ", e);
+            }
+
+            data.putAll(getStreamsData(appInstance));
         }
 
         public HashMap<String,Object> getStreamsData(IApplicationInstance appInstance) {
@@ -110,7 +116,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
             HashMap<String,Object> streamsData = new HashMap<String,Object>();
             streamsData.put("inputStreamsCount", in);
-            streamsData.put("outPutStreamsCount", out);
+            streamsData.put("outputStreamsCount", out);
             streamsData.put("entriesCount", entriesSet.size());
             return streamsData;
         }

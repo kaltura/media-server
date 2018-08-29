@@ -119,7 +119,7 @@ public class TemplateControlModule extends ModuleBase {
                     entryProperties.put(key, value);
                 }
             }
-            if (isGpuAvailable())
+            if (Utils.isGpuAvailable())
                 entryProperties.put("gpu", "true");
 
             ObjectMapper mapper = new ObjectMapper();
@@ -129,12 +129,6 @@ public class TemplateControlModule extends ModuleBase {
             String result = "/extraParams/" + dataEncode + "/ks/" + ks;
             return result;
         }
-
-        public Boolean isGpuAvailable() {
-            String gpu = System.getenv("GPU_SUPPORT");
-            return (gpu.equals("true"));
-        }
-
 
         public void onInitStart(LiveStreamTranscoder liveStreamTranscoder, String streamName, String transcoderName,
                                 IApplicationInstance appInstance, LiveStreamTranscoderItem liveStreamTranscoderItem) {
