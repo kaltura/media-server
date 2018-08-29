@@ -253,4 +253,35 @@ public class Utils {
         p.waitFor();
         return input.readLine();
     }
+
+    public static Boolean isGpuAvailable() {
+        String gpu = System.getenv("GPU_SUPPORT");
+        if (gpu != null && !gpu.isEmpty())
+            return (gpu.equals("true"));
+        return false;
+    }
+
+    public static HashMap<String,Object> getGpuUsage() throws IOException, InterruptedException {
+        String[] command = { "nvidia-smi", "-q", "-d", "UTILIZATION" };
+        Process p = Runtime.getRuntime().exec(command);
+        BufferedReader stdInput = new BufferedReader(new InputStreamReader(
+                p.getInputStream()));
+        p.waitFor();
+        HashMap<String,Object> gpuData = new HashMap<String,Object>();
+        String s = null;
+        while ((s = stdInput.readLine()) != null) {
+            s = s.trim();
+            if (s.startsWith("Memory"))
+                gpuData.put("gpuUsageMemory", s.substring(s.lastIndexOf(":") + 1));
+            if (s.startsWith("Encoder"))
+                gpuData.put("gpuUsageEncoder", s.substring(s.lastIndexOf(":") + 1));
+            if (s.startsWith("Decoder"))
+                gpuData.put("gpuUsageDecoder", s.substring(s.lastIndexOf(":") + 1));
+            if (s.startsWith("GPU Utilization Samples"))
+                break;
+
+        }
+
+        return gpuData;
+    }
 }
