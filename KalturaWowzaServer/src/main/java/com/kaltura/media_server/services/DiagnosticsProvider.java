@@ -27,6 +27,8 @@ import java.util.regex.Pattern;
 import com.wowza.wms.stream.live.MediaStreamLive;
 import java.net.InetAddress;
 import com.kaltura.media_server.modules.LiveStreamSettingsModule.PacketListener;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 
 public class DiagnosticsProvider extends HTTProvider2Base
 {
@@ -51,6 +53,25 @@ public class DiagnosticsProvider extends HTTProvider2Base
 
     class InfoProvider implements CommandProvider {
 
+        private HashMap<String,Object> gpuData = null;
+        final private Timer timer = new java.util.Timer();
+
+        public InfoProvider() {
+            timer.scheduleAtFixedRate(
+                    new java.util.TimerTask() {
+                        @Override
+                        public void run() {
+                            try {
+                                if (Utils.isGpuAvailable())
+                                    gpuData = Utils.getGpuUsage();
+                            }catch (Exception e) {
+                                logger.warn("Could not get GPU usage ", e);
+                                gpuData = null;
+                            }
+                        }
+                    },0, 10000
+            );
+        }
 
         public String getJarName(){
             return  new java.io.File(InfoProvider.class.getProtectionDomain()
@@ -60,9 +81,15 @@ public class DiagnosticsProvider extends HTTProvider2Base
                     .getName();
         }
 
+        public double getCpuUsage() {
+            OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
+            return operatingSystemMXBean.getSystemLoadAverage() / operatingSystemMXBean.getAvailableProcessors();
+        }
+
         public void execute(HashMap<String,Object> data, HashMap<String,String > quaryString, IApplicationInstance appInstance) {
 
             String jarName = getJarName();
+            double cpuUsage = getCpuUsage();
             String version = this.getClass().getPackage().getImplementationVersion();
             String dateStarted = appInstance.getDateStarted();
             String timeRunning = Double.toString(appInstance.getTimeRunningSeconds());
@@ -78,6 +105,34 @@ public class DiagnosticsProvider extends HTTProvider2Base
             data.put("dateStarted", dateStarted);
             data.put("timeRunning", timeRunning);
             data.put("hostName", hostName);
+            data.put("cpuUsage", cpuUsage);
+
+            if (Utils.isGpuAvailable())
+                data.put("gpu", gpuData);
+            data.putAll(getStreamsData(appInstance));
+        }
+
+        public HashMap<String,Object> getStreamsData(IApplicationInstance appInstance) {
+            int in = 0, out = 0;
+            Set<String>entriesSet = new HashSet<>();
+            for (IMediaStream stream : appInstance.getStreams().getStreams()) {
+                if (!( stream instanceof MediaStreamLive))
+                    continue;
+                String entryId = Utils.getEntryIdFromStreamName(stream.getName());
+                if (entryId != null)
+                    entriesSet.add(entryId);
+
+                if (stream.isTranscodeResult())
+                    out++;
+                else
+                    in++;
+            }
+
+            HashMap<String,Object> streamsData = new HashMap<String,Object>();
+            streamsData.put("inputStreamsCount", in);
+            streamsData.put("outputStreamsCount", out);
+            streamsData.put("entriesCount", entriesSet.size());
+            return streamsData;
         }
     }
 
