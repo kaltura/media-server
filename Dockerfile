@@ -3,7 +3,7 @@
 #docker run -p 1935:1935 -p 8087:8087 --name wowza_instance -t kaltura/media-server
 #docker exec -it `docker ps | grep "media-server" | awk '{print $1}' ` bash
 
-ARG WowzaVersion=4.7.5
+ARG WowzaVersion=4.7.6
 
 #create baseline
 FROM  wowzamedia/wowza-streaming-engine-linux:$WowzaVersion AS baseWowza

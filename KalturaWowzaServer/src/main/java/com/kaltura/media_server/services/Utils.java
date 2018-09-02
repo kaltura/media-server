@@ -261,6 +261,11 @@ public class Utils {
         return false;
     }
 
+    private static int getNumberFromGpuString(String str) {
+        str = str.substring(str.lastIndexOf(":") + 1, str.length() - 1);
+        return Integer.parseInt(str.trim());
+    }
+
     public static HashMap<String,Object> getGpuUsage() throws IOException, InterruptedException {
         String[] command = { "nvidia-smi", "-q", "-d", "UTILIZATION" };
         Process p = Runtime.getRuntime().exec(command);
@@ -272,11 +277,11 @@ public class Utils {
         while ((s = stdInput.readLine()) != null) {
             s = s.trim();
             if (s.startsWith("Memory"))
-                gpuData.put("gpuUsageMemory", s.substring(s.lastIndexOf(":") + 1));
+                gpuData.put("gpuUsageMemory", Utils.getNumberFromGpuString(s));
             if (s.startsWith("Encoder"))
-                gpuData.put("gpuUsageEncoder", s.substring(s.lastIndexOf(":") + 1));
+                gpuData.put("gpuUsageEncoder", Utils.getNumberFromGpuString(s));
             if (s.startsWith("Decoder"))
-                gpuData.put("gpuUsageDecoder", s.substring(s.lastIndexOf(":") + 1));
+                gpuData.put("gpuUsageDecoder", Utils.getNumberFromGpuString(s));
             if (s.startsWith("GPU Utilization Samples"))
                 break;
 
