@@ -52,10 +52,12 @@ public class DiagnosticsProvider extends HTTProvider2Base
     }
 
     class InfoProvider implements CommandProvider {
+
         private HashMap<String,Object> gpuData = null;
+        final private Timer timer = new java.util.Timer();
 
         public InfoProvider() {
-            new java.util.Timer().scheduleAtFixedRate(
+            timer.scheduleAtFixedRate(
                     new java.util.TimerTask() {
                         @Override
                         public void run() {
@@ -87,7 +89,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
         public void execute(HashMap<String,Object> data, HashMap<String,String > quaryString, IApplicationInstance appInstance) {
 
             String jarName = getJarName();
-            double CpuUsage = getCpuUsage();
+            double cpuUsage = getCpuUsage();
             String version = this.getClass().getPackage().getImplementationVersion();
             String dateStarted = appInstance.getDateStarted();
             String timeRunning = Double.toString(appInstance.getTimeRunningSeconds());
@@ -103,10 +105,10 @@ public class DiagnosticsProvider extends HTTProvider2Base
             data.put("dateStarted", dateStarted);
             data.put("timeRunning", timeRunning);
             data.put("hostName", hostName);
-            data.put("cpuUsage", CpuUsage);
+            data.put("cpuUsage", cpuUsage);
 
             if (Utils.isGpuAvailable())
-                data.putAll(gpuData);
+                data.put("gpu", gpuData);
             data.putAll(getStreamsData(appInstance));
         }
 
