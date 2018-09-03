@@ -119,6 +119,8 @@ public class TemplateControlModule extends ModuleBase {
                     entryProperties.put(key, value);
                 }
             }
+            if (Utils.isGpuAvailable())
+                entryProperties.put("gpu", "true");
 
             ObjectMapper mapper = new ObjectMapper();
             data = mapper.writeValueAsString(entryProperties);
@@ -127,7 +129,6 @@ public class TemplateControlModule extends ModuleBase {
             String result = "/extraParams/" + dataEncode + "/ks/" + ks;
             return result;
         }
-
 
         public void onInitStart(LiveStreamTranscoder liveStreamTranscoder, String streamName, String transcoderName,
                                 IApplicationInstance appInstance, LiveStreamTranscoderItem liveStreamTranscoderItem) {

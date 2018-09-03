@@ -24,6 +24,7 @@ public class Constants {
     public final static String REQUEST_PROPERTY_SERVER_INDEX = "i";
     public final static String REQUEST_PROPERTY_TOKEN = "t";
     public final static String KALTURA_SERVER_URL = "KalturaServerURL";
+    public final static String KALTURA_SERVER_NODE_NAME = "KalturaServerNodeName";
     public final static String KALTURA_SERVER_ADMIN_SECRET = "KalturaServerAdminSecret";
     public final static String KALTURA_SERVER_PARTNER_ID = "KalturaPartnerId";
     public final static String KALTURA_SERVER_TIMEOUT = "KalturaServerTimeout";
