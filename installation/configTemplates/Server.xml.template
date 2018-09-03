@@ -120,6 +120,11 @@
 				<Value>180</Value>
 				<Type>String</Type>
 			</Property>
+			<Property>
+				<Name>KalturaServerNodeName</Name>
+				<Value>@HOST_NAME@</Value>
+				<Type>String</Type>
+			</Property>
 		</Properties>
 	</Server>
 </Root>

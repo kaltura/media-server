@@ -17,7 +17,8 @@ import com.wowza.wms.stream.live.MediaStreamLive;
 import org.apache.log4j.Logger;
 import com.wowza.wms.stream.*;
 import com.wowza.wms.application.WMSProperties;
-
+import com.kaltura.media_server.listeners.ServerListener;
+import java.util.Map;
 /**
  * Created by ron.yadgar on 26/05/2016.
  */
@@ -235,6 +236,14 @@ public class Utils {
     }
 
     public static String getMediaServerHostname(boolean full) throws IOException, InterruptedException {
+
+        Map<String, Object> serverConfiguration = ServerListener.getServerConfig();
+        if (serverConfiguration.containsKey(Constants.KALTURA_SERVER_NODE_NAME)) {
+            String serverNode=(String) serverConfiguration.get(Constants.KALTURA_SERVER_NODE_NAME);
+            if (serverNode!="@HOST_NAME@") {
+                return serverNode;
+            }
+        }
         String command = "hostname";
         if (full)
             command = command + " -f";
@@ -243,5 +252,41 @@ public class Utils {
                 p.getInputStream()));
         p.waitFor();
         return input.readLine();
+    }
+
+    public static Boolean isGpuAvailable() {
+        String gpu = System.getenv("GPU_SUPPORT");
+        if (gpu != null && !gpu.isEmpty())
+            return (gpu.equals("true"));
+        return false;
+    }
+
+    private static int getNumberFromGpuString(String str) {
+        str = str.substring(str.lastIndexOf(":") + 1, str.length() - 1);
+        return Integer.parseInt(str.trim());
+    }
+
+    public static HashMap<String,Object> getGpuUsage() throws IOException, InterruptedException {
+        String[] command = { "nvidia-smi", "-q", "-d", "UTILIZATION" };
+        Process p = Runtime.getRuntime().exec(command);
+        BufferedReader stdInput = new BufferedReader(new InputStreamReader(
+                p.getInputStream()));
+        p.waitFor();
+        HashMap<String,Object> gpuData = new HashMap<String,Object>();
+        String s = null;
+        while ((s = stdInput.readLine()) != null) {
+            s = s.trim();
+            if (s.startsWith("Memory"))
+                gpuData.put("gpuUsageMemory", Utils.getNumberFromGpuString(s));
+            if (s.startsWith("Encoder"))
+                gpuData.put("gpuUsageEncoder", Utils.getNumberFromGpuString(s));
+            if (s.startsWith("Decoder"))
+                gpuData.put("gpuUsageDecoder", Utils.getNumberFromGpuString(s));
+            if (s.startsWith("GPU Utilization Samples"))
+                break;
+
+        }
+
+        return gpuData;
     }
 }
