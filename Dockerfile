@@ -35,7 +35,8 @@ COPY ./build.gradle ./build.gradle
 COPY ./settings.gradle ./settings.gradle
 
 # build
-RUN gradle -Pversion=1.0.0 prepareRelease
+ARG JarVersion=1.0.0
+RUN gradle -Pversion=$JarVersion prepareRelease
 
 
 # create the actual docker
