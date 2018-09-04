@@ -43,8 +43,8 @@ In order to maximize your service capability use machine with GPU (as g3.4xlarge
 	4. sudo sysctl -w net.ipv4.tcp_rmem="16384 4194304 16777216"
 	
 ## AWS deployment:
-	1. copy docker-compose [file](../deployment/docker-compose.yml) to your machine
-	2. copy [env template file](../deployment/template.env) to your machine and rename it as ".env"
-	3. Fill all env variable in the .env file
-	4. docker-compose create
-	5. docker-compose up
+1. copy docker-compose [file](../deployment/docker-compose.yml) to your machine
+2. copy [env template file](../deployment/template.env) to your machine and rename it as ".env"
+3. Fill all env variable in the .env file
+4. docker-compose create
+5. docker-compose up
