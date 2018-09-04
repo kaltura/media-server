@@ -16,9 +16,9 @@
 				<SocketConfiguration>
 					<ReuseAddress>true</ReuseAddress>
 					<!-- suggested settings for video on demand applications -->
-					<ReceiveBufferSize>65000</ReceiveBufferSize>
-					<ReadBufferSize>65000</ReadBufferSize>
-					<SendBufferSize>65000</SendBufferSize>
+					<ReceiveBufferSize>6500000</ReceiveBufferSize>
+					<ReadBufferSize>6500000</ReadBufferSize>
+					<SendBufferSize>6500000</SendBufferSize>
 					<!-- suggest settings for low latency chat and video recording applications
 					<ReceiveBufferSize>32000</ReceiveBufferSize>
 					<ReadBufferSize>32000</ReadBufferSize>
