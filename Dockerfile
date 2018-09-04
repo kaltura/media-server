@@ -51,13 +51,12 @@ ENV SERVICE_URL https://www.kaltura.com
 ENV PARTNER_ID -5
 ENV PARTNER_ADMIN_SECRET XXX
 ENV SERVER_NODE_HOST_NAME @HOST_NAME@
-ENV WOWZA_LOG_DIR /var/log/wowza
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,video,utility
 
 EXPOSE 1935/tcp 8086/tcp 8087/tcp 8088/tcp 554/tcp
 
-VOLUME ["${WOWZA_LOG_DIR}"]
+VOLUME ["/var/log/wowza"]
 
 #remove unwanted stuff from images
 RUN rm -rf /usr/local/WowzaStreamingEngine/content/ && \
