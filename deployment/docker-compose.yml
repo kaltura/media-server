@@ -6,6 +6,6 @@ services:
   network_mode: host
   hostname: ${SERVER_NODE_HOST_NAME}
   volumes:
-	- "${LOGS_DIR}/:/var/log/wowza/"
+        - "${LOGS_DIR}/:/var/log/wowza/"
   restart: always
   container_name: ms
