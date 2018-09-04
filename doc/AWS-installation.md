@@ -1,10 +1,10 @@
 # Installation and deployment of Media-Server on AWS machine
 
-Create new ubuntu machine in the AWS cloud - make sure to open ports 80, 1935, 554, 8086, 8087 (by adding inbound role)
+Create new ubuntu machine in the AWS cloud - make sure to open ports 80, 1935, 554, 8086, 8087 (by adding inbound role). Notice to open 8086 and 8087 only from IP as your Live-Controller server.
 In order to maximize your service capability use machine with GPU (as g3.4xlarge for example) with AMI of "Deep Learning Base AMI (Ubuntu) Version 8.0"
 
 ## Machine installation:
-- For GPU machine only run the following:
+- For GPU machine only: Install drivers - run the following:
     1. wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_9.1.85-1_amd64.deb
 	2. sudo dpkg --install cuda-repo-ubuntu1604_9.1.85-1_amd64.deb
 	3. sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
@@ -27,7 +27,7 @@ In order to maximize your service capability use machine with GPU (as g3.4xlarge
 	3. sudo chmod +x /usr/local/bin/docker-compose
 	4. sudo ln /usr/local/bin/docker-compose /usr/bin
 	
-- Install nvidia docker:
+- For GPU machine only: Install nvidia docker:
 	1. curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
 	2. distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
 	3. curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
