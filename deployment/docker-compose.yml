@@ -1,0 +1,11 @@
+version: '3.1'
+services:
+ media-server:
+  env_file: ./.env
+  image: ${IMAGE_PATH}:${VERSION}
+  network_mode: host
+  hostname: ${SERVER_NODE_HOST_NAME}
+  volumes:
+	- "${LOGS_DIR}/:/var/log/wowza/"
+  restart: always
+  container_name: ms

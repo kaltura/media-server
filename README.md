@@ -39,7 +39,7 @@ The returned entry object could be used later to determine if DVR and recording 
 
 ## Deployment ##
 Instructions to install a Wowza SaaS server can be found here:
-[deployment doc](deployment.md)
+[deployment doc](doc/deployment.md)
 
 <br>
 
