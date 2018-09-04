@@ -11,7 +11,7 @@
 				<!-- Separate multiple ports with commas -->
 				<!-- 80: HTTP, RTMPT -->
 				<!-- 554: RTSP -->
-				<Port>80,1935</Port>
+				<Port>80,554,1935</Port>
 				<HTTPIdent2Response></HTTPIdent2Response>
 				<SocketConfiguration>
 					<ReuseAddress>true</ReuseAddress>
