@@ -35,6 +35,7 @@ In order to maximize your service capability use machine with GPU (as g3.4xlarge
 	5. sudo apt-get install -y nvidia-docker2
 	6. sudo pkill -SIGHUP dockerd
 	7. Verify with: "docker run --runtime=nvidia --rm nvidia/cuda nvidia-smi"
+	8. Add ' "default-runtime": "nvidia" ' to the /etc/docker/daemon.json and restart docker service
 	
 - Increase TCP parameters:
 	1. sudo sysctl -w net.core.rmem_max=16777216
