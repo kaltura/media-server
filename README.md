@@ -41,6 +41,9 @@ The returned entry object could be used later to determine if DVR and recording 
 Instructions to install a Wowza SaaS server can be found here:
 [deployment doc](doc/deployment.md)
 
+Instructions to install a Wowza server on AWS can be found here:
+[aws doc](doc/AWS-installation.md)
+
 <br>
 
 ## Commercial Editions and Paid Support ##
