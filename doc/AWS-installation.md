@@ -1,6 +1,6 @@
 # Installation and deployment of Media-Server on AWS machine
 
-Create new ubuntu machine in the AWS cloud - make sure to open ports 1935, 8086, 8087 (by adding inbound role)
+Create new ubuntu machine in the AWS cloud - make sure to open ports 80, 1935, 554, 8086, 8087 (by adding inbound role)
 In order to maximize your service capability use machine with GPU (as g3.4xlarge for example) with AMI of "Deep Learning Base AMI (Ubuntu) Version 8.0"
 
 ## Machine installation:
