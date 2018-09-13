@@ -47,7 +47,7 @@ In order to maximize your service capability use machine with GPU (as g3.4xlarge
 	1. sudo apt install jq
 	
 ## AWS deployment:
-1. copy docker-compose [file](../deployment/docker-compose.yml) and [start-script](../deployment/wowzaDockerStart.sh) to your machine
+1. copy docker-compose [file](../deployment/docker-compose.yml) to your machine
 2. copy [env template file](../deployment/template.env) to your machine and rename it as ".env"
 3. Fill all env variable in the .env file
-4. Run `wowzaDockerStart.sh [Version] [Server_Node_Tag] `
+4. Run `docker-compose up --no-start` and then `docker-compose start`
