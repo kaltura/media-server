@@ -42,10 +42,12 @@ In order to maximize your service capability use machine with GPU (as g3.4xlarge
 	2. sudo sysctl -w net.core.wmem_max=16777216
 	3. sudo sysctl -w net.ipv4.tcp_wmem="16384 4194304 16777216"
 	4. sudo sysctl -w net.ipv4.tcp_rmem="16384 4194304 16777216"
+
+- Misc:
+	1. sudo apt install jq
 	
 ## AWS deployment:
-1. copy docker-compose [file](../deployment/docker-compose.yml) to your machine
+1. copy docker-compose [file](../deployment/docker-compose.yml) and [start-script](../deployment/wowzaDockerStart.sh) to your machine
 2. copy [env template file](../deployment/template.env) to your machine and rename it as ".env"
 3. Fill all env variable in the .env file
-4. docker-compose create
-5. docker-compose up
+4. Run `wowzaDockerStart.sh [Version] [Server_Node_Tag] `
