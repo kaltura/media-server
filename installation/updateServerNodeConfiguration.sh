@@ -6,6 +6,11 @@ if [ -z "$WOWZA_EXTERNAL_IP" ]; then
         echo "Setting WOWZA_EXTERNAL_IP as $WOWZA_EXTERNAL_IP"
 fi
 
+if [ -z "$WOWZA_INTERNAL_IP" ]; then
+        WOWZA_INTERNAL_IP=$(curl --silent --show-error --url http://169.254.169.254/latest/meta-data/local-ipv4)
+        echo "Setting WOWZA_INTERNAL_IP as $WOWZA_INTERNAL_IP"
+fi
+
 echo "Start update with params: partner=$PARTNER_ID, secret=$PARTNER_ADMIN_SECRET, hostName=$SERVER_NODE_HOST_NAME, serviceUrl=$SERVICE_URL, WowzaIp=$WOWZA_EXTERNAL_IP, serverTag=$SERVER_NODE_TAG"
 
 KS=`curl -s "-dpartnerId=$PARTNER_ID&secret=$PARTNER_ADMIN_SECRET&type=2" "$SERVICE_URL/api_v3/service/session/action/start?format=1" | jq -r .`
@@ -42,7 +47,7 @@ if [ "$CONFIG" = null ]; then
         CONFIG="{}"
 fi
 
-NEW_CONF=`echo $CONFIG | jq -c --arg ip $WOWZA_EXTERNAL_IP '.ips.primary = $ip | .ips.secondary = $ip'`
+NEW_CONF=`echo $CONFIG | jq -c --arg ip $WOWZA_EXTERNAL_IP --arg iip $WOWZA_INTERNAL_IP '.ips.primary = $ip | .ips.secondary = $ip | .ips.aws_eip = $ip | .ips.aws_int = $iip'  `
 ID=`echo $SELF_SERVER_NODE | jq .id`
 
 echo "Setting new config to ServerNodeId [$ID]"
