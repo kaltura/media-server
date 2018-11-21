@@ -245,7 +245,7 @@
 				</Property>
 				<Property>
 					<Name>cupertinoCacheControlPlaylist</Name>
-					<Value>max-age=5</Value>
+					<Value>max-age=2</Value>
 				</Property>
 				<Property>
 					<Name>cupertinoCacheControlMediaChunk</Name>
@@ -263,7 +263,7 @@
 				</Property>
 				<Property>
 					<Name>smoothCacheControlPlaylist</Name>
-					<Value>max-age=3</Value>
+					<Value>max-age=2</Value>
 				</Property>
 				<Property>
 					<Name>smoothCacheControlMediaChunk</Name>
@@ -275,7 +275,7 @@
 				</Property>
 				<Property>
 					<Name>sanjoseCacheControlPlaylist</Name>
-					<Value>max-age=3</Value>
+					<Value>max-age=2</Value>
 				</Property>
 				<Property>
 					<Name>sanjoseCacheControlMediaChunk</Name>
