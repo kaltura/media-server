@@ -245,7 +245,7 @@
 				</Property>
 				<Property>
 					<Name>cupertinoCacheControlPlaylist</Name>
-					<Value>max-age=2</Value>
+					<Value>max-age=1</Value>
 				</Property>
 				<Property>
 					<Name>cupertinoCacheControlMediaChunk</Name>
