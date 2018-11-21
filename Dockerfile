@@ -1,9 +1,10 @@
 #docker build -t kaltura/media-server .
-#docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q)
-#docker run -p 1935:1935 -p 8087:8087 --name wowza_instance -t kaltura/media-server
+#docker stop $(docker ps | grep "media-server" | awk '{print $1}') && docker rm $(docker ps -a| grep "media-server"| awk '{print $1}')
+#docker run -p 1935:1935 -p 8087:8087  -p 8088:8088  -e DISABLE_SERVER_NODE_CONF_UPDATE=true  --name wowza_instance -t kaltura/media-server
 #docker exec -it `docker ps | grep "media-server" | awk '{print $1}' ` bash
+#docker rm $(docker ps -a | grep "Exited"| awk '{print $1}')
 
-ARG WowzaVersion=4.7.6
+ARG WowzaVersion=4.7.7
 
 #create baseline
 FROM  wowzamedia/wowza-streaming-engine-linux:$WowzaVersion AS baseWowza

@@ -18,6 +18,11 @@ if [ -z "$DISABLE_SERVER_NODE_CONF_UPDATE" ]; then
         source /sbin/updateServerNodeConfiguration.sh
 fi
 
+if [ -z "$PLAY_WHITELIST" ]; then
+        PLAY_WHITELIST="*"
+        echo "Setting PLAY_WHITELIST=*"
+fi
+
 # replace config
 sed -e "s#@KALTURA_SERVICE_URL@#$SERVICE_URL#g" \
     -e "s#@KALTURA_PARTNER_ID@#$PARTNER_ID#g" \
@@ -28,6 +33,7 @@ sed -e "s#@KALTURA_SERVICE_URL@#$SERVICE_URL#g" \
 sed -e "s#@KALTURA_SERVICE_URL@#$SERVICE_URL#g" \
     -e "s#@KALTURA_PARTNER_ID@#$PARTNER_ID#g" \
     -e "s#streamName#partnerId/$PARTNER_ID/streamName#g" \
+    -e "/<Property>/,/<\/Property>/ s|<Value>\*</Value>|<Value>$PLAY_WHITELIST</Value>|g" \
     ./kLive/Application.xml.template > ./kLive/Application.xml
 
 exec /sbin/entrypoint.sh
