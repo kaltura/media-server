@@ -18,3 +18,7 @@ https://docs.aws.amazon.com/batch/latest/userguide/batch-gpu-ami.html
 2. copy [env template file](../deployment/template.env) to your machine and rename it as ".env"
 3. Fill all env variable in the .env file
 4. Run `docker-compose up --no-start` and then `docker-compose start`
+
+
+### test GPU usage:
+nvidia-smi -q -d UTILIZATION

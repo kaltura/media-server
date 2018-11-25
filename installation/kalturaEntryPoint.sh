@@ -28,12 +28,13 @@ sed -e "s#@KALTURA_SERVICE_URL@#$SERVICE_URL#g" \
     -e "s#@KALTURA_PARTNER_ID@#$PARTNER_ID#g" \
     -e "s#@KALTURA_PARTNER_ADMIN_SECRET@#$PARTNER_ADMIN_SECRET#g"\
     -e "s#@HOST_NAME@#$SERVER_NODE_HOST_NAME#g"\
+    -e "s#@ORIGIN_CUSTOM_HEADER_NAME@#$ORIGIN_CUSTOM_HEADER_NAME#g" \
+    -e "s#@ORIGIN_CUSTOM_HEADER_VALUE@#$ORIGIN_CUSTOM_HEADER_VALUE#g" \
      Server.xml.template > Server.xml
 
 sed -e "s#@KALTURA_SERVICE_URL@#$SERVICE_URL#g" \
     -e "s#@KALTURA_PARTNER_ID@#$PARTNER_ID#g" \
     -e "s#streamName#partnerId/$PARTNER_ID/streamName#g" \
-    -e "/<Property>/,/<\/Property>/ s|<Value>\*</Value>|<Value>$PLAY_WHITELIST</Value>|g" \
     ./kLive/Application.xml.template > ./kLive/Application.xml
 
 exec /sbin/entrypoint.sh

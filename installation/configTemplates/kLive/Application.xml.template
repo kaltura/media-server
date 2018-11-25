@@ -350,11 +350,6 @@
 				<Value>true</Value>
 				<Type>Boolean</Type>
 			</Property>
-			<Property>
-				<Name>securityPlayIPWhiteList</Name>
-				<Value>*</Value>
-				<Type>String</Type>
-			</Property>
 		</Properties>
 	</Application>
 </Root>
