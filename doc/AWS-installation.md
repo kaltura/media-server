@@ -14,10 +14,11 @@ https://docs.aws.amazon.com/batch/latest/userguide/batch-gpu-ami.html
 	4. sudo sysctl -w net.ipv4.tcp_rmem="16384 4194304 16777216"
 	
 ## AWS deployment:
-1. copy docker-compose [file](../deployment/docker-compose.yml) to your machine
-2. copy [env template file](../deployment/template.env) to your machine and rename it as ".env"
-3. Fill all env variable in the .env file
-4. Run `docker-compose up --no-start` and then `docker-compose start`
+1. sudo apt install jq	
+2. copy docker-compose [file](../deployment/docker-compose.yml) to your machine
+3. copy [env template file](../deployment/template.env) to your machine and rename it as ".env"
+4. Fill all env variable in the .env file
+5. Run `docker-compose up --no-start` and then `docker-compose start`
 
 
 ### test GPU usage:
