@@ -349,6 +349,8 @@ public class KalturaAPI {
                 return Constants.AUTHENTICATION_ALERT_ENTRY_NOT_FOUND;
             case "LIVE_STREAM_EXCEEDED_MAX_PASSTHRU":
                 return Constants.AUTHENTICATION_ALERT_TOO_MANY_STREAMS;
+            case "LIVE_STREAM_EXCEEDED_MAX_TRANSCODED":
+                return Constants.AUTHENTICATION_ALERT_TOO_MANY_TRANSCODED_STREAMS;
             default:
                 return -1;
         }
