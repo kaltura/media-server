@@ -10,6 +10,7 @@ public class Constants {
     public final static int AUTHENTICATION_ALERT_ENTRY_NOT_FOUND = 113;
     public final static int AUTHENTICATION_ALERT_NO_LIVE_PERMISSION = 114;
     public final static int AUTHENTICATION_ALERT_TOO_MANY_STREAMS = 115;
+    public final static int AUTHENTICATION_ALERT_TOO_MANY_TRANSCODED_STREAMS = 118;
     public final static int AUTHENTICATION_ALERT_SEVERITY = 4;
     public final static String HTTP_PROVIDER_KEY = "diagnostics";
     public final static int KALTURA_REJECTED_STEAMS_SIZE = 100;
