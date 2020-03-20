@@ -1,10 +1,10 @@
 #docker build -t kaltura/media-server .
 #docker stop $(docker ps | grep "media-server" | awk '{print $1}') && docker rm $(docker ps -a| grep "media-server"| awk '{print $1}')
-#docker run -p 1935:1935 -p 8087:8087  -p 8088:8088  -e DISABLE_SERVER_NODE_CONF_UPDATE=true  --name wowza_instance -t kaltura/media-server
-#docker exec -it `docker ps | grep "media-server" | awk '{print $1}' ` bash
+#docker run --rm -it  -p 1935:1935 -p 8087:8087  -p 8088:8088  -e DISABLE_SERVER_NODE_CONF_UPDATE=true  --env-file=./deployment/.env --name wowza_instance -t kaltura/media-server#docker exec -it `docker ps | grep "media-server" | awk '{print $1}' ` bash
+#docker exec -it  $(docker ps | grep wowza | awk '{print $1}') /bin/bash
 #docker rm $(docker ps -a | grep "Exited"| awk '{print $1}')
 
-ARG WowzaVersion=4.7.7
+ARG WowzaVersion=4.8.0
 
 #create baseline
 FROM  wowzamedia/wowza-streaming-engine-linux:$WowzaVersion AS baseWowza
@@ -15,7 +15,7 @@ FROM java:8-jdk AS build
 
 ENV PATH ${PATH}:/usr/local/gradle-2.12/bin
 
-RUN apt-get update &&  apt-get install unzip
+RUN   apt-get install unzip
 
 # Install gradle
 WORKDIR /usr/local
@@ -36,7 +36,7 @@ COPY ./build.gradle ./build.gradle
 COPY ./settings.gradle ./settings.gradle
 
 # build
-ARG JarVersion=1.0.0
+ARG JarVersion=3.0.12
 RUN gradle -Pversion=$JarVersion prepareRelease
 
 
@@ -69,8 +69,14 @@ RUN rm -rf /usr/local/WowzaStreamingEngine/content/ && \
 
 WORKDIR  /usr/local/WowzaStreamingEngine/lib
 
+RUN apt update && apt -y install netcat procps iputils-ping vim && \
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python get-pip.py && \
+    pip install PyCryptodome
+
 #copy build artifacts from build machine
 COPY --from=build /usr/local/source/KalturaWowzaServer/build/tmp/artifacts/* ./
+
 
 #create symlinks
 RUN rm -f KalturaClientLib.jar && \

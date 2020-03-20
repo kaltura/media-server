@@ -281,6 +281,14 @@
 					<Name>sanjoseCacheControlMediaChunk</Name>
 					<Value>max-age=86400</Value>
 				</Property>
+				<Property>
+					<Name>httpCacheControlStatus4xx</Name>
+					<Value>max-age=1</Value>
+				</Property>
+				<Property>
+					<Name>cupertinoCacheControlStatus4xx</Name>
+					<Value>max-age=1</Value>
+				</Property>
 			</Properties>
 		</HTTPStreamer>
 		<Manager>
