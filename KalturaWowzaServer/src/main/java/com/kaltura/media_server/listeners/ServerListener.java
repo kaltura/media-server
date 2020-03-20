@@ -24,6 +24,7 @@ public class ServerListener implements IServerNotify2 {
 	}
 
 
+
 	@SuppressWarnings("unchecked")
 	public void onServerInit(IServer server) {
 		config = server.getProperties();

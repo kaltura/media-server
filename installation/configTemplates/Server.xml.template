@@ -125,6 +125,16 @@
 				<Value>@HOST_NAME@</Value>
 				<Type>String</Type>
 			</Property>
+			<Property>
+				<Name>limitOriginHeaderName</Name>
+				<Value>@ORIGIN_CUSTOM_HEADER_NAME@</Value>
+				<Type>String</Type>
+			</Property>
+			<Property>
+				<Name>limitOriginHeaderValue</Name>
+				<Value>@ORIGIN_CUSTOM_HEADER_VALUE@</Value>
+				<Type>String</Type>
+			</Property>
 		</Properties>
 	</Server>
 </Root>

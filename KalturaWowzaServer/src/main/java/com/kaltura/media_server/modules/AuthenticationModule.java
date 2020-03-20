@@ -22,10 +22,17 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import com.kaltura.media_server.services.KalturaStreamType;
+import com.wowza.wms.httpstreamer.model.IHTTPStreamerSession;
+import com.wowza.wms.httpstreamer.model.IHTTPStreamerRequestContext;
+import java.util.Map;
+import com.kaltura.media_server.listeners.ServerListener;
 
 public class AuthenticationModule extends ModuleBase  {
     private static final Logger logger = Logger.getLogger(AuthenticationModule.class);
     public static final String STREAM_ACTION_PROPERTY = "AuthenticatioStreamActionNotifier";
+    private String limitOriginHeaderName = "";
+    private String limitOriginHeaderValue = "";
+
     private IApplicationInstance appInstance;
     @SuppressWarnings("serial")
     public class ClientConnectException extends Exception{
@@ -39,6 +46,14 @@ public class AuthenticationModule extends ModuleBase  {
         logger.info("Initiallizing " + appInstance.getName());
         this.appInstance = appInstance;
         KalturaEntryDataPersistence.setAppInstance(appInstance);
+        Map<String, Object> serverConfiguration = ServerListener.getServerConfig();
+        if (serverConfiguration.containsKey(Constants.KALTURA_LIMIT_ORIGIN_HEADER_NAME)) {
+            this.limitOriginHeaderName=(String) serverConfiguration.get(Constants.KALTURA_LIMIT_ORIGIN_HEADER_NAME);
+        }
+        if (serverConfiguration.containsKey(Constants.KALTURA_LIMIT_ORIGIN_HEADER_VALUE)) {
+            this.limitOriginHeaderValue=(String) serverConfiguration.get(Constants.KALTURA_LIMIT_ORIGIN_HEADER_VALUE);
+        }
+
     }
 
     public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
@@ -151,6 +166,16 @@ public class AuthenticationModule extends ModuleBase  {
             props.setProperty(STREAM_ACTION_PROPERTY, actionListener);
         }
         stream.addClientListener(actionListener);
+    }
+
+    public void onHTTPStreamerRequest(IHTTPStreamerSession httpSession, IHTTPStreamerRequestContext reqContext){
+        if (this.limitOriginHeaderName.length()>0 && this.limitOriginHeaderValue.length()>0) {
+            String originValue = reqContext.getRequest().getHeader(this.limitOriginHeaderName);
+            if (!this.limitOriginHeaderValue.equals(originValue)) {
+                logger.debug("onHTTPStreamerRequest!! [" + httpSession.getIpAddress() + "] [" + this.limitOriginHeaderName+ ":"+originValue + "]  rejected!!!");
+                httpSession.rejectSession();
+            }
+        }
     }
 
     public void onStreamDestroy(IMediaStream stream) {

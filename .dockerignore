@@ -1,3 +1,6 @@
 .idea
 .gradle
 KalturaWowzaServer/build
+deployment
+doc
+.git
