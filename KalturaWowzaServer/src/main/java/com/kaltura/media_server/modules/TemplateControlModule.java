@@ -92,8 +92,7 @@ public class TemplateControlModule extends ModuleBase {
             }
 
             if (obj == null) {
-                logger.info("[" + stream.getName() + " ] Cant find property AMFDataObj for stream " + stream.getName());
-                return;
+                logger.warn("[" + stream.getName() + " ] Cant find property AMFDataObj for stream " + stream.getName());
             }
             try{
                 String queryString = getQueryString(obj);
@@ -112,11 +111,14 @@ public class TemplateControlModule extends ModuleBase {
             String data;
             String dataEncode;
             HashMap<String, String> entryProperties = new HashMap<String, String>();
-            for (String key : Constants.streamParams) {
-                if (obj.containsKey(key)) {
 
-                    String value = obj.get(key).toString();
-                    entryProperties.put(key, value);
+            if (obj!=null) {
+                for (String key : Constants.streamParams) {
+                    if (obj.containsKey(key)) {
+
+                        String value = obj.get(key).toString();
+                        entryProperties.put(key, value);
+                    }
                 }
             }
             if (Utils.isGpuAvailable())
