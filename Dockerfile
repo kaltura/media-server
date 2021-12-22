@@ -4,7 +4,7 @@
 #docker exec -it  $(docker ps | grep wowza | awk '{print $1}') /bin/bash
 #docker rm $(docker ps -a | grep "Exited"| awk '{print $1}')
 
-ARG WowzaVersion=4.8.0
+ARG WowzaVersion=4.8.17
 
 #create baseline
 FROM  wowzamedia/wowza-streaming-engine-linux:$WowzaVersion AS baseWowza
@@ -69,10 +69,7 @@ RUN rm -rf /usr/local/WowzaStreamingEngine/content/ && \
 
 WORKDIR  /usr/local/WowzaStreamingEngine/lib
 
-RUN apt update && apt -y install netcat procps iputils-ping vim && \
-    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python get-pip.py && \
-    pip install PyCryptodome
+RUN apt update && apt -y install netcat procps iputils-ping vim
 
 #copy build artifacts from build machine
 COPY --from=build /usr/local/source/KalturaWowzaServer/build/tmp/artifacts/* ./

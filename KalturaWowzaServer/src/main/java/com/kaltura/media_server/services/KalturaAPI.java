@@ -10,7 +10,8 @@ import com.kaltura.client.enums.KalturaBeaconObjectTypes;
 import com.kaltura.client.enums.KalturaNullableBoolean;
 
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
 import java.net.UnknownHostException;
@@ -28,7 +29,7 @@ public class KalturaAPI {
     // use the same session key for all Wowza sessions, so all (within a DC) will be directed to the same sphinx to prevent synchronization problems
 
 
-    private static Logger logger = Logger.getLogger(KalturaAPI.class);
+    private static Logger logger = LogManager.getLogger(KalturaAPI.class);
     private static Map<String, Object> serverConfiguration;
     private static KalturaClient client;
     private static String hostname;
@@ -122,7 +123,7 @@ public class KalturaAPI {
         client.setSessionId(sessionId);
         logger.debug("Kaltura client session id: " + sessionId);    //session id - KS
     }
-    
+
     public String getKS() {
         return client.getSessionId();
     }

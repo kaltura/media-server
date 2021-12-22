@@ -14,7 +14,8 @@ import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.client.IClient;
 import com.wowza.wms.rtp.model.RTPSession;
 import com.wowza.wms.stream.live.MediaStreamLive;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import com.wowza.wms.stream.*;
 import com.wowza.wms.application.WMSProperties;
 import com.kaltura.media_server.listeners.ServerListener;
@@ -25,7 +26,7 @@ import java.util.Map;
 public class Utils {
 
 
-    private static Logger logger = Logger.getLogger(Utils.class);
+    private static Logger logger = LogManager.getLogger(Utils.class);
 
     public static HashMap<String, String> getRtmpUrlParameters(String rtmpUrl, String queryString){
 

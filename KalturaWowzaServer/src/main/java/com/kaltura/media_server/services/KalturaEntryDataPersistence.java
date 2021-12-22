@@ -2,7 +2,8 @@ package com.kaltura.media_server.services;
 
 import com.wowza.wms.application.IApplicationInstance;
 import com.kaltura.media_server.services.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.TimerTask;
@@ -14,7 +15,7 @@ import java.util.Set;
  */
 public class KalturaEntryDataPersistence {
 
-	private static Logger logger = Logger.getLogger(KalturaEntryDataPersistence.class);
+	private static Logger logger = LogManager.getLogger(KalturaEntryDataPersistence.class);
 	private static ConcurrentHashMap<String, ConcurrentHashMap<String, Object>> entriesPersistenceDataMap = new ConcurrentHashMap<>();
 	private static Object _cleanUpLock = new Object();
 	private static long _lastMapCleanUp = 0;

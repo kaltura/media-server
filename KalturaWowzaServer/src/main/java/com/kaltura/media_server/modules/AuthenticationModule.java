@@ -14,7 +14,8 @@ import com.wowza.wms.module.ModuleBase;
 import com.wowza.wms.request.RequestFunction;
 import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.stream.MediaStreamActionNotifyBase;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import com.wowza.wms.rtp.model.RTPSession;
 import com.kaltura.media_server.services.*;
 
@@ -28,7 +29,7 @@ import java.util.Map;
 import com.kaltura.media_server.listeners.ServerListener;
 
 public class AuthenticationModule extends ModuleBase  {
-    private static final Logger logger = Logger.getLogger(AuthenticationModule.class);
+    private static final Logger logger = LogManager.getLogger(AuthenticationModule.class);
     public static final String STREAM_ACTION_PROPERTY = "AuthenticatioStreamActionNotifier";
     private String limitOriginHeaderName = "";
     private String limitOriginHeaderValue = "";

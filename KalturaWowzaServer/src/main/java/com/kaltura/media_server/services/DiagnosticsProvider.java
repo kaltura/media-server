@@ -17,7 +17,8 @@ import com.wowza.wms.stream.IMediaStream;
 import com.wowza.wms.vhost.*;
 import com.wowza.wms.http.*;
 import com.wowza.util.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import com.wowza.util.FLVUtils;
 import java.util.Collections;
 import java.util.ArrayList;
@@ -230,7 +231,7 @@ public class DiagnosticsProvider extends HTTProvider2Base
     private static final String DIAGNOSTICS_LIVE_INFO = "info";
     private static final String DIAGNOSTICS_KILL_CONNECTION = "killConnection";
     private static List <HashMap<String,String> >errorDiagnostics= Collections.synchronizedList(new ArrayList <HashMap<String,String> >());
-    private static final Logger logger = Logger.getLogger(HTTPConnectionCountsXML.class);
+    private static final Logger logger = LogManager.getLogger(HTTPConnectionCountsXML.class);
     private String httpSessionId;
     private final Map<String, CommandProvider> CommandHash;
     {

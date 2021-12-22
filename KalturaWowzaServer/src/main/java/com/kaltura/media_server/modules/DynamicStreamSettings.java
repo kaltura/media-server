@@ -4,7 +4,8 @@ import com.kaltura.client.types.KalturaLiveEntry;
 import com.kaltura.media_server.services.Constants;
 import com.kaltura.media_server.services.KalturaEntryDataPersistence;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import com.wowza.wms.httpstreamer.cupertinostreaming.livestreampacketizer.*;
 import com.wowza.wms.stream.*;
@@ -16,7 +17,7 @@ import com.wowza.wms.application.WMSProperties;
  */
 public class DynamicStreamSettings {
 
-	private static final Logger logger = Logger.getLogger(DynamicStreamSettings.class);
+	private static final Logger logger = LogManager.getLogger(DynamicStreamSettings.class);
 	public static final int MAX_ALLOWED_CHUNK_DURATION_MILLISECONDS = 20000;
 	public static final int MIN_ALLOWED_CHUNK_DURATION_MILLISECONDS = 1000;
 

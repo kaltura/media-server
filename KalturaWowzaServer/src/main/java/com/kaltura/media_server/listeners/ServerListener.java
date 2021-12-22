@@ -1,6 +1,7 @@
 package com.kaltura.media_server.listeners;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.server.*;
@@ -13,7 +14,7 @@ import java.util.Map;
 
 public class ServerListener implements IServerNotify2 {
 
-	protected static Logger logger = Logger.getLogger(ServerListener.class);
+	protected static Logger logger = LogManager.getLogger(ServerListener.class);
 
 	private static Map<String, Object> config;
 

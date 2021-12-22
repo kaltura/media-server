@@ -1,5 +1,5 @@
    apply plugin: 'java'
-    def javaVersion = JavaVersion.VERSION_1_7;
+    def javaVersion = JavaVersion.VERSION_1_8;
     sourceCompatibility = javaVersion;
     targetCompatibility = javaVersion;
 
@@ -24,7 +24,7 @@
     dependencies {
         //TODO use the + sign for latest version when we start to use repository manager
         compile 'com.kaltura:KalturaClientLib:3.3.6'
-        provided 'log4j:log4j:1.2.17'
+        provided 'org.apache.logging.log4j:log4j-core:2.17.0'
         compile 'commons-codec:commons-codec:1.4'
         compile 'commons-httpclient:commons-httpclient:3.1'
         compile 'org.json:json:20090211'
@@ -37,8 +37,8 @@
             throw new IllegalStateException("Wrong Java version; required is "
                     + javaVersion + ", but found " + foundVersion);
     }
-    compileJava.dependsOn(enforceJavaVersion); 
-    
+    compileJava.dependsOn(enforceJavaVersion);
+
 task validateWowzaDirExists {
     def fileExists = true
     //search for wowza folder that is defined in gradle.properties

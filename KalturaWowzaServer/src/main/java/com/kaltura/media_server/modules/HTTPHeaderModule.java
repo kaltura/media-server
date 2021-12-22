@@ -6,12 +6,13 @@ package com.kaltura.media_server.modules;
 import com.kaltura.media_server.services.Utils;
 import com.wowza.wms.http.*;
 import com.wowza.wms.vhost.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 
 public class HTTPHeaderModule extends HTTProvider2Base {
 
-    private static final Logger logger = Logger.getLogger(HTTPHeaderModule.class);
+    private static final Logger logger = LogManager.getLogger(HTTPHeaderModule.class);
 
     private static String mediaServerhostname = "";
 

@@ -19,7 +19,8 @@ import java.util.regex.Matcher;
 import com.kaltura.client.KalturaApiException;
 import com.kaltura.client.enums.KalturaRecordStatus;
 import com.kaltura.client.types.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import com.kaltura.client.enums.KalturaEntryServerNodeType;
 
 import com.wowza.wms.livestreamrecord.model.ILiveStreamRecord;
@@ -48,7 +49,7 @@ import com.kaltura.media_server.listeners.ServerListener;
 public class RecordingModule  extends ModuleBase {
 
 
-    private static Logger logger = Logger.getLogger(RecordingModule.class);
+    private static Logger logger = LogManager.getLogger(RecordingModule.class);
 
     static private Map<String, Map<String, FlavorRecorder>> entryRecorders = new ConcurrentHashMap<String, Map<String, FlavorRecorder>>();
 

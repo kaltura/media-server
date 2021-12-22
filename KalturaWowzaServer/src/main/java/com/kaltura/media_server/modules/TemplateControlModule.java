@@ -10,8 +10,9 @@ import com.wowza.wms.stream.IMediaStreamActionNotify2;
 import com.wowza.wms.stream.IMediaStreamActionNotify3;
 import com.wowza.wms.stream.livetranscoder.LiveStreamTranscoderItem;
 import com.wowza.wms.transcoder.model.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import com.wowza.wms.stream.IMediaStream;
+import org.apache.logging.log4j.LogManager;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoder;
 import com.wowza.wms.stream.livetranscoder.ILiveStreamTranscoderNotify;
 import com.wowza.util.FLVUtils;
@@ -25,7 +26,7 @@ import java.util.*;
 
 public class TemplateControlModule extends ModuleBase {
 
-    private static final Logger logger = Logger.getLogger(TranscoderNotifier.class);
+    private static final Logger logger = LogManager.getLogger(TranscoderNotifier.class);
     private TranscoderNotifier TransNotify = null;
     public static final String AMFSETDATAFRAME = "amfsetdataframe";
     public static final String ONMETADATA_VIDEOCODECIDSTR = "videocodecidstring";
