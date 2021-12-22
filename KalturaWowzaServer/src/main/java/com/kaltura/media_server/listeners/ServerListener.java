@@ -36,7 +36,7 @@ public class ServerListener implements IServerNotify2 {
 			loadAndLockAppInstance(IVHost.VHOST_DEFAULT, "kLive", IApplicationInstance.DEFAULT_APPINSTANCE_NAME);
 
 		} catch ( Exception e) {
-			logger.error("listeners.ServerListener::onServerInit Failed to initialize services.KalturaAPI: " + e.getMessage());
+			logger.error("listeners.ServerListener::onServerInit Failed to initialize services.KalturaAPI: ", e);
 		}
 		Thread.setDefaultUncaughtExceptionHandler(new KalturaUncaughtExceptionHnadler());
 	}

@@ -128,7 +128,7 @@ public class AuthenticationModule extends ModuleBase  {
                 }
             }
             catch (Exception e) {
-                logger.error("(" + entryId + ") Exception was thrown during authentication process");
+                logger.error("(" + entryId + ") Exception was thrown during authentication process",e);
                 KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_FLAG, true);
                 KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_TIME, System.currentTimeMillis());
                 KalturaEntryDataPersistence.setProperty(entryId, Constants.KALTURA_ENTRY_AUTHENTICATION_ERROR_MSG, e.getMessage());

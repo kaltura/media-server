@@ -57,12 +57,14 @@ public class KalturaAPI {
         this.serverConfiguration = serverConfiguration;
         try {
             hostname = Utils.getMediaServerHostname();
-            logger.debug("Kaltura server host name: " + hostname);
+            logger.warn("Kaltura server host name: " + hostname);
             initClient();
         } catch (Exception e) {
             if (e instanceof UnknownHostException){
                 logger.error("Failed to determine server host name: ", e);
             }
+
+            logger.error("Exception in KalturaAPI ", e);
             throw new KalturaServerException("Error while loading services.KalturaAPI: " + e.getMessage());
         }
     }
@@ -80,7 +82,7 @@ public class KalturaAPI {
             throw new KalturaServerException("Missing configuration [" + Constants.KALTURA_SERVER_ADMIN_SECRET + "]");
 
         clientConfig.setEndpoint((String) serverConfiguration.get(Constants.KALTURA_SERVER_URL));
-        logger.debug("Initializing Kaltura client, URL: " + clientConfig.getEndpoint());
+        logger.info("Initializing Kaltura client, URL: " + clientConfig.getEndpoint());
 
         if (serverConfiguration.containsKey(Constants.KALTURA_SERVER_TIMEOUT))
             clientConfig.setTimeout(Integer.parseInt((String) serverConfiguration.get(Constants.KALTURA_SERVER_TIMEOUT)) * 1000);

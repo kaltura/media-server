@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="info">
-    <!--
+    <!--run
 
         Available ThreadContext map keys:
 
@@ -28,15 +28,15 @@
                 <TimeBasedTriggeringPolicy />
             </Policies>
             <DefaultRolloverStrategy>
-                <Delete basePath="${sys:com.wowza.wms.ConfigHome}/logs" maxDepth="1">
-                    <IfLastModified age="15d" />
+                <Delete basePath="/var/log/wowza/logs" maxDepth="1">
+                    <IfLastModified age="14d" />
                 </Delete>
             </DefaultRolloverStrategy>
         </RollingFile>
 
 
 
-        <RollingFile name="serverAccess" fileName="${sys:com.wowza.wms.ConfigHome}/logs/wowzastreamingengine_access.log" filePattern="${sys:com.wowza.wms.ConfigHome}/logs/wowzastreamingengine_access.%d{yyyy-MM-dd}.log">
+        <RollingFile name="serverAccess" fileName="/var/log/wowza/wowzastreamingengine_access.log" filePattern="/var/log/wowza/wowzastreamingengine_access.%d{yyyy-MM-dd}.log">
             <PatternLayout>
                 <Header>#Version: 1.0\n#Start-Date: %d{YYY-MM-dd HH:mm:ss zzz}\n#Software: ${sys:wse-software-version}\n#Date: %d{YYY-MM-dd}\n#Fields: date\ttime\ttz\tx-event\tx-category\tx-severity\tx-status\tx-ctx\tx-comment\tx-vhost\tx-app\tx-appinst\tx-duration\ts-ip\ts-port\ts-uri\tc-ip\tc-proto\tc-referrer\tc-user-agent\tc-client-id\tcs-bytes\tsc-bytes\tx-stream-id\tx-spos\tcs-stream-bytes\tsc-stream-bytes\tx-sname\tx-sname-query\tx-file-name\tx-file-ext\tx-file-size\tx-file-length\tx-suri\tx-suri-stem\tx-suri-query\tcs-uri-stem\tcs-uri-query%n</Header>
                 <Pattern>%d{yyyy-MM-dd}\t%d{HH:mm:ss}\t%d{z}\t%replace{%X{x-event}}{^$}{-}\t%replace{%X{x-category}}{^$}{-}\t%replace{%X{x-severity}}{^$}{-}\t%replace{%X{x-status}}{^$}{-}\t%replace{%X{x-ctx}}{^$}{-}\t%replace{%X{x-comment}}{^$}{-}\t%replace{%X{x-vhost}}{^$}{-}\t%replace{%X{x-app}}{^$}{-}\t%replace{%X{x-appinst}}{^$}{-}\t%replace{%X{x-duration}}{^$}{-}\t%replace{%X{s-ip}}{^$}{-}\t%replace{%X{s-port}}{^$}{-}\t%replace{%X{s-uri}}{^$}{-}\t%replace{%X{c-ip}}{^$}{-}\t%replace{%X{c-proto}}{^$}{-}\t%replace{%X{c-referrer}}{^$}{-}\t%replace{%X{c-user-agent}}{^$}{-}\t%replace{%X{c-client-id}}{^$}{-}\t%replace{%X{cs-bytes}}{^$}{-}\t%replace{%X{sc-bytes}}{^$}{-}\t%replace{%X{x-stream-id}}{^$}{-}\t%replace{%X{x-spos}}{^$}{-}\t%replace{%X{cs-stream-bytes}}{^$}{-}\t%replace{%X{sc-stream-bytes}}{^$}{-}\t%replace{%X{x-sname}}{^$}{-}\t%replace{%X{x-sname-query}}{^$}{-}\t%replace{%X{x-file-name}}{^$}{-}\t%replace{%X{x-file-ext}}{^$}{-}\t%replace{%X{x-file-size}}{^$}{-}\t%replace{%X{x-file-length}}{^$}{-}\t%replace{%X{x-suri}}{^$}{-}\t%replace{%X{x-suri-stem}}{^$}{-}\t%replace{%X{x-suri-query}}{^$}{-}\t%replace{%X{cs-uri-stem}}{^$}{-}\t%replace{%X{cs-uri-query}}{^$}{-}%n</Pattern>
@@ -46,14 +46,14 @@
                 <TimeBasedTriggeringPolicy />
             </Policies>
             <DefaultRolloverStrategy>
-                <Delete basePath="${sys:com.wowza.wms.ConfigHome}/logs" maxDepth="1">
-                    <IfLastModified age="5d" />
+                <Delete basePath="/var/log/wowza/logs" maxDepth="1">
+                    <IfLastModified age="14d" />
                 </Delete>
             </DefaultRolloverStrategy>
         </RollingFile>
 
 
-        <RollingFile name="serverError" fileName="${sys:com.wowza.wms.ConfigHome}/logs/wowzastreamingengine_error.log" filePattern="${sys:com.wowza.wms.ConfigHome}/logs/wowzastreamingengine_error.%d{yyyy-MM-dd}.log">
+        <RollingFile name="serverError" fileName="/var/log/wowza/logs/wowzastreamingengine_error.log" filePattern="/var/log/wowza/wowzastreamingengine_error.%d{yyyy-MM-dd}.log">
             <PatternLayout>
                 <Header>#Version: 1.0\n#Start-Date: %d{YYY-MM-dd HH:mm:ss zzz}\n#Software: ${sys:wse-software-version}\n#Date: %d{YYY-MM-dd}\n#Fields: x-severity\tx-category\tx-event\tdate\ttime\tc-client-id\tc-ip\tc-port\tcs-bytes\tsc-bytes\tx-duration\tx-sname\tx-stream-id\tx-spos\tsc-stream-bytes\tcs-stream-bytes\tx-file-size\tx-file-length\tx-ctx\tx-comment%n</Header>
                 <Pattern>%replace{%X{x-severity}}{^$}{-}\t%replace{%X{x-category}}{^$}{-}\t%replace{%X{x-event}}{^$}{-}\t%d{yyyy-MM-dd}\t%d{HH:mm:ss}\t%replace{%X{c-client-id}}{^$}{-}\t%replace{%X{c-ip}}{^$}{-}\t%replace{%X{c-port}}{^$}{-}\t%replace{%X{cs-bytes}}{^$}{-}\t%replace{%X{sc-bytes}}{^$}{-}\t%replace{%X{x-duration}}{^$}{-}\t%replace{%X{x-sname}}{^$}{-}\t%replace{%X{x-stream-id}}{^$}{-}\t%replace{%X{x-spos}}{^$}{-}\t%replace{%X{sc-stream-bytes}}{^$}{-}\t%replace{%X{cs-stream-bytes}}{^$}{-}\t%replace{%X{x-file-size}}{^$}{-}\t%replace{%X{x-file-length}}{^$}{-}\t%replace{%X{x-ctx}}{^$}{-}\t%replace{%X{x-comment}}{^$}{-}%n</Pattern>
@@ -63,13 +63,13 @@
                 <TimeBasedTriggeringPolicy />
             </Policies>
             <DefaultRolloverStrategy>
-                <Delete basePath="${sys:com.wowza.wms.ConfigHome}/logs" maxDepth="1">
-                    <IfLastModified age="5d" />
+                <Delete basePath="/var/log/wowza/logs" maxDepth="1">
+                    <IfLastModified age="14d" />
                 </Delete>
             </DefaultRolloverStrategy>
         </RollingFile>
 
-        <RollingFile name="serverStats" fileName="${sys:com.wowza.wms.ConfigHome}/logs/wowzastreamingengine_stats.log" filePattern="${sys:com.wowza.wms.ConfigHome}/logs/wowzastreamingengine_stats.%d{yyyy-MM-dd}.log">
+        <RollingFile name="serverStats" fileName="/var/log/wowza/wowzastreamingengine_stats.log" filePattern="/var/log/wowza/wowzastreamingengine_stats.%d{yyyy-MM-dd}.log">
             <Filters>
                 <ContextMapFilter onMatch="DENY" onMismatch="NEUTRAL">
                     <KeyValuePair key="x-event" value="comment"/>
@@ -88,8 +88,8 @@
                 <TimeBasedTriggeringPolicy />
             </Policies>
             <DefaultRolloverStrategy>
-                <Delete basePath="${sys:com.wowza.wms.ConfigHome}/logs" maxDepth="1">
-                    <IfLastModified age="5d" />
+                <Delete basePath="/var/log/wowza/logs" maxDepth="1">
+                    <IfLastModified age="14d" />
                 </Delete>
             </DefaultRolloverStrategy>
         </RollingFile>
@@ -246,11 +246,14 @@
 
     </Appenders>
     <Loggers>
+
+        <Logger name="com.kaltura" level="debug">
+            <AppenderRef ref="kaltura"/>
+        </Logger>
         <Root level="info">
             <AppenderRef ref="stdout" level="debug"/>
             <AppenderRef ref="serverAccess" level="info"/>
             <AppenderRef ref="serverError" level="warn"/>
-            <AppenderRef ref="kaltura" level="debug"/>
             <!-- <AppenderRef ref="serverStats" level="info"/> -->
             <!-- <AppenderRef ref="vhostAccess" level="info"/> -->
             <!-- <AppenderRef ref="vhostError" level="warn"/> -->
