@@ -31,12 +31,13 @@ WORKDIR  /usr/local/source
 COPY --from=baseWowza   /usr/local/WowzaStreamingEngine/lib /opt/local/WowzaStreamingEngine/lib
 
 #copy all source code
+COPY ./installation ./installation
 COPY ./KalturaWowzaServer ./KalturaWowzaServer
 COPY ./build.gradle ./build.gradle
 COPY ./settings.gradle ./settings.gradle
 
 # build
-ARG JarVersion=4.7.8.1
+ARG JarVersion=4.7.9.1
 RUN gradle -Pversion=$JarVersion prepareRelease
 
 
