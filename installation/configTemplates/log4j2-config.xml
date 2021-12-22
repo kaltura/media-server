@@ -28,7 +28,7 @@
                 <TimeBasedTriggeringPolicy />
             </Policies>
             <DefaultRolloverStrategy>
-                <Delete basePath="/var/log/wowza/logs" maxDepth="1">
+                <Delete basePath="/var/log/wowza" maxDepth="1">
                     <IfLastModified age="14d" />
                 </Delete>
             </DefaultRolloverStrategy>
@@ -46,14 +46,14 @@
                 <TimeBasedTriggeringPolicy />
             </Policies>
             <DefaultRolloverStrategy>
-                <Delete basePath="/var/log/wowza/logs" maxDepth="1">
+                <Delete basePath="/var/log/wowza" maxDepth="1">
                     <IfLastModified age="14d" />
                 </Delete>
             </DefaultRolloverStrategy>
         </RollingFile>
 
 
-        <RollingFile name="serverError" fileName="/var/log/wowza/logs/wowzastreamingengine_error.log" filePattern="/var/log/wowza/wowzastreamingengine_error.%d{yyyy-MM-dd}.log">
+        <RollingFile name="serverError" fileName="/var/log/wowza/wowzastreamingengine_error.log" filePattern="/var/log/wowza/wowzastreamingengine_error.%d{yyyy-MM-dd}.log">
             <PatternLayout>
                 <Header>#Version: 1.0\n#Start-Date: %d{YYY-MM-dd HH:mm:ss zzz}\n#Software: ${sys:wse-software-version}\n#Date: %d{YYY-MM-dd}\n#Fields: x-severity\tx-category\tx-event\tdate\ttime\tc-client-id\tc-ip\tc-port\tcs-bytes\tsc-bytes\tx-duration\tx-sname\tx-stream-id\tx-spos\tsc-stream-bytes\tcs-stream-bytes\tx-file-size\tx-file-length\tx-ctx\tx-comment%n</Header>
                 <Pattern>%replace{%X{x-severity}}{^$}{-}\t%replace{%X{x-category}}{^$}{-}\t%replace{%X{x-event}}{^$}{-}\t%d{yyyy-MM-dd}\t%d{HH:mm:ss}\t%replace{%X{c-client-id}}{^$}{-}\t%replace{%X{c-ip}}{^$}{-}\t%replace{%X{c-port}}{^$}{-}\t%replace{%X{cs-bytes}}{^$}{-}\t%replace{%X{sc-bytes}}{^$}{-}\t%replace{%X{x-duration}}{^$}{-}\t%replace{%X{x-sname}}{^$}{-}\t%replace{%X{x-stream-id}}{^$}{-}\t%replace{%X{x-spos}}{^$}{-}\t%replace{%X{sc-stream-bytes}}{^$}{-}\t%replace{%X{cs-stream-bytes}}{^$}{-}\t%replace{%X{x-file-size}}{^$}{-}\t%replace{%X{x-file-length}}{^$}{-}\t%replace{%X{x-ctx}}{^$}{-}\t%replace{%X{x-comment}}{^$}{-}%n</Pattern>
@@ -63,7 +63,7 @@
                 <TimeBasedTriggeringPolicy />
             </Policies>
             <DefaultRolloverStrategy>
-                <Delete basePath="/var/log/wowza/logs" maxDepth="1">
+                <Delete basePath="/var/log/wowza" maxDepth="1">
                     <IfLastModified age="14d" />
                 </Delete>
             </DefaultRolloverStrategy>
@@ -88,7 +88,7 @@
                 <TimeBasedTriggeringPolicy />
             </Policies>
             <DefaultRolloverStrategy>
-                <Delete basePath="/var/log/wowza/logs" maxDepth="1">
+                <Delete basePath="/var/log/wowza" maxDepth="1">
                     <IfLastModified age="14d" />
                 </Delete>
             </DefaultRolloverStrategy>
