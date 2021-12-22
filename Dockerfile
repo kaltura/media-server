@@ -36,7 +36,7 @@ COPY ./build.gradle ./build.gradle
 COPY ./settings.gradle ./settings.gradle
 
 # build
-ARG JarVersion=3.0.12
+ARG JarVersion=4.7.8.1
 RUN gradle -Pversion=$JarVersion prepareRelease
 
 
@@ -76,11 +76,15 @@ COPY --from=build /usr/local/source/KalturaWowzaServer/build/tmp/artifacts/* ./
 
 
 #create symlinks
-RUN rm -f KalturaClientLib.jar && \
+RUN mkdir /release && \
+    cp KalturaWowzaServer-*.jar /release && \
+    cp KalturaClientLib-*.jar /release && \
+    rm -f KalturaClientLib.jar && \
     rm -f KalturaWowzaServer.jar && \
     ln -s KalturaClientLib-*.jar KalturaClientLib.jar && \
     ln -s KalturaWowzaServer-*.jar KalturaWowzaServer.jar
 
+COPY --from=build /usr/local/source/KalturaWowzaServer/build/distributions/KalturaWowzaServer-install-*.zip /release/
 
 
 # copy configuration
